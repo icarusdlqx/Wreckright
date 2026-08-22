@@ -270,6 +270,7 @@ export class Renderer {
     this.camera.advance(deltaSeconds);
     this.camera.update(this.viewport);
     this.renderer.render(this.scene, this.camera.camera);
+    this.effects.advance(deltaSeconds);
   }
 
   positionOf(id: EntityId): Vec2 | null {

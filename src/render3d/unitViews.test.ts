@@ -158,8 +158,33 @@ describe('rendered weapon mounts', () => {
     expect(rig.kick).toBe(rig.travel);
     expect(units.viewFor(world, entity).model.hullRecoil.kick).toBeGreaterThan(0);
     units.beginFrame(1 / 30);
+    expect(rig.kick).toBe(rig.travel);
+    units.beginFrame(1 / 30);
     expect(rig.slide.position.x).toBeLessThan(0);
     expect(rig.kick).toBeLessThan(rig.travel);
+    units.dispose();
+  });
+
+  it('keeps a newly fired emitter posed through a slow low-FX frame', () => {
+    const world = testWorld('weapon-first-frame');
+    const entity = unitOf(world, 'sentinel_brawler');
+    const units = new UnitViews(new Scene(), () => 0);
+    const rig = units.viewFor(world, entity).model.weapons.find(
+      (candidate) => candidate.weaponId === 'medium_laser',
+    );
+    expect(rig).toBeDefined();
+    if (rig === undefined) return;
+
+    units.setRenderQuality(200, true);
+    units.beginFrame();
+    units.markPlaced(entity.id);
+    expect(units.fireMount(entity.id, 'medium_laser', new Vector3())).toBe(true);
+    units.beginFrame(0.25);
+    expect(rig.cycle).toBe(1);
+    expect(rig.aperture?.scale.y).toBeLessThan(1);
+    units.beginFrame(1 / 60);
+    expect(rig.cycle).toBeGreaterThan(0);
+    expect(rig.cycle).toBeLessThan(1);
     units.dispose();
   });
 

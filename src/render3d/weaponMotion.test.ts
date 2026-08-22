@@ -67,7 +67,7 @@ describe('weapon motion', () => {
     expect(Number.isFinite(weapon.slide.position.x)).toBe(true);
   });
 
-  it('opens a sealed aperture without translating the emitter housing', () => {
+  it('presents a sealed aperture once before low-FX damping settles it', () => {
     const weapon = rig('aurelian');
 
     triggerWeaponRecoil(weapon);
@@ -76,9 +76,29 @@ describe('weapon motion', () => {
     expect(weapon.slide.position.x).toBe(0);
     expect(weapon.cycle).toBe(1);
     expect(weapon.aperture?.scale.y).toBe(0.5);
+    advanceWeaponRecoil(weapon, 0.25, false, true);
+    expect(weapon.cycle).toBe(1);
+    expect(weapon.aperture?.scale.y).toBe(0.5);
+    advanceWeaponRecoil(weapon, 1 / 60, false, true);
+    expect(weapon.cycle).toBeGreaterThan(0);
+    expect(weapon.cycle).toBeLessThan(1);
+    expect(weapon.aperture?.scale.y).toBeGreaterThan(0.5);
     advanceWeaponRecoil(weapon, 1, false, true);
     expect(weapon.cycle).toBe(0);
     expect(weapon.aperture?.scale.y).toBe(1);
+  });
+
+  it('presents a firing cycle once before reduced-motion damping begins', () => {
+    const weapon = rig('aurelian');
+
+    triggerWeaponRecoil(weapon);
+    advanceWeaponRecoil(weapon, 0.25, true);
+    expect(weapon.cycle).toBe(1);
+    expect(weapon.aperture?.scale.y).toBe(0.5);
+
+    advanceWeaponRecoil(weapon, 1 / 60, true);
+    expect(weapon.cycle).toBeGreaterThan(0);
+    expect(weapon.cycle).toBeLessThan(1);
   });
 
   it('cycles a prebuilt barrel bank around its firing axis', () => {

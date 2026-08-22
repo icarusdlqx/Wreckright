@@ -73,29 +73,32 @@ describe('integrated combat presentation', () => {
     active.destroy();
   });
 
-  it('rejects hidden shooter and target traffic before any fixed-pool admission', () => {
+  it('rejects wholly hidden traffic but presents fire involving a visible endpoint', () => {
     const fire = vi.spyOn(TracerLayer.prototype, 'fire');
     const burst = vi.spyOn(TracerLayer.prototype, 'burst');
     const mechanical = vi.spyOn(MechanicalDischargeLayer.prototype, 'fire');
     const world = playerWorld('hidden-combat-presentation');
     const ally = world.entities.find((entity) => entity.team === (world.playerTeam ?? 0));
-    const enemy = world.entities.find((entity) => entity.team !== (world.playerTeam ?? 0));
+    const enemies = world.entities.filter((entity) => entity.team !== (world.playerTeam ?? 0));
+    const enemy = enemies[0];
+    const otherEnemy = enemies[1];
     expect(world.vision).not.toBeNull();
     expect(ally).toBeDefined();
     expect(enemy).toBeDefined();
-    if (world.vision === null || ally === undefined || enemy === undefined) return;
+    expect(otherEnemy).toBeDefined();
+    if (
+      world.vision === null || ally === undefined ||
+      enemy === undefined || otherEnemy === undefined
+    ) return;
     world.vision.visible.delete(enemy.id);
+    world.vision.visible.delete(otherEnemy.id);
     const hiddenEvents: SimEvent[] = [
       {
         type: 'weapon_fired', tick: 1, shooterId: enemy.id,
-        targetId: ally.id, weaponId: 'ac5',
+        targetId: otherEnemy.id, weaponId: 'ac5',
       },
       {
-        type: 'weapon_fired', tick: 1, shooterId: ally.id,
-        targetId: enemy.id, weaponId: 'ac5',
-      },
-      {
-        type: 'projectile_hit', tick: 2, shooterId: ally.id, targetId: enemy.id,
+        type: 'projectile_hit', tick: 2, shooterId: enemy.id, targetId: otherEnemy.id,
         weaponId: 'ac5', location: 'centre_torso', damage: 8, arc: 'front',
       },
     ];
@@ -110,10 +113,18 @@ describe('integrated combat presentation', () => {
     expect(mechanical).not.toHaveBeenCalled();
     expect(scene.children.some((child) => child instanceof PointLight && child.visible)).toBe(false);
 
-    world.vision.visible.add(enemy.id);
-    active.consume(world, hiddenEvents);
+    active.consume(world, [
+      {
+        type: 'weapon_fired', tick: 3, shooterId: enemy.id,
+        targetId: ally.id, weaponId: 'ac5',
+      },
+      {
+        type: 'weapon_fired', tick: 3, shooterId: ally.id,
+        targetId: enemy.id, weaponId: 'ac5',
+      },
+    ]);
     expect(fire).toHaveBeenCalledTimes(2);
-    expect(burst).toHaveBeenCalledTimes(1);
+    expect(burst).not.toHaveBeenCalled();
     active.destroy();
   });
 
