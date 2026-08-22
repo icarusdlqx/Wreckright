@@ -1,6 +1,6 @@
 import { Color, PointLight, Scene, Vector3 } from 'three';
 import { describe, expect, it, vi } from 'vitest';
-import { testWorld } from '../../tests/support';
+import { playerWorld, testWorld } from '../../tests/support';
 import type { SimEvent } from '../sim/events';
 import { BattleEffects } from './battleEffects';
 import { TacticalCamera } from './camera';
@@ -113,6 +113,107 @@ describe('battle camera feedback', () => {
 
     expect(fire.mock.calls[0]?.[4]).toBe(world.catalog.weapons.get('ac5')?.velocity);
     fire.mockRestore();
+  });
+
+  it('presents fire when either combat endpoint is visible', () => {
+    const world = playerWorld('partly-visible-fire');
+    const ally = world.entities.find((entity) => entity.team === world.playerTeam);
+    const enemies = world.entities.filter((entity) => entity.team !== world.playerTeam);
+    const firstEnemy = enemies[0];
+    const secondEnemy = enemies[1];
+    expect(world.vision).not.toBeNull();
+    expect(ally).toBeDefined();
+    expect(firstEnemy).toBeDefined();
+    expect(secondEnemy).toBeDefined();
+    if (
+      world.vision === null || ally === undefined ||
+      firstEnemy === undefined || secondEnemy === undefined
+    ) return;
+    world.vision.visible.delete(firstEnemy.id);
+    world.vision.visible.delete(secondEnemy.id);
+    const fire = vi.spyOn(TracerLayer.prototype, 'fire').mockImplementation(() => undefined);
+    const resolveMuzzle = vi.fn(() => false);
+    const feedback = new BattleEffects(
+      new Scene(),
+      new Color(0x1a2024),
+      new TacticalCamera(false),
+      () => 0,
+      () => ({ x: 120, y: 80 }),
+      resolveMuzzle,
+    );
+
+    feedback.consume(world, [
+      {
+        type: 'weapon_fired', tick: 1, shooterId: firstEnemy.id,
+        targetId: ally.id, weaponId: 'ac5',
+      },
+      {
+        type: 'weapon_fired', tick: 1, shooterId: ally.id,
+        targetId: firstEnemy.id, weaponId: 'ac5',
+      },
+    ]);
+    expect(fire).toHaveBeenCalledTimes(2);
+    expect(resolveMuzzle).toHaveBeenCalledTimes(2);
+
+    feedback.consume(world, [{
+      type: 'weapon_fired', tick: 2, shooterId: firstEnemy.id,
+      targetId: secondEnemy.id, weaponId: 'ac5',
+    }]);
+    expect(fire).toHaveBeenCalledTimes(2);
+    feedback.destroy();
+    fire.mockRestore();
+  });
+
+  it('keeps a fresh beam and flash alive through the first slow frame', () => {
+    const scene = new Scene();
+    const feedback = new BattleEffects(
+      scene,
+      new Color(0x1a2024),
+      new TacticalCamera(false),
+      () => 0,
+      (id) => (id === 1 ? { x: 0, y: 0 } : { x: 100, y: 0 }),
+      () => false,
+    );
+    const tracers = (feedback as unknown as { tracers: TracerLayer }).tracers;
+    feedback.consume(testWorld('fresh-beam'), [{
+      type: 'weapon_fired', tick: 1, shooterId: 1,
+      targetId: 2, weaponId: 'medium_laser',
+    }]);
+
+    feedback.finishFrame(0.25);
+    expect(tracers.stats().families.beam.active).toBe(1);
+    expect(scene.children.some((child) => child instanceof PointLight && child.visible)).toBe(true);
+
+    feedback.advance(0.25);
+    expect(tracers.stats().families.beam.active).toBe(0);
+    expect(scene.children.some((child) => child instanceof PointLight && child.visible)).toBe(false);
+    feedback.destroy();
+  });
+
+  it('ages older trajectories even when another shot is admitted', () => {
+    const feedback = new BattleEffects(
+      new Scene(),
+      new Color(0x1a2024),
+      new TacticalCamera(false),
+      () => 0,
+      (id) => (id === 1 ? { x: 0, y: 0 } : { x: 100, y: 0 }),
+      () => false,
+    );
+    const tracers = (feedback as unknown as { tracers: TracerLayer }).tracers;
+    const event: SimEvent = {
+      type: 'weapon_fired', tick: 1, shooterId: 1,
+      targetId: 2, weaponId: 'medium_laser',
+    };
+    feedback.consume(testWorld('independent-beams'), [event]);
+    feedback.finishFrame(0.1);
+    feedback.advance(0.1);
+
+    feedback.consume(testWorld('independent-beams'), [{ ...event, tick: 2 }]);
+    feedback.finishFrame(0.13);
+    expect(tracers.stats().families.beam.active).toBe(2);
+    feedback.advance(0.13);
+    expect(tracers.stats().families.beam.active).toBe(1);
+    feedback.destroy();
   });
 
   it('bounds mechanical discharge to ballistic fire and honours reduced motion', () => {

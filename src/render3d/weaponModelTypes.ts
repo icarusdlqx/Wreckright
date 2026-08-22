@@ -71,6 +71,7 @@ export interface WeaponRig {
   kick: number;
   travel: number;
   cycle: number;
+  freshCycle: boolean;
   feed: Object3D | null;
   feedKind: 'stroke' | 'spin';
   feedRestX: number;

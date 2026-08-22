@@ -23,6 +23,7 @@ export function createWeaponRig(
     kick: 0,
     travel,
     cycle: 0,
+    freshCycle: false,
     feed: parts.feed ?? null,
     feedKind: parts.feedKind ?? 'stroke',
     feedRestX: parts.feed?.position.x ?? 0,
@@ -39,7 +40,8 @@ export function triggerWeaponMotion(rig: WeaponRig): void {
     rig.kick = Math.max(rig.kick, rig.travel);
   }
   rig.cycle = 1;
-  applyWeaponMotion(rig, false);
+  rig.freshCycle = true;
+  applyWeaponMotion(rig);
 }
 
 /** Every moving piece already exists; sustained fire only changes scalar transforms. */
@@ -50,16 +52,21 @@ export function advanceWeaponMotion(
   lowFx = false,
 ): void {
   const delta = Number.isFinite(deltaSeconds) ? Math.max(0, deltaSeconds) : 0;
+  if (rig.freshCycle) {
+    rig.freshCycle = false;
+    applyWeaponMotion(rig);
+    return;
+  }
   rig.kick *= Math.exp(-delta * 13);
-  rig.cycle = lowFx ? 0 : rig.cycle * Math.exp(-delta * (reducedMotion ? 18 : 9));
+  rig.cycle *= Math.exp(-delta * (lowFx ? 24 : reducedMotion ? 18 : 9));
   if (rig.kick < 0.005) rig.kick = 0;
   if (rig.cycle < 0.002) rig.cycle = 0;
-  applyWeaponMotion(rig, lowFx);
+  applyWeaponMotion(rig);
 }
 
-function applyWeaponMotion(rig: WeaponRig, lowFx: boolean): void {
+function applyWeaponMotion(rig: WeaponRig): void {
   rig.slide.position.x = rig.nativeFaction === 'linewrought' && rig.kick !== 0 ? -rig.kick : 0;
-  const cycle = lowFx ? 0 : rig.cycle;
+  const cycle = rig.cycle;
   if (rig.feed !== null && rig.feedKind === 'spin') {
     rig.feed.rotation.x = rig.feedRestTurn + rig.feedTravel * cycle;
   } else if (rig.feed !== null) {

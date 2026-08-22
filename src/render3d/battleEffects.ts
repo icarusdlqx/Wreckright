@@ -3,8 +3,7 @@ import type { Weapon } from '../schema/weapon';
 import type { MechLocation } from '../schema/common';
 import type { SimEvent } from '../sim/events';
 import { findEntity, type EntityId, type Vec2, type World } from '../sim/types';
-import type { TacticalCamera } from './camera';
-import type { Viewport } from './camera';
+import type { TacticalCamera, Viewport } from './camera';
 import { canPresentEntity, CombatReadouts } from './combatReadouts';
 import { JetLayer, ScarLayer, SmokeLayer } from './effects';
 import { measureReadoutLayout } from './readoutSafeArea';
@@ -163,18 +162,21 @@ export class BattleEffects {
       );
     }
 
+    this.jets.commit();
+    this.readouts?.advance(deltaSeconds);
+  }
+
+  advance(deltaSeconds: number): void {
+    if (this.destroyed) return;
     for (const flash of this.flashes) {
       if (flash.ttl <= 0) continue;
       flash.ttl -= deltaSeconds;
       if (flash.ttl <= 0) flash.light.visible = false;
       else flash.light.intensity *= 0.72;
     }
-
-    this.jets.commit();
     this.tracers.update(deltaSeconds);
     this.mechanical.update(deltaSeconds);
     this.smoke.update(deltaSeconds);
-    this.readouts?.advance(deltaSeconds);
   }
 
   consume(world: World, events: readonly SimEvent[]): void {
@@ -268,7 +270,7 @@ export class BattleEffects {
         continue;
       }
 
-      if (!canPresentEntity(world, event.shooterId) || !canPresentEntity(world, event.targetId)) {
+      if (!canPresentEntity(world, event.shooterId) && !canPresentEntity(world, event.targetId)) {
         continue;
       }
       const shooter = this.positionOf(event.shooterId);
