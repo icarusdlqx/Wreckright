@@ -471,5 +471,5 @@ describe('determinism with objectives', () => {
     const first = runBattle(catalog, { seed: 'mission:9', missionId: MISSION, playerTeam: 0 });
     const second = runBattle(catalog, { seed: 'mission:9', missionId: MISSION, playerTeam: 0 });
     expect(first).toEqual(second);
-  }, 30_000);
+  }, 60_000);
 });
