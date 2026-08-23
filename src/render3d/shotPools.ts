@@ -50,7 +50,8 @@ const MIN_PROJECTILE_LIFE = 0.05;
 function poolMaterial(opacity = 1): MeshBasicMaterial {
   return new MeshBasicMaterial({
     color: 0xffffff,
-    vertexColors: true,
+    // Enabling geometry colours would multiply these instance-only colours by black.
+    vertexColors: false,
     transparent: true,
     opacity,
     blending: AdditiveBlending,

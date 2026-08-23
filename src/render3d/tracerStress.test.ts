@@ -4,6 +4,7 @@ import {
   Matrix4,
   Material,
   Mesh,
+  MeshBasicMaterial,
   Object3D,
   Vector3,
 } from 'three';
@@ -42,6 +43,23 @@ function resources(layer: TracerLayer): {
 }
 
 describe('fixed tracer pools', () => {
+  it('renders instance colours without requiring missing vertex-colour attributes', () => {
+    const layer = new TracerLayer();
+    const meshes = layer.group.children.filter((node): node is InstancedMesh => (
+      node instanceof InstancedMesh
+    ));
+
+    expect(meshes.length).toBeGreaterThan(0);
+    for (const mesh of meshes) {
+      expect(mesh.geometry.getAttribute('color')).toBeUndefined();
+      expect(mesh.material).toBeInstanceOf(MeshBasicMaterial);
+      expect((mesh.material as MeshBasicMaterial).vertexColors).toBe(false);
+      expect(mesh.instanceColor).not.toBeNull();
+    }
+
+    layer.dispose();
+  });
+
   it('keeps 1,000 mixed events inside the preallocated scene and resource set', () => {
     const layer = new TracerLayer();
     const children = [...layer.group.children];
