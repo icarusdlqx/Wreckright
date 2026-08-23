@@ -33,6 +33,7 @@ const UNIT: UnitSnapshot = {
   downRemaining: 0,
   staggered: false,
   motion: 'stationary',
+  targetId: null,
   targetName: null,
   targetRange: null,
   rangeToLance: 0,
@@ -82,12 +83,19 @@ const UNIT: UnitSnapshot = {
     shedGroups: [],
   },
   hasMoveOrder: false,
+  hasAttackOrder: false,
   jumpRange: 0,
   jumpCooldown: 0,
   canJump: false,
   posture: 'hold_position',
   identified: true,
   sensorRange: 600,
+  sightRange: 300,
+  signature: 0.85,
+  chassisTraits: [],
+  role: 'Brawler',
+  frameClass: 'Heavy mech',
+  chassisSummary: 'A close-range line breaker with heavy armour and limited reach.',
 };
 
 function buttonTag(markup: string, testId: string): string {

@@ -1,5 +1,5 @@
 import type { Catalog } from '../schema/load';
-import { sensorRangeFor } from '../sim/sensors';
+import { sensorRangeFor, sightRangeFor } from '../sim/sensors';
 
 /**
  * Enough of a pilot to rate them. Both the campaign's roster records and the
@@ -80,7 +80,7 @@ export function pilotStats(catalog: Catalog, pilot: RateablePilot): PilotStat[] 
     {
       label: 'Sensors',
       score: Math.round((pilot.sensors / MAX_SKILL) * SCALE),
-      effect: `${Math.round(sensorRangeFor(catalog.rules.sensors, pilot.sensors))}m detection`,
+      effect: `${Math.round(sensorRangeFor(catalog.rules.sensors, pilot.sensors))}m sensor reach; ${Math.round(sightRangeFor(catalog.rules.sensors, pilot.sensors))}m base optics`,
     },
     {
       label: 'Killer',

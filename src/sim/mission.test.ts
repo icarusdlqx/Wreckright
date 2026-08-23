@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { catalog } from '../../tests/support';
 import { eventsOfType } from './events';
-import { isVisibleTo, tileExplored, tileVisible } from './sensors';
+import { isDetectedBy, isVisibleTo, tileExplored, tileVisible, trackFor } from './sensors';
 import { callSupport, SUPPORT_CALLS, type SupportCallId } from './support';
 import { isOperational, type MechEntity, type Vec2, type World } from './types';
 import { createWorld, runBattle, stepWorld } from './world';
@@ -224,6 +224,7 @@ describe('triggers', () => {
     occupy(world, 'south_post', 0);
     run(world, 240);
     expect(world.reveals.length).toBeGreaterThan(0);
+    expect(world.reveals[0]?.kind).toBe('optical');
   });
 });
 
@@ -379,10 +380,10 @@ describe('support calls', () => {
     world.resources.set(0, 10_000);
     callSupport(world, 0, 'sensor_probe', { x: 700, y: 300 });
     run(world, 3);
-    expect(world.reveals.some((reveal) => reveal.x === 700)).toBe(true);
+    expect(world.reveals.some((reveal) => reveal.x === 700 && reveal.kind === 'sensor')).toBe(true);
   });
 
-  it('a sensor probe actually lifts the fog and spots what is under it', () => {
+  it('a sensor probe classifies a contact without lifting fog or granting sight', () => {
     world.resources.set(0, 10_000);
     freeze(world);
 
@@ -407,9 +408,15 @@ describe('support calls', () => {
     callSupport(world, 0, 'sensor_probe', { ...hidden.pos });
     run(world, 3);
 
-    expect(tileVisible(world.vision, cell), 'the probe did not lift the fog').toBe(true);
-    expect(isVisibleTo(world.vision, hidden), 'the probe did not spot anything').toBe(true);
-    expect(tileExplored(world.vision, cell)).toBe(true);
+    expect(isDetectedBy(world.vision, hidden), 'the probe did not detect anything').toBe(true);
+    expect(trackFor(world.vision, hidden)).toMatchObject({
+      frame: hidden.frame,
+      chassisClass: hidden.chassisClass,
+      source: 'sensor',
+    });
+    expect(tileVisible(world.vision, cell), 'the probe incorrectly lifted the fog').toBe(false);
+    expect(isVisibleTo(world.vision, hidden), 'the probe incorrectly granted optical sight').toBe(false);
+    expect(tileExplored(world.vision, cell)).toBe(false);
   });
 
   it('a probe called by the other side does not light the map for the player', () => {

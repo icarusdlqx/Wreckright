@@ -1,6 +1,7 @@
 import { heightFactor, hitChance } from './combat';
-import { coverFactorAt, lineOfSight } from './los';
+import { coverFactorAt } from './los';
 import { angleDifference, bearing, distance } from './math';
+import { isSightedBy, visionFor } from './sensors';
 import {
   findAmmoBin,
   isDown,
@@ -9,6 +10,7 @@ import {
   type MechEntity,
   type World,
 } from './types';
+import { weaponHasFiringSolution } from './weaponEngagement';
 
 /**
  * The to-hit readout: what the player is told before committing to a shot.
@@ -119,11 +121,16 @@ function situationalFactors(world: World, shooter: MechEntity, target: MechEntit
  * not the instant; and the arc gate allows the torso wind-up (see `canBear`).
  */
 export function hitPreview(world: World, shooter: MechEntity, target: MechEntity): HitPreview | null {
-  if (!isOperational(target) || shooter.id === target.id) return null;
+  if (
+    target.team === shooter.team ||
+    !isSightedBy(visionFor(world, shooter.team), target) ||
+    !isOperational(target)
+  ) {
+    return null;
+  }
   if (shooter.weapons.length === 0) return null;
 
   const range = distance(shooter.pos, target.pos);
-  const sighted = lineOfSight(world.terrain, shooter.pos, target.pos).clear;
   const bears = canBear(world, shooter, target);
 
   const weapons: WeaponHitPreview[] = shooter.weapons.map((mount) => {
@@ -143,7 +150,9 @@ export function hitPreview(world: World, shooter: MechEntity, target: MechEntity
     if (range > weapon.range.long * world.rules.combat.maxRangeMultiplier) {
       return { ...base, chance: null, blocked: 'range' as const };
     }
-    if (!sighted) return { ...base, chance: null, blocked: 'sight' as const };
+    if (!weaponHasFiringSolution(world, shooter, target, weapon)) {
+      return { ...base, chance: null, blocked: 'sight' as const };
+    }
     if (!bears) return { ...base, chance: null, blocked: 'arc' as const };
 
     return {

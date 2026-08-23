@@ -1,5 +1,5 @@
 import type { DifficultyTier } from '../../schema/rules';
-import { isVisibleTo, visionFor } from '../sensors';
+import { isSightedBy, visionFor } from '../sensors';
 import { isOperational, type EntityId, type World } from '../types';
 import { healthFraction, scoreTargets } from './utility';
 
@@ -24,8 +24,9 @@ export function lanceFocus(world: World, team: number, tier: DifficultyTier): En
 
   let best: { id: EntityId; score: number } | null = null;
   for (const candidate of world.entities) {
-    if (candidate.team === team || !isOperational(candidate)) continue;
-    if (!isVisibleTo(vision, candidate)) continue;
+    if (candidate.team === team) continue;
+    if (!isSightedBy(vision, candidate)) continue;
+    if (!isOperational(candidate)) continue;
 
     const reachable = members.filter((member) =>
       scoreTargets(world, member, { focusTargetId: null, currentTargetId: null })

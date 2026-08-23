@@ -6,11 +6,11 @@ import { ShotBurstPool, type ShotBurstKind } from './shotBurstPool';
 import {
   InstantShotPool,
   ProjectileShotPool,
-  SmokeShotPool,
   type ProjectileEndpointResolver,
   type ProjectileEngagement,
 } from './shotPools';
 import type { ShotPoolSnapshot } from './shotPoolCore';
+import { SmokeShotPool } from './smokeShotPool';
 
 export type { ShotBurstKind };
 
@@ -94,12 +94,15 @@ export class TracerLayer {
     heightAt: (x: number, y: number) => number,
     engagement: ProjectileEngagement | null = null,
     flightSeconds: number | null = null,
+    visibleFlightSeconds: number | null = null,
   ): void {
     if (this.disposed) return;
     const endY = heightAt(to.x, to.y) + IMPACT_HEIGHT;
     const lifeScale = this.lifeScale();
     const detailScale = this.detailScale();
-    if (!this.lowFx && !this.reducedMotion) {
+    const delayed = flightSeconds !== null && visibleFlightSeconds !== null &&
+      visibleFlightSeconds < flightSeconds;
+    if (!delayed && !this.lowFx && !this.reducedMotion) {
       this.bursts.muzzle(
         from,
         colour,
@@ -163,6 +166,7 @@ export class TracerLayer {
         spread,
         lateralSpread,
         flightSeconds,
+        visibleFlightSeconds,
       );
     }
   }

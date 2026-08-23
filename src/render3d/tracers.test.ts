@@ -129,6 +129,39 @@ describe('authored shot presentation', () => {
     expect(positionAt(pool(layer, 'missile')).toArray()).toEqual([260, 22, 18]);
   });
 
+  it('holds an incoming round hidden until its final local-speed window', () => {
+    const layer = new TracerLayer();
+    const engagement = { shooterId: 7, targetId: 9, weaponId: 'lrm20' };
+    layer.fire(
+      new Vector3(100, 14, 0),
+      { x: 154, y: 0 },
+      visual('missile'),
+      1,
+      200,
+      0xffffff,
+      () => 0,
+      engagement,
+      2.7,
+      0.27,
+    );
+    const missile = pool(layer, 'missile');
+
+    expect(layer.stats().families.missile.active).toBe(1);
+    expect(visibleInstances(missile)).toBe(0);
+    expect(visibleInstances(pool(layer, 'burst'))).toBe(0);
+    layer.update(2.42);
+    expect(visibleInstances(missile)).toBe(0);
+
+    layer.update(0.145);
+    expect(visibleInstances(missile)).toBe(1);
+    expect(positionAt(missile).x).toBeCloseTo(127);
+
+    layer.update(0.134);
+    const endpoint = new Vector3(160, 22, 4);
+    expect(layer.resolveProjectile(engagement, endpoint)).toBe(true);
+    expect(positionAt(missile).toArray()).toEqual(endpoint.toArray());
+  });
+
   it('keeps a close fast round visible for its first rendered frame', () => {
     const layer = new TracerLayer();
     layer.fire(

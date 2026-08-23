@@ -1,4 +1,5 @@
 import type { MechLocation } from '../schema/common';
+import type { Chassis } from '../schema/chassis';
 import type { FrameArcTables } from './arcs';
 import type { Catalog } from '../schema/load';
 import type { Mission } from '../schema/mission';
@@ -137,6 +138,7 @@ export interface MechEntity {
   name: string;
   designId: string;
   chassisId: string;
+  chassisClass: Chassis['class'];
   /** What kind of machine this is, which decides most of what follows. */
   frame: Frame;
   /** Whether the hull was ever going anywhere. False for an emplacement. */
@@ -247,6 +249,8 @@ export interface MechEntity {
   /** Reactor governor: sheds hot weapon groups rather than risking a shutdown. */
   heatSafety: boolean;
   sensorRange: number;
+  /** How far the crew can resolve a target well enough to fight it. */
+  sightRange: number;
   /** How far into somebody else's sensor range this mech has to walk to be seen. */
   signature: number;
 

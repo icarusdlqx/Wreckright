@@ -7,7 +7,6 @@ import { roleOf } from './roles';
 import { distance } from '../math';
 import { findPath } from '../pathfind';
 import { replacePath } from '../pathProgress';
-import { isVisibleTo, visionFor } from '../sensors';
 import { canJump } from '../orders';
 import { beginJump } from '../movement';
 import {
@@ -19,21 +18,12 @@ import {
   type Vec2,
   type World,
 } from '../types';
-import {
-  approachPoint,
-  choosePosition,
-  shouldWithdraw,
-  stanceFor,
-  withdrawalPoint,
-} from './positioning';
-import {
-  canStillFight,
-  coreFraction,
-  engagementRange,
-  scoreTargets,
-  structureFraction,
-} from './utility';
+import { approachPoint, choosePosition, shouldWithdraw, stanceFor, withdrawalPoint } from './positioning';
+import { canStillFight, coreFraction, engagementRange, scoreTargets, structureFraction } from './utility';
 import { lanceFocus } from './focus';
+import { reconDestination } from './recon';
+import { observationDirective } from './observer';
+import { hasUsableFiringSolution } from '../weaponEngagement';
 
 export { lanceFocus } from './focus';
 
@@ -137,7 +127,7 @@ function holdAndShoot(
   const chosen = scoreTargets(world, mech, {
     focusTargetId,
     currentTargetId: mech.targetId,
-  })[0];
+  }).find(({ target }) => hasUsableFiringSolution(world, mech, target, 'intent'));
 
   if (chosen === undefined) {
     mech.targetId = null;
@@ -214,21 +204,13 @@ export function decideTactical(
       halt(mech);
       return;
     }
-    const vision = visionFor(world, mech.team);
-    const contact = world.entities
-      .filter((entity) =>
-        entity.team !== mech.team && isOperational(entity) && isVisibleTo(vision, entity),
-      )
-      .sort((a, b) => {
-        const byRange = distance(mech.pos, a.pos) - distance(mech.pos, b.pos);
-        return byRange === 0 ? a.id - b.id : byRange;
-      })[0];
-    const search = contact?.pos ?? {
+    if (holdingCommitment(world, mech)) return;
+    const search = reconDestination(world, mech) ?? {
       x: (world.terrain.width * world.terrain.tileSize) / 2,
       y: (world.terrain.height * world.terrain.tileSize) / 2,
     };
     if (distance(mech.pos, search) <= world.rules.movement.arrivalRadius * 2) halt(mech);
-    else if (!holdingCommitment(world, mech)) commitTo(world, mech, search, true);
+    else commitTo(world, mech, search, true);
     return;
   }
 
@@ -265,6 +247,18 @@ export function decideTactical(
 
   if (zoneCentre !== null && !onStation) {
     if (!holdingCommitment(world, mech)) commitTo(world, mech, zoneCentre, true);
+    return;
+  }
+
+  const observation = zone === null ? observationDirective(world, mech, chosen.target) : null;
+  if (observation !== null) {
+    mech.ai.stance = 'hold';
+    if (observation.destination === null) halt(mech);
+    else if (
+      !holdingCommitment(world, mech) ||
+      mech.ai.destination === null ||
+      distance(mech.ai.destination, observation.destination) > world.rules.movement.arrivalRadius * 2
+    ) commitTo(world, mech, observation.destination, true);
     return;
   }
 
@@ -334,16 +328,6 @@ function pointAtRange(from: Vec2, target: Vec2, range: number): Vec2 {
   return { x: from.x + (target.x - from.x) * t, y: from.y + (target.y - from.y) * t };
 }
 
-/** How far this mech's longest working gun still reaches. */
-function longestReach(world: World, mech: MechEntity): number {
-  let reach = 0;
-  for (const mount of mech.weapons) {
-    if (mount.destroyed) continue;
-    reach = Math.max(reach, world.catalog.weapons.get(mount.weaponId)?.range.long ?? 0);
-  }
-  return reach;
-}
-
 /**
  * A withdrawing mech leaves the field once nothing can still shoot it, or once it
  * reaches the edge of the map. The edge matters: against a lance carrying missiles
@@ -372,7 +356,7 @@ export function resolveDisengagement(world: World): void {
         (other) =>
           other.team !== mech.team &&
           isOperational(other) &&
-          distance(mech.pos, other.pos) <= longestReach(world, other) * rules.disengageRangeFactor,
+          hasUsableFiringSolution(world, other, mech, 'intent', other.pos, rules.disengageRangeFactor),
       );
       if (covered) continue;
     }

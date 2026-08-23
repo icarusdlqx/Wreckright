@@ -79,9 +79,13 @@ describe('PropLayer', () => {
       team: 0,
       visible: new Set(),
       identified: new Set(),
+      detected: new Set(),
+      tracks: new Map(),
+      observedHulks: new Set(),
       ghosts: new Map(),
       tiles: new Uint8Array(cells),
       explored: new Uint8Array(cells),
+      opticalFootprints: new Map(),
     };
 
     layer.update(vision);

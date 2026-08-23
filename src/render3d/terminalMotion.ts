@@ -6,6 +6,13 @@ export interface TerminalMotionState {
   destroyed: boolean;
 }
 
+/** A newly discovered wreck is already on the ground and emits no impact cue. */
+export function settleDestroyed(state: TerminalMotionState): void {
+  state.destroyed = true;
+  state.fall = 1;
+  state.landed = true;
+}
+
 export const enum KnockdownPoseResult {
   Continue = 0,
   Block = 1,

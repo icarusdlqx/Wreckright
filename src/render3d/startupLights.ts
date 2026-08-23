@@ -47,3 +47,15 @@ export function setStartupPowered(model: StartupModel, powered: boolean): void {
   startup.running = powered;
   for (const light of startup.lights) light.visible = false;
 }
+
+/** Applies current power without replaying a transient reveal/restart sequence. */
+export function synchronizeStartupPowered(model: StartupModel, powered: boolean): void {
+  const startup = model.startup;
+  if (startup === null) return;
+  startup.elapsed = 0;
+  startup.running = false;
+  for (let index = 0; index < startup.lights.length; index += 1) {
+    const light = startup.lights[index];
+    if (light !== undefined) light.visible = powered && startup.enabled[index] === true;
+  }
+}

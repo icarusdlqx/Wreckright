@@ -3,7 +3,7 @@ import { playerWorld, spawnDesign } from '../../tests/support';
 import { resolveProjectiles } from './combat';
 import { distance } from './math';
 import { isRooted, issueAttack, issueMove, setPosture, updatePlayerControl } from './orders';
-import { updateVision } from './sensors';
+import { updateTeamVisions, updateVision } from './sensors';
 import type { MechEntity, World } from './types';
 import { stepWorld } from './world';
 
@@ -69,6 +69,9 @@ beforeEach(() => {
   mech = built.mech;
   foe = built.foe;
   lane = openLane(world);
+  mech.sightRange = 2_000;
+  foe.sightRange = 2_000;
+  updateTeamVisions(world);
 });
 
 describe('hold position', () => {
@@ -143,7 +146,7 @@ describe('return fire', () => {
   it('still obeys an explicit attack order', () => {
     setPosture(mech, 'return_fire');
     if (world.vision !== null) updateVision(world, world.vision);
-    issueAttack(mech, foe.id, null);
+    issueAttack(world, mech, foe.id, null);
     updatePlayerControl(world, mech);
     expect(mech.targetId).toBe(foe.id);
   });

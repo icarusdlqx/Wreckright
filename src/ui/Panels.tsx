@@ -1,5 +1,6 @@
 import type { HitPreviewView, UnitSnapshot, WeaponSnapshot } from './store';
 export { SupportPalette } from './SupportPalette';
+export { HostileBar } from './ContactsBar';
 
 export function HeatBar({
   heat,
@@ -213,77 +214,5 @@ export function EventLog({ lines }: { lines: readonly string[] }) {
         <li key={`${index}-${line}`}>{line}</li>
       ))}
     </ul>
-  );
-}
-
-/**
- * Every hostile the lance can see, as a list you can click.
- *
- * Picking a target by clicking the machine itself is the natural way to do it,
- * and it is also the way that fails first: a mech eight pixels tall at the far
- * end of the map, a trackpad with no second button, a browser that routes the
- * click somewhere unexpected. This is the same order, given from a list that is
- * always the same size and always in the same place.
- */
-export function HostileBar({
-  enemies,
-  targetIds,
-  hasSelection,
-  onTarget,
-}: {
-  enemies: readonly UnitSnapshot[];
-  /** Which hostiles the current selection is already shooting at. */
-  targetIds: ReadonlySet<number>;
-  hasSelection: boolean;
-  onTarget: (id: number) => void;
-}) {
-  const standing = enemies.filter((enemy) => enemy.alive);
-
-  return (
-    <div className="hostiles" data-testid="hostile-bar">
-      <span className="hostiles-label">
-        {standing.length === 0 ? 'No contacts' : `Contacts ${standing.length}`}
-      </span>
-      {standing.map((enemy) => {
-        const structure = Object.values(enemy.locations).reduce(
-          (total, part) => total + part.armour + part.rearArmour + part.internal,
-          0,
-        );
-        const intact = Object.values(enemy.locations).reduce(
-          (total, part) => total + part.armourMax + part.rearArmourMax + part.internalMax,
-          0,
-        );
-        const health = intact === 0 ? 0 : structure / intact;
-
-        return (
-          <button
-            key={enemy.id}
-            type="button"
-            className={`hostile ${targetIds.has(enemy.id) ? 'targeted' : ''}${enemy.identified ? '' : ' unidentified'}`}
-            disabled={!hasSelection}
-            title={
-              !enemy.identified
-                ? 'Sensor contact — too far out to identify. Close on it, or send a scout.'
-                : hasSelection
-                  ? `Target ${enemy.name}`
-                  : 'Select one of your mechs first, then click a contact to attack it'
-            }
-            onClick={() => onTarget(enemy.id)}
-            data-testid={`hostile-${enemy.id}`}
-          >
-            {/* A contact the lance cannot name is a contact, not a chassis.
-                Naming it anyway is free intelligence, and the reason nobody
-                would ever bother fielding a scout. */}
-            <span className="hostile-name">{enemy.identified ? enemy.name : 'Unknown contact'}</span>
-            <span className="hostile-range">
-              {enemy.rangeToLance === null ? '—' : `${Math.round(enemy.rangeToLance)}m`}
-            </span>
-            <span className="hostile-health">
-              <span style={{ width: `${Math.round(health * 100)}%` }} />
-            </span>
-          </button>
-        );
-      })}
-    </div>
   );
 }

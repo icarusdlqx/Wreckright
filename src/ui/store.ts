@@ -101,6 +101,8 @@ export interface UnitSnapshot {
   /** Rocking but still standing — the next heavy hit is the one that floors it. */
   staggered: boolean;
   motion: string;
+  /** Presentation-gated identity for selection highlights; null outside optical sight. */
+  targetId: EntityId | null;
   targetName: string | null;
   /** Metres to whatever this mech is shooting at, so ranges mean something. */
   targetRange: number | null;
@@ -118,6 +120,8 @@ export interface UnitSnapshot {
   stability: StabilitySnapshot;
   reactor: ReactorSnapshot;
   hasMoveOrder: boolean;
+  /** A player-issued standing target order, distinct from automatic fire control. */
+  hasAttackOrder: boolean;
   /** How far the jets can throw this mech; 0 when it has none. */
   jumpRange: number;
   /** Seconds until the jets recharge, 0 when they are ready. */
@@ -132,6 +136,29 @@ export interface UnitSnapshot {
   identified: boolean;
   /** How far this machine's own sensors reach, for the range overlay. */
   sensorRange: number;
+  /** Base optical reach before terrain and elevation modify the sight line. */
+  sightRange: number;
+  /** How readily electronic sensors can acquire this machine. */
+  signature: number;
+  /** Authored chassis trade-offs, shown only for a friendly machine. */
+  chassisTraits: { label: string; note: string }[];
+  role: string;
+  frameClass: string;
+  chassisSummary: string;
+}
+
+/** A sensor return deliberately contains no entity, pilot, loadout, or damage state. */
+export interface ContactSnapshot {
+  id: EntityId;
+  team: number;
+  label: string;
+  /** Quantized by the simulation before it crosses the presentation boundary. */
+  position: { x: number; y: number };
+  /** Rounded from the coarse position, never from the hidden entity. */
+  approximateRange: number | null;
+  /** False is a frozen last-known report inside the authored memory window. */
+  current: boolean;
+  source: 'sensor';
 }
 
 export type Screen = 'home' | 'battle' | 'mechbay' | 'campaign';
@@ -204,6 +231,7 @@ export interface GameState {
   calledShotLocation: MechLocation | null;
   units: UnitSnapshot[];
   enemies: UnitSnapshot[];
+  contacts: ContactSnapshot[];
   log: string[];
 
   skirmishMissionId: string;
@@ -262,6 +290,7 @@ export function battleRemountState() {
     calledShotLocation: null,
     units: [],
     enemies: [],
+    contacts: [],
     log: [],
     missionName: '',
     briefing: '',
@@ -301,6 +330,7 @@ export const useGame = create<GameState & GameActions>((set) => ({
   calledShotLocation: null,
   units: [],
   enemies: [],
+  contacts: [],
   log: [],
 
   skirmishMissionId: INITIAL_SKIRMISH_MISSION,

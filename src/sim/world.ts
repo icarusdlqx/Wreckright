@@ -18,11 +18,18 @@ import { createTriggers, updateTriggers } from './triggers';
 import { createZones, updateZones } from './zones';
 import { updateMovement, updateTorso } from './movement';
 import { updatePlayerControl } from './orders';
+import { pilotAtDifficulty } from './pilotDifficulty';
 import { createRng, type RngSeed } from './rng';
 import { updateStability } from './stability';
-import { createVision, isVisibleTo, updateTeamVisions, visionFor } from './sensors';
+import {
+  createVision,
+  isSightedBy,
+  rememberObservedStops,
+  updateTeamVisions,
+  visionFor,
+} from './sensors';
 import { createTerrainGrid } from './terrain';
-import { isOperational, type MechEntity, type World } from './types';
+import { findEntity, isOperational, type EntityId, type MechEntity, type World } from './types';
 
 export interface LanceEntry {
   design: Design;
@@ -48,10 +55,6 @@ export interface WorldOptions {
 
 export { toResult } from './battleResult';
 export type { BattleResult, ObjectiveResult, UnitCondition, UnitResult } from './battleResult';
-
-function clampSkill(value: number): number {
-  return Math.max(1, Math.min(5, value));
-}
 
 export function createWorld(catalog: Catalog, options: WorldOptions): World {
   const mission = catalog.missions.get(options.missionId);
@@ -94,17 +97,24 @@ export function createWorld(catalog: Catalog, options: WorldOptions): World {
 
     slots.forEach((unit, index) => {
       const entry = override?.[index];
+      const pilotId = entry?.pilot.id ?? unit.pilotId;
+      const authoredPilot = entry?.pilot ?? catalog.pilots.get(pilotId);
+      const deployedPilot =
+        authoredPilot === undefined
+          ? undefined
+          : pilotAtDifficulty(authoredPilot, lance.team, playerTeam, tier?.skillDelta);
       entities.push(
         createMech(catalog, catalog.rules, {
           id: nextId,
           team: lance.team,
           designId: entry?.design.id ?? unit.designId,
-          pilotId: entry?.pilot.id ?? unit.pilotId,
+          pilotId,
           spawn: unit.spawn,
           facingDegrees: unit.facingDegrees,
           autopilot: lance.team !== playerTeam,
           controller: lance.team === playerTeam ? playerController : enemyController,
-          ...(entry === undefined ? {} : { design: entry.design, pilot: entry.pilot }),
+          ...(entry === undefined ? {} : { design: entry.design }),
+          ...(deployedPilot === undefined ? {} : { pilot: deployedPilot }),
           ...(entry?.damage === undefined ? {} : { damage: entry.damage }),
         }),
       );
@@ -114,16 +124,6 @@ export function createWorld(catalog: Catalog, options: WorldOptions): World {
 
   if (options.playerLance !== undefined && options.playerLance.length === 0) {
     throw new Error('a player lance must contain at least one mech');
-  }
-
-  // Difficulty adjusts who the enemy are, never how much punishment they soak.
-  if (tier !== undefined && tier.skillDelta !== 0) {
-    for (const entity of entities) {
-      if (entity.team === playerTeam) continue;
-      entity.pilot.gunnery = clampSkill(entity.pilot.gunnery + tier.skillDelta);
-      entity.pilot.piloting = clampSkill(entity.pilot.piloting + tier.skillDelta);
-      entity.pilot.sensors = clampSkill(entity.pilot.sensors + tier.skillDelta);
-    }
   }
 
   const hitLocationTable = LOCATIONS.map((location: MechLocation) => ({
@@ -260,11 +260,24 @@ function checkBattleEnd(world: World, maxTicks: number): void {
 /** No controller keeps a live firing solution after its side loses contact. */
 function clearUnseenTargets(world: World): void {
   for (const entity of world.entities) {
-    if (entity.targetId === null) continue;
-    const target = world.entities.find((candidate) => candidate.id === entity.targetId);
-    if (target !== undefined && isVisibleTo(visionFor(world, entity.team), target)) continue;
-    entity.targetId = null;
-    entity.calledShot = null;
+    const vision = visionFor(world, entity.team);
+    const isLiveEnemy = (id: EntityId | null): boolean => {
+      const target = findEntity(world, id);
+      return (
+        target !== null &&
+        target.team !== entity.team &&
+        isSightedBy(vision, target) &&
+        isOperational(target)
+      );
+    };
+
+    if (entity.targetId !== null && !isLiveEnemy(entity.targetId)) {
+      entity.targetId = null;
+      entity.calledShot = null;
+    }
+    if (entity.ai.focusTargetId !== null && !isLiveEnemy(entity.ai.focusTargetId)) {
+      entity.ai.focusTargetId = null;
+    }
   }
 }
 
@@ -274,6 +287,9 @@ export function stepWorld(world: World, maxTicks: number): void {
   world.tick += 1;
 
   for (const entity of world.entities) updateHeat(world, entity);
+  // Heat can kill both a target and the last observer in the same phase. Seal
+  // what was optically known before rebuilding either side's picture.
+  rememberObservedStops(world);
   // Before the AI decides, so a mech that stands up this tick can act on it.
   for (const entity of world.entities) updateStability(world, entity);
 
@@ -313,6 +329,7 @@ export function stepWorld(world: World, maxTicks: number): void {
   resolveProjectiles(world);
   resolveDisengagement(world);
   updateSupport(world);
+  rememberObservedStops(world);
   updateZones(world);
   updateObjectives(world);
   updateTriggers(world);

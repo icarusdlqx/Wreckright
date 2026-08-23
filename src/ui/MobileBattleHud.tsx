@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { CommandPalette, type Command } from './CommandPalette';
 import { CentreSelectionButton } from './CentreSelectionButton';
+import { selectedTargetIds } from './ContactsBar';
 import type { Engine } from './engine';
 import { FormationPicker } from './FormationPicker';
 import { Minimap } from './Minimap';
@@ -44,14 +45,7 @@ export function MobileBattleHud({
   const selectedAlive = state.units.some(
     (entry) => state.selection.includes(entry.id) && entry.alive,
   );
-  const targetIds = new Set(
-    state.units
-      .filter((entry) => state.selection.includes(entry.id) && entry.targetName !== null)
-      .flatMap((entry) => {
-        const shot = state.enemies.find((foe) => foe.name === entry.targetName);
-        return shot === undefined ? [] : [shot.id];
-      }),
-  );
+  const targetIds = selectedTargetIds(state.units, state.selection);
   const armed = state.orderMode !== null || state.supportMode !== null || state.queueOrders;
   const routeOrder =
     state.orderMode === 'move' || state.orderMode === 'run' || state.orderMode === 'attack_move';
@@ -61,7 +55,7 @@ export function MobileBattleHud({
   if (showsContacts) {
     tabs.push({
       id: 'contacts',
-      label: `Contacts · ${state.enemies.filter((entry) => entry.alive).length}`,
+      label: `Contacts · ${state.enemies.filter((entry) => entry.alive).length + state.contacts.length}`,
     });
   }
   if (fullHud || showsHeat) {
@@ -218,9 +212,11 @@ export function MobileBattleHud({
             ) : panel === 'contacts' ? (
               <HostileBar
                 enemies={state.enemies}
+                contacts={state.contacts}
                 targetIds={targetIds}
                 hasSelection={selectedAlive}
                 onTarget={(id) => engine?.orderAttack(id, null)}
+                onInvestigate={(at) => engine?.investigateContact(at)}
               />
             ) : showsHeat ? (
               <TrainingHeatReadout unit={playerControlled ? unit : null} />

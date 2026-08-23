@@ -12,6 +12,7 @@ import {
 } from './input-safety.mjs';
 import { runCampaignRecovery } from './campaign-recovery.mjs';
 import { runMobilePlaythrough } from './mobile-playthrough.mjs';
+import { engageTrainingOpticalContact } from './training-flow.mjs';
 
 const PORT = Number(process.env.E2E_PORT ?? 5183);
 const URL = `http://localhost:${PORT}/`;
@@ -266,25 +267,7 @@ async function main() {
       (await page.locator('[data-testid="command-attack"]').count()) === 0 &&
         (await page.locator('[data-testid="command-hold_fire"]').count()) === 0,
     );
-    const trainingCanvas = await page.locator('.viewport canvas:not(.perf-overlay)').boundingBox();
-    await page.mouse.click(
-      trainingCanvas.x + trainingCanvas.width * 0.48,
-      trainingCanvas.y + trainingCanvas.height * 0.55,
-      { button: 'right' },
-    );
-    await page.waitForSelector('[data-testid="command-attack"]');
-    check(
-      'engage lesson adds contacts and Attack',
-      (await page.locator('[data-testid="hostile-bar"]').count()) === 1 &&
-        (await page.locator('[data-testid="command-hold_fire"]').count()) === 0,
-    );
-    await page.evaluate(() => {
-      const { engine, world } = globalThis.__ironline;
-      const target = world.entities.find((entity) => entity.team !== world.playerTeam);
-      if (target === undefined) throw new Error('training field has no target');
-      engine.orderAttack(target.id, null);
-    });
-    await page.waitForSelector('[data-testid="training-heat-readout"]');
+    await engageTrainingOpticalContact({ page, check });
     check(
       'heat lesson adds the heat readout and safety controls',
       (await page.locator('[data-testid="command-hold_fire"]').count()) === 1 &&
@@ -839,6 +822,10 @@ async function main() {
       const { engine } = globalThis.__ironline;
       const world = engine.world;
       const zone = world.zones.find((z) => z.id === 'south_post');
+      const relief = world.triggers.find((trigger) => trigger.id === 'relief_lance');
+      const authoredEnemies = world.mission.lances
+        .filter((lance) => lance.team === 1)
+        .reduce((count, lance) => count + lance.units.length, 0);
       for (const entity of world.entities) {
         if (entity.team === 0) entity.pos = { x: zone.x, y: zone.y };
         else entity.pos = { x: 30, y: 30 };
@@ -847,16 +834,19 @@ async function main() {
       for (let step = 0; step < 400 && !world.finished; step += 1) engine.forceStep();
       return {
         owner: world.zones.find((z) => z.id === 'south_post').owner,
+        authoredEnemies,
         enemiesBefore,
         enemiesAfter: world.entities.filter((e) => e.team === 1).length,
+        reliefFired: relief?.fired ?? 0,
         spawnLog: globalThis.__ironline.useGame.getState().log.join(' | '),
       };
     });
     check('holding a comm post captures it', triggered.owner === 0);
     check(
       'capturing the south post calls in the relief lance',
-      triggered.enemiesAfter === triggered.enemiesBefore + 2,
-      `${triggered.enemiesBefore} → ${triggered.enemiesAfter}`,
+      triggered.reliefFired === 1 &&
+        triggered.enemiesAfter === triggered.authoredEnemies + 2,
+      `${triggered.enemiesBefore} → ${triggered.enemiesAfter}; fired ${triggered.reliefFired}`,
     );
     // The engine drains world.events into the renderer each step, so the visible
     // battle log is the durable record of what the trigger announced.

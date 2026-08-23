@@ -3,16 +3,14 @@ import { radiusFor } from '../render/shape';
 import { angleDifference, clamp } from '../sim/math';
 import type { EntityId, MechEntity, Vec2 } from '../sim/types';
 import type { BattleEffects } from './battleEffects';
-import { createFootContactState, resetFootContact, settleFootContact,
-  type FootContactState } from './footContact';
-import { resetLegPose, writeJumpPose, writeStridePose, writeTurnPose, type LegPose } from './legMotion';
+import { resetFootContact, settleFootContact } from './footContact';
+import { resetLegPose, writeJumpPose, writeStridePose, writeTurnPose } from './legMotion';
 import type { MechModel } from './mechModel';
 import { strideLengthFor, strideSwing, turnStrideLength } from './motionProfiles';
 import {
   advanceGait,
   gaitForTerrain,
   responseBlend,
-  type GaitProfile,
 } from './terrainGait';
 import type { Interpolated } from './unitViews';
 import { idleWeightCorrection, legPhaseFor } from './machineCulture';
@@ -24,35 +22,12 @@ import {
   KnockdownPoseResult,
   poseDestroyed,
   poseKnockdown,
-  type TerminalMotionState,
+  settleDestroyed,
 } from './terminalMotion';
+import { createAnimationState, type AnimationState } from './locomotionState';
 
 export { advanceGait, gaitForTerrain, responseBlend, type GaitProfile } from './terrainGait';
 export { localTilt, sampleGround, type GroundSample } from './locomotionGround';
-
-interface AnimationState {
-  phase: number;
-  amp: number;
-  lean: number;
-  lastX: number;
-  lastY: number;
-  lastFacing: number;
-  hasLast: boolean;
-  lastStep: number;
-  ground: number;
-  gradeX: number;
-  gradeY: number;
-  hasGround: boolean;
-  gait: GaitProfile;
-  wasJumping: boolean;
-  poses: [LegPose, LegPose];
-  contact: FootContactState;
-  turnPhase: number;
-  turnDirection: -1 | 0 | 1;
-  elapsed: number;
-  shutdownElapsed: number;
-  terminal: TerminalMotionState;
-}
 
 const NOZZLE = new Vector3();
 const OPEN_KNEE = 0.5;
@@ -62,6 +37,7 @@ export class Locomotion {
   onFootfall: ((at: Vec2, tonnage: number, faction: MechModel['faction']) => void) | null = null;
 
   private readonly states = new Map<EntityId, AnimationState>();
+  private readonly terminalFallAuthorizations = new Set<EntityId>();
 
   constructor(
     private readonly heightAt: (x: number, y: number) => number,
@@ -69,6 +45,20 @@ export class Locomotion {
     private readonly effects: BattleEffects,
     private readonly reducedMotion = false,
   ) {}
+
+  authorizeTerminalFall(id: EntityId): void {
+    this.terminalFallAuthorizations.add(id);
+  }
+
+  settleTerminal(id: EntityId): void {
+    this.terminalFallAuthorizations.delete(id);
+    settleDestroyed(this.stateFor(id).terminal);
+  }
+
+  retire(id: EntityId): void {
+    this.states.delete(id);
+    this.terminalFallAuthorizations.delete(id);
+  }
 
   place(
     entity: MechEntity,
@@ -78,6 +68,9 @@ export class Locomotion {
     deltaSeconds: number,
   ): void {
     const state = this.stateFor(entity.id);
+    if (entity.destroyed && !this.terminalFallAuthorizations.has(entity.id)) {
+      settleDestroyed(state.terminal);
+    }
     const footprint = clamp(radiusFor(entity.tonnage) * 0.78, 8, 20);
     const ground = sampleGround(this.heightAt, at, footprint);
     this.followGround(state, ground, deltaSeconds);
@@ -367,32 +360,7 @@ export class Locomotion {
   private stateFor(id: EntityId): AnimationState {
     const existing = this.states.get(id);
     if (existing !== undefined) return existing;
-    const fresh: AnimationState = {
-      phase: Math.PI / 2,
-      amp: 0,
-      lean: 0,
-      lastX: 0,
-      lastY: 0,
-      lastFacing: 0,
-      hasLast: false,
-      lastStep: 0,
-      ground: 0,
-      gradeX: 0,
-      gradeY: 0,
-      hasGround: false,
-      gait: { ...gaitForTerrain('open') },
-      wasJumping: false,
-      poses: [
-        { hip: 0, knee: 0, ankle: 0, planted: true },
-        { hip: 0, knee: 0, ankle: 0, planted: true },
-      ],
-      contact: createFootContactState(),
-      turnPhase: Math.PI / 2,
-      turnDirection: 0,
-      elapsed: 0,
-      shutdownElapsed: 0,
-      terminal: { fall: 0, landed: false, destroyed: false },
-    };
+    const fresh = createAnimationState();
     this.states.set(id, fresh);
     return fresh;
   }

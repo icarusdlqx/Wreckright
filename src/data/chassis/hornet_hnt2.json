@@ -98,6 +98,7 @@
   "lore": "Halloran's answer to losing three Vespers in a fortnight. The GAD-2 keeps the reverse-jointed leg geometry and gives up nine kilometres an hour for enough Sarn plate to survive being noticed. It is the most common machine on the line by a wide margin, and the one most likely to be carrying somebody's cousin.",
   "traits": [
     "long_stride",
-    "narrow_profile"
+    "narrow_profile",
+    "recon_optics"
   ]
 }

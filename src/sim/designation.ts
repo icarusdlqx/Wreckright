@@ -1,5 +1,6 @@
 import { lineOfSight } from './los';
 import { distance } from './math';
+import { isSightedBy, visionFor } from './sensors';
 import { findEntity, isOperational, type World } from './types';
 
 /**
@@ -13,7 +14,9 @@ export function updateDesignation(world: World): void {
     if (spotter.shutdownRemaining > 0) continue;
 
     const target = findEntity(world, spotter.targetId);
-    if (target === null || !isOperational(target)) continue;
+    if (target === null) continue;
+    if (!isSightedBy(visionFor(world, spotter.team), target)) continue;
+    if (!isOperational(target)) continue;
     if (distance(spotter.pos, target.pos) > spotter.designatorRange) continue;
     if (!lineOfSight(world.terrain, spotter.pos, target.pos).clear) continue;
 

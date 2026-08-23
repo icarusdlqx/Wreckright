@@ -233,4 +233,45 @@ describe('combat readouts', () => {
     expect(visible[0]?.textContent).toBe('MISS x2');
     expect(Number.parseInt(visible[0]?.style.top ?? '', 10)).toBeLessThan(626);
   });
+
+  it('does no layout work for hidden combat traffic', () => {
+    const world = playerWorld('hidden-readout-layout');
+    const enemy = world.entities.find((entity) => entity.team !== world.playerTeam);
+    const friendly = world.entities.find((entity) => entity.team === world.playerTeam);
+    if (enemy === undefined || friendly === undefined || world.vision === null) {
+      throw new Error('need both teams and player vision');
+    }
+    world.vision.visible.delete(enemy.id);
+    const host = new FakeElement();
+    const dom = { createElement: () => new FakeElement() as unknown as HTMLElement };
+    let measures = 0;
+    const readouts = new CombatReadouts(
+      host as unknown as HTMLElement,
+      world,
+      false,
+      (_id, _location, out) => {
+        out.set(0, 0, 0);
+        return true;
+      },
+      () => ({ x: 0, y: 0 }),
+      dom,
+      () => {
+        measures += 1;
+        return { width: 1_000, height: 800, obstacles: [] };
+      },
+    );
+    const hidden: SimEvent = {
+      type: 'projectile_miss',
+      tick: 30,
+      shooterId: 98,
+      targetId: enemy.id,
+      weaponId: 'medium_laser',
+    };
+
+    readouts.consume(world, Array.from({ length: 1_000 }, () => hidden));
+    expect(measures).toBe(0);
+
+    readouts.consume(world, [{ ...hidden, targetId: friendly.id }]);
+    expect(measures).toBe(1);
+  });
 });

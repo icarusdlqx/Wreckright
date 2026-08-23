@@ -119,7 +119,9 @@ describe('unit damage presentation', () => {
 
     units.consumeEvents(world, [hit]);
     expect(live.model.terminalFallAxis).toEqual(fallback);
+    world.vision?.visible.add(target.id);
     world.vision?.visible.add(attacker.id);
+    units.snapshot(world);
     units.consumeEvents(world, [hit]);
     expect(live.model.terminalFallAxis?.roll).toBeCloseTo(-1);
     units.dispose();
@@ -201,12 +203,14 @@ describe('unit power presentation', () => {
 
     view.model.root.visible = true;
     units.beginFrame(0.17);
+    units.markPlaced(entity.id);
     expect(view.model.startup?.lights.filter((light) => light.visible)).toHaveLength(2);
     units.consumeEvents(world, [
       { type: 'shutdown', tick: 4, entityId: entity.id, forced: false },
     ]);
     units.beginFrame(2);
     expect(view.model.startup?.lights.some((light) => light.visible)).toBe(false);
+    units.markPlaced(entity.id);
     units.consumeEvents(world, [{ type: 'restart', tick: 8, entityId: entity.id }]);
     units.beginFrame(0);
     expect(view.model.startup?.lights.filter((light) => light.visible)).toHaveLength(1);
@@ -221,33 +225,69 @@ describe('unit power presentation', () => {
     const view = units.viewFor(world, entity);
     units.beginFrame(2);
     expect(view.model.startup?.lights.some((light) => light.visible)).toBe(false);
+    units.markPlaced(entity.id);
     units.consumeEvents(world, [{ type: 'restart', tick: 8, entityId: entity.id }]);
     units.beginFrame(0);
     expect(view.model.startup?.lights.filter((light) => light.visible)).toHaveLength(1);
     units.dispose();
   });
 
-  it('synchronizes hidden sealed power events for a later reveal', () => {
+  it('makes a hidden power cycle equal steady control when reacquired in the event tick', () => {
     const world = playerWorld('hidden-sealed-power');
     const entity = unitOf(world, 'wisp_scout');
     const units = new UnitViews(new Scene(), () => 0);
-    const view = units.viewFor(world, entity);
+    world.vision?.visible.add(entity.id);
+    const view = units.present(world, entity);
+    expect(view).not.toBeNull();
+    if (view === null) return;
+    units.beginFrame(0.17);
+    units.markPlaced(entity.id);
     world.vision?.visible.delete(entity.id);
-    view.model.root.visible = false;
+    units.snapshot(world);
+    expect(view.model.root.visible).toBe(false);
+    const steady = view.model.startup?.enabled ?? [];
+    expect(view.model.startup?.lights.map((light) => light.visible)).toEqual(steady);
 
+    entity.shutdownRemaining = 2;
     units.consumeEvents(world, [
       { type: 'shutdown', tick: 4, entityId: entity.id, forced: false },
     ]);
-    view.model.root.visible = true;
-    units.beginFrame(2);
     expect(view.model.startup?.lights.some((light) => light.visible)).toBe(false);
 
-    view.model.root.visible = false;
+    entity.shutdownRemaining = 0;
+    world.vision?.visible.add(entity.id);
     units.consumeEvents(world, [{ type: 'restart', tick: 8, entityId: entity.id }]);
-    view.model.root.visible = true;
-    units.beginFrame(0);
+    const revealed = units.present(world, entity);
 
-    expect(view.model.startup?.lights.filter((light) => light.visible)).toHaveLength(1);
+    expect(revealed).toBe(view);
+    expect(view.model.startup?.running).toBe(false);
+    expect(view.model.startup?.lights.map((light) => light.visible)).toEqual(steady);
+    units.dispose();
+  });
+
+  it('does not kick a hidden welded hull when power cycles', () => {
+    const world = playerWorld('hidden-welded-power', 1);
+    const entity = unitOf(world, 'hornet_spotter');
+    const units = new UnitViews(new Scene(), () => 0);
+    world.vision?.visible.add(entity.id);
+    const view = units.present(world, entity);
+    expect(view).not.toBeNull();
+    if (view === null) return;
+    units.markPlaced(entity.id);
+    world.vision?.visible.delete(entity.id);
+    units.snapshot(world);
+    expect(view.model.root.visible).toBe(false);
+
+    entity.shutdownRemaining = 2;
+    units.consumeEvents(world, [
+      { type: 'shutdown', tick: 4, entityId: entity.id, forced: false },
+    ]);
+    entity.shutdownRemaining = 0;
+    world.vision?.visible.add(entity.id);
+    units.consumeEvents(world, [{ type: 'restart', tick: 8, entityId: entity.id }]);
+    units.present(world, entity);
+
+    expect(view.model.hullRecoil.kick).toBe(0);
     units.dispose();
   });
 
@@ -256,6 +296,7 @@ describe('unit power presentation', () => {
     const entity = unitOf(world, 'bulwark_assault');
     const active = new UnitViews(new Scene(), () => 0);
     const activeView = active.viewFor(world, entity);
+    active.markPlaced(entity.id);
     active.consumeEvents(world, [
       { type: 'shutdown', tick: 4, entityId: entity.id, forced: false },
     ]);

@@ -52,7 +52,7 @@
       "name": "Watchdog Detachment",
       "units": [
         {
-          "designId": "falchion_duellist",
+          "designId": "sentinel_brawler",
           "pilotId": "nadia_ostrow",
           "spawn": {
             "x": 852,
@@ -79,7 +79,7 @@
           "facingDegrees": 135
         },
         {
-          "designId": "halberd_prime",
+          "designId": "obsequy_vigil",
           "pilotId": "willem_torrance",
           "spawn": {
             "x": 828,

@@ -1,3 +1,5 @@
+import { verifySensorProbe } from './sensor-contact.mjs';
+
 export async function openTactics(page) {
   const drawer = page.locator('[data-testid="tactics-drawer"]');
   if (!(await drawer.isVisible())) await page.locator('[data-testid="tactics-toggle"]').click();
@@ -308,20 +310,5 @@ export async function runDesktopSupportChecks({ page, check, state, mission, sho
     (await page.locator('[data-testid="support-sensor_probe"]').isVisible()) &&
       (await page.locator('[data-testid="support-reinforcement"]').count()) === 0,
   );
-  const revealsBefore = await page.evaluate(() => globalThis.__ironline.world.reveals.length);
-  await page.locator('[data-testid="support-sensor_probe"]').click();
-  await page.mouse.click(canvasBox.x + canvasBox.width * 0.52, canvasBox.y + canvasBox.height * 0.38);
-  const sensorOutcome = await page.evaluate(() => {
-    const { engine, world } = globalThis.__ironline;
-    engine.forceStep();
-    return {
-      reveals: world.reveals.length,
-      rp: world.resources.get(world.playerTeam ?? 0),
-    };
-  });
-  check(
-    'the sensor probe spends RP and creates a live sweep through the UI',
-    sensorOutcome.reveals > revealsBefore && sensorOutcome.rp === mission.rp - mission.sensorCost,
-    JSON.stringify(sensorOutcome),
-  );
+  await verifySensorProbe({ page, check, mission, canvasBox });
 }

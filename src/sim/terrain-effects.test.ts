@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { catalog, makeGrid, OPEN_LEGEND, playerWorld, unitOf } from '../../tests/support';
 import { hitChance } from './combat';
-import { createVision, isVisibleTo, updateVision } from './sensors';
+import { createVision, isDetectedBy, updateVision } from './sensors';
 import type { MechEntity, World } from './types';
 
 let world: World;
@@ -35,7 +35,7 @@ function standOff(metres: number): boolean {
   enemy.pos = { x: scout.pos.x + metres, y: scout.pos.y };
   world.vision = createVision(world, scout.team);
   updateVision(world, world.vision);
-  return isVisibleTo(world.vision, enemy);
+  return isDetectedBy(world.vision, enemy);
 }
 
 beforeEach(() => {
@@ -58,7 +58,7 @@ describe('forest concealment', () => {
     // A standoff that reads clearly in the open. Only the one tile the hostile
     // is standing on changes between the two halves of this test, so nothing
     // but its signature can account for the difference — in particular the
-    // sightline is identical, and never blocks on the target's own tile.
+    // sensor geometry is identical and does not depend on optical sight.
     const reach = scout.sensorRange * enemy.signature;
     const between = reach * ((forest + open) / 2);
 

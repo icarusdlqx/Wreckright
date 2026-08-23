@@ -34,6 +34,8 @@ describe('terminal and power-down motion', () => {
     const welded = terminalHarness('hornet_spotter');
     sealed.entity.destroyed = true;
     welded.entity.destroyed = true;
+    sealed.locomotion.authorizeTerminalFall(sealed.entity.id);
+    welded.locomotion.authorizeTerminalFall(welded.entity.id);
     sealed.locomotion.place(
       sealed.entity,
       sealed.model,
@@ -59,6 +61,7 @@ describe('terminal and power-down motion', () => {
   it('falls away along the most recent impact axis instead of entity parity', () => {
     const struckFromTheSide = terminalHarness('hornet_spotter');
     struckFromTheSide.entity.destroyed = true;
+    struckFromTheSide.locomotion.authorizeTerminalFall(struckFromTheSide.entity.id);
     struckFromTheSide.model.terminalFallAxis = { pitch: 1, roll: 0 };
     struckFromTheSide.locomotion.place(
       struckFromTheSide.entity,
@@ -82,11 +85,43 @@ describe('terminal and power-down motion', () => {
     expect(downed.land).toHaveBeenCalledTimes(1);
 
     downed.entity.destroyed = true;
+    downed.locomotion.authorizeTerminalFall(downed.entity.id);
     downed.locomotion.place(downed.entity, downed.model, pose, 0, 0.01);
 
     expect(Math.abs(downed.model.root.rotation.z)).toBeGreaterThanOrEqual(settledRotation);
     expect(downed.land).toHaveBeenCalledTimes(1);
     disposeModel(downed.model.root);
+  });
+
+  it('places a late-discovered hulk fully down without a landing cue', () => {
+    const late = terminalHarness('hornet_spotter');
+    late.entity.destroyed = true;
+    const pose = { x: 0, y: 0, facing: 0, torso: 0 };
+
+    late.locomotion.place(late.entity, late.model, pose, 0, 0.01);
+    expect(Math.abs(late.model.root.rotation.z)).toBeCloseTo(1.22);
+    expect(late.land).not.toHaveBeenCalled();
+
+    late.locomotion.place(late.entity, late.model, pose, 0, 1);
+    expect(late.land).not.toHaveBeenCalled();
+    disposeModel(late.model.root);
+  });
+
+  it('animates an authorized visible death and lands exactly once', () => {
+    const visible = terminalHarness('hornet_spotter');
+    visible.entity.destroyed = true;
+    visible.locomotion.authorizeTerminalFall(visible.entity.id);
+    const pose = { x: 0, y: 0, facing: 0, torso: 0 };
+
+    visible.locomotion.place(visible.entity, visible.model, pose, 0, 0.05);
+    expect(Math.abs(visible.model.root.rotation.z)).toBeGreaterThan(0);
+    expect(Math.abs(visible.model.root.rotation.z)).toBeLessThan(1.22);
+    expect(visible.land).not.toHaveBeenCalled();
+
+    visible.locomotion.place(visible.entity, visible.model, pose, 0, 2);
+    visible.locomotion.place(visible.entity, visible.model, pose, 0, 2);
+    expect(visible.land).toHaveBeenCalledTimes(1);
+    disposeModel(visible.model.root);
   });
 
   it.each(['sentinel_brawler', 'hornet_spotter'] as const)(

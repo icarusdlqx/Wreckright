@@ -13,7 +13,9 @@ import {
 } from './orderTargeting';
 import { replacePath } from './pathProgress';
 import { findPath } from './pathfind';
+import { isSightedBy, visionFor } from './sensors';
 import {
+  findEntity,
   isImmobile,
   isDown,
   isOperational,
@@ -115,14 +117,25 @@ export function issueMove(
 }
 
 export function issueAttack(
+  world: World,
   entity: MechEntity,
   targetId: EntityId,
   calledShot: MechLocation | null,
-): void {
-  if (!isOperational(entity)) return;
+): boolean {
+  if (!isOperational(entity)) return false;
+  const target = findEntity(world, targetId);
+  if (
+    target === null ||
+    target.team === entity.team ||
+    !isSightedBy(visionFor(world, entity.team), target) ||
+    !isOperational(target)
+  ) {
+    return false;
+  }
   entity.orders.attack = { targetId, calledShot };
   entity.targetId = targetId;
   entity.calledShot = calledShot;
+  return true;
 }
 
 /** Fires the jets toward a point, clamped to the reach the mech actually has. */
@@ -252,6 +265,7 @@ export function updatePlayerControl(world: World, entity: MechEntity): void {
   }
 
   const contact = orderedContact(world, entity);
+  if (contact.gone) entity.orders.attack = null;
 
   // Airborne: the arc is committed. Keep picking visible targets, leave the feet alone.
   if (entity.jump !== null) {
@@ -275,12 +289,14 @@ export function updatePlayerControl(world: World, entity: MechEntity): void {
     const approaching =
       !isRooted(entity) &&
       contact.target !== null &&
-      isOperational(contact.target) &&
-      (contact.visible
-        ? approachToEngage(world, entity, contact.target)
-        : contact.lastKnown !== null &&
-          approachToLastKnown(world, entity, contact.lastKnown));
-    if (!approaching) {
+      approachToEngage(world, entity, contact.target);
+    const investigating =
+      !isRooted(entity) &&
+      contact.target === null &&
+      entity.orders.attack !== null &&
+      contact.lastKnown !== null &&
+      approachToLastKnown(world, entity, contact.lastKnown);
+    if (!approaching && !investigating) {
       replacePath(entity, []);
       entity.motion = 'stationary';
       entity.intendedMotion = entity.motion;

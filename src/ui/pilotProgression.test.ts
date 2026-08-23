@@ -26,7 +26,7 @@ describe('pilot progression readouts', () => {
     expect(training.cost).toBeGreaterThan(0);
     expect(training.nextLevel).toBe(pilot.sensors + 1);
     expect(training.nextEffect).not.toBe(training.currentEffect);
-    expect(training.nextEffect).toMatch(/m detection/);
+    expect(training.nextEffect).toMatch(/m sensor reach/);
   });
 
   it('points at the next authored speciality mark', () => {

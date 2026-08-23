@@ -9,7 +9,7 @@ const OPTIONS: readonly SupportOption[] = [
     id: 'sensor_probe',
     label: 'Sensor Probe',
     cost: 200,
-    effect: 'Reveal contacts within 260m for 30s with no delay.',
+    effect: 'Detect and classify coarse contacts within 260m for 30s with no delay; does not reveal terrain or grant optical line of sight or targeting.',
     placement: 'Click or tap the centre of the sweep.',
   },
   {
@@ -57,6 +57,7 @@ describe('compact support palette', () => {
     expect(html).toContain('data-testid="support-sensor_probe"');
     expect(html).toContain('data-testid="support-air_strike"');
     expect(html).toContain('data-testid="support-repair_truck"');
+    expect(html).toContain('does not reveal terrain or grant optical line of sight or targeting');
     expect(html).toContain('300 RP short.');
     const air = html.match(/<button[^>]+data-testid="support-air_strike"[^>]*>/u)?.[0];
     expect(air).toContain('aria-disabled="true"');

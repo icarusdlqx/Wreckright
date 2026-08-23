@@ -9,6 +9,7 @@ import {
   type World,
 } from '../sim/types';
 import type { TacticalCamera, Viewport } from './camera';
+import { canPresentEntity } from './visibilityPresentation';
 
 export interface PickableUnitView {
   model: {
@@ -49,9 +50,7 @@ export class UnitPicking {
     wanted: (entity: MechEntity) => boolean,
   ): MechEntity | null {
     const visible = (entity: MechEntity): boolean =>
-      (world.vision === null ||
-        entity.team === world.vision.team ||
-        world.vision.visible.has(entity.id)) &&
+      canPresentEntity(world, entity.id) &&
       wanted(entity);
 
     const ray = camera.rayAt(screen, viewport);

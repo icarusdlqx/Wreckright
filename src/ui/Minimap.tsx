@@ -1,8 +1,42 @@
 import { useEffect, useRef } from 'react';
 import { TERRAIN_COLOURS, teamColour } from '../render/palette';
 import { tileExplored, tileVisible } from '../sim/sensors';
-import { isOperational } from '../sim/types';
+import { isOperational, type World } from '../sim/types';
 import type { Engine } from './engine';
+import { snapshotContacts } from './snapshot';
+
+export interface MinimapBlip {
+  id: number;
+  team: number;
+  position: { x: number; y: number };
+  kind: 'friendly' | 'optical' | 'sensor' | 'memory';
+}
+
+/** Sensor blips carry the track's quantized point, never the entity's live position. */
+export function minimapBlips(world: World): MinimapBlip[] {
+  const playerTeam = world.playerTeam ?? 0;
+  const blips: MinimapBlip[] = [];
+  for (const entity of world.entities) {
+    if (!isOperational(entity)) continue;
+    const mine = entity.team === playerTeam;
+    if (!mine && world.vision !== null && !world.vision.visible.has(entity.id)) continue;
+    blips.push({
+      id: entity.id,
+      team: entity.team,
+      position: { x: entity.pos.x, y: entity.pos.y },
+      kind: mine ? 'friendly' : 'optical',
+    });
+  }
+  for (const contact of snapshotContacts(world, playerTeam)) {
+    blips.push({
+      id: contact.id,
+      team: contact.team,
+      position: contact.position,
+      kind: contact.current ? 'sensor' : 'memory',
+    });
+  }
+  return blips;
+}
 
 /**
  * The whole battlefield in a corner of the screen: terrain, fog, every
@@ -84,17 +118,25 @@ export function Minimap({ engine }: { engine: Engine | null }) {
       }
       screen.drawImage(fog, 0, 0, width, height);
 
-      // Machines. Friendlies always; hostiles only while the sensors hold them.
+      // Machines need optical contact. Electronic returns are hollow coarse tracks.
       const mapWidth = columns * terrain.tileSize;
       const mapHeight = rows * terrain.tileSize;
-      for (const entity of world.entities) {
-        if (entity.destroyed) continue;
-        const mine = entity.team === (world.playerTeam ?? 0);
-        if (!mine && world.vision !== null && !world.vision.visible.has(entity.id)) continue;
-        if (!isOperational(entity)) continue;
-        const x = (entity.pos.x / mapWidth) * width;
-        const y = (entity.pos.y / mapHeight) * height;
-        screen.fillStyle = `#${teamColour(entity.team).toString(16).padStart(6, '0')}`;
+      for (const blip of minimapBlips(world)) {
+        const x = (blip.position.x / mapWidth) * width;
+        const y = (blip.position.y / mapHeight) * height;
+        if (blip.kind === 'sensor' || blip.kind === 'memory') {
+          screen.strokeStyle = blip.kind === 'sensor' ? '#ffc15c' : 'rgba(255, 193, 92, 0.38)';
+          screen.lineWidth = 1;
+          screen.beginPath();
+          screen.moveTo(x, y - 3);
+          screen.lineTo(x + 3, y);
+          screen.lineTo(x, y + 3);
+          screen.lineTo(x - 3, y);
+          screen.closePath();
+          screen.stroke();
+          continue;
+        }
+        screen.fillStyle = `#${teamColour(blip.team).toString(16).padStart(6, '0')}`;
         screen.fillRect(x - 2, y - 2, 4, 4);
       }
 

@@ -57,8 +57,10 @@ export interface Minefield {
 }
 
 export interface Reveal {
-  /** Whose sensors the sweep feeds. A probe must not light the map for the enemy. */
+  /** Whose picture the sweep feeds. A probe must not light the map for the enemy. */
   team: number;
+  /** Sensors report contacts; authored optical intel may also lift the fog. */
+  kind: 'sensor' | 'optical';
   x: number;
   y: number;
   radius: number;
@@ -217,6 +219,7 @@ function resolvePending(world: World, pending: PendingCall): void {
     case 'sensor_probe':
       world.reveals.push({
         team: pending.team,
+        kind: 'sensor',
         x: pending.target.x,
         y: pending.target.y,
         radius: config.sensor_probe.radius,

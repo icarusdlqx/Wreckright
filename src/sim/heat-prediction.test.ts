@@ -5,6 +5,7 @@ import { createMech } from './entity';
 import { eventsOfType } from './events';
 import { computeHeatProfile } from './loadout';
 import { issueAttack, setHoldFire } from './orders';
+import { updateTeamVisions } from './sensors';
 import type { MechEntity, World } from './types';
 import { createWorld, stepWorld } from './world';
 
@@ -65,12 +66,13 @@ function runBench(designId: string, seconds: number, uncapHeat: boolean): Bench 
   // of the build, and would throttle the very thing being measured.
   shooter.heatSafety = false;
   world.entities.push(shooter, target);
+  updateTeamVisions(world);
 
   // A huge heat sink lets us measure raw generation without the sim's
   // hold-fire-near-shutdown guard throttling the loadout.
   if (uncapHeat) shooter.heatCapacity = 1e6;
 
-  issueAttack(shooter, target.id, null);
+  issueAttack(world, shooter, target.id, null);
 
   const totalTicks = Math.round(seconds * BENCH_TICKS_PER_SECOND);
   const generated: number[] = [0];

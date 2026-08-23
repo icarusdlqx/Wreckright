@@ -7,10 +7,12 @@ import { penetrates, resolveCritical } from './critical';
 import { applyDamage } from './damage';
 import { emit } from './events';
 import { addHeat, currentHeatTier } from './heat';
-import { coverFactorAt, lineOfSight } from './los';
+import { coverFactorAt } from './los';
 import { angleDifference, bearing, clamp, distance as distanceBetween } from './math';
 import { weaponBearing } from './movement';
 import { addStabilityImpulse, impulseOf } from './stability';
+import { isSightedBy, visionFor } from './sensors';
+import { weaponHasFiringSolution } from './weaponEngagement';
 import {
   findAmmoBin,
   findEntity,
@@ -191,14 +193,19 @@ export function updateWeapons(world: World, shooter: MechEntity): void {
   if (!isOperational(shooter) || shooter.shutdownRemaining > 0 || isDown(shooter)) return;
 
   const target = findEntity(world, shooter.targetId);
-  if (target === null || !isOperational(target)) return;
+  if (
+    target === null ||
+    target.team === shooter.team ||
+    !isSightedBy(visionFor(world, shooter.team), target) ||
+    !isOperational(target)
+  ) {
+    return;
+  }
 
   const range = distanceBetween(shooter.pos, target.pos);
   const halfArc = (world.rules.combat.firingArcDegrees / 2) * (Math.PI / 180);
   const aim = angleDifference(weaponBearing(shooter), bearing(shooter.pos, target.pos));
   if (Math.abs(aim) > halfArc) return;
-
-  if (!lineOfSight(world.terrain, shooter.pos, target.pos).clear) return;
 
   // The whole volley leaves at once, so every weapon rolls against the heat the
   // mech was carrying when the trigger came in. Applying each weapon's own heat
@@ -222,6 +229,7 @@ export function updateWeapons(world: World, shooter: MechEntity): void {
 
     const weapon = world.catalog.weapons.get(mount.weaponId);
     if (weapon === undefined) continue;
+    if (!weaponHasFiringSolution(world, shooter, target, weapon)) continue;
     if (range > weapon.range.long * world.rules.combat.maxRangeMultiplier) continue;
     if (!alpha && shooter.heat + weapon.heat >= shooter.heatCapacity) continue;
 

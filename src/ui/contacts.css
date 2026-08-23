@@ -1,0 +1,29 @@
+.sensor-contact {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  border-style: dashed;
+  border-color: rgba(255, 190, 82, 0.72);
+  background: rgba(18, 20, 18, 0.92);
+  color: var(--text);
+  cursor: default;
+}
+
+.sensor-contact-glyph {
+  color: var(--warn);
+  font-size: 15px;
+  line-height: 1;
+}
+
+.sensor-contact-note {
+  grid-column: 1 / -1;
+  color: var(--warn);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 760px) {
+  .mobile-tray .sensor-contact {
+    width: 230px;
+    min-width: 230px;
+  }
+}

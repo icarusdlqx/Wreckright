@@ -125,6 +125,28 @@ describe('createWorld', () => {
     expect(world.dt).toBeCloseTo(1 / catalog.rules.simulation.tickRate, 10);
   });
 
+  it('derives enemy awareness from the difficulty-adjusted sensor skill', () => {
+    const green = createWorld(catalog, {
+      seed: 'difficulty-awareness',
+      missionId: 'skirmish_ridge',
+      playerTeam: 0,
+      difficulty: 'green',
+    });
+    const elite = createWorld(catalog, {
+      seed: 'difficulty-awareness',
+      missionId: 'skirmish_ridge',
+      playerTeam: 0,
+      difficulty: 'elite',
+    });
+    const greenEnemy = green.entities.find((entity) => entity.team !== green.playerTeam);
+    const eliteEnemy = elite.entities.find((entity) => entity.team !== elite.playerTeam);
+    if (greenEnemy === undefined || eliteEnemy === undefined) throw new Error('need an enemy');
+
+    expect(eliteEnemy.pilot.sensors).toBeGreaterThan(greenEnemy.pilot.sensors);
+    expect(eliteEnemy.sensorRange).toBeGreaterThan(greenEnemy.sensorRange);
+    expect(eliteEnemy.sightRange).toBeGreaterThan(greenEnemy.sightRange);
+  });
+
   it('rejects an unknown mission', () => {
     expect(() => createWorld(catalog, { seed: 'x', missionId: 'nope' })).toThrow(/unknown mission/);
   });

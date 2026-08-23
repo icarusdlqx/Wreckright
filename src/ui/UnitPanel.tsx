@@ -73,7 +73,7 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
           />
           <details className="sidebar-details" open={compact} data-testid="tactical-details">
             <summary>Tactical details</summary>
-            <TacticalReadout unit={unit} />
+            <TacticalReadout unit={unit} friendly={unit.team === state.playerTeam} />
           </details>
         </>
       )}

@@ -12,8 +12,7 @@ import {
 } from './orders';
 import { distance } from './math';
 import { eventsOfType } from './events';
-import { updateWeapons } from './combat';
-import { isVisibleTo, updateTeamVisions, updateVision, visionFor } from './sensors';
+import { updateTeamVisions } from './sensors';
 import { isOperational, type MechEntity, type World } from './types';
 import { stepWorld } from './world';
 
@@ -111,7 +110,10 @@ describe('issueMove', () => {
     if (enemy === undefined) throw new Error('need an enemy');
     expect(issueMove(world, mech, { x: 400, y: 600 }, false)).toBe(true);
     expect(issueMove(world, mech, { x: 500, y: 600 }, true, { queued: true })).toBe(true);
-    issueAttack(mech, enemy.id, 'left_arm');
+    enemy.pos = { x: mech.pos.x + 60, y: mech.pos.y };
+    mech.sightRange = 1_000;
+    updateTeamVisions(world);
+    issueAttack(world, mech, enemy.id, 'left_arm');
     const groupIntent = [...mech.groupIntent];
     const groupEnabled = [...mech.groupEnabled];
     mech.shutdownRemaining = 4;
@@ -128,132 +130,6 @@ describe('issueMove', () => {
     expect(mech.groupEnabled).toEqual(groupEnabled);
     expect(mech.motion).toBe('stationary');
     expect(mech.intendedMotion).toBe('stationary');
-  });
-});
-
-describe('targeting', () => {
-  it('holds an ordered target even when a closer enemy exists', () => {
-    const enemies = world.entities.filter((entity) => entity.team === 1);
-    const far = enemies[enemies.length - 1];
-    const near = enemies[0];
-    expect(far).toBeDefined();
-    expect(near).toBeDefined();
-
-    mech.pos = { x: 500, y: 12 };
-    near!.pos = { x: 530, y: 12 };
-    far!.pos = { x: 620, y: 12 };
-    mech.sensorRange = 1_000;
-    far!.signature = 1;
-    updateTeamVisions(world);
-    issueAttack(mech, far!.id, null);
-    updatePlayerControl(world, mech);
-
-    expect(mech.targetId).toBe(far!.id);
-  });
-
-  it('drops the order and reacquires when the ordered target dies', () => {
-    const enemy = world.entities.find((entity) => entity.team === 1);
-    expect(enemy).toBeDefined();
-
-    issueAttack(mech, enemy!.id, null);
-    enemy!.destroyed = true;
-    updatePlayerControl(world, mech);
-
-    expect(mech.orders.attack).toBeNull();
-    expect(mech.targetId).not.toBe(enemy!.id);
-  });
-
-  it('auto-acquires the nearest visible enemy', () => {
-    const enemy = world.entities.find((entity) => entity.team === 1);
-    expect(enemy).toBeDefined();
-    enemy!.pos = { x: mech.pos.x + 60, y: mech.pos.y };
-    if (world.vision !== null) updateVision(world, world.vision);
-
-    updatePlayerControl(world, mech);
-    expect(mech.targetId).toBe(enemy!.id);
-  });
-
-  it('does not auto-acquire an enemy hidden by fog', () => {
-    updatePlayerControl(world, mech);
-    const visible = world.vision?.visible.size ?? 0;
-    if (visible === 0) expect(mech.targetId).toBeNull();
-    else expect(world.vision?.visible.has(mech.targetId ?? -1)).toBe(true);
-  });
-
-  it('carries a called shot through to the entity', () => {
-    const enemy = world.entities.find((entity) => entity.team === 1);
-    if (enemy === undefined) throw new Error('need an enemy');
-    mech.pos = { x: 500, y: 12 };
-    enemy.pos = { x: 560, y: 12 };
-    mech.sensorRange = 1_000;
-    enemy.signature = 1;
-    updateTeamVisions(world);
-    issueAttack(mech, enemy.id, 'left_leg');
-    updatePlayerControl(world, mech);
-    expect(mech.calledShot).toBe('left_leg');
-  });
-
-  it('pursues a frozen sensor ghost without tracking or firing at the hidden target', () => {
-    const enemy = world.entities.find((entity) => entity.team !== mech.team);
-    if (enemy === undefined) throw new Error('need an enemy');
-    mech.pos = { x: 500, y: 12 };
-    mech.sensorRange = 1_000;
-    enemy.pos = { x: 620, y: 12 };
-    enemy.signature = 1;
-    updateTeamVisions(world);
-    const vision = visionFor(world, mech.team);
-    expect(isVisibleTo(vision, enemy)).toBe(true);
-    const lastKnown = vision?.ghosts.get(enemy.id)?.pos;
-    if (lastKnown === undefined) throw new Error('need a sensor ghost');
-
-    issueAttack(mech, enemy.id, 'left_arm');
-    enemy.pos = { x: 900, y: 500 };
-    for (const ally of world.entities) {
-      if (ally.team === mech.team) ally.sensorRange = 0;
-    }
-    updateTeamVisions(world);
-    expect(isVisibleTo(vision, enemy)).toBe(false);
-
-    updatePlayerControl(world, mech);
-    updateWeapons(world, mech);
-
-    expect(mech.orders.attack?.targetId).toBe(enemy.id);
-    expect(mech.targetId).toBeNull();
-    expect(mech.calledShot).toBeNull();
-    expect(mech.path.length).toBeGreaterThan(0);
-    const pathEnd = mech.path.at(-1);
-    expect(pathEnd).toBeDefined();
-    if (pathEnd !== undefined) {
-      expect(distance(pathEnd, lastKnown)).toBeLessThan(distance(pathEnd, enemy.pos));
-    }
-    expect(shotsBy(world, mech.id)).toEqual([]);
-
-    mech.sensorRange = 1_000;
-    enemy.pos = { ...lastKnown };
-    updateTeamVisions(world);
-    updatePlayerControl(world, mech);
-    expect(mech.targetId).toBe(enemy.id);
-    expect(mech.calledShot).toBe('left_arm');
-  });
-
-  it('keeps hidden attack intent but plots no approach after both legs are lost', () => {
-    const enemy = world.entities.find((entity) => entity.team !== mech.team);
-    if (enemy === undefined) throw new Error('need an enemy');
-    for (const ally of world.entities) {
-      if (ally.team === mech.team) ally.sensorRange = 0;
-    }
-    updateTeamVisions(world);
-    issueAttack(mech, enemy.id, 'left_arm');
-    mech.locations.left_leg.destroyed = true;
-    mech.locations.right_leg.destroyed = true;
-
-    updatePlayerControl(world, mech);
-
-    expect(mech.orders.attack?.targetId).toBe(enemy.id);
-    expect(mech.targetId).toBeNull();
-    expect(mech.calledShot).toBeNull();
-    expect(mech.path).toEqual([]);
-    expect(mech.motion).toBe('stationary');
   });
 });
 

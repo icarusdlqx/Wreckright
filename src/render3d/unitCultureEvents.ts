@@ -1,6 +1,6 @@
 import type { MechModel } from './mechModel';
 import { triggerPowerShudder } from './machineCulture';
-import { setStartupPowered } from './startupLights';
+import { setStartupPowered, synchronizeStartupPowered } from './startupLights';
 
 export function presentMachinePowerEvent(
   model: MechModel | undefined,
@@ -12,4 +12,9 @@ export function presentMachinePowerEvent(
   } else if (model?.faction === 'linewrought' && !reducedMotion) {
     triggerPowerShudder(model.hullRecoil, model.culture, event);
   }
+}
+
+/** Hidden machines retain only their current steady state, never event history. */
+export function synchronizeMachinePower(model: MechModel, powered: boolean): void {
+  if (model.faction === 'aurelian') synchronizeStartupPowered(model, powered);
 }

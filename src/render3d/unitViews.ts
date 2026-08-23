@@ -1,19 +1,15 @@
-import { Mesh, MeshBasicMaterial, RingGeometry, Scene, Vector3 } from 'three';
+import { Scene, Vector3 } from 'three';
 import { LOCATIONS } from '../schema/common';
-import { teamColour, UI } from '../render/palette';
-import { DEFAULT_SILHOUETTE, radiusFor } from '../render/shape';
-import type { EntityId, MechEntity, Vec2, World } from '../sim/types';
-import type { Weapon } from '../schema/weapon';
+import { radiusFor } from '../render/shape';
+import { findEntity, isOperational, type EntityId, type MechEntity, type Vec2, type World } from '../sim/types';
 import type { SimEvent } from '../sim/events';
-import { buildMechModel, disposeModel, type MechModel } from './mechModel';
 import type { TacticalCamera, Viewport } from './camera';
 import { ContactShadowLayer } from './contactShadows';
-import { damageWearTier } from './damageLedger';
-import { collectLocationAnchors, locationWorldAnchor, type LocationAnchors } from './locationAnchors';
+import { locationWorldAnchor } from './locationAnchors';
 import { advanceWeaponRecoil, triggerWeaponRecoil } from './weaponModels';
 import { advanceHullRecoil, triggerHullRecoil } from './machineCulture';
-import { advanceStartupSequence, setStartupPowered } from './startupLights';
-import { presentMachinePowerEvent } from './unitCultureEvents';
+import { advanceStartupSequence } from './startupLights';
+import { presentMachinePowerEvent, synchronizeMachinePower } from './unitCultureEvents';
 import { UnitPicking } from './unitPicking';
 import { applyModelDetail } from './modelDetail';
 import {
@@ -22,9 +18,12 @@ import {
 } from './renderQuality';
 import { setMachineMotionLowFx } from './machineMotion';
 import { DetachedPartPool } from './detachedPartPool';
-import { canPresentEntity } from './combatReadouts';
+import { canPresentEntity } from './visibilityPresentation';
 import { fallbackFallAxis, impactFallAxis, modelDamageSignature,
   sealedTargetOffset, writeInterpolatedPose } from './unitVisualState';
+import { createEntityView, disposeEntityView, type EntityView } from './unitViewFactory';
+
+export type { EntityView } from './unitViewFactory';
 
 export interface Interpolated {
   x: number;
@@ -38,21 +37,6 @@ interface MotionSample {
   cur: Interpolated;
 }
 
-export interface EntityView {
-  model: MechModel;
-  signature: number;
-  ring: Mesh;
-  hoverRing: Mesh;
-  anchors: LocationAnchors;
-}
-
-const DEFAULT_VISUAL: Weapon['visual'] = {
-  style: 'beam',
-  colour: '#ffffff',
-  width: 2,
-  arc: 0,
-};
-
 /** Owns model rebuilds and the two sim samples used for smooth rendering. */
 export class UnitViews {
   private readonly views = new Map<EntityId, EntityView>();
@@ -64,6 +48,7 @@ export class UnitViews {
   private readonly picking: UnitPicking;
   private readonly detachedParts: DetachedPartPool;
   private readonly fallAxes = new Map<EntityId, ReturnType<typeof fallbackFallAxis>>();
+  private readonly presentedPowerEvents = new Map<EntityId, 'shutdown' | 'restart'>();
   private detail: ModelDetail = 'structure';
   private lowFx = false;
 
@@ -79,15 +64,16 @@ export class UnitViews {
   }
 
   dispose(): void {
-    for (const view of this.views.values()) {
-      disposeModel(view.model.root);
-      this.disposeRings(view);
-      this.scene.remove(view.model.root, view.ring, view.hoverRing);
-    }
+    for (const id of [...this.views.keys()]) this.retire(id);
     this.scene.remove(this.shadows.mesh);
     this.shadows.dispose();
     this.detachedParts.dispose();
+    this.samples.clear();
+    this.interpolated.clear();
+    this.mountCycles.clear();
+    this.placed.clear();
     this.fallAxes.clear();
+    this.presentedPowerEvents.clear();
   }
 
   beginFrame(deltaSeconds = 0): void {
@@ -126,6 +112,7 @@ export class UnitViews {
 
   finishFrame(): void {
     this.shadows.commit();
+    this.presentedPowerEvents.clear();
   }
 
   consumeEvents(world: World, events: readonly SimEvent[]): void {
@@ -156,13 +143,25 @@ export class UnitViews {
         }
       } else if (event.type === 'shutdown' || event.type === 'restart') {
         const view = this.views.get(event.entityId);
-        presentMachinePowerEvent(view?.model, event.type, this.reducedMotion);
+        if (canPresentEntity(world, event.entityId) && this.wasPresented(event.entityId)) {
+          presentMachinePowerEvent(view?.model, event.type, this.reducedMotion);
+          this.presentedPowerEvents.set(event.entityId, event.type);
+        } else if (view !== undefined) {
+          const entity = findEntity(world, event.entityId);
+          if (entity !== null) synchronizeMachinePower(view.model, entity.shutdownRemaining <= 0);
+        }
       }
     }
   }
 
   snapshot(world: World): void {
     for (const entity of world.entities) {
+      const presentable = canPresentEntity(world, entity.id);
+      if (!presentable) {
+        this.conceal(entity);
+        if (!isOperational(entity)) this.retire(entity.id);
+      }
+      if (!this.shouldTrack(world, entity)) continue;
       const existing = this.samples.get(entity.id);
       if (existing === undefined) {
         const cur: Interpolated = {
@@ -188,6 +187,7 @@ export class UnitViews {
 
   interpolate(world: World, alpha: number): void {
     for (const entity of world.entities) {
+      if (!this.shouldTrack(world, entity)) continue;
       let slot = this.interpolated.get(entity.id);
       if (slot === undefined) {
         slot = { x: 0, y: 0, facing: 0, torso: 0 };
@@ -228,6 +228,22 @@ export class UnitViews {
   canLocate(id: EntityId): boolean {
     const view = this.views.get(id);
     return view !== undefined && view.model.root.visible && this.placed.has(id);
+  }
+
+  /** True only when the previous rendered frame exposed this exact model. */
+  wasPresented(id: EntityId): boolean {
+    const view = this.views.get(id);
+    return view !== undefined && view.model.root.visible && this.placed.has(id);
+  }
+
+  /** Death falls require a live model the player saw before the terminal event. */
+  wasPresentedLive(id: EntityId): boolean {
+    const view = this.views.get(id);
+    return this.wasPresented(id) && view?.terminal === false;
+  }
+
+  canAnimateTerminalEvent(world: World, id: EntityId): boolean {
+    return canPresentEntity(world, id) && this.wasPresentedLive(id);
   }
 
   locationOf(id: EntityId, location: (typeof LOCATIONS)[number], out: Vector3): boolean {
@@ -277,61 +293,53 @@ export class UnitViews {
 
     if (existing !== undefined) {
       this.scene.remove(existing.model.root, existing.ring, existing.hoverRing);
-      disposeModel(existing.model.root);
-      this.disposeRings(existing);
+      disposeEntityView(existing);
     }
-
-    const wear = {} as Partial<Record<(typeof LOCATIONS)[number], ReturnType<typeof damageWearTier>>>;
-    for (const location of LOCATIONS) wear[location] = damageWearTier(entity.locations[location]);
-    const mounts = entity.weapons
-      .filter((mount) => faction === 'aurelian' || !mount.destroyed)
-      .map((mount) => {
-        const weapon = world.catalog.weapons.get(mount.weaponId);
-        return {
-          weaponId: mount.weaponId,
-          location: mount.location,
-          type: weapon?.type ?? ('energy' as const),
-          tonnage: weapon?.tonnage ?? 1,
-          projectiles: weapon?.projectiles ?? 1,
-          recoil: weapon?.recoil ?? 0,
-          visual: weapon?.visual ?? DEFAULT_VISUAL,
-          destroyed: mount.destroyed,
-        };
-      });
-
-    const model = buildMechModel(
-      chassis?.silhouette ?? DEFAULT_SILHOUETTE,
-      chassis?.traits ?? [],
-      entity.tonnage,
-      teamColour(entity.team),
-      entity.destroyed,
-      mounts,
-      new Set(LOCATIONS.filter((location) => entity.locations[location].destroyed)),
-      chassis?.hardpoints,
-      chassis?.id ?? null,
-      wear,
-      faction,
-    );
-    applyModelDetail(model.root, this.detail);
-    setMachineMotionLowFx(model.machineMotion, this.lowFx);
-    if (faction === 'aurelian') setStartupPowered(model, entity.shutdownRemaining <= 0);
-    model.terminalFallAxis = this.fallAxes.get(entity.id) ?? fallbackFallAxis(entity.id);
-
-    const radius = radiusFor(entity.tonnage);
-    const ring = this.selectionRing(radius, UI.selection, 1.2, 1.42, 0.9);
-    const hoverRing = this.selectionRing(
-      radius,
-      entity.team === world.playerTeam ? UI.friendly : UI.hostile,
-      1.5,
-      1.66,
-      0.85,
-    );
-
-    model.root.userData.entityId = entity.id;
-    this.scene.add(model.root, ring, hoverRing);
-    const view = { model, signature, ring, hoverRing, anchors: collectLocationAnchors(model.root) };
+    const view = createEntityView(world, entity, this.detail, this.lowFx, this.fallAxes.get(entity.id));
+    if (view.signature !== signature) throw new Error('entity view signature mismatch');
+    this.scene.add(view.model.root, view.ring, view.hoverRing);
     this.views.set(entity.id, view);
     return view;
+  }
+
+  /** Returns a model only after the current visibility boundary admits it. */
+  present(world: World, entity: MechEntity): EntityView | null {
+    const existing = this.views.get(entity.id);
+    if (!canPresentEntity(world, entity.id)) {
+      this.conceal(entity);
+      if (!isOperational(entity)) this.retire(entity.id);
+      return null;
+    }
+
+    const returning = existing !== undefined && !existing.model.root.visible;
+    const view = this.viewFor(world, entity);
+    if (returning && this.presentedPowerEvents.has(entity.id)) {
+      if (view !== existing) {
+        const event = this.presentedPowerEvents.get(entity.id);
+        if (event !== undefined) presentMachinePowerEvent(view.model, event, this.reducedMotion);
+      }
+    } else if (returning) {
+      synchronizeMachinePower(view.model, entity.shutdownRemaining <= 0);
+    }
+    view.model.root.visible = true;
+    return view;
+  }
+
+  /** Releases every entity-keyed render record and its owned Three resources. */
+  retire(id: EntityId): void {
+    const view = this.views.get(id);
+    if (view !== undefined) {
+      this.scene.remove(view.model.root, view.ring, view.hoverRing);
+      disposeEntityView(view);
+    }
+    this.views.delete(id);
+    this.samples.delete(id);
+    this.interpolated.delete(id);
+    this.placed.delete(id);
+    this.fallAxes.delete(id);
+    this.presentedPowerEvents.delete(id);
+    const prefix = `${id}:`;
+    for (const key of this.mountCycles.keys()) if (key.startsWith(prefix)) this.mountCycles.delete(key);
   }
 
   screenBodyOf(
@@ -353,27 +361,20 @@ export class UnitViews {
     return this.picking.entityAtScreen(world, screen, radiusPixels, camera, viewport, wanted);
   }
 
-  private selectionRing(
-    radius: number,
-    colour: number,
-    inner: number,
-    outer: number,
-    opacity: number,
-  ): Mesh {
-    const ring = new Mesh(
-      new RingGeometry(radius * inner, radius * outer, 28),
-      new MeshBasicMaterial({ color: colour, transparent: true, opacity }),
-    );
-    ring.rotation.x = -Math.PI / 2;
-    ring.visible = false;
-    return ring;
+  private shouldTrack(world: World, entity: MechEntity): boolean {
+    return this.views.has(entity.id) || canPresentEntity(world, entity.id);
   }
 
-  private disposeRings(view: EntityView): void {
-    for (const ring of [view.ring, view.hoverRing]) {
-      ring.geometry.dispose();
-      (ring.material as MeshBasicMaterial).dispose();
+  private conceal(entity: MechEntity): void {
+    const view = this.views.get(entity.id);
+    if (view !== undefined) {
+      synchronizeMachinePower(view.model, entity.shutdownRemaining <= 0);
+      view.model.root.visible = false;
+      view.ring.visible = false;
+      view.hoverRing.visible = false;
     }
+    this.placed.delete(entity.id);
+    this.presentedPowerEvents.delete(entity.id);
   }
 
   private rememberImpact(targetId: EntityId, attackerId: EntityId): void {

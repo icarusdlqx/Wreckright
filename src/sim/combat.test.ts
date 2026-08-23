@@ -4,6 +4,7 @@ import { testWorld, unitOf } from '../../tests/support';
 import { hitChance, resolveProjectiles, updateWeapons } from './combat';
 import { eventsOfType } from './events';
 import { lineOfSight } from './los';
+import { updateTeamVisions, visionFor } from './sensors';
 import type { MechEntity, World } from './types';
 
 let world: World;
@@ -34,6 +35,8 @@ beforeEach(() => {
   shooter.facing = 0;
   shooter.motion = 'stationary';
   target.motion = 'stationary';
+  shooter.sightRange = 2_000;
+  updateTeamVisions(world);
 });
 
 describe('hitChance', () => {
@@ -173,13 +176,35 @@ describe('updateWeapons', () => {
     expect(world.projectiles.every((shot) => shot.impactTick > world.tick)).toBe(true);
   });
 
-  it('holds fire when terrain blocks the shot', () => {
+  it('lets only indirect mounts use a team-sighted target behind terrain', () => {
     shooter.pos = { x: 500, y: 500 };
     target.pos = { x: 850, y: 500 };
     expect(lineOfSight(world.terrain, shooter.pos, target.pos).clear).toBe(false);
+    const vision = visionFor(world, shooter.team);
+    if (vision === null) throw new Error('need a team vision');
+    vision.visible.add(target.id);
 
     shooter.targetId = target.id;
     updateWeapons(world, shooter);
+    const fired = eventsOfType(world.events, 'weapon_fired');
+    expect(fired.length).toBeGreaterThan(0);
+    expect(
+      fired.every((event) =>
+        world.catalog.weapons.get(event.weaponId)?.tags.includes('indirect_fire') === true,
+      ),
+    ).toBe(true);
+  });
+
+  it('does not turn a sensor-only track into a firing solution', () => {
+    const vision = visionFor(world, shooter.team);
+    if (vision === null) throw new Error('need a team vision');
+    vision.visible.delete(target.id);
+    vision.detected.add(target.id);
+    shooter.targetId = target.id;
+    shooter.calledShot = 'left_arm';
+
+    updateWeapons(world, shooter);
+
     expect(eventsOfType(world.events, 'weapon_fired')).toHaveLength(0);
   });
 });

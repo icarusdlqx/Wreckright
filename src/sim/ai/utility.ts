@@ -1,8 +1,9 @@
 import { hitChance } from '../combat';
-import { coverFactorAt, lineOfSight } from '../los';
+import { coverFactorAt } from '../los';
 import { distance } from '../math';
-import { isVisibleTo, visionFor } from '../sensors';
-import { findAmmoBin, isOperational, type MechEntity, type World } from '../types';
+import { isSightedBy, visionFor } from '../sensors';
+import { findAmmoBin, isOperational, type MechEntity, type Vec2, type World } from '../types';
+import { weaponHasFiringSolution } from '../weaponEngagement';
 import { roleOf } from './roles';
 
 export interface TargetScore {
@@ -57,6 +58,31 @@ export function expectedDps(
     if (weapon === undefined) continue;
     if (range > weapon.range.long * world.rules.combat.maxRangeMultiplier) continue;
     if (weapon.ammoPerTon !== null && findAmmoBin(shooter, weapon.id) === null) continue;
+
+    const chance = hitChance(world, shooter, target, weapon, range);
+    total += (weapon.damage * weapon.projectiles * chance) / weapon.cooldown;
+  }
+
+  return total;
+}
+
+/** Expected output the shooter can deliver from here with the team's current optical picture. */
+export function availableDps(
+  world: World,
+  shooter: MechEntity,
+  target: MechEntity,
+  range: number,
+  from: Vec2 = shooter.pos,
+): number {
+  let total = 0;
+
+  for (const mount of shooter.weapons) {
+    if (mount.destroyed) continue;
+    const weapon = world.catalog.weapons.get(mount.weaponId);
+    if (weapon === undefined) continue;
+    if (range > weapon.range.long * world.rules.combat.maxRangeMultiplier) continue;
+    if (weapon.ammoPerTon !== null && findAmmoBin(shooter, weapon.id) === null) continue;
+    if (!weaponHasFiringSolution(world, shooter, target, weapon, from)) continue;
 
     const chance = hitChance(world, shooter, target, weapon, range);
     total += (weapon.damage * weapon.projectiles * chance) / weapon.cooldown;
@@ -187,12 +213,15 @@ export function scoreTargets(
   const vision = visionFor(world, shooter.team);
 
   for (const target of world.entities) {
-    if (target.team === shooter.team || !isOperational(target)) continue;
-    if (!isVisibleTo(vision, target)) continue;
+    if (target.team === shooter.team) continue;
+    if (!isSightedBy(vision, target)) continue;
+    if (!isOperational(target)) continue;
 
     const range = distance(shooter.pos, target.pos);
-    const dps = expectedDps(world, shooter, target, range);
-    if (dps <= 0) continue;
+    const potentialDps = expectedDps(world, shooter, target, range);
+    if (potentialDps <= 0) continue;
+    const firingDps = availableDps(world, shooter, target, range);
+    const scoringDps = firingDps > 0 ? firingDps : potentialDps;
 
     const vulnerability = 1 + (1 - healthFraction(target)) * rules.vulnerabilityWeight;
     const threat = threatOf(world, target, shooter, range);
@@ -203,13 +232,13 @@ export function scoreTargets(
     const cover = coverFactorAt(world.terrain, target.pos);
     const exposurePenalty = 1 + (1 - cover) * rules.exposurePenaltyWeight;
 
-    let score = (dps * vulnerability * threat) / (distancePenalty * exposurePenalty);
+    let score = (scoringDps * vulnerability * threat) / (distancePenalty * exposurePenalty);
 
     if (options.focusTargetId === target.id) score *= rules.focusFireBonus;
     if (options.currentTargetId === target.id) score *= rules.switchHysteresis;
-    if (!lineOfSight(world.terrain, shooter.pos, target.pos).clear) score *= 0.35;
+    if (firingDps <= 0) score *= rules.blockedLineOfFireScoreFactor;
 
-    scores.push({ target, score, range, expectedDps: dps });
+    scores.push({ target, score, range, expectedDps: firingDps });
   }
 
   return scores.sort((a, b) => (b.score === a.score ? a.target.id - b.target.id : b.score - a.score));
