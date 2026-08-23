@@ -2,8 +2,10 @@ import { distance } from '../math';
 import { replacePath } from '../pathProgress';
 import { setGroupEnabled } from '../orders';
 import { findPath } from '../pathfind';
-import { isVisibleTo, visionFor } from '../sensors';
+import { isSightedBy, visionFor } from '../sensors';
 import { isDown, isImmobile, isOperational, type MechEntity, type World } from '../types';
+import { hasUsableLineOfFire } from '../weaponEngagement';
+import { reconDestination } from './recon';
 import { preferredRange } from './utility';
 
 /**
@@ -28,8 +30,10 @@ export function decideBaseline(world: World, mech: MechEntity): void {
   const vision = visionFor(world, mech.team);
 
   for (const candidate of world.entities) {
-    if (candidate.team === mech.team || !isOperational(candidate)) continue;
-    if (!isVisibleTo(vision, candidate)) continue;
+    if (candidate.team === mech.team) continue;
+    if (!isSightedBy(vision, candidate)) continue;
+    if (!isOperational(candidate)) continue;
+    if (!hasUsableLineOfFire(world, mech, candidate, 'intent')) continue;
 
     const range = distance(mech.pos, candidate.pos);
     if (range < bestRange) {
@@ -40,24 +44,31 @@ export function decideBaseline(world: World, mech: MechEntity): void {
 
   if (target === null) {
     mech.targetId = null;
-    const centre = {
+    mech.calledShot = null;
+    const centre: { x: number; y: number } = {
       x: (world.terrain.width * world.terrain.tileSize) / 2,
       y: (world.terrain.height * world.terrain.tileSize) / 2,
     };
-    if (isImmobile(mech) || distance(mech.pos, centre) <= world.rules.movement.arrivalRadius) {
+    const search = reconDestination(world, mech) ?? centre;
+    if (isImmobile(mech) || distance(mech.pos, search) <= world.rules.movement.arrivalRadius) {
       replacePath(mech, []);
+      mech.ai.destination = null;
       mech.motion = 'stationary';
       mech.intendedMotion = mech.motion;
       return;
     }
-    if (mech.path.length === 0 || world.tick >= mech.nextPathTick) {
+    const routeChanged =
+      mech.ai.destination === null ||
+      distance(mech.ai.destination, search) > world.rules.movement.arrivalRadius;
+    if (routeChanged || mech.path.length === 0 || world.tick >= mech.nextPathTick) {
       const path = findPath(
         world.terrain,
         mech.pos,
-        centre,
+        search,
         world.rules.simulation.pathfindMaxNodes,
       );
       replacePath(mech, path ?? []);
+      mech.ai.destination = { x: search.x, y: search.y };
       mech.nextPathTick = world.tick + world.rules.simulation.aiPathIntervalTicks;
     }
     mech.motion = mech.path.length === 0 ? 'stationary' : 'run';
@@ -67,6 +78,7 @@ export function decideBaseline(world: World, mech: MechEntity): void {
 
   mech.targetId = target.id;
   mech.calledShot = null;
+  mech.ai.destination = null;
 
   const heatFraction = mech.heat / mech.heatCapacity;
   const heatRules = world.rules.ai.heat;

@@ -1,8 +1,9 @@
 import { LOCATIONS, type MechLocation } from '../schema/common';
+import { roleOf } from '../sim/ai/roles';
 import { canJump, isHoldingFire } from '../sim/orders';
-import { isIdentifiedBy } from '../sim/sensors';
+import { isIdentifiedBy, isSightedBy, type ContactTrack } from '../sim/sensors';
 import { findEntity, isOperational, isStaggered, type MechEntity, type World } from '../sim/types';
-import type { LocationSnapshot, UnitSnapshot, WeaponSnapshot } from './store';
+import type { ContactSnapshot, LocationSnapshot, UnitSnapshot, WeaponSnapshot } from './store';
 import {
   abilityReadout,
   alphaReadout,
@@ -59,9 +60,20 @@ function rangeToTeam(world: World, entity: MechEntity, team: number): number | n
   return best;
 }
 
+function titleCase(value: string): string {
+  return value.replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function frameClass(entity: MechEntity): string {
+  if (entity.frame === 'turret') return 'Emplacement';
+  return `${titleCase(entity.chassisClass)} ${entity.frame}`;
+}
+
 export function snapshotUnit(world: World, entity: MechEntity): UnitSnapshot {
   const target = findEntity(world, entity.targetId);
+  const presentedTarget = target !== null && isSightedBy(world.vision, target) ? target : null;
   const playerTeam = world.playerTeam ?? 0;
+  const chassis = world.catalog.chassis.get(entity.chassisId);
   return {
     id: entity.id,
     team: entity.team,
@@ -83,11 +95,12 @@ export function snapshotUnit(world: World, entity: MechEntity): UnitSnapshot {
     downRemaining: entity.downRemaining,
     staggered: isStaggered(entity, world.rules.stability.staggerThreshold),
     motion: entity.motion,
-    targetName: target === null ? null : target.name,
+    targetId: presentedTarget?.id ?? null,
+    targetName: presentedTarget === null ? null : presentedTarget.name,
     targetRange:
-      target === null
+      presentedTarget === null
         ? null
-        : Math.hypot(target.pos.x - entity.pos.x, target.pos.y - entity.pos.y),
+        : Math.hypot(presentedTarget.pos.x - entity.pos.x, presentedTarget.pos.y - entity.pos.y),
     rangeToLance: entity.team === playerTeam ? null : rangeToTeam(world, entity, playerTeam),
     lostLocations: LOCATIONS.filter((location) => entity.locations[location].destroyed),
     locations: locationsOf(entity),
@@ -100,18 +113,69 @@ export function snapshotUnit(world: World, entity: MechEntity): UnitSnapshot {
     stability: stabilityReadout(world, entity),
     reactor: reactorReadout(world, entity),
     hasMoveOrder: entity.orders.move !== null,
+    hasAttackOrder: entity.team === playerTeam && entity.orders.attack !== null,
     jumpRange: entity.jumpRange,
     jumpCooldown: entity.jumpCooldown,
     canJump: canJump(entity),
     posture: entity.posture,
     identified: isIdentifiedBy(world.vision, entity),
     sensorRange: entity.sensorRange,
+    sightRange: entity.sightRange,
+    signature: entity.signature,
+    chassisTraits: (chassis?.traits ?? []).flatMap((id) => {
+      const trait = world.rules.traits.entries[id];
+      return trait === undefined ? [] : [{ label: trait.label, note: trait.note }];
+    }),
+    role: titleCase(roleOf(world, entity).role),
+    frameClass: frameClass(entity),
+    chassisSummary: chassis?.summary ?? '',
   };
+}
+
+function contactLabel(track: ContactTrack): string {
+  if (track.frame === 'turret') return 'Emplacement contact';
+  const weight = `${track.chassisClass[0]?.toUpperCase() ?? ''}${track.chassisClass.slice(1)}`;
+  return `${weight} ${track.frame}`;
+}
+
+function approximateRangeToTeam(world: World, at: ContactTrack['pos'], team: number): number | null {
+  let best: number | null = null;
+  for (const friendly of world.entities) {
+    if (friendly.team !== team || !isOperational(friendly)) continue;
+    const range = Math.hypot(friendly.pos.x - at.x, friendly.pos.y - at.y);
+    if (best === null || range < best) best = range;
+  }
+  return best === null ? null : Math.round(best / 50) * 50;
+}
+
+/** Current electronic returns, serialized without consulting the hidden entity. */
+export function snapshotContacts(world: World, playerTeam: number): ContactSnapshot[] {
+  const vision = world.vision;
+  if (vision === null) return [];
+  const contacts: ContactSnapshot[] = [];
+  for (const track of vision.tracks.values()) {
+    if (
+      track.team === playerTeam ||
+      vision.visible.has(track.id) ||
+      vision.observedHulks.has(track.id)
+    ) continue;
+    contacts.push({
+      id: track.id,
+      team: track.team,
+      label: contactLabel(track),
+      position: { x: track.pos.x, y: track.pos.y },
+      approximateRange: approximateRangeToTeam(world, track.pos, playerTeam),
+      current: vision.detected.has(track.id),
+      source: 'sensor',
+    });
+  }
+  return contacts.sort((a, b) => a.id - b.id);
 }
 
 export function snapshotUnits(world: World, playerTeam: number): {
   units: UnitSnapshot[];
   enemies: UnitSnapshot[];
+  contacts: ContactSnapshot[];
 } {
   const units: UnitSnapshot[] = [];
   const enemies: UnitSnapshot[] = [];
@@ -125,5 +189,5 @@ export function snapshotUnits(world: World, playerTeam: number): {
     enemies.push(snapshotUnit(world, entity));
   }
 
-  return { units, enemies };
+  return { units, enemies, contacts: snapshotContacts(world, playerTeam) };
 }

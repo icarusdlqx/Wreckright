@@ -2,7 +2,7 @@ import type { TerrainMapData } from '../schema/map';
 import type { Faction } from '../schema/faction';
 import type { SimEvent } from '../sim/events';
 import type { MechEntity, Vec2, World } from '../sim/types';
-import { canPresentEntity } from '../render3d/combatReadouts';
+import { canPresentEntity } from '../render3d/visibilityPresentation';
 import { machineCulture } from '../render3d/machineCulture';
 import { startAmbient, type AmbientHandle } from './audioAmbient';
 import {

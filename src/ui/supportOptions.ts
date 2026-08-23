@@ -37,7 +37,7 @@ function describe(call: SupportCallId, rules: SupportRules): Omit<SupportOption,
       const entry = rules.sensor_probe;
       return {
         label: 'Sensor Probe',
-        effect: `Reveal contacts within ${entry.radius}m for ${entry.durationSeconds}s ${timing(entry.delaySeconds)}.`,
+        effect: `Detect and classify coarse contacts within ${entry.radius}m for ${entry.durationSeconds}s ${timing(entry.delaySeconds)}; does not reveal terrain or grant optical line of sight or targeting.`,
         placement: 'Click or tap the centre of the sweep.',
       };
     }

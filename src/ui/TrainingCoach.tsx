@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { getCatalog } from '../schema/load';
 import { usePlaytest } from './playtest';
 import { trainingMilestoneEvents } from './playtest/trainingMilestones';
-import { useGame, type UnitSnapshot } from './store';
+import { useGame } from './store';
 import {
   advanceTrainingStep,
   completeTraining,
@@ -15,7 +15,10 @@ import {
 import { setTrainingPresentationStep } from './trainingPresentation';
 import { useCompactLayout } from './useCompactLayout';
 
-const LESSONS: Record<TrainingStep, { title: string; instruction: string; touch: string }> = {
+export const TRAINING_LESSONS: Record<
+  TrainingStep,
+  { title: string; instruction: string; touch: string }
+> = {
   0: {
     title: '1 · Select',
     instruction: 'Select a mech on the field or in the lance bar. Tab cycles the lance.',
@@ -28,8 +31,8 @@ const LESSONS: Record<TrainingStep, { title: string; instruction: string; touch:
   },
   2: {
     title: '3 · Engage',
-    instruction: 'Select your lance, then click a contact in the contact bar to assign a target.',
-    touch: 'Tap Contacts, then tap a contact to assign the target.',
+    instruction: 'Hollow ◇ contacts are sensor tracks: investigate to close in, but you cannot target them. Once a named optical contact appears, click it to engage.',
+    touch: 'Hollow ◇ contacts are sensor tracks. Tap one to investigate; tap a named optical contact to engage.',
   },
   3: {
     title: '4 · Read heat',
@@ -42,15 +45,6 @@ const LESSONS: Record<TrainingStep, { title: string; instruction: string; touch:
     touch: 'Clear the remaining contacts. Pause whenever the situation gets ahead of you.',
   },
 };
-
-function damaged(unit: UnitSnapshot): boolean {
-  return Object.values(unit.locations).some(
-    (location) =>
-      location.armour < location.armourMax ||
-      location.rearArmour < location.rearArmourMax ||
-      location.internal < location.internalMax,
-  );
-}
 
 interface TrainingCoachProps {
   active?: boolean;
@@ -146,8 +140,7 @@ export function TrainingCoach({ active, step: controlledStep, onStep }: Training
       moved: observed.moved || playerUnits.some(
         (unit) => unit.hasMoveOrder || unit.motion !== 'stationary',
       ),
-      engaged: observed.engaged ||
-        playerUnits.some((unit) => unit.targetName !== null) || state.enemies.some(damaged),
+      engaged: observed.engaged || playerUnits.some((unit) => unit.hasAttackOrder),
       heated: observed.heated || playerUnits.some((unit) => unit.heat > 0.5),
     };
     for (const event of trainingMilestoneEvents(observed, current)) record(event);
@@ -179,7 +172,7 @@ export function TrainingCoach({ active, step: controlledStep, onStep }: Training
   }, [activeMission, record, state.finished, state.missionStatus]);
 
   if (!activeMission || !state.briefingSeen || state.finished) return null;
-  const lesson = LESSONS[step];
+  const lesson = TRAINING_LESSONS[step];
   const progress = (
     <span className="training-progress" aria-label={`Training step ${step + 1} of 5`}>
       {[0, 1, 2, 3, 4].map((index) => (

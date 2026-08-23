@@ -3,6 +3,7 @@
   "entries": {
     "mech": {
       "label": "Mech",
+      "sensorSignatureFactor": 1,
       "mobile": true,
       "knockable": true,
       "twistFactor": 1,
@@ -10,6 +11,7 @@
     },
     "vehicle": {
       "label": "Combat vehicle",
+      "sensorSignatureFactor": 0.85,
       "mobile": true,
       "knockable": false,
       "twistFactor": 1.5,
@@ -57,6 +59,7 @@
     },
     "turret": {
       "label": "Emplacement",
+      "sensorSignatureFactor": 0.7,
       "mobile": false,
       "knockable": false,
       "twistFactor": 3,

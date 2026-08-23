@@ -1,5 +1,6 @@
 import { CommandPalette, type Command } from './CommandPalette';
 import { CentreSelectionButton } from './CentreSelectionButton';
+import { selectedTargetIds } from './ContactsBar';
 import type { Engine } from './engine';
 import { FormationPicker } from './FormationPicker';
 import { Minimap } from './Minimap';
@@ -81,20 +82,13 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
       {showsContacts ? (
         <HostileBar
           enemies={state.enemies}
-          targetIds={
-            new Set(
-              state.units
-                .filter((entry) => state.selection.includes(entry.id) && entry.targetName !== null)
-                .flatMap((entry) => {
-                  const shot = state.enemies.find((foe) => foe.name === entry.targetName);
-                  return shot === undefined ? [] : [shot.id];
-                }),
-            )
-          }
+          contacts={state.contacts}
+          targetIds={selectedTargetIds(state.units, state.selection)}
           hasSelection={state.units.some(
             (entry) => state.selection.includes(entry.id) && entry.alive,
           )}
           onTarget={(id) => engine?.orderAttack(id, null)}
+          onInvestigate={(at) => engine?.investigateContact(at)}
         />
       ) : null}
       {fullHud ? <Minimap engine={engine} /> : null}

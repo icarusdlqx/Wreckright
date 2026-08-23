@@ -2,9 +2,11 @@ import type { DifficultyTier } from '../../schema/rules';
 import { coverFactorAt, lineOfSight } from '../los';
 import { angleDifference, bearing, distance } from '../math';
 import { nearestPassable } from '../pathfind';
+import { isSightedBy, visionFor } from '../sensors';
 import { isOperational, type MechEntity, type Stance, type Vec2, type World } from '../types';
+import { hasUsableLineOfFire, usableWeapon, weaponHasLineOfFire } from '../weaponEngagement';
 import { lanceFrontage, roleOf } from './roles';
-import { engagementRange, exchangeRatio, expectedDps, healthFraction } from './utility';
+import { availableDps, engagementRange, exchangeRatio, healthFraction } from './utility';
 
 const DEGREES_TO_RADIANS = Math.PI / 180;
 
@@ -84,7 +86,7 @@ function scorePoint(
 
   // How much the guns do from there. Out beyond weapon reach every candidate
   // scores zero, so closing distance carries the gradient.
-  score += expectedDps(world, mech, target, range) * gunneryFactor * rules.dpsWeight;
+  score += availableDps(world, mech, target, range, point) * gunneryFactor * rules.dpsWeight;
   score -= Math.abs(range - preferred) * rules.rangeErrorWeight;
   if (stance === 'close') score -= range * rules.closingWeight;
   if (stance === 'back_off') score += range * rules.closingWeight;
@@ -95,7 +97,7 @@ function scorePoint(
     score += world.terrain.elevationAt(tileRef.column, tileRef.row) * rules.elevationWeight;
   }
 
-  if (!lineOfSight(world.terrain, point, target.pos).clear) score -= rules.losPenalty;
+  if (!hasUsableLineOfFire(world, mech, target, 'intent', point)) score -= rules.losPenalty;
 
   // A missile carrier belongs behind the hull that can take the return fire, and
   // a brawler belongs in front of it. Distance from the lance's leading edge is
@@ -195,24 +197,25 @@ export function choosePosition(
 }
 
 /** How many enemy guns currently bear on a spot. Crossing open ground is what kills lances. */
-function exposureAt(world: World, mech: MechEntity, point: Vec2): number {
+export function exposureAt(world: World, mech: MechEntity, point: Vec2): number {
   let seen = 0;
+  const vision = visionFor(world, mech.team);
   for (const enemy of world.entities) {
-    if (enemy.team === mech.team || !isOperational(enemy)) continue;
-    if (distance(point, enemy.pos) > longestWeaponRange(world, enemy)) continue;
-    if (lineOfSight(world.terrain, enemy.pos, point).clear) seen += 1;
+    if (enemy.team === mech.team) continue;
+    if (!isSightedBy(vision, enemy)) continue;
+    if (!isOperational(enemy)) continue;
+    const range = distance(point, enemy.pos);
+    const covered = enemy.weapons.some((mount) => {
+      const weapon = usableWeapon(world, enemy, mount, 'intent');
+      return (
+        weapon !== null &&
+        range <= weapon.range.long * world.rules.combat.maxRangeMultiplier &&
+        weaponHasLineOfFire(world, enemy.pos, point, weapon)
+      );
+    });
+    if (covered) seen += 1;
   }
   return seen;
-}
-
-function longestWeaponRange(world: World, mech: MechEntity): number {
-  let longest = 0;
-  for (const mount of mech.weapons) {
-    if (mount.destroyed) continue;
-    const weapon = world.catalog.weapons.get(mount.weaponId);
-    if (weapon !== undefined) longest = Math.max(longest, weapon.range.long);
-  }
-  return longest;
 }
 
 /**
@@ -277,10 +280,13 @@ export function approachPoint(
 }
 
 /** What a side still brings to the fight: how many mechs, weighted by how whole they are. */
-function teamStrength(world: World, team: number): number {
+function teamStrength(world: World, team: number, observerTeam: number): number {
   let total = 0;
+  const vision = visionFor(world, observerTeam);
   for (const entity of world.entities) {
-    if (entity.team !== team || !isOperational(entity)) continue;
+    if (entity.team !== team) continue;
+    if (team !== observerTeam && !isSightedBy(vision, entity)) continue;
+    if (!isOperational(entity)) continue;
     total += healthFraction(entity);
   }
   return total;
@@ -289,8 +295,11 @@ function teamStrength(world: World, team: number): number {
 /** True when nothing still fighting could catch this mech if it ran. */
 function canOutrunPursuit(world: World, mech: MechEntity): boolean {
   let pursuers = 0;
+  const vision = visionFor(world, mech.team);
   for (const enemy of world.entities) {
-    if (enemy.team === mech.team || !isOperational(enemy)) continue;
+    if (enemy.team === mech.team) continue;
+    if (!isSightedBy(vision, enemy)) continue;
+    if (!isOperational(enemy)) continue;
     pursuers += 1;
     if (enemy.runSpeed >= mech.runSpeed) return false;
   }
@@ -318,18 +327,22 @@ export function shouldWithdraw(
 
   if (canOutrunPursuit(world, mech)) return true;
 
-  const mine = teamStrength(world, mech.team);
+  const mine = teamStrength(world, mech.team, mech.team);
   let theirs = 0;
   for (const team of new Set(world.entities.map((entity) => entity.team))) {
-    if (team !== mech.team) theirs += teamStrength(world, team);
+    if (team !== mech.team) theirs += teamStrength(world, team, mech.team);
   }
 
   return mine < theirs * rules.losingStrengthRatio;
 }
 
 export function withdrawalPoint(world: World, mech: MechEntity): Vec2 {
+  const vision = visionFor(world, mech.team);
   const enemies = world.entities.filter(
-    (entity) => entity.team !== mech.team && isOperational(entity),
+    (entity) =>
+      entity.team !== mech.team &&
+      isSightedBy(vision, entity) &&
+      isOperational(entity),
   );
   if (enemies.length === 0) return { x: mech.pos.x, y: mech.pos.y };
 

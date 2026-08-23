@@ -1,11 +1,12 @@
 import { Vector3 } from 'three';
 import type { MechLocation } from '../schema/common';
 import type { SimEvent } from '../sim/events';
-import { tileExplored } from '../sim/sensors';
 import type { Vec2, World } from '../sim/types';
 import { DamageLedger, type DamageSplit } from './damageLedger';
 import { DamageReadoutPool } from './damageReadouts';
 import type { ReadoutLayout } from './readoutSafeArea';
+import { canPresentEntity } from './visibilityPresentation';
+export { canPresentEntity } from './visibilityPresentation';
 
 type LocationOf = (id: number, location: MechLocation, out: Vector3) => boolean;
 type Project = (at: Vector3) => Vec2;
@@ -33,14 +34,19 @@ function hasReadout(event: SimEvent): boolean {
   );
 }
 
-export function canPresentEntity(world: World, id: number): boolean {
-  const entity = world.entities.find((candidate) => candidate.id === id);
-  if (entity === undefined) return false;
-  const vision = world.vision;
-  if (vision === null || entity.team === vision.team || vision.visible.has(id)) return true;
-  if (!entity.destroyed) return false;
-  const tile = world.terrain.toTile(entity.pos);
-  return tileExplored(vision, tile.row * world.terrain.width + tile.column);
+function readoutEntityId(event: SimEvent): number | null {
+  switch (event.type) {
+    case 'projectile_hit':
+    case 'projectile_miss':
+      return event.targetId;
+    case 'critical_hit':
+    case 'location_destroyed':
+    case 'ammo_explosion':
+    case 'mech_destroyed':
+      return event.entityId;
+    default:
+      return null;
+  }
 }
 
 /** Converts projectile traffic into one target summary while keeping consequences explicit. */
@@ -66,7 +72,15 @@ export class CombatReadouts {
   }
 
   consume(world: World, events: readonly SimEvent[]): void {
-    if (events.some(hasReadout)) this.pool.refreshLayout();
+    if (
+      events.some((event) => {
+        if (!hasReadout(event)) return false;
+        const id = readoutEntityId(event);
+        return id !== null && canPresentEntity(world, id);
+      })
+    ) {
+      this.pool.refreshLayout();
+    }
     this.routineCount = 0;
     for (const event of events) {
       if (event.type === 'projectile_hit') {

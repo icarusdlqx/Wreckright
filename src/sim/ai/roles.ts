@@ -1,6 +1,7 @@
 import type { AiRules } from '../../schema/rules';
 import { distance } from '../math';
 import { isOperational, type MechEntity, type World } from '../types';
+import { isIndirectFireWeapon } from '../weaponEngagement';
 
 export { COMBAT_ROLES, type CombatRole } from '../../schema/rules';
 import type { CombatRole } from '../../schema/rules';
@@ -17,6 +18,10 @@ export interface RoleProfile {
    * it cannot be shot back.
    */
   caution: number;
+  /** Share of effective optical reach reserved as a forward-observer band. */
+  observationRangeFactor: number;
+  /** Offset from the lance's direct approach line used to seek a flank perch. */
+  observationFlankDegrees: number;
 }
 
 interface Battery {
@@ -46,7 +51,7 @@ function batteryOf(world: World, mech: MechEntity): Battery {
     if (weapon === undefined) continue;
 
     const output = (weapon.damage * weapon.projectiles) / weapon.cooldown;
-    const indirect = weapon.tags.includes('indirect_fire');
+    const indirect = isIndirectFireWeapon(weapon);
 
     battery.total += output;
     if (weapon.range.long <= rules.shortRangeMetres) battery.short += output;
@@ -80,6 +85,8 @@ export function roleOf(world: World, mech: MechEntity): RoleProfile {
     aggression: profile.aggression,
     standoff: profile.standoff,
     caution: profile.caution,
+    observationRangeFactor: profile.observationRangeFactor,
+    observationFlankDegrees: profile.observationFlankDegrees,
   };
 }
 

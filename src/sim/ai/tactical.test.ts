@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { catalog, testWorld, unitOf } from '../../../tests/support';
+import { catalog, makeGrid, OPEN_LEGEND, testWorld, unitOf } from '../../../tests/support';
+import { updateWeapons } from '../combat';
+import { eventsOfType } from '../events';
 import { lineOfSight } from '../los';
-import { engagementRange, healthFraction } from './utility';
+import { engagementRange, healthFraction, scoreTargets } from './utility';
 import { updateTeamVisions, visionFor } from '../sensors';
 import type { MechEntity, Vec2, World } from '../types';
 import { stanceFor } from './positioning';
@@ -32,6 +34,7 @@ function isolate(world: World, kept: readonly MechEntity[]): void {
   for (const entity of world.entities) entity.destroyed = !kept.includes(entity);
   for (const entity of kept) {
     entity.sensorRange = 2_000;
+    entity.sightRange = 2_000;
     entity.signature = 1;
   }
 }
@@ -57,6 +60,104 @@ describe('tactical controller correctness', () => {
     expect(mech.path).toEqual([]);
     expect(mech.motion).toBe('stationary');
     expect(mech.targetId).toBe(target.id);
+  });
+
+  it('aims an immobile mech at the first ranked target it can personally see', () => {
+    const world = testWorld('legged-clear-ranked-target');
+    const mech = world.entities.find((entity) => entity.team === 0);
+    const [occluded, clear] = world.entities.filter((entity) => entity.team === 1);
+    if (mech === undefined || occluded === undefined || clear === undefined) {
+      throw new Error('need one shooter and two targets');
+    }
+    isolate(world, [mech, occluded, clear]);
+    world.terrain = makeGrid({
+      legend: OPEN_LEGEND,
+      tiles: ['.........', '.........', '..b......', '.........', '.........'],
+    });
+    mech.pos = { x: 35, y: 25 };
+    occluded.pos = { x: 5, y: 25 };
+    clear.pos = { x: 75, y: 25 };
+    mech.facing = 0;
+    mech.torsoOffset = 0;
+    mech.locations.left_leg.destroyed = true;
+    mech.locations.right_leg.destroyed = true;
+    mech.targetId = occluded.id;
+    for (const state of Object.values(occluded.locations)) {
+      state.armour = 0;
+      state.rearArmour = 0;
+      state.internal = Math.max(0.1, state.internalMax * 0.02);
+    }
+    const vision = visionFor(world, mech.team);
+    if (vision === null) throw new Error('need a team vision');
+    vision.visible.clear();
+    vision.visible.add(occluded.id);
+    vision.visible.add(clear.id);
+
+    expect(lineOfSight(world.terrain, mech.pos, occluded.pos).clear).toBe(false);
+    expect(lineOfSight(world.terrain, mech.pos, clear.pos).clear).toBe(true);
+    expect(
+      scoreTargets(world, mech, {
+        focusTargetId: occluded.id,
+        currentTargetId: occluded.id,
+      })[0]?.target.id,
+    ).toBe(occluded.id);
+
+    decideTactical(world, mech, occluded.id, difficultyTier(world, 'regular'));
+
+    expect(mech.targetId).toBe(clear.id);
+    updateWeapons(world, mech);
+    expect(
+      eventsOfType(world.events, 'weapon_fired').some(
+        (event) => event.shooterId === mech.id && event.targetId === clear.id,
+      ),
+    ).toBe(true);
+  });
+
+  it('lets an immobile indirect battery hold behind cover on a scout optical solution', () => {
+    const world = testWorld('indirect-team-optical');
+    const battery = unitOf(world, 'cairn_battery');
+    const scout = unitOf(world, 'hornet_spotter');
+    const target = unitOf(world, 'wisp_scout');
+    isolate(world, [battery, scout, target]);
+    world.terrain = makeGrid({
+      legend: OPEN_LEGEND,
+      tiles: Array.from({ length: 70 }, (_, row) => {
+        const cells = '.'.repeat(70).split('');
+        if (row >= 20 && row <= 50) cells[30] = 'b';
+        return cells.join('');
+      }),
+    });
+    battery.pos = { x: 105, y: 405 };
+    target.pos = { x: 505, y: 405 };
+    scout.pos = { x: 405, y: 105 };
+    battery.locations.left_leg.destroyed = true;
+    battery.locations.right_leg.destroyed = true;
+    updateTeamVisions(world);
+
+    const vision = visionFor(world, battery.team);
+    if (vision === null) throw new Error('need a team vision');
+    expect(lineOfSight(world.terrain, battery.pos, target.pos).clear).toBe(false);
+    expect(vision.visible.has(target.id)).toBe(true);
+
+    vision.visible.delete(target.id);
+    vision.identified.delete(target.id);
+    vision.detected.add(target.id);
+    expect(scoreTargets(world, battery, { focusTargetId: target.id, currentTargetId: null }))
+      .toEqual([]);
+
+    vision.visible.add(target.id);
+    vision.identified.add(target.id);
+    const scored = scoreTargets(world, battery, {
+      focusTargetId: target.id,
+      currentTargetId: null,
+    });
+    expect(scored[0]?.target.id).toBe(target.id);
+    expect(scored[0]?.expectedDps).toBeGreaterThan(0);
+
+    decideTactical(world, battery, target.id, difficultyTier(world, 'regular'));
+    expect(battery.targetId).toBe(target.id);
+    expect(battery.path).toEqual([]);
+    expect(battery.motion).toBe('stationary');
   });
 
   it('sweeps inward when unseen opposition still contests its assigned zone', () => {

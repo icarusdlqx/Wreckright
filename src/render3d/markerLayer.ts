@@ -11,6 +11,7 @@ import {
 import { teamColour, UI } from '../render/palette';
 import type { PendingCall } from '../sim/support';
 import { isOperational, type EntityId, type MechEntity, type Vec2, type World } from '../sim/types';
+import { canPresentEntity } from './visibilityPresentation';
 
 export interface MarkerViewState {
   selection: ReadonlySet<EntityId>;
@@ -92,7 +93,14 @@ export class MarkerLayer {
     if (view.supportRun !== null) this.drawSupportLane(view.supportRun);
 
     for (const entity of world.entities) {
-      if (!view.selection.has(entity.id) || !isOperational(entity)) continue;
+      if (
+        !view.selection.has(entity.id) ||
+        !isOperational(entity) ||
+        !canPresentEntity(world, entity.id)
+      ) continue;
+      // Selecting an optical hostile is for inspection. Its private route and
+      // command envelopes belong to its controller, not to the player's map.
+      if (world.playerTeam !== null && entity.team !== world.playerTeam) continue;
 
       if (view.orderMode === 'jump' && entity.jumpRange > 0 && entity.jumpCooldown <= 0) {
         this.groundRing(entity.pos, entity.jumpRange, UI.moveMarker, 0.5);

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { catalog, testWorld, unitOf } from '../../tests/support';
 import { hitChance } from './combat';
 import { hitPreview } from './preview';
+import { updateTeamVisions, visionFor } from './sensors';
 import type { MechEntity, World } from './types';
 
 let world: World;
@@ -17,6 +18,8 @@ beforeEach(() => {
   shooter.facing = 0;
   target.pos = { x: 620, y: 500 };
   target.facing = Math.PI;
+  shooter.sightRange = 2_000;
+  updateTeamVisions(world);
 });
 
 describe('the to-hit readout', () => {
@@ -112,5 +115,35 @@ describe('the to-hit readout', () => {
   it('has nothing to say about a dead target', () => {
     target.destroyed = true;
     expect(hitPreview(world, shooter, target)).toBeNull();
+  });
+
+  it('does not expose a to-hit preview for a sensor-only track', () => {
+    const vision = visionFor(world, shooter.team);
+    if (vision === null) throw new Error('need a team vision');
+    vision.visible.delete(target.id);
+    vision.detected.add(target.id);
+
+    expect(hitPreview(world, shooter, target)).toBeNull();
+  });
+
+  it('shows indirect fire but blocks direct mounts behind terrain', () => {
+    shooter = unitOf(world, 'bulwark_assault');
+    shooter.pos = { x: 500, y: 500 };
+    shooter.facing = 0;
+    target.pos = { x: 850, y: 500 };
+    const vision = visionFor(world, shooter.team);
+    if (vision === null) throw new Error('need a team vision');
+    vision.visible.add(target.id);
+
+    const preview = hitPreview(world, shooter, target);
+    const indirect = preview?.weapons.filter((entry) =>
+      world.catalog.weapons.get(entry.weaponId)?.tags.includes('indirect_fire') === true,
+    );
+    const direct = preview?.weapons.filter((entry) =>
+      world.catalog.weapons.get(entry.weaponId)?.tags.includes('indirect_fire') !== true,
+    );
+    expect(indirect?.some((entry) => entry.blocked === null)).toBe(true);
+    expect(direct?.some((entry) => entry.blocked === 'sight')).toBe(true);
+    expect(direct?.every((entry) => entry.blocked !== null)).toBe(true);
   });
 });

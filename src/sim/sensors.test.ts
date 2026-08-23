@@ -7,7 +7,7 @@ import { bearing } from './math';
 import { issueAttack } from './orders';
 import { stepWorld } from './world';
 import {
-  isIdentifiedBy,
+  isDetectedBy,
   isVisibleTo,
   sensorRangeFor,
   signatureFor,
@@ -71,7 +71,7 @@ describe('sensorRangeFor', () => {
 });
 
 describe('updateVision', () => {
-  it('spots an enemy inside sensor range with clear line of sight', () => {
+  it('sights an enemy inside optical range with clear line of sight', () => {
     scout.pos = { x: 500, y: 12 };
     enemy.pos = { x: 620, y: 12 };
     updateVision(world, world.vision!);
@@ -80,12 +80,12 @@ describe('updateVision', () => {
     expect(isVisibleTo(world.vision, enemy)).toBe(true);
   });
 
-  it('does not spot an enemy beyond sensor range', () => {
+  it('does not sight an enemy beyond optical range', () => {
     scout.pos = { x: 20, y: 12 };
     for (const entity of world.entities) {
       if (entity.team === 0) entity.pos = { x: 20, y: 12 };
     }
-    enemy.pos = { x: 20 + scout.sensorRange + 200, y: 12 };
+    enemy.pos = { x: 20 + scout.sightRange + 200, y: 12 };
     updateVision(world, world.vision!);
 
     expect(world.vision!.visible.has(enemy.id)).toBe(false);
@@ -141,8 +141,8 @@ describe('updateVision', () => {
 
     blue.pos = positions[0];
     red.pos = positions[1];
-    blue.sensorRange = 1_000;
-    red.sensorRange = 1;
+    blue.sightRange = 1_000;
+    red.sightRange = 1;
     blue.signature = 1;
     red.signature = 1;
     updateTeamVisions(headless);
@@ -164,18 +164,12 @@ describe('updateVision', () => {
       (event) => event.type === 'weapon_fired' && event.shooterId === red.id,
     )).toBe(false);
 
-    // Standing player intent survives, but the live firing solution is still
-    // stripped on a non-decision tick before weapons update.
+    // A player order cannot smuggle the exact hidden entity back into combat.
     red.controller = 'orders';
-    issueAttack(red, blue.id, 'left_arm');
-    headless.events.length = 0;
-    stepWorld(headless, headless.tick + 10);
-    expect(red.orders.attack?.targetId).toBe(blue.id);
+    expect(issueAttack(headless, red, blue.id, 'left_arm')).toBe(false);
+    expect(red.orders.attack).toBeNull();
     expect(red.targetId).toBeNull();
     expect(red.calledShot).toBeNull();
-    expect(headless.events.some(
-      (event) => event.type === 'weapon_fired' && event.shooterId === red.id,
-    )).toBe(false);
   });
 
   it('creates a sensor picture for a team introduced after world creation', () => {
@@ -184,7 +178,7 @@ describe('updateVision', () => {
     const target = headless.entities.find((entity) => entity.team === 0);
     if (target === undefined) throw new Error('need a target');
     target.pos = { x: 620, y: 12 };
-    late.sensorRange = 1_000;
+    late.sightRange = 1_000;
     target.signature = 1;
 
     expect(visionFor(headless, late.team)).toBeNull();
@@ -211,7 +205,7 @@ describe('remembered ground and ghosts', () => {
 
     // Far enough that the tile is outside every mech's reach, including the
     // longest-sighted pilot in the lance.
-    const reach = Math.max(...world.entities.map((entity) => entity.sensorRange));
+    const reach = Math.max(...world.entities.map((entity) => entity.sightRange));
     for (const entity of world.entities) {
       if (entity.team === 0) entity.pos = { x: scout.pos.x + reach * 2, y: 12 };
     }
@@ -277,7 +271,7 @@ describe('signature', () => {
       for (let gap = 40; gap < 1_400; gap += 20) {
         target.pos = { x: 100 + gap, y: 100 };
         updateVision(world, vision);
-        if (vision.visible.has(target.id)) seen = gap;
+        if (vision.detected.has(target.id)) seen = gap;
         else break;
       }
       return seen;
@@ -298,32 +292,16 @@ describe('signature', () => {
     expect(scoutReach).toBeLessThan(assaultReach);
   });
 
-  it('holds a distant contact without naming it', () => {
+  it('holds a distant sensor contact without turning it into a target', () => {
     const vision = world.vision!;
     scout.pos = { x: 100, y: 100 };
     const reach = scout.sensorRange * enemy.signature;
-    const identify = catalog.rules.sensors.identifyFraction;
-
-    // Walk in from the edge of detection to the first spot the scout actually
-    // holds — ridge_pass has terrain in the way, and which spot that is
-    // matters less than what the lance knows once it gets there.
-    let held: number | null = null;
-    for (let f = 0.95; f > identify + 0.05; f -= 0.05) {
-      enemy.pos = { x: 100 + reach * f, y: 100 };
-      updateVision(world, vision);
-      if (isVisibleTo(vision, enemy)) {
-        held = f;
-        break;
-      }
-    }
-
-    expect(held, 'the scout never picked the contact up at all').not.toBeNull();
-    expect(isIdentifiedBy(vision, enemy), 'named a contact out past identification range').toBe(
-      false,
-    );
-
-    enemy.pos = { x: 100 + reach * 0.3, y: 100 };
+    scout.sightRange = 1;
+    enemy.pos = { x: 100 + reach * 0.8, y: 100 };
     updateVision(world, vision);
-    expect(isIdentifiedBy(vision, enemy)).toBe(true);
+
+    expect(isDetectedBy(vision, enemy)).toBe(true);
+    expect(isVisibleTo(vision, enemy)).toBe(false);
+    expect(vision.identified.has(enemy.id)).toBe(false);
   });
 });

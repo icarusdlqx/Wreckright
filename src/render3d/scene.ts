@@ -12,7 +12,6 @@ import type { Faction } from '../schema/faction';
 import type { TerrainMapData } from '../schema/map';
 import type { SimEvent } from '../sim/events';
 import { jumpHeight } from '../sim/movement';
-import { tileExplored } from '../sim/sensors';
 import { isOperational, type EntityId, type MechEntity, type Vec2, type World } from '../sim/types';
 import { teamColour } from '../render/palette';
 import { radiusFor } from '../render/shape';
@@ -33,6 +32,7 @@ import {
 import { buildTerrain, type TerrainMesh } from './terrain';
 import { UnitViews } from './unitViews';
 import { SupportEffects } from './supportEffects';
+import { canPresentEntity } from './visibilityPresentation';
 
 export interface ViewState extends MarkerViewState {
   hovered: EntityId | null;
@@ -231,9 +231,22 @@ export class Renderer {
 
   snapshot(world: World): void {
     this.units.snapshot(world);
+    for (const entity of world.entities) {
+      if (!isOperational(entity) && !canPresentEntity(world, entity.id)) {
+        this.locomotion.retire(entity.id);
+      }
+    }
   }
 
   consumeEvents(world: World, events: readonly SimEvent[]): void {
+    for (const event of events) {
+      if (event.type !== 'mech_destroyed') continue;
+      if (this.units.canAnimateTerminalEvent(world, event.entityId)) {
+        this.locomotion.authorizeTerminalFall(event.entityId);
+      } else {
+        this.locomotion.settleTerminal(event.entityId);
+      }
+    }
     this.units.consumeEvents(world, events);
     this.effects.consume(world, events);
     this.supportEffects.consume(world, events);
@@ -255,19 +268,13 @@ export class Renderer {
     this.effects.beginFrame(presentationDelta);
 
     for (const entity of world.entities) {
-      const tile = world.terrain.toTile(entity.pos);
-      const seen =
-        world.vision === null ||
-        entity.team === world.vision.team ||
-        world.vision.visible.has(entity.id) ||
-        (entity.destroyed &&
-          tileExplored(world.vision, tile.row * world.terrain.width + tile.column));
-
-      const shown = this.units.viewFor(world, entity);
-      shown.model.root.visible = seen;
-      shown.ring.visible = seen && view.selection.has(entity.id) && isOperational(entity);
-      shown.hoverRing.visible = seen && view.hovered === entity.id && isOperational(entity);
-      if (!seen) continue;
+      const shown = this.units.present(world, entity);
+      if (shown === null) {
+        if (!isOperational(entity)) this.locomotion.retire(entity.id);
+        continue;
+      }
+      shown.ring.visible = view.selection.has(entity.id) && isOperational(entity);
+      shown.hoverRing.visible = view.hovered === entity.id && isOperational(entity);
 
       const at = this.units.at(entity);
       const ground = this.terrain.heightAt(at.x, at.y);

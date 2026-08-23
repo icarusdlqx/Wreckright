@@ -105,7 +105,10 @@ export const TOUCH_BINDINGS: readonly Binding[] = [
 ];
 
 const SUPPORT_NOTES: readonly Binding[] = [
-  { input: 'Sensor Probe', action: 'Reveals a map region.' },
+  {
+    input: 'Sensor Probe',
+    action: 'Detects and classifies coarse contacts; it does not reveal terrain or grant optical line of sight.',
+  },
   {
     input: 'Air Strike',
     action:

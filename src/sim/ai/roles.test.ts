@@ -19,6 +19,15 @@ describe('combat roles', () => {
     for (const role of COMBAT_ROLES) {
       expect(rules.profiles[role].aggression).toBeGreaterThan(0);
     }
+    expect(rules.profiles.scout.observationRangeFactor).toBeGreaterThan(0);
+    expect(rules.profiles.scout.observationFlankDegrees).toBeGreaterThan(0);
+    for (const role of COMBAT_ROLES.filter((role) => role !== 'scout')) {
+      expect(rules.profiles[role].observationRangeFactor, role).toBe(0);
+      expect(rules.profiles[role].observationFlankDegrees, role).toBe(0);
+    }
+    expect(rules.observationClassPriority.assault).toBeGreaterThan(
+      rules.observationClassPriority.light,
+    );
   });
 
   it('reaches every role from the stock designs', () => {

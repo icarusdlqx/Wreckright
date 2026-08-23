@@ -31,7 +31,13 @@
     "sensor_mast": {
       "label": "Sensor Mast",
       "note": "Dedicated mast above the cockpit line. Sees a long way before it is seen.",
-      "sensorRangeFactor": 1.3
+      "sensorRangeFactor": 1.3,
+      "sightRangeFactor": 1.3
+    },
+    "recon_optics": {
+      "label": "Recon Optics",
+      "note": "Wide-spectrum optics built to resolve silhouettes across broken ground.",
+      "sightRangeFactor": 1.22
     },
     "hardened_mantlet": {
       "label": "Hardened Mantlet",

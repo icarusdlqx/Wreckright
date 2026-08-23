@@ -2,6 +2,7 @@ import type { MissionTrigger, TriggerEffect } from '../schema/mission';
 import { createMech } from './entity';
 import { emit, eventsOfType } from './events';
 import { objectiveById } from './objectives';
+import { pilotAtDifficulty } from './pilotDifficulty';
 import { isOperational, type MechEntity, type World } from './types';
 import { zoneById } from './zones';
 
@@ -57,8 +58,13 @@ export function spawnUnits(
 ): MechEntity[] {
   const spawned: MechEntity[] = [];
   let nextId = nextEntityId(world);
+  const controller =
+    world.entities.find((entity) => entity.team === team)?.controller ??
+    (team === world.playerTeam ? 'orders' : 'tactical');
+  const skillDelta = world.rules.difficulty.tiers[world.difficulty]?.skillDelta;
 
   for (const unit of units) {
+    const authoredPilot = world.catalog.pilots.get(unit.pilotId);
     const mech = createMech(world.catalog, world.rules, {
       id: nextId,
       team,
@@ -67,6 +73,10 @@ export function spawnUnits(
       spawn: unit.spawn,
       facingDegrees: unit.facingDegrees,
       autopilot: team !== world.playerTeam,
+      controller,
+      ...(authoredPilot === undefined
+        ? {}
+        : { pilot: pilotAtDifficulty(authoredPilot, team, world.playerTeam, skillDelta) }),
     });
     nextId += 1;
     world.entities.push(mech);
@@ -105,6 +115,7 @@ export function applyEffect(world: World, effect: TriggerEffect): void {
         // Scripted intel is handed to the side the mission is written for
         // unless it names another; in a headless run that is team zero.
         team: effect.team ?? world.playerTeam ?? 0,
+        kind: 'optical',
         x: effect.x,
         y: effect.y,
         radius: effect.radius,

@@ -1,31 +1,48 @@
-import { lineOfSight } from './los';
 import { distance } from './math';
 import { replacePath } from './pathProgress';
-import { findPath } from './pathfind';
-import { isVisibleTo, visionFor } from './sensors';
+import { findPath, nearestPassable } from './pathfind';
+import { isSightedBy, trackFor, visionFor } from './sensors';
+import { findEntity, isOperational, type MechEntity, type Vec2, type World } from './types';
 import {
-  findEntity,
-  isOperational,
-  type MechEntity,
-  type Vec2,
-  type World,
-} from './types';
+  hasUsableFiringSolution,
+  hasUsableLineOfFire,
+  longestUsableWeaponReach,
+} from './weaponEngagement';
+
+/** Bounds an investigation to the authored uncertainty of one sensor report. */
+function trackSearchRadius(world: World): number {
+  const uncertainty = Math.max(
+    world.rules.sensors.trackGridMetres,
+    world.rules.movement.arrivalRadius,
+  );
+  return Math.ceil(uncertainty / world.terrain.tileSize);
+}
 
 export interface OrderedContact {
+  /** Exact entity state is exposed only while the team has optical sight. */
   target: MechEntity | null;
-  visible: boolean;
+  /** A privacy-safe point the standing order may continue to investigate. */
   lastKnown: Vec2 | null;
+  /** The team has actually observed that this contact is no longer fighting. */
+  gone: boolean;
 }
 
 /** Separates the player's standing order from the live contact it may have lost. */
 export function orderedContact(world: World, entity: MechEntity): OrderedContact {
   const id = entity.orders.attack?.targetId ?? null;
-  const target = findEntity(world, id);
   const vision = visionFor(world, entity.team);
+  const found = findEntity(world, id);
+  const target =
+    found !== null && isSightedBy(vision, found) && isOperational(found) ? found : null;
+  const track = id === null ? null : trackFor(vision, id);
+  const gone =
+    found !== null &&
+    vision?.observedHulks.has(found.id) === true &&
+    !isOperational(found);
   return {
     target,
-    visible: target !== null && isOperational(target) && isVisibleTo(vision, target),
-    lastKnown: id === null ? null : (vision?.ghosts.get(id)?.pos ?? null),
+    lastKnown: track === null ? null : { x: track.pos.x, y: track.pos.y },
+    gone,
   };
 }
 
@@ -35,8 +52,10 @@ export function autoAcquire(world: World, entity: MechEntity): MechEntity | null
   const vision = visionFor(world, entity.team);
 
   for (const candidate of world.entities) {
-    if (candidate.team === entity.team || !isOperational(candidate)) continue;
-    if (!isVisibleTo(vision, candidate)) continue;
+    if (candidate.team === entity.team) continue;
+    if (!isSightedBy(vision, candidate)) continue;
+    if (!isOperational(candidate)) continue;
+    if (!hasUsableLineOfFire(world, entity, candidate, 'intent')) continue;
 
     const range = distance(entity.pos, candidate.pos);
     if (range < bestRange) {
@@ -49,14 +68,6 @@ export function autoAcquire(world: World, entity: MechEntity): MechEntity | null
 }
 
 /** The longest reach of any working gun aboard, in metres. */
-function longestReach(world: World, entity: MechEntity): number {
-  return entity.weapons.reduce((longest, mount) => {
-    if (mount.destroyed) return longest;
-    const weapon = world.catalog.weapons.get(mount.weaponId);
-    return weapon === undefined ? longest : Math.max(longest, weapon.range.long);
-  }, 0);
-}
-
 /**
  * Walks an attack-ordered mech into the fight: toward its quarry until it is
  * inside most of its longest gun's reach with a line of sight, then stops to
@@ -68,14 +79,14 @@ export function approachToEngage(
   entity: MechEntity,
   quarry: MechEntity,
 ): boolean {
-  const reach = longestReach(world, entity);
+  const reach = longestUsableWeaponReach(world, entity, 'intent');
   // Nothing to shoot with: charging a machine you cannot hurt is not an
   // approach, it is a donation.
   if (reach <= 0) return false;
 
   const gap = distance(entity.pos, quarry.pos);
-  const sighted = lineOfSight(world.terrain, entity.pos, quarry.pos).clear;
-  if (gap <= reach * 0.85 && sighted) return false;
+  const solution = hasUsableLineOfFire(world, entity, quarry, 'intent');
+  if (gap <= reach * 0.85 && solution) return false;
 
   if (entity.path.length === 0 || world.tick >= entity.nextPathTick) {
     const path = findPath(
@@ -94,29 +105,38 @@ export function approachToEngage(
   return true;
 }
 
-/** Searches the final sensor return without learning where the contact went next. */
+/** Searches a coarse contact report without learning the hidden machine's position. */
 export function approachToLastKnown(
   world: World,
   entity: MechEntity,
   lastKnown: Vec2,
 ): boolean {
-  if (distance(entity.pos, lastKnown) <= world.rules.movement.arrivalRadius) return false;
+  const reportedTile = world.terrain.toTile(lastKnown);
+  const passable = nearestPassable(
+    world.terrain,
+    reportedTile.column,
+    reportedTile.row,
+    trackSearchRadius(world),
+  );
+  if (passable === null) return false;
+  const destination = world.terrain.tileCentre(passable.column, passable.row);
+  if (distance(entity.pos, destination) <= world.rules.movement.arrivalRadius) return false;
 
   const currentEnd = entity.path.at(-1);
   const routeChanged =
     currentEnd === undefined ||
-    distance(currentEnd, lastKnown) > world.rules.movement.arrivalRadius;
+    distance(currentEnd, destination) > world.rules.movement.arrivalRadius;
   if (routeChanged || world.tick >= entity.nextPathTick) {
     const path = findPath(
       world.terrain,
       entity.pos,
-      lastKnown,
+      destination,
       world.rules.simulation.pathfindMaxNodes,
     );
     entity.nextPathTick = world.tick + world.rules.simulation.aiPathIntervalTicks;
     replacePath(
       entity,
-      path === null ? [] : path.length === 0 ? [{ ...lastKnown }] : path,
+      path === null ? [] : path.length === 0 ? [{ ...destination }] : path,
     );
   }
   if (entity.path.length === 0) return false;
@@ -133,13 +153,50 @@ export function applyPlayerTargeting(
   contact: OrderedContact,
   holdingFire: boolean,
 ): void {
-  if (contact.target !== null && isOperational(contact.target)) {
-    entity.targetId = contact.visible ? contact.target.id : null;
-    entity.calledShot = contact.visible ? (entity.orders.attack?.calledShot ?? null) : null;
+  const attackMoving = entity.orders.move?.engage === true;
+  const orderedTargetActionable =
+    contact.target !== null &&
+    hasUsableFiringSolution(world, entity, contact.target, 'intent');
+  if (contact.target !== null && (!attackMoving || orderedTargetActionable)) {
+    entity.targetId = contact.target.id;
+    entity.calledShot = entity.orders.attack?.calledShot ?? null;
     return;
   }
 
-  entity.orders.attack = null;
+  if (contact.target === null && (contact.gone || contact.lastKnown === null)) {
+    // Once both optical contact and its bounded report have elapsed, the
+    // standing id carries no player-visible information. Retire it so normal
+    // target selection can resume without asking what the hidden entity did.
+    entity.orders.attack = null;
+  }
+
+  if (!holdingFire && attackMoving) {
+    const passingTarget = engageWorthTarget(world, entity);
+    if (passingTarget !== null) {
+      // Attack-move stopped because this mech can shoot the passing contact.
+      // Use it as the live solution without replacing the player's standing
+      // intent; the ordered quarry takes over again when optical sight returns.
+      entity.targetId = passingTarget.id;
+      entity.calledShot = null;
+      return;
+    }
+  }
+
+  if (contact.target !== null) {
+    entity.targetId = contact.target.id;
+    entity.calledShot = entity.orders.attack?.calledShot ?? null;
+    return;
+  }
+
+  // Losing optical contact strips the live firing solution, not the player's
+  // standing intent. The order may keep walking to its privacy-safe track and
+  // becomes live again only after optical promotion.
+  if (entity.orders.attack !== null) {
+    entity.targetId = null;
+    entity.calledShot = null;
+    return;
+  }
+
   entity.calledShot = null;
   if (holdingFire) {
     entity.targetId = null;
@@ -152,8 +209,9 @@ export function applyPlayerTargeting(
     entity.targetId =
       remembered &&
       threat !== null &&
-      isOperational(threat) &&
-      isVisibleTo(visionFor(world, entity.team), threat)
+      isSightedBy(visionFor(world, entity.team), threat) &&
+      hasUsableLineOfFire(world, entity, threat, 'intent') &&
+      isOperational(threat)
         ? threat.id
         : null;
     return;
@@ -164,14 +222,30 @@ export function applyPlayerTargeting(
 
 /**
  * The contact an attack-moving mech should stop for: something visible and
- * inside the reach of a gun it is actually carrying. Passing sensor ghosts do
+ * inside the reach of a gun it is actually carrying. Passing sensor tracks do
  * not halt an advance; a target worth shooting does.
  */
 export function engageWorthTarget(world: World, entity: MechEntity): MechEntity | null {
-  const reach = longestReach(world, entity);
+  const reach =
+    longestUsableWeaponReach(world, entity, 'intent') * world.rules.combat.maxRangeMultiplier;
   if (reach === 0) return null;
 
-  const target = autoAcquire(world, entity);
-  if (target === null) return null;
-  return distance(entity.pos, target.pos) <= reach ? target : null;
+  let best: MechEntity | null = null;
+  let bestRange = Number.POSITIVE_INFINITY;
+  const vision = visionFor(world, entity.team);
+
+  for (const candidate of world.entities) {
+    if (candidate.team === entity.team) continue;
+    if (!isSightedBy(vision, candidate)) continue;
+    if (!isOperational(candidate)) continue;
+
+    const range = distance(entity.pos, candidate.pos);
+    if (range > reach || range >= bestRange) continue;
+    if (!hasUsableFiringSolution(world, entity, candidate, 'intent')) continue;
+
+    best = candidate;
+    bestRange = range;
+  }
+
+  return best;
 }

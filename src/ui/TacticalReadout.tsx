@@ -1,5 +1,6 @@
 import type { UnitSnapshot } from './store';
 import { actionStatus, formatReadoutSeconds } from './combatTelemetry';
+import { FriendlyMachineProfile } from './FriendlyMachineProfile';
 
 function Stability({ unit }: { unit: UnitSnapshot }) {
   const value = unit.stability.value;
@@ -53,7 +54,7 @@ function Governor({ unit }: { unit: UnitSnapshot }) {
   );
 }
 
-export function TacticalReadout({ unit }: { unit: UnitSnapshot }) {
+export function TacticalReadout({ unit, friendly = false }: { unit: UnitSnapshot; friendly?: boolean }) {
   return (
     <section className="tactical-readout" data-testid="tactical-readout">
       <div className="ability-readout" title={unit.ability.note}>
@@ -76,6 +77,7 @@ export function TacticalReadout({ unit }: { unit: UnitSnapshot }) {
         <span className="alpha-caveat">If every gun bears; cooling is not credited.</span>
       </div>
       <Governor unit={unit} />
+      {friendly ? <FriendlyMachineProfile unit={unit} /> : null}
     </section>
   );
 }

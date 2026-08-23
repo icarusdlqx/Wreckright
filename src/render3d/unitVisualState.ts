@@ -1,6 +1,7 @@
 import { LOCATIONS } from '../schema/common';
 import type { Faction } from '../schema/faction';
 import { angleDifference, clamp, normaliseAngle } from '../sim/math';
+import { isSightedBy } from '../sim/sensors';
 import type { MechEntity, World } from '../sim/types';
 import { damageWearTier } from './damageLedger';
 import { machineCulture } from './machineCulture';
@@ -101,7 +102,12 @@ export function sealedTargetOffset(
       break;
     }
   }
-  if (target === null || target.destroyed || target.withdrawn) return entity.torsoOffset;
+  if (
+    target === null ||
+    target.destroyed ||
+    target.withdrawn ||
+    !isSightedBy(world.vision, target)
+  ) return entity.torsoOffset;
   const targetBearing = Math.atan2(target.pos.y - displayed.y, target.pos.x - displayed.x);
   return clamp(
     angleDifference(displayed.facing, targetBearing),

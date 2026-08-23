@@ -4,12 +4,23 @@ import type { MechLocation } from '../schema/common';
 import type { SimEvent } from '../sim/events';
 import { findEntity, type EntityId, type Vec2, type World } from '../sim/types';
 import type { TacticalCamera, Viewport } from './camera';
-import { canPresentEntity, CombatReadouts } from './combatReadouts';
+import { CombatReadouts } from './combatReadouts';
 import { JetLayer, ScarLayer, SmokeLayer } from './effects';
 import { measureReadoutLayout } from './readoutSafeArea';
 import { TracerLayer, type ShotBurstKind } from './tracers';
 import { MechanicalDischargeLayer } from './mechanicalEffects';
 import { MuzzleFlashPool } from './muzzleFlashPool';
+import {
+  canPresentIncomingCue,
+  canPresentWeaponFlight,
+  incomingCueFlightSeconds,
+  incomingCueOrigin,
+  missCueAngle,
+  missCueDistance,
+  projectileFlightSeconds,
+  weaponEventColour,
+} from './battleEventPresentation';
+import { canPresentEntity } from './visibilityPresentation';
 
 type DestructiveEvent = Extract<SimEvent, { type: 'mech_destroyed' | 'ammo_explosion' }>;
 
@@ -41,30 +52,6 @@ const CRITICAL_COLOUR = 0xffd07a;
 const AMMO_COLOUR = 0xffa34f;
 const TERMINAL_COLOUR = 0xff6b38;
 const FLASH_CAPACITY = 10;
-
-function eventColour(weapon: Weapon | undefined): number {
-  return weapon === undefined ? 0xffffff : parseInt(weapon.visual.colour.slice(1), 16);
-}
-
-function missAngle(event: Extract<SimEvent, { type: 'projectile_miss' }>): number {
-  const hash = Math.imul(event.tick + 1, 73_856_093)
-    ^ Math.imul(event.shooterId + 1, 19_349_663)
-    ^ Math.imul(event.targetId + 1, 83_492_791);
-  return (hash >>> 0) / 0xffffffff * Math.PI * 2;
-}
-
-function projectileFlightSeconds(
-  world: World,
-  event: Extract<SimEvent, { type: 'weapon_fired' }>,
-  weapon: Weapon | undefined,
-): number | null {
-  if (weapon?.velocity === null || weapon === undefined) return null;
-  const shooter = findEntity(world, event.shooterId);
-  const target = findEntity(world, event.targetId);
-  if (shooter === null || target === null) return null;
-  const distance = Math.hypot(target.pos.x - shooter.pos.x, target.pos.y - shooter.pos.y);
-  return Math.max(world.dt, Math.ceil(distance / weapon.velocity / world.dt) * world.dt);
-}
 
 /** Combat effects and camera recoil share one clock and one fixed budget. */
 export class BattleEffects {
@@ -220,8 +207,8 @@ export class BattleEffects {
         if (!canPresentEntity(world, event.targetId)) continue;
         const target = this.currentPositionOf(event.targetId);
         if (target === null) continue;
-        const angle = missAngle(event);
-        const distance = 18 + ((event.tick + event.shooterId + event.targetId) & 15);
+        const angle = missCueAngle(event);
+        const distance = missCueDistance(event);
         this.effectAt.x = target.x + Math.cos(angle) * distance;
         this.effectAt.y = target.y + Math.sin(angle) * distance;
         const weapon = world.catalog.weapons.get(event.weaponId);
@@ -235,13 +222,14 @@ export class BattleEffects {
           this.effectAt,
           this.heightAt(this.effectAt.x, this.effectAt.y) - 14,
           'miss',
-          eventColour(weapon),
+          weaponEventColour(weapon),
           0.8,
         );
         continue;
       }
 
       if (event.type === 'jump_landed') {
+        if (!canPresentEntity(world, event.entityId)) continue;
         this.addShake(1.4 * this.nearness({ x: event.x, y: event.y }));
         continue;
       }
@@ -249,7 +237,7 @@ export class BattleEffects {
       if (event.type !== 'weapon_fired' && event.type !== 'projectile_hit') continue;
 
       const weapon = world.catalog.weapons.get(event.weaponId);
-      const colour = eventColour(weapon);
+      const colour = weaponEventColour(weapon);
 
       if (event.type === 'projectile_hit') {
         if (!canPresentEntity(world, event.targetId)) continue;
@@ -269,12 +257,21 @@ export class BattleEffects {
         continue;
       }
 
-      if (!canPresentEntity(world, event.shooterId) && !canPresentEntity(world, event.targetId)) {
-        continue;
-      }
-      const shooter = this.positionOf(event.shooterId);
       const target = this.positionOf(event.targetId);
       if (target === null) continue;
+      if (canPresentIncomingCue(world, event)) {
+        incomingCueOrigin(event, target, this.heightAt, this.muzzle);
+        this.tracers.fire(
+          this.muzzle, target, weapon?.visual ?? DEFAULT_SHOT,
+          weapon?.projectiles ?? 1, weapon?.velocity ?? null, colour, this.heightAt,
+          event,
+          projectileFlightSeconds(world, event, weapon),
+          incomingCueFlightSeconds(weapon),
+        );
+        continue;
+      }
+      if (!canPresentWeaponFlight(world, event)) continue;
+      const shooter = this.positionOf(event.shooterId);
 
       this.breech.set(Number.NaN, Number.NaN, Number.NaN);
       if (!this.muzzleOf(event.shooterId, event.weaponId, this.muzzle, this.breech)) {
@@ -311,11 +308,14 @@ export class BattleEffects {
     // Impact events get first claim; retired rounds then land at a render-safe endpoint.
     for (const event of events) {
       if (event.type === 'mech_destroyed') {
+        if (!canPresentEntity(world, event.entityId)) continue;
         const located = this.canLocate?.(event.entityId) === true &&
           this.locationOf(event.entityId, destructiveLocation(event), this.effectPoint);
         this.tracers.resolveOutstanding(event.entityId, located ? this.effectPoint : undefined);
       } else if (event.type === 'unit_withdrew') {
-        this.tracers.resolveOutstanding(event.entityId);
+        if (canPresentEntity(world, event.entityId)) {
+          this.tracers.resolveOutstanding(event.entityId);
+        }
       } else if (event.type === 'battle_ended') {
         this.tracers.resolveOutstanding(null);
       }

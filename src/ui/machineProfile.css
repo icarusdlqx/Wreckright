@@ -1,0 +1,80 @@
+.machine-profile {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.machine-profile h3 {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.machine-profile dl,
+.machine-profile ul {
+  margin: 0;
+  padding: 0;
+}
+
+.machine-profile-role {
+  display: grid;
+  gap: 2px;
+  margin: 0 0 6px;
+  font-size: 10px;
+}
+
+.machine-profile-role span {
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.machine-profile dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.machine-profile dl div {
+  padding: 5px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.machine-profile dt {
+  color: var(--muted);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.machine-profile dd {
+  margin: 2px 0 0;
+  font-size: 10px;
+}
+
+.machine-profile ul {
+  margin-top: 6px;
+  list-style: none;
+}
+
+.machine-profile li {
+  display: grid;
+  grid-template-columns: minmax(70px, 0.35fr) 1fr;
+  gap: 7px;
+  padding: 4px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 10px;
+}
+
+.machine-profile li span,
+.machine-profile-caveat,
+.machine-profile-standard {
+  color: var(--muted);
+}
+
+.machine-profile-caveat,
+.machine-profile-standard {
+  margin: 6px 0 0;
+  font-size: 9px;
+  line-height: 1.35;
+}

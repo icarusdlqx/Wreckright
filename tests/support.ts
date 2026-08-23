@@ -7,12 +7,31 @@ import { createWorld } from '../src/sim/world';
 
 export const catalog = loadCatalog();
 
+// Unit tests need a stable mechanical laboratory even when the public
+// skirmish roster is rebalanced. Keep the original weapon-rich opponents here
+// so a combat test never silently changes subject with the featured mission.
+const fixtureMission = structuredClone(catalog.missions.get('skirmish_ridge'));
+if (fixtureMission === undefined) throw new Error('missing skirmish fixture');
+const fixtureOpposition = fixtureMission.lances.find((lance) => lance.team === 1);
+if (fixtureOpposition === undefined) throw new Error('skirmish fixture has no opposition');
+const duellist = fixtureOpposition.units[0];
+const halberdier = fixtureOpposition.units[3];
+if (duellist === undefined || halberdier === undefined) {
+  throw new Error('skirmish fixture opposition is incomplete');
+}
+duellist.designId = 'falchion_duellist';
+halberdier.designId = 'halberd_prime';
+const fixtureCatalog = {
+  ...catalog,
+  missions: new Map(catalog.missions).set('skirmish_ridge', fixtureMission),
+};
+
 export function testWorld(seed: string = 'test'): World {
-  return createWorld(catalog, { seed, missionId: 'skirmish_ridge' });
+  return createWorld(fixtureCatalog, { seed, missionId: 'skirmish_ridge' });
 }
 
 export function playerWorld(seed: string = 'test', playerTeam: number = 0): World {
-  return createWorld(catalog, { seed, missionId: 'skirmish_ridge', playerTeam });
+  return createWorld(fixtureCatalog, { seed, missionId: 'skirmish_ridge', playerTeam });
 }
 
 /** Drops an extra mech into a running world, for designs no mission fields. */

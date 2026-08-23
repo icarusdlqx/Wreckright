@@ -6,7 +6,7 @@ import type { ConstructionRules, Rules } from '../schema/rules';
 import { splitArmour } from './loadout';
 import { emptyOrders } from './orders';
 import { abilityIdFor } from './abilities';
-import { sensorRangeFor, signatureFor } from './sensors';
+import { sensorRangeFor, sightRangeFor, signatureFor } from './sensors';
 import {
   WEAPON_GROUPS,
   type AmmoBin,
@@ -135,6 +135,7 @@ export function createMech(catalog: Catalog, rules: Rules, params: SpawnParams):
   let legLossFactor = 1;
   let lanceAccuracyFactor = 1;
   let traitSensorFactor = 1;
+  let traitSightFactor = 1;
   let signatureFactor = 1;
 
   for (const traitId of chassis.traits) {
@@ -147,6 +148,7 @@ export function createMech(catalog: Catalog, rules: Rules, params: SpawnParams):
     damageTakenFactor *= trait.damageTakenFactor;
     legLossFactor *= trait.legLossFactor;
     traitSensorFactor *= trait.sensorRangeFactor;
+    traitSightFactor *= trait.sightRangeFactor;
     signatureFactor *= trait.signatureFactor;
     lanceAccuracyFactor *= trait.lanceAccuracyFactor;
   }
@@ -168,6 +170,7 @@ export function createMech(catalog: Catalog, rules: Rules, params: SpawnParams):
 
   let amsMissileFactor = 1;
   let sensorRangeFactor = 1;
+  let sightRangeFactor = 1;
   let designatorRange = 0;
   let designatorSeconds = 0;
   let jumpRange = 0;
@@ -178,6 +181,8 @@ export function createMech(catalog: Catalog, rules: Rules, params: SpawnParams):
     outgoingAccuracyFactor *= stats.accuracy_factor ?? 1;
     amsMissileFactor *= stats.ams_missile_factor ?? 1;
     sensorRangeFactor *= stats.sensor_range_factor ?? 1;
+    sightRangeFactor *= stats.sight_range_factor ?? 1;
+    signatureFactor *= stats.signature_factor ?? 1;
     // Each jet adds its own reach and its own heat. A chassis with no jump
     // gear in its gyro cannot use them however many are bolted on.
     if (chassis.jumpCapable) {
@@ -223,6 +228,7 @@ export function createMech(catalog: Catalog, rules: Rules, params: SpawnParams):
     name: design.name,
     designId: design.id,
     chassisId: chassis.id,
+    chassisClass: chassis.class,
     frame: chassis.frame,
     mobile: frame.mobile,
     knockable: frame.knockable,
@@ -315,7 +321,11 @@ export function createMech(catalog: Catalog, rules: Rules, params: SpawnParams):
     groupIntent: Array.from({ length: WEAPON_GROUPS }, () => true),
     heatSafety: true,
     sensorRange: sensorRangeFor(rules.sensors, pilot.sensors) * sensorRangeFactor * traitSensorFactor,
-    signature: signatureFor(rules.sensors, chassis.tonnage) * signatureFactor,
+    sightRange: sightRangeFor(rules.sensors, pilot.sensors) * sightRangeFactor * traitSightFactor,
+    signature:
+      signatureFor(rules.sensors, chassis.tonnage) *
+      frame.sensorSignatureFactor *
+      signatureFactor,
     amsMissileFactor,
     movingAccuracyFactor,
     damageTakenFactor,

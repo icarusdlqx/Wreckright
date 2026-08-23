@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { catalog } from '../../tests/support';
+import { missionTickBudget } from '../schema/missionClock';
 import { balanceByClass, balanceOutliers, dominatedWeapons, weaponEfficiency } from './balance';
 import { runBattle } from './world';
 
@@ -124,4 +125,41 @@ describe('mirror match against the baseline controller', () => {
     const twice = fight(DETERMINISM_ITERATIONS);
     expect(twice).toEqual(once);
   }, 300_000);
+});
+
+describe('default skirmish role composition', () => {
+  const ITERATIONS = 40;
+  const MINIMUM_WIN_SHARE = 0.2;
+
+  it('gives both asymmetric lances a credible path to victory without timing out', () => {
+    let team0Wins = 0;
+    let team1Wins = 0;
+    let draws = 0;
+    let timeouts = 0;
+    const maxTicks = missionTickBudget(catalog, 'skirmish_ridge');
+
+    for (let index = 0; index < ITERATIONS; index += 1) {
+      const result = runBattle(catalog, {
+        seed: `phase13-observer:${index}`,
+        missionId: 'skirmish_ridge',
+        maxTicks,
+      });
+
+      if (!result.decided) timeouts += 1;
+      if (result.winner === 0) team0Wins += 1;
+      else if (result.winner === 1) team1Wins += 1;
+      else draws += 1;
+    }
+
+    const detail =
+      `team 0 ${team0Wins}, team 1 ${team1Wins}, draws ${draws}, ` +
+      `timeouts ${timeouts} of ${ITERATIONS}`;
+
+    // This protects the authored matchup's role/composition from becoming a
+    // foregone conclusion. It is deliberately not a mirror-balance claim:
+    // the lances use different machines, pilots, roles, and physical corners.
+    expect(timeouts, detail).toBe(0);
+    expect(team0Wins / ITERATIONS, detail).toBeGreaterThanOrEqual(MINIMUM_WIN_SHARE);
+    expect(team1Wins / ITERATIONS, detail).toBeGreaterThanOrEqual(MINIMUM_WIN_SHARE);
+  }, 600_000);
 });

@@ -73,7 +73,7 @@ describe('integrated combat presentation', () => {
     active.destroy();
   });
 
-  it('rejects wholly hidden traffic but presents fire involving a visible endpoint', () => {
+  it('rejects hidden traffic and clips incoming fire to the visible target side', () => {
     const fire = vi.spyOn(TracerLayer.prototype, 'fire');
     const burst = vi.spyOn(TracerLayer.prototype, 'burst');
     const mechanical = vi.spyOn(MechanicalDischargeLayer.prototype, 'fire');
@@ -123,8 +123,9 @@ describe('integrated combat presentation', () => {
         targetId: enemy.id, weaponId: 'ac5',
       },
     ]);
-    expect(fire).toHaveBeenCalledTimes(2);
+    expect(fire).toHaveBeenCalledTimes(1);
     expect(burst).not.toHaveBeenCalled();
+    expect(mechanical).not.toHaveBeenCalled();
     active.destroy();
   });
 
@@ -180,23 +181,28 @@ describe('integrated combat presentation', () => {
 
   it('shows ten distinct simultaneous muzzle lights without growing the pool', () => {
     const scene = new Scene();
+    let muzzleIndex = 0;
     const active = new BattleEffects(
       scene,
       new Color(0x101820),
       new TacticalCamera(false),
       () => 0,
       () => ({ x: 120, y: 80 }),
-      (id, _weaponId, muzzle) => {
-        muzzle.set(id * 10, 14, 20);
+      (_id, _weaponId, muzzle) => {
+        muzzleIndex += 1;
+        muzzle.set(muzzleIndex * 10, 14, 20);
         return true;
       },
     );
     const world = testWorld('ten-muzzle-lights');
+    const shooter = world.entities[0];
+    const target = world.entities[1];
+    if (shooter === undefined || target === undefined) throw new Error('missing test combatants');
     const events = Array.from({ length: 10 }, (_, index): SimEvent => ({
       type: 'weapon_fired',
-      tick: 1,
-      shooterId: index + 1,
-      targetId: 2,
+      tick: index + 1,
+      shooterId: shooter.id,
+      targetId: target.id,
       weaponId: 'ac5',
     }));
 

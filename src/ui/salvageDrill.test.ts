@@ -143,12 +143,12 @@ describe('salvage field exercise', () => {
     expect(rangeTarget).toBeDefined();
     if (shooter === undefined || rangeTarget === undefined) return;
 
-    issueAttack(shooter, rangeTarget.id, 'left_leg');
+    issueAttack(world, shooter, rangeTarget.id, 'left_leg');
     let heldAtTwoLegs = false;
     while (!world.finished && world.tick < maxTicks) {
       stepWorld(world, maxTicks);
       if (rangeTarget.locations.left_leg.destroyed && !rangeTarget.locations.right_leg.destroyed) {
-        issueAttack(shooter, rangeTarget.id, 'right_leg');
+        issueAttack(world, shooter, rangeTarget.id, 'right_leg');
       }
       if (
         rangeTarget.locations.left_leg.destroyed &&

@@ -16,8 +16,9 @@ describe('TacticalReadout', () => {
     mech.groupIntent[1] = true;
     mech.groupEnabled[1] = false;
 
+    const unit = snapshotUnit(world, mech);
     const html = renderToStaticMarkup(
-      createElement(TacticalReadout, { unit: snapshotUnit(world, mech) }),
+      createElement(TacticalReadout, { unit, friendly: true }),
     );
 
     expect(html).toContain('Aimed Volley');
@@ -25,5 +26,14 @@ describe('TacticalReadout', () => {
     expect(html).toContain('Stability');
     expect(html).toContain('forced-shutdown band');
     expect(html).toContain('SHEDDING G2');
+    expect(html).toContain(`${unit.role} · ${unit.frameClass}`);
+    expect(html).toContain(unit.chassisSummary);
+    expect(html).toContain(`${Math.round(unit.sightRange)}m base`);
+    expect(html).toContain(`${Math.round(unit.sensorRange)}m reach`);
+    expect(html).toContain('Sensor returns do not provide line of sight');
+
+    const hostile = renderToStaticMarkup(createElement(TacticalReadout, { unit }));
+    expect(hostile).not.toContain('Friendly machine profile');
+    expect(hostile).not.toContain(unit.chassisSummary);
   });
 });
