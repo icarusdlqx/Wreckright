@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { playerWorld } from '../../tests/support';
 import { bodyRadius, separateBodies } from './collision';
+import { hitChance } from './combat';
 import { distance } from './math';
+import { updateMovement } from './movement';
 import type { MechEntity, World } from './types';
 import { stepWorld } from './world';
 
@@ -44,6 +46,52 @@ describe('body separation', () => {
     );
   });
 
+  it('clears a same-team three-mech pile-up within two seconds', () => {
+    const world = playerWorld('lance-pile-up');
+    const lance = world.entities.filter((entity) => entity.team === 0).slice(0, 3);
+    if (lance.length !== 3) throw new Error('need a three-mech lance');
+    const spot = openGround(world);
+    for (const entity of lance) entity.pos = { ...spot };
+
+    for (let tick = 0; tick < world.rules.simulation.tickRate * 2; tick += 1) {
+      separateBodies(world);
+    }
+
+    for (let index = 0; index < lance.length; index += 1) {
+      for (let other = index + 1; other < lance.length; other += 1) {
+        const a = lance[index];
+        const b = lance[other];
+        if (a === undefined || b === undefined) continue;
+        const clearance = bodyRadius(world, a) + bodyRadius(world, b);
+        expect(distance(a.pos, b.pos)).toBeGreaterThan(clearance * 0.95);
+      }
+    }
+  });
+
+  it('gives a jump landing deep beside a lancemate a second bounded shove', () => {
+    const world = playerWorld('deep-lancemate-landing');
+    const [a, b] = pair(world);
+    const spot = openGround(world);
+    const clearance = bodyRadius(world, a) + bodyRadius(world, b);
+    const tolerance = world.rules.movement.arrivalRadius;
+    const landing = { x: spot.x + clearance - tolerance * 3, y: spot.y };
+    a.pos = { x: spot.x - a.jumpRange, y: spot.y };
+    a.jump = {
+      from: { ...a.pos },
+      to: landing,
+      elapsed: 0,
+      duration: world.dt,
+    };
+    b.pos = { ...spot };
+
+    updateMovement(world, a);
+
+    separateBodies(world);
+
+    expect(a.jump).toBeNull();
+    expect(clearance - distance(a.pos, b.pos)).toBeLessThanOrEqual(tolerance);
+  });
+
   it('gives ground with the lighter mech', () => {
     const world = playerWorld('mass');
     const [a, b] = pair(world);
@@ -58,6 +106,61 @@ describe('body separation', () => {
     separateBodies(world);
 
     expect(distance(b.pos, lightFrom)).toBeGreaterThan(distance(a.pos, heavyFrom) * 2);
+  });
+
+  it('counts a shove as movement for animation and accuracy', () => {
+    const world = playerWorld('shove-motion');
+    const [shooter, anchor] = pair(world);
+    const spot = openGround(world);
+    shooter.pos = { ...spot };
+    anchor.pos = { x: spot.x + 2, y: spot.y };
+    shooter.motion = 'stationary';
+    anchor.motion = 'stationary';
+    anchor.mobile = false;
+    const weapon = world.catalog.weapons.get(shooter.weapons[0]?.weaponId ?? '');
+    if (weapon === undefined) throw new Error('shooter has no weapon');
+    const before = hitChance(world, shooter, anchor, weapon, 100);
+
+    separateBodies(world);
+
+    expect(shooter.motion).toBe('walk');
+    expect(anchor.motion).toBe('stationary');
+    expect(hitChance(world, shooter, anchor, weapon, 100)).toBeLessThan(before);
+  });
+
+  it('does not animate an imperceptible separation tail as walking', () => {
+    const world = playerWorld('micro-shove-motion');
+    const [shooter, anchor] = pair(world);
+    const spot = openGround(world);
+    const clearance = bodyRadius(world, shooter) + bodyRadius(world, anchor);
+    shooter.pos = { ...spot };
+    anchor.pos = { x: spot.x + clearance - 1e-7, y: spot.y };
+    shooter.motion = 'stationary';
+    anchor.motion = 'stationary';
+    anchor.mobile = false;
+    const before = { ...shooter.pos };
+
+    separateBodies(world);
+
+    expect(shooter.pos).toEqual(before);
+    expect(shooter.motion).toBe('stationary');
+  });
+
+  it('reports stationary when a shove cancels this tick\'s movement', () => {
+    const world = playerWorld('cancelled-by-shove');
+    const [shooter, anchor] = pair(world);
+    const spot = openGround(world);
+    const clearance = bodyRadius(world, shooter) + bodyRadius(world, anchor);
+    shooter.pos = { ...spot };
+    anchor.pos = { x: spot.x + clearance - 1, y: spot.y };
+    shooter.motion = 'walk';
+    anchor.mobile = false;
+    const tickStart = { x: spot.x - 0.5, y: spot.y };
+
+    separateBodies(world, new Map([[shooter.id, tickStart]]));
+
+    expect(shooter.pos.x).toBeCloseTo(tickStart.x, 6);
+    expect(shooter.motion).toBe('stationary');
   });
 
   it('never shoves a mech into ground it cannot stand on', () => {

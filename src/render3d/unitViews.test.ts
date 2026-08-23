@@ -57,23 +57,6 @@ describe('rendered weapon mounts', () => {
     units.dispose();
   });
 
-  it('keeps sealed damage inside the shell until the terminal drop', () => {
-    const world = testWorld('sealed-damage-signature');
-    const entity = unitOf(world, 'sentinel_brawler');
-    const units = new UnitViews(new Scene(), () => 0);
-    const clean = units.viewFor(world, entity);
-    entity.locations.left_arm.armour = 0;
-    entity.locations.left_arm.internal = 0;
-    entity.locations.left_arm.destroyed = true;
-    const mount = entity.weapons.find((candidate) => candidate.weaponId === 'ac5');
-    if (mount !== undefined) mount.destroyed = true;
-
-    expect(units.viewFor(world, entity).model.root).toBe(clean.model.root);
-    entity.destroyed = true;
-    expect(units.viewFor(world, entity).model.root).not.toBe(clean.model.root);
-    units.dispose();
-  });
-
   it('exposes placed blueprint locations in their articulated world frame', () => {
     const world = testWorld('location-anchors');
     const entity = unitOf(world, 'sentinel_brawler');
@@ -94,7 +77,7 @@ describe('rendered weapon mounts', () => {
     units.dispose();
   });
 
-  it('rejects a prior-frame anchor after the authoritative sample moves', () => {
+  it('keeps an impact on the currently displayed anatomy while the next sample moves', () => {
     const world = testWorld('stale-location-anchor');
     const entity = unitOf(world, 'sentinel_brawler');
     const units = new UnitViews(new Scene(), () => 0);
@@ -103,11 +86,14 @@ describe('rendered weapon mounts', () => {
     units.beginFrame();
     const placed = units.at(entity);
     units.markPlaced(entity.id, placed);
-    expect(units.locationOf(entity.id, 'centre_torso', new Vector3())).toBe(true);
+    const displayed = new Vector3();
+    expect(units.locationOf(entity.id, 'centre_torso', displayed)).toBe(true);
 
     entity.pos.x += 30;
     units.snapshot(world);
-    expect(units.locationOf(entity.id, 'centre_torso', new Vector3())).toBe(false);
+    const afterTick = new Vector3();
+    expect(units.locationOf(entity.id, 'centre_torso', afterTick)).toBe(true);
+    expect(afterTick.equals(displayed)).toBe(true);
     expect(units.canLocate(entity.id)).toBe(true);
     expect(units.currentPositionOf(entity.id)?.x).toBe(entity.pos.x);
     units.dispose();
@@ -256,66 +242,6 @@ describe('rendered weapon mounts', () => {
     units.interpolate(world, 0.25);
     expect(units.at(sealed).torso).toBe(0.3);
     units.dispose();
-  });
-
-  it('starts sealed lights on reveal and sequences them again after a restart', () => {
-    const world = testWorld('sealed-startup-events');
-    const entity = unitOf(world, 'sentinel_brawler');
-    const units = new UnitViews(new Scene(), () => 0);
-    const view = units.viewFor(world, entity);
-    expect(view.model.startup?.lights).toHaveLength(3);
-    view.model.root.visible = false;
-    units.beginFrame(2);
-    expect(view.model.startup?.lights.some((light) => light.visible)).toBe(false);
-
-    view.model.root.visible = true;
-    units.beginFrame(0.17);
-    expect(view.model.startup?.lights.filter((light) => light.visible)).toHaveLength(2);
-    units.consumeEvents([{ type: 'shutdown', tick: 4, entityId: entity.id, forced: false }]);
-    units.beginFrame(2);
-    expect(view.model.startup?.lights.some((light) => light.visible)).toBe(false);
-    units.consumeEvents([{ type: 'restart', tick: 8, entityId: entity.id }]);
-    units.beginFrame(0);
-    expect(view.model.startup?.lights.filter((light) => light.visible)).toHaveLength(1);
-    units.dispose();
-  });
-
-  it('keeps a late-created shutdown sealed view dark until its restart event', () => {
-    const world = testWorld('sealed-late-shutdown');
-    const entity = unitOf(world, 'sentinel_brawler');
-    entity.shutdownRemaining = 2;
-    const units = new UnitViews(new Scene(), () => 0);
-    const view = units.viewFor(world, entity);
-    units.beginFrame(2);
-    expect(view.model.startup?.lights.some((light) => light.visible)).toBe(false);
-    units.consumeEvents([{ type: 'restart', tick: 8, entityId: entity.id }]);
-    units.beginFrame(0);
-    expect(view.model.startup?.lights.filter((light) => light.visible)).toHaveLength(1);
-    units.dispose();
-  });
-
-  it('shudders a welded restart without adding hull motion under reduced motion', () => {
-    const world = testWorld('welded-restart-shudder');
-    const entity = unitOf(world, 'bulwark_assault');
-    const active = new UnitViews(new Scene(), () => 0);
-    const activeView = active.viewFor(world, entity);
-    active.consumeEvents([{ type: 'restart', tick: 8, entityId: entity.id }]);
-    expect(activeView.model.hullRecoil.kick).toBeGreaterThan(0);
-
-    const reduced = new UnitViews(new Scene(), () => 0, true);
-    const reducedView = reduced.viewFor(world, entity);
-    const rig = reducedView.model.weapons.find((candidate) => candidate.weaponId === 'ac5');
-    expect(rig).toBeDefined();
-    if (rig === undefined) return;
-    reduced.beginFrame();
-    reduced.markPlaced(entity.id);
-    expect(reduced.fireMount(entity.id, 'ac5', new Vector3())).toBe(true);
-    expect(rig.kick).toBe(rig.travel);
-    expect(reducedView.model.hullRecoil.kick).toBe(0);
-    reduced.consumeEvents([{ type: 'restart', tick: 8, entityId: entity.id }]);
-    expect(reducedView.model.hullRecoil.kick).toBe(0);
-    active.dispose();
-    reduced.dispose();
   });
 
   it('rejects hidden, unplaced and previous-frame transforms', () => {

@@ -1,5 +1,5 @@
 import type { MechModel } from './mechModel';
-import { triggerStartupShudder } from './machineCulture';
+import { triggerPowerShudder } from './machineCulture';
 import { setStartupPowered } from './startupLights';
 
 export function presentMachinePowerEvent(
@@ -9,7 +9,7 @@ export function presentMachinePowerEvent(
 ): void {
   if (model?.faction === 'aurelian') {
     setStartupPowered(model, event === 'restart');
-  } else if (model?.faction === 'linewrought' && event === 'restart' && !reducedMotion) {
-    triggerStartupShudder(model.hullRecoil, model.culture);
+  } else if (model?.faction === 'linewrought' && !reducedMotion) {
+    triggerPowerShudder(model.hullRecoil, model.culture, event);
   }
 }

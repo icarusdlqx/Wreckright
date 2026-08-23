@@ -2,6 +2,7 @@ import { abilityFactor } from './abilities';
 import type { StabilityRules } from '../schema/rules';
 import type { Weapon } from '../schema/weapon';
 import { emit } from './events';
+import { replacePath } from './pathProgress';
 import { isDown, isOperational, type MechEntity, type World } from './types';
 
 /**
@@ -74,8 +75,7 @@ function knockDown(world: World, entity: MechEntity, attackerId: number | null):
   entity.downRemaining = rules.downSeconds;
   entity.motion = 'stationary';
   entity.intendedMotion = entity.motion;
-  entity.path = [];
-  entity.pathIndex = 0;
+  replacePath(entity, []);
 
   emit(world.events, {
     type: 'knocked_down',

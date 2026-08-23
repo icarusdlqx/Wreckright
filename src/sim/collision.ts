@@ -1,6 +1,9 @@
 import { passableAt } from './movement';
 import { isOperational, type MechEntity, type Vec2, type World } from './types';
 
+/** Below this, an asymptotic separation tail is neither motion nor visible. */
+const CONTACT_EPSILON = 1e-5;
+
 /**
  * How much ground a mech stands on. Mirrors the radius the renderer draws a
  * hull at — see `radiusFor` in render/shape.ts, which a test pins to this.
@@ -26,25 +29,62 @@ export function bodyRadius(world: World, entity: MechEntity): number {
  * Wrecks are ignored deliberately. A destroyed mech stops being an obstacle, so
  * a lance is never walled in by its own dead.
  */
-export function separateBodies(world: World): void {
+export function separateBodies(
+  world: World,
+  tickStarts: ReadonlyMap<number, Vec2> | null = null,
+): void {
   const standing = world.entities.filter(
     (entity) => isOperational(entity) && entity.jump === null && !entity.destroyed,
   );
   if (standing.length < 2) return;
 
+  const collisionStarts = new Map(standing.map((entity) => [entity.id, { ...entity.pos }]));
+  const displaced = new Set<number>();
   const rate = world.rules.movement.separationRate;
+  separatePass(world, standing, rate, false, displaced);
+  // A bounded second pass catches genuine lance pile-ups and deep two-body
+  // compression, such as a jump landing beside a moving lancemate. Shallow
+  // formation contact stays on the authored single-pass shove: that avoids
+  // turning ordinary shoulder contact into stop/start path motion.
+  separatePass(world, standing, rate, true, displaced);
 
+  for (const entity of standing) {
+    if (!displaced.has(entity.id)) continue;
+    const start = tickStarts?.get(entity.id) ?? collisionStarts.get(entity.id);
+    if (start === undefined) continue;
+    const moved = Math.hypot(entity.pos.x - start.x, entity.pos.y - start.y) > CONTACT_EPSILON;
+    // Collision displacement is movement for both presentation and gunnery. A
+    // pilot shoved sideways is not receiving the stationary accuracy bonus.
+    entity.motion = moved ? (entity.motion === 'stationary' ? 'walk' : entity.motion) : 'stationary';
+  }
+}
+
+function separatePass(
+  world: World,
+  standing: readonly MechEntity[],
+  rate: number,
+  selectivePass: boolean,
+  displaced: Set<number>,
+): void {
   for (let index = 0; index < standing.length; index += 1) {
     for (let other = index + 1; other < standing.length; other += 1) {
       const a = standing[index];
       const b = standing[other];
       if (a === undefined || b === undefined) continue;
-
       const clearance = bodyRadius(world, a) + bodyRadius(world, b);
       let dx = b.pos.x - a.pos.x;
       let dy = b.pos.y - a.pos.y;
       let gap = Math.hypot(dx, dy);
       if (gap >= clearance) continue;
+      if (selectivePass) {
+        if (a.team !== b.team) continue;
+        const deeplyCompressed = clearance - gap > world.rules.movement.arrivalRadius;
+        if (
+          !deeplyCompressed &&
+          !inSameTeamPileup(world, standing, a) &&
+          !inSameTeamPileup(world, standing, b)
+        ) continue;
+      }
 
       if (gap < 1e-6) {
         // Exactly stacked. Any direction will do, so long as it is the same one
@@ -59,10 +99,35 @@ export function separateBodies(world: World): void {
       const unitY = dy / gap;
 
       const [shareA, shareB] = separationShares(a, b);
-      nudge(world, a, -unitX * overlap * shareA, -unitY * overlap * shareA);
-      nudge(world, b, unitX * overlap * shareB, unitY * overlap * shareB);
+      if (nudge(world, a, -unitX * overlap * shareA, -unitY * overlap * shareA)) {
+        displaced.add(a.id);
+      }
+      if (nudge(world, b, unitX * overlap * shareB, unitY * overlap * shareB)) {
+        displaced.add(b.id);
+      }
     }
   }
+}
+
+/** A second contact makes this a pile-up rather than ordinary shoulder compression. */
+function inSameTeamPileup(
+  world: World,
+  standing: readonly MechEntity[],
+  candidate: MechEntity,
+): boolean {
+  let contacts = 0;
+  for (const other of standing) {
+    if (other.id === candidate.id || other.team !== candidate.team) continue;
+    const clearance = bodyRadius(world, candidate) + bodyRadius(world, other);
+    if (distanceBetween(candidate.pos, other.pos) >= clearance) continue;
+    contacts += 1;
+    if (contacts > 1) return true;
+  }
+  return false;
+}
+
+function distanceBetween(a: Vec2, b: Vec2): number {
+  return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
 /**
@@ -87,8 +152,10 @@ function separationShares(a: MechEntity, b: MechEntity): [number, number] {
 }
 
 /** Moves a mech if the ground there will take it, and leaves it alone if not. */
-function nudge(world: World, entity: MechEntity, dx: number, dy: number): void {
+function nudge(world: World, entity: MechEntity, dx: number, dy: number): boolean {
+  if (Math.hypot(dx, dy) <= CONTACT_EPSILON) return false;
   const to: Vec2 = { x: entity.pos.x + dx, y: entity.pos.y + dy };
-  if (!passableAt(world, to)) return;
+  if (!passableAt(world, to)) return false;
   entity.pos = to;
+  return true;
 }

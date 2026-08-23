@@ -2,6 +2,7 @@ import { abilityFactor } from './abilities';
 import { emit } from './events';
 import { addHeat, currentHeatTier } from './heat';
 import { angleDifference, bearing, distance, normaliseAngle } from './math';
+import { replacePath } from './pathProgress';
 import {
   findEntity,
   isDown,
@@ -98,8 +99,7 @@ export function beginJump(world: World, entity: MechEntity, to: Vec2): boolean {
   entity.jumpCooldown = world.rules.movement.jumpCooldownSeconds;
   entity.motion = 'jump';
   entity.intendedMotion = 'jump';
-  entity.path = [];
-  entity.pathIndex = 0;
+  replacePath(entity, []);
   entity.orders.move = null;
   addHeat(entity, entity.jumpHeat);
 
@@ -161,12 +161,7 @@ export function jumpHeight(entity: MechEntity): number {
 }
 
 function clearPath(entity: MechEntity): void {
-  entity.path = [];
-  entity.pathIndex = 0;
-  // Whatever walk comes next is judged on its own progress, not on how close
-  // this abandoned one happened to get to a waypoint it no longer has.
-  entity.stalledTicks = 0;
-  entity.closestApproach = Number.POSITIVE_INFINITY;
+  replacePath(entity, []);
   entity.motion = 'stationary';
   entity.intendedMotion = 'stationary';
 }
@@ -295,6 +290,10 @@ export function updateMovement(world: World, entity: MechEntity): void {
     if (passableAt(world, alongX)) next = alongX;
     else if (passableAt(world, alongY)) next = alongY;
     else {
+      // Unlike a progress timer, this is an immediate, concrete failure of the
+      // route: its very next step is ground the mech cannot enter. Keep it as a
+      // retry strike even though replacing the path resets per-route progress.
+      entity.stallStrikes += 1;
       clearPath(entity);
       return;
     }

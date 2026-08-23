@@ -9,6 +9,7 @@ import {
   thump,
   type VoiceBus,
   type VoicePlacement,
+  type VoicePriority,
 } from './audioGraph';
 
 export function playPowerSweep(
@@ -74,8 +75,9 @@ export function playCollapse(
   placement: VoicePlacement,
   tonnage: number,
   delay: number,
+  priority: VoicePriority = 'ordinary',
 ): void {
-  const frame = bus.begin(placement);
+  const frame = bus.begin(placement, priority);
   if (frame === null) return;
   const at = frame.now + delay;
   const mass = Math.max(0.35, Math.min(1.15, tonnage / 90));

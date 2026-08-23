@@ -47,6 +47,8 @@ export class AudioDirector {
   private terrain: TerrainMapData | null = null;
   private readonly heatTiers = new Map<number, HeatTier>();
   private readonly cueEvents: SimEvent[] = [];
+  private readonly destroyedThisBatch = new Set<number>();
+  private readonly knockedDownThisBatch = new Set<number>();
   private mutedState = readMuted();
   private destroyed = false;
 
@@ -94,6 +96,8 @@ export class AudioDirector {
     this.terrain = null;
     this.heatTiers.clear();
     this.cueEvents.length = 0;
+    this.destroyedThisBatch.clear();
+    this.knockedDownThisBatch.clear();
     const graph = this.graph;
     this.graph = null;
     graph?.close();
@@ -106,11 +110,23 @@ export class AudioDirector {
   }
 
   /** The battle's events, straight from the simulation and never written back. */
-  consume(world: World, events: readonly SimEvent[]): void {
+  consume(
+    world: World,
+    events: readonly SimEvent[],
+    playbackSpeed = 1,
+    reducedMotion = false,
+  ): void {
     const heatCue = this.updateHeat(world);
     const graph = this.graph;
     this.cueEvents.length = 0;
     if (graph === null || this.mutedState) return;
+
+    this.destroyedThisBatch.clear();
+    this.knockedDownThisBatch.clear();
+    for (const event of events) {
+      if (event.type === 'mech_destroyed') this.destroyedThisBatch.add(event.entityId);
+      else if (event.type === 'knocked_down') this.knockedDownThisBatch.add(event.entityId);
+    }
 
     for (const event of events) {
       if (isPlayerConsoleCue(world, event)) this.cueEvents.push(event);
@@ -178,20 +194,34 @@ export class AudioDirector {
             const placement = this.placementAt(entity.pos);
             playDestruction(graph, { kind: 'terminal', tonnage: entity.tonnage }, placement);
             const faction = factionOf(world, entity) ?? 'linewrought';
-            playCollapse(
-              graph,
-              placement,
-              entity.tonnage,
-              machineCulture(faction).terminalFallSeconds,
-            );
+            // A prior knockdown already owns the landing voice. A knockdown in
+            // this batch has not reached the renderer, so the terminal fall owns it instead.
+            if (entity.downRemaining <= 0 || this.knockedDownThisBatch.has(entity.id)) {
+              playCollapse(
+                graph,
+                placement,
+                entity.tonnage,
+                presentationDelay(
+                  reducedMotion ? 0 : machineCulture(faction).terminalFallSeconds,
+                  playbackSpeed,
+                ),
+                'terminal',
+              );
+            }
           }
           break;
         }
         case 'knocked_down': {
           if (!canPresentEntity(world, event.entityId)) break;
+          if (this.destroyedThisBatch.has(event.entityId)) break;
           const entity = entityOf(world, event.entityId);
           if (entity !== null) {
-            playCollapse(graph, this.placementAt(entity.pos), entity.tonnage, 0.4);
+            playCollapse(
+              graph,
+              this.placementAt(entity.pos),
+              entity.tonnage,
+              presentationDelay(0.4, playbackSpeed),
+            );
           }
           break;
         }
@@ -289,6 +319,12 @@ export class AudioDirector {
     }
     return hottest;
   }
+}
+
+/** Presentation motion advances in simulation seconds, while Web Audio schedules real seconds. */
+function presentationDelay(seconds: number, playbackSpeed: number): number {
+  const speed = Number.isFinite(playbackSpeed) && playbackSpeed > 0 ? playbackSpeed : 1;
+  return seconds / speed;
 }
 
 function entityOf(world: World, id: number): MechEntity | null {

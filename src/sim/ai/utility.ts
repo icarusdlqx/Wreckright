@@ -1,7 +1,7 @@
 import { hitChance } from '../combat';
 import { coverFactorAt, lineOfSight } from '../los';
 import { distance } from '../math';
-import { isVisibleTo } from '../sensors';
+import { isVisibleTo, visionFor } from '../sensors';
 import { findAmmoBin, isOperational, type MechEntity, type World } from '../types';
 import { roleOf } from './roles';
 
@@ -184,10 +184,11 @@ export function scoreTargets(
 ): TargetScore[] {
   const rules = world.rules.ai.target;
   const scores: TargetScore[] = [];
+  const vision = visionFor(world, shooter.team);
 
   for (const target of world.entities) {
     if (target.team === shooter.team || !isOperational(target)) continue;
-    if (!isVisibleTo(world.vision, target) && world.vision?.team === shooter.team) continue;
+    if (!isVisibleTo(vision, target)) continue;
 
     const range = distance(shooter.pos, target.pos);
     const dps = expectedDps(world, shooter, target, range);

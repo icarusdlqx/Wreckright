@@ -13,8 +13,10 @@ export interface VoiceFrame {
   random(): number;
 }
 
+export type VoicePriority = 'ordinary' | 'terminal';
+
 export interface VoiceBus {
-  begin(placement: VoicePlacement): VoiceFrame | null;
+  begin(placement: VoicePlacement, priority?: VoicePriority): VoiceFrame | null;
 }
 
 export interface AmbientBus {
@@ -27,10 +29,12 @@ export interface AmbientBus {
 const MASTER_LEVEL = 0.5;
 export const FIELD_VOICE_LIMIT = 8;
 export const FIELD_VOICE_WINDOW_MS = 100;
+/** A terminal blast and its landing must survive an already saturated volley. */
+export const TERMINAL_VOICE_RESERVE = 2;
 
 /** The shared graph and the admission control in front of every one-shot. */
 export class AudioGraph implements VoiceBus, AmbientBus {
-  private readonly window = { at: 0, count: 0 };
+  private readonly window = { at: 0, ordinary: 0, terminal: 0 };
   private seed = 0x9e3779b9;
   private closed = false;
 
@@ -78,17 +82,29 @@ export class AudioGraph implements VoiceBus, AmbientBus {
   }
 
   /** Refuses excess field voices before they can allocate a source node. */
-  begin(placement: VoicePlacement): VoiceFrame | null {
+  begin(placement: VoicePlacement, priority: VoicePriority = 'ordinary'): VoiceFrame | null {
     if (this.closed || placement.level <= 0.01) return null;
 
     if (placement.distance !== null) {
       const now = performance.now();
       if (now - this.window.at > FIELD_VOICE_WINDOW_MS) {
         this.window.at = now;
-        this.window.count = 0;
+        this.window.ordinary = 0;
+        this.window.terminal = 0;
       }
-      if (this.window.count >= FIELD_VOICE_LIMIT) return null;
-      this.window.count += 1;
+      if (priority === 'terminal') {
+        if (
+          this.window.terminal >= TERMINAL_VOICE_RESERVE
+          || this.window.ordinary + this.window.terminal >= FIELD_VOICE_LIMIT
+        ) return null;
+        this.window.terminal += 1;
+      } else {
+        if (
+          this.window.ordinary >= FIELD_VOICE_LIMIT - TERMINAL_VOICE_RESERVE
+          || this.window.ordinary + this.window.terminal >= FIELD_VOICE_LIMIT
+        ) return null;
+        this.window.ordinary += 1;
+      }
     }
 
     const out = this.context.createGain();

@@ -1,9 +1,48 @@
 import { distance } from '../math';
-import { isOperational, type EntityId, type World } from '../types';
+import { nearestPassable } from '../pathfind';
+import { isOperational, type EntityId, type Vec2, type World } from '../types';
 import type { ZoneState } from '../zones';
 
 /** Objective types that are won by standing somewhere rather than by shooting. */
 const GROUND_OBJECTIVES = new Set(['capture_zones', 'hold_zones', 'protect_zones']);
+
+/** Patrols a contested objective without granting the controller hidden-unit positions. */
+export function contestedZoneSweepPoint(
+  world: World,
+  zone: ZoneState,
+  previous: Vec2 | null,
+  entityId: EntityId,
+): Vec2 {
+  const stationRadius = zone.radius * 0.75;
+  const arrival = world.rules.movement.arrivalRadius;
+  const radius = Math.min(
+    world.rules.ai.positioning.repositionStep,
+    Math.max(arrival, stationRadius - arrival),
+  );
+  const directionCount = world.rules.ai.positioning.candidateDirections;
+  const snapRadius = Math.max(1, Math.ceil(arrival / world.terrain.tileSize));
+  const seen = new Set<string>();
+  const points = Array.from({ length: directionCount }, (_, index) => {
+    const angle = index / directionCount * Math.PI * 2;
+    const raw = { x: zone.x + Math.cos(angle) * radius, y: zone.y + Math.sin(angle) * radius };
+    const tile = world.terrain.toTile(raw);
+    const snapped = nearestPassable(world.terrain, tile.column, tile.row, snapRadius);
+    if (snapped === null) return null;
+    const at = world.terrain.tileCentre(snapped.column, snapped.row);
+    const key = `${snapped.column}:${snapped.row}`;
+    if (distance(at, zone) > stationRadius || seen.has(key)) return null;
+    seen.add(key);
+    return at;
+  }).filter((point): point is Vec2 => point !== null);
+  if (points.length === 0) return { x: zone.x, y: zone.y };
+  if (previous === null) return points[(entityId - 1 + points.length) % points.length]!;
+
+  let nearest = 0;
+  for (let index = 1; index < points.length; index += 1) {
+    if (distance(previous, points[index]!) < distance(previous, points[nearest]!)) nearest = index;
+  }
+  return points[(nearest + 1) % points.length]!;
+}
 
 /**
  * Which zones this side still has work to do on. A zone it does not own needs

@@ -6,6 +6,7 @@ import { buildFrameArcTables } from './arcs';
 import { separateBodies } from './collision';
 import { resolveProjectiles } from './combat';
 import { addStabilityImpulse } from './stability';
+import { updateTeamVisions } from './sensors';
 import { stepWorld } from './world';
 import { difficultyTier, decideTactical } from './ai/tactical';
 import { isImmobile, type MechEntity, type Vec2, type World } from './types';
@@ -127,6 +128,7 @@ describe('an emplacement', () => {
     const prey = unitOf(world, 'sentinel_brawler');
     prey.pos = { x: 560, y: 500 };
     prey.team = 0;
+    updateTeamVisions(world);
 
     decideTactical(world, turret, null, difficultyTier(world, null));
     expect(turret.targetId).toBe(prey.id);

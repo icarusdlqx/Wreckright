@@ -48,6 +48,38 @@ export function createVision(world: World, team: number): TeamVision {
   };
 }
 
+/** The sensor picture a controller on this team is allowed to reason from. */
+export function visionFor(world: World, team: number): TeamVision | null {
+  // Tests and UI tools sometimes replace the public player view deliberately;
+  // honour that alias before consulting the internal controller map.
+  if (world.vision?.team === team) return world.vision;
+  return world.visions.get(team) ?? null;
+}
+
+/** Refreshes every side before any controller gets to make a decision. */
+export function updateTeamVisions(world: World): void {
+  // Scripted and support spawns can introduce a side that was not present at
+  // world creation. Give it a picture before its controller gets its first
+  // decision; a missing map is deliberately "omniscient" for low-level tools.
+  for (const entity of world.entities) {
+    if (!world.visions.has(entity.team)) {
+      world.visions.set(entity.team, createVision(world, entity.team));
+    }
+  }
+
+  // The UI/test-facing player alias can be replaced without replacing the
+  // internal map entry. Refresh each distinct picture exactly once.
+  const updated = new Set<TeamVision>();
+  if (world.vision !== null) {
+    updateVision(world, world.vision);
+    updated.add(world.vision);
+  }
+  for (const vision of world.visions.values()) {
+    if (updated.has(vision)) continue;
+    updateVision(world, vision);
+  }
+}
+
 function markTiles(world: World, vision: TeamVision, at: Vec2, range: number): void {
   const { terrain } = world;
   const radius = Math.ceil(range / terrain.tileSize);

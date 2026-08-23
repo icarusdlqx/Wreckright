@@ -19,6 +19,7 @@ import {
 import {
   baseShotSlot,
   safeShotDelta,
+  SHOT_PRIORITY,
   ShotPoolCore,
   type ShotPoolSnapshot,
   type ShotSlot,
@@ -27,7 +28,20 @@ import {
 interface PathSlot extends ShotSlot {
   track: ProjectileTrack;
   width: number;
+  shooterId: number;
+  targetId: number;
+  weaponId: string;
+  targetOffsetX: number;
+  targetOffsetZ: number;
+  resolved: boolean;
 }
+
+export interface ProjectileEngagement {
+  readonly shooterId: number;
+  readonly targetId: number;
+  readonly weaponId: string;
+}
+export type ProjectileEndpointResolver = (targetId: number, out: Vector3) => boolean;
 
 interface SmokeSlot extends ShotSlot {
   x: number;
@@ -45,6 +59,7 @@ const FROM = new Vector3();
 const TO = new Vector3();
 const DIRECTION = new Vector3();
 const INSTANCE = new Object3D();
+const LIVE_ENDPOINT = new Vector3();
 const MIN_PROJECTILE_LIFE = 0.05;
 
 function poolMaterial(opacity = 1): MeshBasicMaterial {
@@ -64,6 +79,12 @@ function pathSlot(start: number): PathSlot {
     ...baseShotSlot(start),
     track: emptyProjectileTrack(),
     width: 1,
+    shooterId: -1,
+    targetId: -1,
+    weaponId: '',
+    targetOffsetX: 0,
+    targetOffsetZ: 0,
+    resolved: true,
   };
 }
 
@@ -105,7 +126,8 @@ export class InstantShotPool {
     life: number,
     detailScale: number,
   ): void {
-    const slot = this.core.acquire();
+    const slot = this.core.acquire(SHOT_PRIORITY.standard);
+    if (slot === null) return;
     writeProjectileTrack(slot.track, from, toX, toY, toZ, 0, 1);
     slot.width = width;
     const count = this.style === 'beam'
@@ -214,52 +236,100 @@ export class ProjectileShotPool {
     velocity: number,
     width: number,
     colour: number,
+    engagement: ProjectileEngagement | null = null,
+    targetOffsetX = 0,
+    targetOffsetZ = 0,
+    flightSeconds: number | null = null,
   ): void {
-    const slot = this.core.acquire();
+    const slot = this.core.acquire(SHOT_PRIORITY.standard);
+    if (slot === null) return;
     writeProjectileTrack(slot.track, from, toX, toY, toZ, arc, velocity);
+    if (flightSeconds !== null) slot.track.duration = Math.max(0.001, flightSeconds);
     slot.width = width;
-    this.core.configure(
-      slot,
-      Math.max(MIN_PROJECTILE_LIFE, slot.track.duration),
-      1,
-      colour,
-      1,
-    );
+    slot.shooterId = engagement?.shooterId ?? -1;
+    slot.targetId = engagement?.targetId ?? -1;
+    slot.weaponId = engagement?.weaponId ?? '';
+    slot.targetOffsetX = targetOffsetX;
+    slot.targetOffsetZ = targetOffsetZ;
+    slot.resolved = false;
+    this.core.configure(slot, Math.max(MIN_PROJECTILE_LIFE, slot.track.duration), 1, colour, 1);
     placeProjectileInstance(this.mesh, slot.start, slot.track, 0, width);
     this.core.setColour(slot, 0, 1);
     this.core.commit();
   }
 
-  update(deltaSeconds: number): void {
+  update(deltaSeconds: number, endpointOf?: ProjectileEndpointResolver): void {
     const delta = safeShotDelta(deltaSeconds);
     for (const slot of this.core.slots) {
       if (!slot.active) continue;
+      if (
+        !slot.resolved && slot.targetId >= 0 && endpointOf !== undefined &&
+        endpointOf(slot.targetId, LIVE_ENDPOINT)
+      ) {
+        slot.track.toX = LIVE_ENDPOINT.x + slot.targetOffsetX;
+        slot.track.toY = LIVE_ENDPOINT.y;
+        slot.track.toZ = LIVE_ENDPOINT.z + slot.targetOffsetZ;
+      }
       slot.remaining -= delta;
       if (slot.remaining <= 0) {
         this.core.expire(slot);
         continue;
       }
-      const elapsed = slot.life - slot.remaining;
-      placeProjectileInstance(
-        this.mesh,
-        slot.start,
-        slot.track,
-        elapsed / slot.track.duration,
-        slot.width,
-      );
+      if (!slot.resolved) {
+        const elapsed = slot.life - slot.remaining;
+        placeProjectileInstance(
+          this.mesh, slot.start, slot.track, elapsed / slot.track.duration, slot.width,
+        );
+      }
       this.core.setColour(slot, 0, slot.remaining / slot.life);
     }
     this.core.commit();
   }
 
-  snapshot(): ShotPoolSnapshot {
-    return this.core.snapshot();
+  snapshot(): ShotPoolSnapshot { return this.core.snapshot(); }
+  clear(): void { this.core.clear(); }
+  resolve(engagement: ProjectileEngagement, endpoint: Vector3): boolean {
+    let found: PathSlot | null = null;
+    for (const slot of this.core.slots) {
+      if (
+        !slot.active || slot.resolved ||
+        slot.shooterId !== engagement.shooterId ||
+        slot.targetId !== engagement.targetId ||
+        slot.weaponId !== engagement.weaponId
+      ) continue;
+      if (found === null || slot.generation < found.generation) found = slot;
+    }
+    if (found === null) return false;
+    this.finish(found, endpoint, false);
+    this.core.commit();
+    return true;
   }
 
-  clear(): void {
-    this.core.clear();
+  /** Lands every unresolved round for a target, or every round when targetId is null. */
+  resolveOutstanding(targetId: number | null, endpoint?: Vector3): number {
+    let resolved = 0;
+    for (const slot of this.core.slots) {
+      if (!slot.active || slot.resolved) continue;
+      if (targetId !== null && slot.targetId !== targetId) continue;
+      this.finish(slot, endpoint, endpoint !== undefined);
+      resolved += 1;
+    }
+    if (resolved > 0) this.core.commit();
+    return resolved;
   }
 
+  private finish(slot: PathSlot, endpoint: Vector3 | undefined, keepSpread: boolean): void {
+    if (endpoint !== undefined) {
+      slot.track.toX = endpoint.x + (keepSpread ? slot.targetOffsetX : 0);
+      slot.track.toY = endpoint.y;
+      slot.track.toZ = endpoint.z + (keepSpread ? slot.targetOffsetZ : 0);
+    }
+    slot.resolved = true;
+    slot.life = MIN_PROJECTILE_LIFE;
+    slot.remaining = MIN_PROJECTILE_LIFE;
+    placeProjectileInstance(this.mesh, slot.start, slot.track, 1, slot.width);
+    this.core.setColour(slot, 0, 1);
+  }
 }
 
 export class SmokeShotPool {
@@ -281,7 +351,8 @@ export class SmokeShotPool {
   }
 
   spawn(at: Vec2, ground: number, lifeScale: number): void {
-    const slot = this.core.acquire();
+    const slot = this.core.acquire(SHOT_PRIORITY.decoration);
+    if (slot === null) return;
     slot.x = at.x;
     slot.y = ground + 14;
     slot.z = at.y;

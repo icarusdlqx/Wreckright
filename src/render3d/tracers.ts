@@ -7,6 +7,8 @@ import {
   InstantShotPool,
   ProjectileShotPool,
   SmokeShotPool,
+  type ProjectileEndpointResolver,
+  type ProjectileEngagement,
 } from './shotPools';
 import type { ShotPoolSnapshot } from './shotPoolCore';
 
@@ -41,8 +43,8 @@ const CAPACITY = Object.freeze({
   flame: 12,
   shell: 64,
   slug: 48,
-  missile: 64,
-  burst: 48,
+  missile: 128,
+  burst: 128,
   smoke: 24,
 });
 
@@ -90,6 +92,8 @@ export class TracerLayer {
     velocity: number | null,
     colour: number,
     heightAt: (x: number, y: number) => number,
+    engagement: ProjectileEngagement | null = null,
+    flightSeconds: number | null = null,
   ): void {
     if (this.disposed) return;
     const endY = heightAt(to.x, to.y) + IMPACT_HEIGHT;
@@ -144,16 +148,21 @@ export class TracerLayer {
         : this.shell;
     for (let shot = 0; shot < shownRounds; shot += 1) {
       const spread = shownRounds === 1 ? 0 : (shot / (shownRounds - 1) - 0.5) * 18;
+      const lateralSpread = spread * (shot % 2 === 0 ? 0.6 : -0.6);
       const arc = visual.arc + (visual.style === 'missile' ? shot * Math.min(4, visual.width) : 0);
       pool.spawn(
         from,
         to.x + spread,
         endY,
-        to.y + spread * (shot % 2 === 0 ? 0.6 : -0.6),
+        to.y + lateralSpread,
         arc,
         velocity ?? DEFAULT_PROJECTILE_SPEED,
         visual.width,
         colour,
+        engagement,
+        spread,
+        lateralSpread,
+        flightSeconds,
       );
     }
   }
@@ -186,17 +195,31 @@ export class TracerLayer {
     this.smoke.spawn(at, ground, this.lifeScale());
   }
 
-  update(deltaSeconds: number): void {
+  update(deltaSeconds: number, endpointOf?: ProjectileEndpointResolver): void {
     if (this.disposed) return;
     this.beam.update(deltaSeconds);
     this.pulse.update(deltaSeconds);
     this.bolt.update(deltaSeconds);
     this.flame.update(deltaSeconds);
-    this.shell.update(deltaSeconds);
-    this.slug.update(deltaSeconds);
-    this.missile.update(deltaSeconds);
+    this.shell.update(deltaSeconds, endpointOf);
+    this.slug.update(deltaSeconds, endpointOf);
+    this.missile.update(deltaSeconds, endpointOf);
     this.bursts.update(deltaSeconds);
     this.smoke.update(deltaSeconds);
+  }
+
+  resolveProjectile(engagement: ProjectileEngagement, endpoint: Vector3): boolean {
+    if (this.disposed) return false;
+    return this.shell.resolve(engagement, endpoint)
+      || this.slug.resolve(engagement, endpoint)
+      || this.missile.resolve(engagement, endpoint);
+  }
+
+  resolveOutstanding(targetId: number | null, endpoint?: Vector3): number {
+    if (this.disposed) return 0;
+    return this.shell.resolveOutstanding(targetId, endpoint)
+      + this.slug.resolveOutstanding(targetId, endpoint)
+      + this.missile.resolveOutstanding(targetId, endpoint);
   }
 
   stats(): TracerPoolStats {

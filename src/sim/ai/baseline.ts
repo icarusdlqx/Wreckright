@@ -1,8 +1,9 @@
 import { distance } from '../math';
+import { replacePath } from '../pathProgress';
 import { setGroupEnabled } from '../orders';
 import { findPath } from '../pathfind';
-import { isVisibleTo } from '../sensors';
-import { isDown, isOperational, type MechEntity, type World } from '../types';
+import { isVisibleTo, visionFor } from '../sensors';
+import { isDown, isImmobile, isOperational, type MechEntity, type World } from '../types';
 import { preferredRange } from './utility';
 
 /**
@@ -16,8 +17,7 @@ export function decideBaseline(world: World, mech: MechEntity): void {
   if (mech.jump !== null) return;
 
   if (!isOperational(mech) || mech.shutdownRemaining > 0 || isDown(mech)) {
-    mech.path = [];
-    mech.pathIndex = 0;
+    replacePath(mech, []);
     mech.motion = 'stationary';
     mech.intendedMotion = mech.motion;
     return;
@@ -25,10 +25,11 @@ export function decideBaseline(world: World, mech: MechEntity): void {
 
   let target: MechEntity | null = null;
   let bestRange = Number.POSITIVE_INFINITY;
+  const vision = visionFor(world, mech.team);
 
   for (const candidate of world.entities) {
     if (candidate.team === mech.team || !isOperational(candidate)) continue;
-    if (world.vision?.team === mech.team && !isVisibleTo(world.vision, candidate)) continue;
+    if (!isVisibleTo(vision, candidate)) continue;
 
     const range = distance(mech.pos, candidate.pos);
     if (range < bestRange) {
@@ -39,9 +40,27 @@ export function decideBaseline(world: World, mech: MechEntity): void {
 
   if (target === null) {
     mech.targetId = null;
-    mech.path = [];
-    mech.pathIndex = 0;
-    mech.motion = 'stationary';
+    const centre = {
+      x: (world.terrain.width * world.terrain.tileSize) / 2,
+      y: (world.terrain.height * world.terrain.tileSize) / 2,
+    };
+    if (isImmobile(mech) || distance(mech.pos, centre) <= world.rules.movement.arrivalRadius) {
+      replacePath(mech, []);
+      mech.motion = 'stationary';
+      mech.intendedMotion = mech.motion;
+      return;
+    }
+    if (mech.path.length === 0 || world.tick >= mech.nextPathTick) {
+      const path = findPath(
+        world.terrain,
+        mech.pos,
+        centre,
+        world.rules.simulation.pathfindMaxNodes,
+      );
+      replacePath(mech, path ?? []);
+      mech.nextPathTick = world.tick + world.rules.simulation.aiPathIntervalTicks;
+    }
+    mech.motion = mech.path.length === 0 ? 'stationary' : 'run';
     mech.intendedMotion = mech.motion;
     return;
   }
@@ -66,12 +85,18 @@ export function decideBaseline(world: World, mech: MechEntity): void {
     }
   }
 
+  if (isImmobile(mech)) {
+    replacePath(mech, []);
+    mech.motion = 'stationary';
+    mech.intendedMotion = mech.motion;
+    return;
+  }
+
   const preferred = preferredRange(world, mech, target);
   const tolerance = world.rules.ai.positioning.rangeTolerance;
 
   if (Math.abs(bestRange - preferred) <= tolerance) {
-    mech.path = [];
-    mech.pathIndex = 0;
+    replacePath(mech, []);
     mech.motion = 'stationary';
     mech.intendedMotion = mech.motion;
     return;
@@ -94,8 +119,7 @@ export function decideBaseline(world: World, mech: MechEntity): void {
     world.rules.simulation.pathfindMaxNodes,
   );
 
-  mech.path = path ?? [];
-  mech.pathIndex = 0;
+  replacePath(mech, path ?? []);
   mech.nextPathTick = world.tick + world.rules.simulation.aiPathIntervalTicks;
   mech.motion =
     mech.path.length === 0 ? 'stationary' : bestRange > preferred * 2 ? 'run' : 'walk';

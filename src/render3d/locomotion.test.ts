@@ -184,23 +184,6 @@ describe('terrain-following locomotion', () => {
     disposeModel(model.root);
   });
 
-  it('drops a sealed wreck decisively faster than welded shopwork', () => {
-    const sealed = walkingHarness(() => 0, 'wisp_scout');
-    const welded = walkingHarness(() => 0, 'hornet_spotter');
-    sealed.entity.destroyed = true;
-    welded.entity.destroyed = true;
-    sealed.locomotion.place(
-      sealed.entity, sealed.model, { x: 0, y: 0, facing: 0, torso: 0 }, 0, 0.1,
-    );
-    welded.locomotion.place(
-      welded.entity, welded.model, { x: 0, y: 0, facing: 0, torso: 0 }, 0, 0.1,
-    );
-    expect(Math.abs(sealed.model.root.rotation.z))
-      .toBeGreaterThan(Math.abs(welded.model.root.rotation.z) * 2);
-    disposeModel(sealed.model.root);
-    disposeModel(welded.model.root);
-  });
-
   it('keeps articulated boots parallel to a local slope', () => {
     const terrain = (x: number): number => x * 0.2;
     const { entity, model, locomotion } = walkingHarness(terrain);

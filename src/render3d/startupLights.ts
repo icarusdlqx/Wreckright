@@ -3,6 +3,8 @@ import { activeStartupLights, type MachineCultureProfile } from './machineCultur
 
 export interface StartupLightRig {
   lights: Mesh[];
+  /** Destroyed sealed systems leave corresponding channels permanently dark. */
+  enabled: boolean[];
   elapsed: number;
   running: boolean;
 }
@@ -20,15 +22,21 @@ export function advanceStartupSequence(
   const startup = model.startup;
   if (startup === null || !startup.running) return;
   startup.elapsed += Math.max(0, deltaSeconds);
+  let enabledTotal = 0;
+  for (const enabled of startup.enabled) if (enabled) enabledTotal += 1;
   const active = activeStartupLights(
     model.culture,
     startup.elapsed,
-    startup.lights.length,
+    enabledTotal,
     reducedMotion,
   );
+  let enabledIndex = 0;
   for (let index = 0; index < startup.lights.length; index += 1) {
     const light = startup.lights[index];
-    if (light !== undefined) light.visible = index < active;
+    if (light === undefined) continue;
+    const enabled = startup.enabled[index] === true;
+    light.visible = enabled && enabledIndex < active;
+    if (enabled) enabledIndex += 1;
   }
 }
 
