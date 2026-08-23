@@ -1,3 +1,4 @@
+import { LOCATIONS, type MechLocation } from '../schema/common';
 import type { Deployment } from '../schema/mission';
 import { applyDamage } from './damage';
 import { emit } from './events';
@@ -129,11 +130,24 @@ export function callSupport(
   return { ok: true, reason: null };
 }
 
+/** Overhead fire keeps its authored weights, but only among locations this frame actually has. */
+export function supportHitTable(
+  world: World,
+  target: MechEntity,
+): readonly { value: MechLocation; weight: number }[] {
+  const active = new Set(
+    Object.values(world.arcHitTables[target.frame].tables).flatMap((table) =>
+      table.map((entry) => entry.value),
+    ),
+  );
+  return world.hitLocationTable.filter((entry) => active.has(entry.value));
+}
+
 function damageAt(world: World, team: number, point: Vec2, radius: number, damage: number): void {
   for (const entity of world.entities) {
     if (entity.team === team || !isOperational(entity)) continue;
     if (distance(entity.pos, point) > radius) continue;
-    const location = world.rng.weighted(world.hitLocationTable);
+    const location = world.rng.weighted(supportHitTable(world, entity));
     const absorbed = applyDamage(world, entity, location, damage);
     entity.stats.damageTaken += absorbed;
     // A shell coming down has no recoil to speak of and no arc — it just lands
@@ -263,15 +277,44 @@ function repairWithin(world: World, truck: RepairTruck): void {
   }
 }
 
-function topUpArmour(entity: MechEntity, points: number): void {
-  let remaining = points;
-  for (const state of Object.values(entity.locations)) {
-    if (remaining <= 0) break;
-    if (state.destroyed || state.armour >= state.armourMax) continue;
-    const applied = Math.min(remaining, state.armourMax - state.armour);
-    state.armour += applied;
-    remaining -= applied;
+type ArmourField = 'armour' | 'rearArmour';
+type ArmourMaximum = 'armourMax' | 'rearArmourMax';
+
+/** Shares one authored repair budget across every surviving, damaged plate. */
+export function topUpArmour(entity: MechEntity, points: number): number {
+  let remaining = Number.isFinite(points) ? Math.max(0, points) : 0;
+  const budget = remaining;
+  let plates: { field: ArmourField; maximum: ArmourMaximum; location: MechLocation }[] = [];
+
+  for (const location of LOCATIONS) {
+    const state = entity.locations[location];
+    if (state.destroyed) continue;
+    if (state.armour < state.armourMax) {
+      plates.push({ field: 'armour', maximum: 'armourMax', location });
+    }
+    if (state.rearArmour < state.rearArmourMax) {
+      plates.push({ field: 'rearArmour', maximum: 'rearArmourMax', location });
+    }
   }
+
+  while (remaining > 0 && plates.length > 0) {
+    const share = remaining / plates.length;
+    let spent = 0;
+    const stillDamaged: typeof plates = [];
+    for (const plate of plates) {
+      const state = entity.locations[plate.location];
+      const missing = Math.max(0, state[plate.maximum] - state[plate.field]);
+      const applied = Math.min(share, missing);
+      state[plate.field] += applied;
+      spent += applied;
+      if (missing - applied > Number.EPSILON) stillDamaged.push(plate);
+    }
+    if (spent <= Number.EPSILON) break;
+    remaining = Math.max(0, remaining - spent);
+    plates = stillDamaged;
+  }
+
+  return budget - remaining;
 }
 
 function detonateMines(world: World): void {
@@ -286,7 +329,7 @@ function detonateMines(world: World): void {
       field.triggered.push(entity.id);
       field.mines -= 1;
 
-      const location = world.rng.weighted(world.hitLocationTable);
+      const location = world.rng.weighted(supportHitTable(world, entity));
       const absorbed = applyDamage(world, entity, location, field.damage);
       entity.stats.damageTaken += absorbed;
       addStabilityImpulse(world, entity, impulseOf(world.rules.stability, absorbed, null));

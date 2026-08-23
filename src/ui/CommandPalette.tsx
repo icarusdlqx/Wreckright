@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { actionStatus } from './combatTelemetry';
 import type { OrderMode, TimedActionSnapshot } from './store';
+import './battleChrome.css';
 
 export interface Command {
   id: string;
@@ -77,11 +78,83 @@ interface Props {
   onCommand: (command: Command) => void;
 }
 
+interface CommandButtonProps {
+  command: Command;
+  orderMode: OrderMode;
+  enabled: boolean;
+  holdingFire: boolean;
+  heatSafety: boolean;
+  ability: TimedActionSnapshot | null;
+  alpha: TimedActionSnapshot | null;
+  jump: Props['jump'];
+  posture: string;
+  onCommand: (command: Command) => void;
+}
+
+const PRIMARY_COMMANDS = new Set(['move', 'attack_move', 'attack', 'hold_position', 'ability', 'jump']);
+const ADVANCED_COMMANDS = new Set([
+  'run',
+  'called_shot',
+  'hold_fire',
+  'alpha_strike',
+  'heat_safety',
+]);
+
 function jumpTitle(jump: Props['jump']): string {
   if (jump === null || jump.range <= 0) return 'This mech has no jump jets';
   if (jump.cooldown > 0) return `Jets recharging — ${jump.cooldown.toFixed(1)}s`;
   if (!jump.ready) return 'The jets cannot fire right now';
   return `Fire the jets up to ${Math.round(jump.range)}m — heat now, cooldown after (J)`;
+}
+
+function timedAction(
+  command: Command,
+  ability: TimedActionSnapshot | null,
+  alpha: TimedActionSnapshot | null,
+): TimedActionSnapshot | null {
+  if (command.id === 'ability') return ability;
+  if (command.id === 'alpha_strike') return alpha;
+  return null;
+}
+
+function commandActive(props: CommandButtonProps): boolean {
+  const timed = timedAction(props.command, props.ability, props.alpha);
+  return (
+    (props.command.mode !== null && props.command.mode === props.orderMode) ||
+    (props.command.id === 'hold_fire' && props.holdingFire) ||
+    (props.command.id === 'heat_safety' && props.heatSafety) ||
+    (timed?.activeRemaining ?? 0) > 0 ||
+    props.command.id === props.posture
+  );
+}
+
+function CommandButton(props: CommandButtonProps) {
+  const { command } = props;
+  const timed = timedAction(command, props.ability, props.alpha);
+  const active = commandActive(props);
+  const isJump = command.id === 'jump';
+  const disabled = command.disabled === true || !props.enabled || (isJump && props.jump?.ready !== true);
+  const title = isJump
+    ? jumpTitle(props.jump)
+    : timed === null
+      ? (command.title ?? `${command.label} (${command.key})`)
+      : `${timed.label}: ${timed.note} ${actionStatus(timed)} (${command.key})`;
+
+  return (
+    <button
+      type="button"
+      className={`command ${active ? 'active' : ''} ${timed === null ? '' : 'timed'}`}
+      disabled={disabled}
+      aria-pressed={active}
+      title={title}
+      onClick={() => props.onCommand(command)}
+      data-testid={`command-${command.id}`}
+    >
+      <span className="command-key">{command.key}</span>
+      <span className="command-label">{timed?.label ?? command.label}</span>
+      {timed === null ? null : <span className="command-state">{actionStatus(timed)}</span>}
+    </button>
+  );
 }
 
 export function CommandPalette({
@@ -97,51 +170,77 @@ export function CommandPalette({
   visibleCommandIds = null,
   onCommand,
 }: Props) {
-  const commands =
+  const available =
     visibleCommandIds === null
       ? COMMANDS
       : COMMANDS.filter((command) => visibleCommandIds.has(command.id));
+  const commands = available.filter((command) => {
+    if (command.id === 'ability') return ability !== null;
+    if (command.id === 'alpha_strike') return alpha !== null;
+    if (command.id === 'jump') return jump !== null && jump.range > 0;
+    return true;
+  });
+  const buttonProps = {
+    orderMode,
+    enabled,
+    holdingFire,
+    heatSafety,
+    ability,
+    alpha,
+    jump,
+    posture,
+    onCommand,
+  };
+
+  // Training introduces one idea at a time. Its authored set stays flat so the
+  // lesson control never disappears behind a disclosure the player has not met.
+  if (visibleCommandIds !== null) {
+    return (
+      <div className="palette" data-testid="command-palette">
+        {commands.map((command) => (
+          <CommandButton key={command.id} command={command} {...buttonProps} />
+        ))}
+      </div>
+    );
+  }
+
+  const primary = commands.filter((command) => PRIMARY_COMMANDS.has(command.id));
+  const advanced = commands.filter((command) => ADVANCED_COMMANDS.has(command.id));
+  const advancedActive = advanced.some((command) =>
+    commandActive({ command, ...buttonProps }),
+  );
 
   return (
     <div className="palette" data-testid="command-palette">
-      {leading}
-      {commands.map((command) => {
-        const timed =
-          command.id === 'ability' ? ability : command.id === 'alpha_strike' ? alpha : null;
-        const active =
-          (command.mode !== null && command.mode === orderMode) ||
-          (command.id === 'hold_fire' && holdingFire) ||
-          (command.id === 'heat_safety' && heatSafety) ||
-          (timed?.activeRemaining ?? 0) > 0 ||
-          command.id === posture;
-
-        const isJump = command.id === 'jump';
-        const disabled = command.disabled === true || !enabled || (isJump && jump?.ready !== true);
-        const title = isJump
-          ? jumpTitle(jump)
-          : timed === null
-            ? (command.title ?? `${command.label} (${command.key})`)
-            : `${timed.label}: ${timed.note} ${actionStatus(timed)} (${command.key})`;
-
-        return (
-          <button
-            key={command.id}
-            type="button"
-            className={`command ${active ? 'active' : ''} ${timed === null ? '' : 'timed'}`}
-            disabled={disabled}
-            aria-pressed={active}
-            title={title}
-            onClick={() => onCommand(command)}
-            data-testid={`command-${command.id}`}
+      {primary.map((command) => (
+        <CommandButton key={command.id} command={command} {...buttonProps} />
+      ))}
+      {leading === undefined && advanced.length === 0 ? null : (
+        <details
+          className="tactics-menu"
+          data-active={advancedActive || undefined}
+          onKeyDownCapture={(event) => {
+            if (event.key !== 'Escape' || !event.currentTarget.open) return;
+            event.currentTarget.open = false;
+            (event.currentTarget.firstElementChild as HTMLElement | null)?.focus();
+            event.stopPropagation();
+          }}
+        >
+          <summary
+            className={`command tactics-toggle${advancedActive ? ' active' : ''}`}
+            aria-label="Open tactics and formation controls"
+            data-testid="tactics-toggle"
           >
-            <span className="command-key">{command.key}</span>
-            <span className="command-label">{timed?.label ?? command.label}</span>
-            {timed === null ? null : (
-              <span className="command-state">{actionStatus(timed)}</span>
-            )}
-          </button>
-        );
-      })}
+            <span className="command-label">Tactics</span>
+          </summary>
+          <div className="tactics-drawer" data-testid="tactics-drawer">
+            {leading === undefined ? null : <div className="tactics-formation">{leading}</div>}
+            {advanced.map((command) => (
+              <CommandButton key={command.id} command={command} {...buttonProps} />
+            ))}
+          </div>
+        </details>
+      )}
     </div>
   );
 }

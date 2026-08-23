@@ -2,15 +2,18 @@ import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync } from 'node:fs';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { chromium } from 'playwright';
+import { openTactics, runDesktopSupportChecks } from './battle-hud.mjs';
 import {
   checkBriefingInputSafety,
   checkDeployedInputSafety,
+  closeDesktopBattleMenu,
   clearControlFocus,
+  openDesktopBattleMenu,
 } from './input-safety.mjs';
 import { runCampaignRecovery } from './campaign-recovery.mjs';
 import { runMobilePlaythrough } from './mobile-playthrough.mjs';
 
-const PORT = 5183;
+const PORT = Number(process.env.E2E_PORT ?? 5183);
 const URL = `http://localhost:${PORT}/`;
 const SHOTS = process.env.SHOT_DIR ?? './reports/e2e';
 
@@ -298,6 +301,12 @@ async function main() {
         ),
       });
     });
+    await page.waitForSelector('[data-testid="tactics-toggle"]');
+    check(
+      'range drill keeps advanced orders behind Tactics',
+      !(await page.locator('[data-testid="command-run"]').isVisible()),
+    );
+    await openTactics(page);
     await page.waitForSelector('[data-testid="command-run"]');
     check(
       'range drill restores the complete battle interface',
@@ -388,6 +397,7 @@ async function main() {
     await checkDeployedInputSafety({ page, check, state });
 
     const pausedBeforeFeedback = (await state(page)).paused;
+    await openDesktopBattleMenu(page);
     await page.locator('[data-testid="feedback-link"]').click();
     await page.waitForSelector('[data-testid="playtest-feedback"]');
     check(
@@ -406,6 +416,7 @@ async function main() {
       'Space after enabling feedback closes the dialog without toggling battle',
       (await state(page)).paused === pausedBeforeFeedback,
     );
+    await closeDesktopBattleMenu(page);
 
     process.stdout.write('\nselection\n');
     await page.locator('[data-testid="lance-bar"] button').first().click();
@@ -417,6 +428,7 @@ async function main() {
       'weapon groups render with cooldown rings',
       (await page.locator('.cooldown-ring').count()) > 0,
     );
+    await page.locator('[data-testid="tactical-details"] summary').click();
     check(
       'tactical readouts expose ability, stability, alpha heat and governor state',
         (await page.locator('[data-testid="tactical-readout"]').count()) === 1 &&
@@ -425,9 +437,23 @@ async function main() {
         (await page.locator('[data-testid="governor-readout"]').count()) === 1,
     );
     check(
+      'the default command row exposes only primary orders',
+      (await page.locator('[data-testid="command-move"]').isVisible()) &&
+        (await page.locator('[data-testid="command-attack"]').isVisible()) &&
+        (await page.locator('[data-testid="tactics-toggle"]').isVisible()) &&
+        !(await page.locator('[data-testid="command-hold_fire"]').isVisible()),
+    );
+    await openTactics(page);
+    check(
       'ability and alpha commands show live readiness',
       (await page.locator('[data-testid="command-ability"]').innerText()).includes('READY') &&
         (await page.locator('[data-testid="command-alpha_strike"]').innerText()).includes('READY'),
+    );
+    check(
+      'Tactics discloses formation and advanced orders',
+      (await page.locator('[data-testid="command-alpha_strike"]').innerText()).includes('READY') &&
+        (await page.locator('[data-testid="command-hold_fire"]').isVisible()) &&
+        (await page.locator('.tactics-formation').isVisible()),
     );
     await page.screenshot({ path: `${SHOTS}/02-selected.png` });
 
@@ -664,6 +690,7 @@ async function main() {
     );
 
     process.stdout.write('\nrun the battle to a conclusion\n');
+    await openDesktopBattleMenu(page);
     await page.locator('[data-testid="feedback-link"]').focus();
     const outcome = await page.evaluate(async () => {
       const { engine } = globalThis.__ironline;
@@ -768,6 +795,12 @@ async function main() {
         rp: world.resources.get(0),
         reserves: world.reserves.length,
         reserveCost: world.rules.support.reinforcement.cost,
+        airCost: world.rules.support.air_strike.cost,
+        airDelay: world.rules.support.air_strike.delaySeconds,
+        airShots: world.rules.support.air_strike.shots,
+        truckCost: world.rules.support.repair_truck.cost,
+        truckDelay: world.rules.support.repair_truck.delaySeconds,
+        sensorCost: world.rules.support.sensor_probe.cost,
       };
     });
     check('the base capture mission is loaded', mission.id === 'base_capture_ridge', mission.id);
@@ -780,6 +813,7 @@ async function main() {
     await page.evaluate(() => {
       globalThis.__setupEngine = globalThis.__ironline.engine;
     });
+    await openDesktopBattleMenu(page);
     await page.locator('[data-testid="restart-battle"]').click();
     await page.waitForFunction(
       () =>
@@ -799,98 +833,7 @@ async function main() {
     check('the objective tracker is on screen', (await page.locator('[data-testid="objective-list"] li').count()) >= 3);
     check('the zone tracker lists both posts', (await page.locator('[data-testid="zone-list"] li').count()) === 2);
     check('resource points are shown', (await page.locator('[data-testid="resource-points"]').innerText()).includes('RP'));
-    // A mission reserve replaces the probe rather than growing a fourth button.
-    check('exactly three support calls are offered', (await page.locator('.support-call').count()) === 3);
-    check(
-      'the authored reserve reaches the support palette',
-      (await page.locator('[data-testid="support-reinforcement"]').count()) === 1 &&
-        (await page.locator('[data-testid="support-air_strike"]').count()) === 1 &&
-        (await page.locator('[data-testid="support-repair_truck"]').count()) === 1 &&
-        (await page.locator('[data-testid="support-sensor_probe"]').count()) === 0,
-    );
-    const reserveCopy = await page.locator('[data-testid="support-reinforcement"]').innerText();
-    check(
-      'support cost and effect are visible without a tooltip',
-      reserveCopy.includes(`${mission.reserveCost} RP`) && reserveCopy.includes('Drop one mission reserve'),
-      reserveCopy,
-    );
-
-    const rpText = async () =>
-      Number((await page.locator('[data-testid="resource-points"]').innerText()).replace(/[^0-9]/g, ''));
-    const rpBefore = await rpText();
-
-    const canvasBox = await page.locator('.viewport canvas:not(.perf-overlay)').boundingBox();
-    // Report rather than hang: a disabled button times the click out after
-    // thirty seconds and kills the run, which says nothing about why.
-    // The truck costs 500, so the mission pool has to cover it — the check
-    // follows the authored value rather than pinning a number that will drift.
-    check(
-      'the mission resource points reached the HUD',
-      rpBefore === mission.rp && mission.rp >= 500,
-      `${rpBefore} RP in the palette, ${mission.rp} in the world`,
-    );
-
-    await page.locator('[data-testid="support-air_strike"]').click();
-    await page.mouse.move(canvasBox.x + canvasBox.width * 0.62, canvasBox.y + canvasBox.height * 0.36);
-    await page.screenshot({ path: `${SHOTS}/09-support-lane.png` });
-    await page.evaluate(() => globalThis.__ironline.useGame.getState().setSupportMode(null));
-
-    // The repair truck fires on the press; the air strike wants a drag for
-    // its run-in, so the truck is the one the pointer test drives.
-    await page.locator('[data-testid="support-repair_truck"]').click({ timeout: 5_000 });
-    check('picking a support call arms it', (await state(page)).supportMode === 'repair_truck');
-    check(
-      'the armed call explains placement in the palette',
-      (await page.locator('[data-testid="support-repair_truck"]').innerText()).includes('Armed'),
-    );
-    await page.mouse.move(canvasBox.x + canvasBox.width * 0.55, canvasBox.y + canvasBox.height * 0.4);
-    await page.screenshot({ path: `${SHOTS}/09-support-radius.png` });
-    await page.mouse.click(canvasBox.x + canvasBox.width * 0.55, canvasBox.y + canvasBox.height * 0.4);
-
-    const truckCost = 500;
-    const afterCall = await page.evaluate(() => {
-      const { world } = globalThis.__ironline;
-      return { rp: world.resources.get(0), pending: world.support.pending.length };
-    });
-    check('calling the truck spends resource points', afterCall.rp === mission.rp - truckCost, `${mission.rp} → ${afterCall.rp}`);
-    check('the call is queued with a delay', afterCall.pending === 1);
-    await page.waitForFunction(
-      (before) => Number(document.querySelector('[data-testid="resource-points"]')?.textContent?.replace(/[^0-9]/g, '')) < before,
-      rpBefore,
-    );
-    check('the HUD reflects the spend', (await rpText()) < rpBefore);
-    await page.screenshot({ path: `${SHOTS}/09-support.png` });
-
-    const resolvedCall = await page.evaluate(async () => {
-      const { engine } = globalThis.__ironline;
-      for (let step = 0; step < 200; step += 1) engine.forceStep();
-      return engine.world.support.pending.length;
-    });
-    check('the call resolves after its delay', resolvedCall === 0);
-
-    const supportOutcome = await page.evaluate(async () => {
-      const { engine } = globalThis.__ironline;
-      const world = engine.world;
-      const calls = ['air_strike', 'repair_truck', 'reinforcement'];
-      const mod = await import('/src/sim/support.ts');
-      world.resources.set(0, 20000);
-      const results = {};
-      for (const call of calls) {
-        const enemy = world.entities.find((e) => e.team === 1 && !e.destroyed);
-        const point = enemy ? { x: enemy.pos.x, y: enemy.pos.y } : { x: 500, y: 500 };
-        results[call] = mod.callSupport(world, 0, call, point, 0).ok;
-      }
-      // Resolution and damage are pinned by the sim's own mission tests;
-      // here it is enough that every offered call is accepted and resolves.
-      for (let step = 0; step < 400 && !world.finished; step += 1) engine.forceStep();
-      return { results, pending: world.support.pending.length };
-    });
-    check(
-      'air strike, repair truck and reinforcement were all accepted',
-      Object.values(supportOutcome.results).every(Boolean),
-      JSON.stringify(supportOutcome.results),
-    );
-    check('every accepted call resolved', supportOutcome.pending === 0);
+    await runDesktopSupportChecks({ page, check, state, mission, shots: SHOTS });
 
     const triggered = await page.evaluate(async () => {
       const { engine } = globalThis.__ironline;
@@ -925,8 +868,10 @@ async function main() {
     await page.screenshot({ path: `${SHOTS}/10-objectives.png` });
 
     process.stdout.write('\nmechbay\n');
+    await openDesktopBattleMenu(page);
     await page.locator('[data-testid="choose-mission"]').click();
     await page.waitForSelector('[data-testid="briefing"]');
+    await openDesktopBattleMenu(page);
     await page.locator('[data-testid="open-mechbay"]').click();
     await page.waitForSelector('[data-testid="mechbay"]');
 
@@ -1108,6 +1053,7 @@ async function main() {
     );
     await page.screenshot({ path: `${SHOTS}/15-cutbank-large-field.png` });
     await page.evaluate(() => globalThis.__ironline.useGame.getState().pushLog('old field marker'));
+    await openDesktopBattleMenu(page);
     await page.locator('[data-testid="choose-mission"]').click();
     await page.waitForSelector('[data-testid="briefing"]');
     check(
@@ -1117,6 +1063,7 @@ async function main() {
 
     process.stdout.write('\ncampaign\n');
     await page.evaluate(() => localStorage.clear());
+    await openDesktopBattleMenu(page);
     await page.locator('[data-testid="open-campaign"]').click();
     await page.waitForSelector('[data-testid="campaign"]');
 

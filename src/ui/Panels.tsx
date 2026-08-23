@@ -1,5 +1,5 @@
 import type { HitPreviewView, UnitSnapshot, WeaponSnapshot } from './store';
-import type { SupportOption } from './supportOptions';
+export { SupportPalette } from './SupportPalette';
 
 export function HeatBar({
   heat,
@@ -213,58 +213,6 @@ export function EventLog({ lines }: { lines: readonly string[] }) {
         <li key={`${index}-${line}`}>{line}</li>
       ))}
     </ul>
-  );
-}
-
-export function SupportPalette({
-  options,
-  resourcePoints,
-  active,
-  reservesLeft,
-  onPick,
-}: {
-  options: readonly SupportOption[];
-  resourcePoints: number;
-  active: SupportOption['id'] | null;
-  reservesLeft: number;
-  onPick: (call: SupportOption['id']) => void;
-}) {
-  return (
-    <div className="support" data-testid="support-palette">
-      <span className="rp" data-testid="resource-points">
-        {resourcePoints} RP
-      </span>
-      {options.map((option) => {
-        const unaffordable = resourcePoints < option.cost;
-        const noReserves = option.id === 'reinforcement' && reservesLeft === 0;
-        const status = noReserves
-          ? 'No mission reserve remains.'
-          : unaffordable
-            ? `${option.cost - resourcePoints} RP short.`
-            : active === option.id
-              ? `Armed · ${option.placement}`
-              : option.placement;
-        return (
-          <button
-            key={option.id}
-            type="button"
-            className={`support-call ${active === option.id ? 'active' : ''}`}
-            disabled={unaffordable || noReserves}
-            aria-pressed={active === option.id}
-            title={status}
-            onClick={() => onPick(option.id)}
-            data-testid={`support-${option.id}`}
-          >
-            <span className="support-call-head">
-              <span className="support-label">{option.label}</span>
-              <span className="support-cost">{option.cost} RP</span>
-            </span>
-            <span className="support-effect">{option.effect}</span>
-            <span className="support-placement">{status}</span>
-          </button>
-        );
-      })}
-    </div>
   );
 }
 

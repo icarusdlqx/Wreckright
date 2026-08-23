@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { battleModalOpen, shouldIgnoreBattleKey } from './battleKeyboard';
+import { battleModalOpen, blocksBattleKey, shouldIgnoreBattleKey } from './battleKeyboard';
 import { setTrainingPresentationStep } from './trainingPresentation';
 
 const context = {
@@ -29,6 +29,12 @@ describe('battle keyboard gate', () => {
     const root = { querySelector: () => ({}) } as unknown as Document;
     expect(battleModalOpen(root)).toBe(true);
     expect(battleModalOpen({ querySelector: () => null } as unknown as Document)).toBe(false);
+  });
+
+  it('lets Escape cancel field intent from controls but never through a modal', () => {
+    expect(blocksBattleKey('Escape', true, false)).toBe(false);
+    expect(blocksBattleKey('Space', true, false)).toBe(true);
+    expect(blocksBattleKey('Escape', true, true)).toBe(true);
   });
 
   it('ignores key repeat for state toggles', () => {

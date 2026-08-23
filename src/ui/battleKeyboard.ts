@@ -45,6 +45,15 @@ export function isInteractiveKeyTarget(target: EventTarget | null): boolean {
   return element instanceof Element && element.closest(INTERACTIVE_TARGETS) !== null;
 }
 
+/** Escape still cancels field intent from a focused control, unless a modal owns it. */
+export function blocksBattleKey(
+  code: string,
+  interactiveTarget: boolean,
+  modalOpen: boolean,
+): boolean {
+  return modalOpen || (interactiveTarget && code !== 'Escape');
+}
+
 export function shouldIgnoreBattleKey(context: BattleKeyContext): boolean {
   return (
     !context.briefingSeen ||

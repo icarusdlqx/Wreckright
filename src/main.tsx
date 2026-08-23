@@ -8,6 +8,8 @@ import './ui/mobileBattle.css';
 import './ui/damageReadouts.css';
 import './ui/formationPicker.css';
 import './ui/cameraControls.css';
+import './ui/supportPalette.css';
+import './ui/sidebarDetails.css';
 
 const host = document.getElementById('root');
 if (host === null) throw new Error('missing #root');

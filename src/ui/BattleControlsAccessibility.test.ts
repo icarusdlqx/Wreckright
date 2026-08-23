@@ -136,6 +136,94 @@ describe('battle control state semantics', () => {
     expect(markup).not.toContain('data-testid="command-hold_fire"');
   });
 
+  it('keeps routine orders visible and puts specialist tactics in one disclosure', () => {
+    const markup = renderToStaticMarkup(
+      createElement(CommandPalette, {
+        orderMode: null,
+        enabled: true,
+        holdingFire: false,
+        heatSafety: false,
+        ability: UNIT.ability,
+        alpha: UNIT.alpha,
+        jump: null,
+        posture: UNIT.posture,
+        leading: createElement('span', { 'data-testid': 'formation-control' }, 'Formation'),
+        onCommand: () => undefined,
+      }),
+    );
+    const tacticsIndex = markup.indexOf('data-testid="tactics-toggle"');
+
+    expect(markup).toContain('aria-label="Open tactics and formation controls"');
+    expect(markup.indexOf('data-testid="command-move"')).toBeLessThan(tacticsIndex);
+    expect(markup.indexOf('data-testid="command-hold_position"')).toBeLessThan(tacticsIndex);
+    expect(markup.indexOf('data-testid="command-ability"')).toBeLessThan(tacticsIndex);
+    expect(markup.indexOf('data-testid="formation-control"')).toBeGreaterThan(tacticsIndex);
+    expect(markup.indexOf('data-testid="command-run"')).toBeGreaterThan(tacticsIndex);
+    expect(markup.indexOf('data-testid="command-called_shot"')).toBeGreaterThan(tacticsIndex);
+    expect(markup.indexOf('data-testid="command-hold_fire"')).toBeGreaterThan(tacticsIndex);
+    expect(markup.indexOf('data-testid="command-alpha_strike"')).toBeGreaterThan(tacticsIndex);
+    expect(markup.indexOf('data-testid="command-heat_safety"')).toBeGreaterThan(tacticsIndex);
+    expect(markup).not.toContain('data-testid="command-jump"');
+  });
+
+  it('only presents contextual ability and jump controls when the selected mech has them', () => {
+    const basicMarkup = renderToStaticMarkup(
+      createElement(CommandPalette, {
+        orderMode: null,
+        enabled: true,
+        holdingFire: false,
+        heatSafety: false,
+        ability: null,
+        alpha: null,
+        jump: null,
+        posture: '',
+        onCommand: () => undefined,
+      }),
+    );
+    const jumperMarkup = renderToStaticMarkup(
+      createElement(CommandPalette, {
+        orderMode: null,
+        enabled: true,
+        holdingFire: false,
+        heatSafety: false,
+        ability: UNIT.ability,
+        alpha: UNIT.alpha,
+        jump: { ready: true, range: 180, cooldown: 0 },
+        posture: '',
+        onCommand: () => undefined,
+      }),
+    );
+
+    expect(basicMarkup).not.toContain('data-testid="command-ability"');
+    expect(basicMarkup).not.toContain('data-testid="command-alpha_strike"');
+    expect(basicMarkup).not.toContain('data-testid="command-jump"');
+    expect(jumperMarkup).toContain('data-testid="command-ability"');
+    expect(jumperMarkup).toContain('data-testid="command-alpha_strike"');
+    expect(jumperMarkup).toContain('data-testid="command-jump"');
+  });
+
+  it('leaves authored training controls flat instead of hiding them in Tactics', () => {
+    const markup = renderToStaticMarkup(
+      createElement(CommandPalette, {
+        orderMode: null,
+        enabled: true,
+        holdingFire: false,
+        heatSafety: false,
+        ability: UNIT.ability,
+        alpha: UNIT.alpha,
+        jump: null,
+        posture: '',
+        visibleCommandIds: new Set(['move', 'hold_fire', 'heat_safety']),
+        onCommand: () => undefined,
+      }),
+    );
+
+    expect(markup).toContain('data-testid="command-move"');
+    expect(markup).toContain('data-testid="command-hold_fire"');
+    expect(markup).toContain('data-testid="command-heat_safety"');
+    expect(markup).not.toContain('data-testid="tactics-toggle"');
+  });
+
   it('exposes weapon toggles and lance selection as pressed states', () => {
     const weapons = renderToStaticMarkup(
       createElement(WeaponGroups, { unit: UNIT, onToggleGroup: () => undefined }),

@@ -54,6 +54,7 @@ beforeEach(() => {
     playerTeam: 0,
     selection: [1],
     supportMode: null,
+    supportNotice: null,
     orderMode: null,
     calledShotLocation: null,
   });
@@ -145,6 +146,21 @@ describe('touch input', () => {
       { x: 50, y: 70 },
     );
     expect(useGame.getState().supportMode).toBeNull();
+  });
+
+  it.each([false, true])('keeps a rejected support call armed (directional: %s)', (directional) => {
+    const { engine, input } = harness();
+    const call = directional ? 'air_strike' : 'sensor_probe';
+    useGame.setState({ supportMode: call });
+    vi.mocked(engine.supportNeedsHeading).mockReturnValue(directional);
+    vi.mocked(engine.callSupport).mockReturnValue({ ok: false, reason: 'needs more RP' });
+
+    input.start(1, { x: 10, y: 20 }, { x: 10, y: 20 });
+    input.finish(1, { x: 50, y: 70 });
+
+    expect(engine.callSupport).toHaveBeenCalledOnce();
+    expect(useGame.getState().supportMode).toBe(call);
+    expect(useGame.getState().supportNotice).toBe('needs more RP');
   });
 
   it('cancels a directional support gesture without spending it', () => {

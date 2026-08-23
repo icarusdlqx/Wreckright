@@ -1,4 +1,8 @@
-import { verifyTouchNavigation, verifyTouchOrders } from './touch-battle.mjs';
+import {
+  verifyTouchDockControls,
+  verifyTouchNavigation,
+  verifyTouchOrders,
+} from './touch-battle.mjs';
 
 const PORTRAIT = { width: 390, height: 844 };
 const LANDSCAPE = { width: 844, height: 390 };
@@ -116,7 +120,7 @@ async function unlockRangeDrill(page) {
       ),
     });
   });
-  await page.waitForSelector('[data-testid="mobile-queue"]');
+  await page.waitForSelector('[data-testid="mobile-tab-support"]');
 }
 
 
@@ -201,31 +205,7 @@ async function runOrientation({ browser, url, shots, check, viewport, label, sho
         (await page.locator('[data-testid="mobile-tab-unit"]').count()) === 1,
     );
 
-    await page.locator('[data-testid="mobile-queue"]').tap();
-    check(
-      `${prefix} queue mode arms from the dock`,
-      await page.evaluate(() => globalThis.__ironline.useGame.getState().queueOrders),
-    );
-    await page.locator('[data-testid="mobile-cancel"]').tap();
-    check(
-      `${prefix} cancel clears queue mode`,
-      !(await page.evaluate(() => globalThis.__ironline.useGame.getState().queueOrders)),
-    );
-
-    await page.locator('[data-testid="mobile-tab-orders"]').tap();
-    await firstLance.tap();
-    await page.locator('[data-testid="command-move"]').tap();
-    check(
-      `${prefix} order palette arms a move`,
-      (await page.evaluate(() => globalThis.__ironline.useGame.getState().orderMode)) === 'move' &&
-        (await page.locator('[data-testid="command-move"]').getAttribute('aria-pressed')) === 'true',
-    );
-    await page.locator('[data-testid="mobile-cancel"]').tap();
-    check(
-      `${prefix} cancel clears an armed order`,
-      (await page.evaluate(() => globalThis.__ironline.useGame.getState().orderMode)) === null &&
-        (await page.locator('[data-testid="command-move"]').getAttribute('aria-pressed')) === 'false',
-    );
+    await verifyTouchDockControls({ page, check, prefix });
 
     await verifyTouchNavigation({ page, check, prefix });
     if (label === 'portrait') await verifyTouchOrders({ page, check, prefix });

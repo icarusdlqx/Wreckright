@@ -40,7 +40,6 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
             activeLocation={state.orderMode === 'called_shot' ? state.calledShotLocation : null}
           />
           <HeatBar heat={unit.heat} capacity={unit.heatCapacity} thresholds={state.heatTiers} />
-          <TacticalReadout unit={unit} />
           <div className="target-line">
             {preview === null ? (
               <>
@@ -72,9 +71,18 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
             onToggleGroup={(group) => engine?.toggleGroup(group)}
             {...(preview === null ? {} : { preview })}
           />
+          <details className="sidebar-details" open={compact} data-testid="tactical-details">
+            <summary>Tactical details</summary>
+            <TacticalReadout unit={unit} />
+          </details>
         </>
       )}
-      <EventLog lines={state.log} />
+      <details className="sidebar-details log-details" open={compact} data-testid="log-details">
+        <summary>
+          Combat log <span>{Math.min(8, state.log.length)}</span>
+        </summary>
+        <EventLog lines={state.log} />
+      </details>
     </aside>
   );
 }
