@@ -2,7 +2,6 @@ import { Mesh, MeshBasicMaterial, RingGeometry, Scene, Vector3 } from 'three';
 import { LOCATIONS } from '../schema/common';
 import { teamColour, UI } from '../render/palette';
 import { DEFAULT_SILHOUETTE, radiusFor } from '../render/shape';
-import { angleDifference } from '../sim/math';
 import type { EntityId, MechEntity, Vec2, World } from '../sim/types';
 import type { Weapon } from '../schema/weapon';
 import type { SimEvent } from '../sim/events';
@@ -13,7 +12,6 @@ import { damageWearTier } from './damageLedger';
 import { collectLocationAnchors, locationWorldAnchor, type LocationAnchors } from './locationAnchors';
 import { advanceWeaponRecoil, triggerWeaponRecoil } from './weaponModels';
 import { advanceHullRecoil, triggerHullRecoil } from './machineCulture';
-import { modelDamageSignature, sealedTargetOffset, writeInterpolatedPose } from './unitVisualState';
 import { advanceStartupSequence, setStartupPowered } from './startupLights';
 import { presentMachinePowerEvent } from './unitCultureEvents';
 import { UnitPicking } from './unitPicking';
@@ -23,6 +21,10 @@ import {
   type ModelDetail,
 } from './renderQuality';
 import { setMachineMotionLowFx } from './machineMotion';
+import { DetachedPartPool } from './detachedPartPool';
+import { canPresentEntity } from './combatReadouts';
+import { fallbackFallAxis, impactFallAxis, modelDamageSignature,
+  sealedTargetOffset, writeInterpolatedPose } from './unitVisualState';
 
 export interface Interpolated {
   x: number;
@@ -58,9 +60,10 @@ export class UnitViews {
   private readonly interpolated = new Map<EntityId, Interpolated>();
   private readonly mountCycles = new Map<string, number>();
   private readonly placed = new Set<EntityId>();
-  private readonly placedAt = new Map<EntityId, Interpolated>();
   private readonly shadows: ContactShadowLayer;
   private readonly picking: UnitPicking;
+  private readonly detachedParts: DetachedPartPool;
+  private readonly fallAxes = new Map<EntityId, ReturnType<typeof fallbackFallAxis>>();
   private detail: ModelDetail = 'structure';
   private lowFx = false;
 
@@ -71,6 +74,7 @@ export class UnitViews {
   ) {
     this.shadows = new ContactShadowLayer(heightAt);
     this.picking = new UnitPicking(heightAt, (entity) => this.at(entity), (id) => this.views.get(id));
+    this.detachedParts = new DetachedPartPool(scene, heightAt, reducedMotion);
     scene.add(this.shadows.mesh);
   }
 
@@ -82,15 +86,19 @@ export class UnitViews {
     }
     this.scene.remove(this.shadows.mesh);
     this.shadows.dispose();
+    this.detachedParts.dispose();
+    this.fallAxes.clear();
   }
 
   beginFrame(deltaSeconds = 0): void {
     this.shadows.begin();
+    this.detachedParts.advance(deltaSeconds);
     this.placed.clear();
     for (const view of this.views.values()) {
       advanceHullRecoil(view.model.hullRecoil, deltaSeconds);
       if (view.model.root.visible) advanceStartupSequence(view.model, deltaSeconds, this.reducedMotion);
       for (const weapon of view.model.weapons) {
+        if (weapon.slide.userData.disabledWeapon === true) continue;
         advanceWeaponRecoil(weapon, deltaSeconds, this.reducedMotion, this.lowFx);
       }
     }
@@ -101,18 +109,15 @@ export class UnitViews {
     if (detail === this.detail && lowFx === this.lowFx) return;
     this.detail = detail;
     this.lowFx = lowFx;
+    this.detachedParts.setLowFx(lowFx);
     for (const view of this.views.values()) {
       applyModelDetail(view.model.root, detail);
       setMachineMotionLowFx(view.model.machineMotion, lowFx);
     }
   }
 
-  markPlaced(id: EntityId, at?: Interpolated): void {
+  markPlaced(id: EntityId, _at?: Interpolated): void {
     this.placed.add(id);
-    if (at === undefined) return;
-    const pose = this.placedAt.get(id);
-    if (pose === undefined) this.placedAt.set(id, { ...at });
-    else Object.assign(pose, at);
   }
 
   placeShadow(entity: MechEntity, at: Interpolated, lift: number): void {
@@ -123,11 +128,36 @@ export class UnitViews {
     this.shadows.commit();
   }
 
-  consumeEvents(events: readonly SimEvent[]): void {
+  consumeEvents(world: World, events: readonly SimEvent[]): void {
     for (const event of events) {
-      if (event.type !== 'shutdown' && event.type !== 'restart') continue;
-      const view = this.views.get(event.entityId);
-      presentMachinePowerEvent(view?.model, event.type, this.reducedMotion);
+      if (event.type === 'projectile_hit') {
+        if (
+          canPresentEntity(world, event.targetId) &&
+          canPresentEntity(world, event.shooterId)
+        ) this.rememberImpact(event.targetId, event.shooterId);
+      } else if (event.type === 'critical_hit' && event.shooterId !== null) {
+        if (
+          canPresentEntity(world, event.entityId) &&
+          canPresentEntity(world, event.shooterId)
+        ) this.rememberImpact(event.entityId, event.shooterId);
+      } else if (event.type === 'knocked_down' && event.attackerId !== null) {
+        if (
+          canPresentEntity(world, event.entityId) &&
+          canPresentEntity(world, event.attackerId)
+        ) this.rememberImpact(event.entityId, event.attackerId);
+      } else if (event.type === 'location_destroyed') {
+        const view = this.views.get(event.entityId);
+        if (
+          canPresentEntity(world, event.entityId) &&
+          view?.model.faction === 'linewrought' &&
+          this.canLocate(event.entityId)
+        ) {
+          this.detachedParts.spawn(view.model.root, event.location, event.entityId + event.tick);
+        }
+      } else if (event.type === 'shutdown' || event.type === 'restart') {
+        const view = this.views.get(event.entityId);
+        presentMachinePowerEvent(view?.model, event.type, this.reducedMotion);
+      }
     }
   }
 
@@ -203,15 +233,6 @@ export class UnitViews {
   locationOf(id: EntityId, location: (typeof LOCATIONS)[number], out: Vector3): boolean {
     const view = this.views.get(id);
     if (view === undefined || !this.canLocate(id)) return false;
-    const placed = this.placedAt.get(id);
-    const current = this.samples.get(id)?.cur;
-    if (
-      placed !== undefined &&
-      current !== undefined &&
-      (Math.hypot(placed.x - current.x, placed.y - current.y) > 0.01 ||
-        Math.abs(angleDifference(placed.facing, current.facing)) > 0.002 ||
-        Math.abs(placed.torso - current.torso) > 0.002)
-    ) return false;
     return locationWorldAnchor(view.anchors, location, out);
   }
 
@@ -221,14 +242,16 @@ export class UnitViews {
     if (view === undefined || !view.model.root.visible || !this.placed.has(id)) return false;
 
     let count = 0;
-    for (const rig of view.model.weapons) if (rig.weaponId === weaponId) count += 1;
+    for (const rig of view.model.weapons) {
+      if (rig.weaponId === weaponId && rig.slide.userData.disabledWeapon !== true) count += 1;
+    }
     if (count === 0) return false;
 
     const key = `${id}:${weaponId}`;
     const wanted = (this.mountCycles.get(key) ?? 0) % count;
     let seen = 0;
     for (const rig of view.model.weapons) {
-      if (rig.weaponId !== weaponId) continue;
+      if (rig.weaponId !== weaponId || rig.slide.userData.disabledWeapon === true) continue;
       if (seen !== wanted) {
         seen += 1;
         continue;
@@ -272,6 +295,7 @@ export class UnitViews {
           projectiles: weapon?.projectiles ?? 1,
           recoil: weapon?.recoil ?? 0,
           visual: weapon?.visual ?? DEFAULT_VISUAL,
+          destroyed: mount.destroyed,
         };
       });
 
@@ -291,6 +315,7 @@ export class UnitViews {
     applyModelDetail(model.root, this.detail);
     setMachineMotionLowFx(model.machineMotion, this.lowFx);
     if (faction === 'aurelian') setStartupPowered(model, entity.shutdownRemaining <= 0);
+    model.terminalFallAxis = this.fallAxes.get(entity.id) ?? fallbackFallAxis(entity.id);
 
     const radius = radiusFor(entity.tonnage);
     const ring = this.selectionRing(radius, UI.selection, 1.2, 1.42, 0.9);
@@ -349,5 +374,17 @@ export class UnitViews {
       ring.geometry.dispose();
       (ring.material as MeshBasicMaterial).dispose();
     }
+  }
+
+  private rememberImpact(targetId: EntityId, attackerId: EntityId): void {
+    if (!this.canLocate(targetId) || !this.canLocate(attackerId)) return;
+    const target = this.interpolated.get(targetId) ?? this.samples.get(targetId)?.cur;
+    const attacker = this.interpolated.get(attackerId) ?? this.samples.get(attackerId)?.cur;
+    if (target === undefined || attacker === undefined) return;
+    const axis = impactFallAxis(target, attacker);
+    if (axis === null) return;
+    this.fallAxes.set(targetId, axis);
+    const view = this.views.get(targetId);
+    if (view !== undefined) view.model.terminalFallAxis = axis;
   }
 }

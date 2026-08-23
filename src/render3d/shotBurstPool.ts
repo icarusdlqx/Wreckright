@@ -10,6 +10,7 @@ import type { Vec2 } from '../sim/types';
 import {
   baseShotSlot,
   safeShotDelta,
+  SHOT_PRIORITY,
   ShotPoolCore,
   type ShotPoolSnapshot,
   type ShotSlot,
@@ -152,7 +153,15 @@ export class ShotBurstPool {
     detailScale: number,
   ): void {
     const profile = PROFILES[kind];
-    const slot = this.core.acquire();
+    const priority = kind === 'terminal' || kind === 'ammo'
+      ? SHOT_PRIORITY.terminal
+      : kind === 'critical'
+        ? SHOT_PRIORITY.critical
+        : kind === 'muzzle'
+          ? SHOT_PRIORITY.decoration
+          : SHOT_PRIORITY.standard;
+    const slot = this.core.acquire(priority);
+    if (slot === null) return;
     slot.x = x;
     slot.y = y;
     slot.z = z;

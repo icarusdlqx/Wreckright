@@ -53,7 +53,7 @@ describe('mechbay preview model', () => {
       expect(preview.markers.length).toBeLessThanOrEqual(LOCATIONS.length);
       expect(new Set(preview.markers.map((marker) => marker.geometry)).size).toBe(1);
       expect(new Set(preview.markers.map((marker) => marker.material)).size).toBe(preview.markers.length);
-      expect(preview.model.startup?.lights).toHaveLength(3);
+      expect(preview.model.startup?.lights).toHaveLength(5);
       expect(preview.model.startup?.lights.every((light) => light.visible)).toBe(true);
     } finally {
       preview.dispose();

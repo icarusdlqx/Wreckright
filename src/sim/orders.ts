@@ -2,13 +2,18 @@ import type { MechLocation } from '../schema/common';
 import { bodyRadius } from './collision';
 import { emit } from './events';
 import { applyHeatGovernor } from './governor';
-import { lineOfSight } from './los';
 import { distance } from './math';
 import { beginJump } from './movement';
-import { findPath } from './pathfind';
-import { isVisibleTo } from './sensors';
 import {
-  findEntity,
+  applyPlayerTargeting,
+  approachToEngage,
+  approachToLastKnown,
+  engageWorthTarget,
+  orderedContact,
+} from './orderTargeting';
+import { replacePath } from './pathProgress';
+import { findPath } from './pathfind';
+import {
   isImmobile,
   isDown,
   isOperational,
@@ -53,8 +58,7 @@ export function setPosture(entity: MechEntity, posture: Posture): void {
 
   // Told to hold this ground: whatever it was walking towards is cancelled.
   entity.orders.move = null;
-  entity.path = [];
-  entity.pathIndex = 0;
+  replacePath(entity, []);
   entity.motion = 'stationary';
   entity.intendedMotion = 'stationary';
 }
@@ -66,7 +70,7 @@ export function issueMove(
   run: boolean,
   options: { engage?: boolean; queued?: boolean } = {},
 ): boolean {
-  if (!isOperational(entity)) return false;
+  if (!isOperational(entity) || isImmobile(entity)) return false;
 
   // Shift held: this leg joins the route instead of replacing it.
   if (options.queued === true && entity.orders.move !== null) {
@@ -98,15 +102,12 @@ export function issueMove(
   // entire point.
   if (options.engage !== true) entity.orders.attack = null;
   entity.orders.queue = options.queued === true ? entity.orders.queue : [];
-  entity.path = path;
-  entity.pathIndex = 0;
+  replacePath(entity, path);
   // A new order starts with a clean record of how it is going. Carrying the
   // last one's counters over meant a mech that had been wedged took a stall
   // strike on the very first tick of its fresh order — the closest it had
   // ever been to the OLD waypoint is not a bar the new one can clear — and
   // the route was wiped before the player ever saw the line.
-  entity.stalledTicks = 0;
-  entity.closestApproach = Number.POSITIVE_INFINITY;
   entity.nextPathTick = world.tick + world.rules.simulation.aiPathIntervalTicks;
   entity.motion = run ? 'run' : 'walk';
   entity.intendedMotion = entity.motion;
@@ -170,8 +171,7 @@ export function issueAlphaStrike(world: World, entity: MechEntity): boolean {
 
 export function issueStop(entity: MechEntity): void {
   entity.orders.move = null;
-  entity.path = [];
-  entity.pathIndex = 0;
+  replacePath(entity, []);
   entity.stallStrikes = 0;
   entity.motion = 'stationary';
   entity.intendedMotion = entity.motion;
@@ -234,40 +234,28 @@ export function isHoldingFire(entity: MechEntity): boolean {
   return entity.groupIntent.every((enabled) => !enabled);
 }
 
-function autoAcquire(world: World, entity: MechEntity): MechEntity | null {
-  let best: MechEntity | null = null;
-  let bestRange = Number.POSITIVE_INFINITY;
-
-  for (const candidate of world.entities) {
-    if (candidate.team === entity.team || !isOperational(candidate)) continue;
-    if (!isVisibleTo(world.vision, candidate)) continue;
-
-    const range = distance(entity.pos, candidate.pos);
-    if (range < bestRange) {
-      best = candidate;
-      bestRange = range;
-    }
+export function updatePlayerControl(world: World, entity: MechEntity): void {
+  const immobile = isImmobile(entity);
+  if (immobile) {
+    // Losing both legs ends every route immediately, even while shutdown or
+    // down. Keep the attack and weapon intent: when it can act again this is
+    // an emplacement, not a wreck.
+    entity.orders.move = null;
+    entity.orders.queue.length = 0;
+    replacePath(entity, []);
   }
 
-  return best;
-}
-
-export function updatePlayerControl(world: World, entity: MechEntity): void {
   if (!isOperational(entity) || entity.shutdownRemaining > 0 || isDown(entity)) {
     entity.motion = 'stationary';
     entity.intendedMotion = entity.motion;
     return;
   }
 
-  // Airborne: the arc is committed. Keep picking targets, leave the feet alone.
+  const contact = orderedContact(world, entity);
+
+  // Airborne: the arc is committed. Keep picking visible targets, leave the feet alone.
   if (entity.jump !== null) {
-    const airborne = findEntity(world, entity.orders.attack?.targetId ?? null);
-    entity.targetId =
-      airborne !== null && isOperational(airborne)
-        ? airborne.id
-        : isHoldingFire(entity)
-          ? null
-          : (autoAcquire(world, entity)?.id ?? null);
+    applyPlayerTargeting(world, entity, contact, isHoldingFire(entity));
     return;
   }
 
@@ -275,22 +263,25 @@ export function updatePlayerControl(world: World, entity: MechEntity): void {
   // the player is looking somewhere else. Overridable, but on by default.
   if (entity.heatSafety) applyHeatGovernor(world, entity, false);
 
-  const order = isRooted(entity) ? null : entity.orders.move;
-  if (order === null) {
+  const order = immobile || isRooted(entity) ? null : entity.orders.move;
+  if (immobile) {
+    entity.motion = 'stationary';
+    entity.intendedMotion = entity.motion;
+  } else if (order === null) {
     // No march on the books — but an attack order on something out of reach
     // is still an order to go and fight it. A target set and then stood
     // around for reads as a control that does nothing: the panel says
     // "no sight" on every gun and the mech never moves to change that.
-    const quarry = isRooted(entity)
-      ? null
-      : findEntity(world, entity.orders.attack?.targetId ?? null);
-    if (
-      quarry === null ||
-      !isOperational(quarry) ||
-      !approachToEngage(world, entity, quarry)
-    ) {
-      entity.path = [];
-      entity.pathIndex = 0;
+    const approaching =
+      !isRooted(entity) &&
+      contact.target !== null &&
+      isOperational(contact.target) &&
+      (contact.visible
+        ? approachToEngage(world, entity, contact.target)
+        : contact.lastKnown !== null &&
+          approachToLastKnown(world, entity, contact.lastKnown));
+    if (!approaching) {
+      replacePath(entity, []);
       entity.motion = 'stationary';
       entity.intendedMotion = entity.motion;
     }
@@ -301,8 +292,7 @@ export function updatePlayerControl(world: World, entity: MechEntity): void {
   ) {
     // Attack-move, and something has shown itself: stand and fight. The move
     // order is kept — the advance resumes on its own once the field is clear.
-    entity.path = [];
-    entity.pathIndex = 0;
+    replacePath(entity, []);
     entity.motion = 'stationary';
     entity.intendedMotion = entity.motion;
   } else if (
@@ -314,7 +304,7 @@ export function updatePlayerControl(world: World, entity: MechEntity): void {
     // spot that is occupied, not merely somewhere near it: measuring from the
     // walker's own bulk made this discard orders to open ground up to forty
     // metres off, which is an order the player watched vanish.
-    (entity.stallStrikes > 0 && standingOnDestination(world, entity, order.to))
+    standingOnDestination(world, entity, order.to)
   ) {
     const next = entity.orders.queue.shift();
     if (next === undefined) {
@@ -345,14 +335,13 @@ export function updatePlayerControl(world: World, entity: MechEntity): void {
         order.to,
         world.rules.simulation.pathfindMaxNodes,
       );
-      entity.pathIndex = 0;
       entity.nextPathTick = world.tick + world.rules.simulation.aiPathIntervalTicks;
 
       if (path === null) {
         // Genuinely unreachable: drop the order rather than shuffle forever,
         // and say so — a route that quietly ceases to exist mid-walk looks
         // from the outside exactly like the game forgetting the order.
-        entity.path = [];
+        replacePath(entity, []);
         entity.orders.move = null;
         if (!entity.autopilot) {
           emit(world.events, {
@@ -365,9 +354,9 @@ export function updatePlayerControl(world: World, entity: MechEntity): void {
         // Already inside the destination tile but not yet on the spot. A tile is
         // four times the arrival radius across, so this is most short orders —
         // walk the last few metres instead of cancelling.
-        entity.path = [{ x: order.to.x, y: order.to.y }];
+        replacePath(entity, [{ x: order.to.x, y: order.to.y }]);
       } else {
-        entity.path = path;
+        replacePath(entity, path);
         // The re-solve can also come up short of the ask; anchor the order to
         // what the route actually reaches, or arrival never fires.
         order.to = reachableDestination(world, path, order.to);
@@ -377,87 +366,5 @@ export function updatePlayerControl(world: World, entity: MechEntity): void {
     entity.intendedMotion = entity.motion;
   }
 
-  const ordered = findEntity(world, entity.orders.attack?.targetId ?? null);
-  if (ordered !== null && isOperational(ordered)) {
-    entity.targetId = ordered.id;
-    entity.calledShot = entity.orders.attack?.calledShot ?? null;
-    return;
-  }
-
-  entity.orders.attack = null;
-  entity.calledShot = null;
-
-  if (isHoldingFire(entity)) {
-    entity.targetId = null;
-    return;
-  }
-
-  // Return-fire orders mean stay quiet until someone commits: the mech shoots
-  // back at whoever last put fire on it and picks nothing of its own. An
-  // explicit attack order still overrides this, above.
-  if (entity.posture === 'return_fire') {
-    const threat = findEntity(world, entity.threatenedBy);
-    const remembered = world.tick <= entity.threatenedUntilTick;
-    entity.targetId = remembered && threat !== null && isOperational(threat) ? threat.id : null;
-    return;
-  }
-
-  entity.targetId = autoAcquire(world, entity)?.id ?? null;
-}
-
-/** The longest reach of any working gun aboard, in metres. */
-function longestReach(world: World, entity: MechEntity): number {
-  return entity.weapons.reduce((longest, mount) => {
-    if (mount.destroyed) return longest;
-    const weapon = world.catalog.weapons.get(mount.weaponId);
-    return weapon === undefined ? longest : Math.max(longest, weapon.range.long);
-  }, 0);
-}
-
-/**
- * Walks an attack-ordered mech into the fight: toward its quarry until it is
- * inside most of its longest gun's reach with a line of sight, then stops to
- * shoot from there rather than marching on to point blank. Returns true while
- * the approach is still walking; false hands the feet back to whoever called.
- */
-function approachToEngage(world: World, entity: MechEntity, quarry: MechEntity): boolean {
-  const reach = longestReach(world, entity);
-  // Nothing to shoot with: charging a machine you cannot hurt is not an
-  // approach, it is a donation.
-  if (reach <= 0) return false;
-
-  const gap = distance(entity.pos, quarry.pos);
-  const sighted = lineOfSight(world.terrain, entity.pos, quarry.pos).clear;
-  if (gap <= reach * 0.85 && sighted) return false;
-
-  if (entity.path.length === 0 || world.tick >= entity.nextPathTick) {
-    const path = findPath(
-      world.terrain,
-      entity.pos,
-      quarry.pos,
-      world.rules.simulation.pathfindMaxNodes,
-    );
-    entity.pathIndex = 0;
-    entity.nextPathTick = world.tick + world.rules.simulation.aiPathIntervalTicks;
-    entity.path = path ?? [];
-  }
-  if (entity.path.length === 0) return false;
-
-  entity.motion = 'walk';
-  entity.intendedMotion = 'walk';
-  return true;
-}
-
-/**
- * The contact an attack-moving mech should stop for: something visible and
- * inside the reach of a gun it is actually carrying. Passing sensor ghosts do
- * not halt an advance; a target worth shooting does.
- */
-function engageWorthTarget(world: World, entity: MechEntity): MechEntity | null {
-  const reach = longestReach(world, entity);
-  if (reach === 0) return null;
-
-  const target = autoAcquire(world, entity);
-  if (target === null) return null;
-  return distance(entity.pos, target.pos) <= reach ? target : null;
+  applyPlayerTargeting(world, entity, contact, isHoldingFire(entity));
 }

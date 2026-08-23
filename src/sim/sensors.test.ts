@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { catalog, playerWorld, testWorld, unitOf } from '../../tests/support';
+import { catalog, playerWorld, spawnDesign, testWorld, unitOf } from '../../tests/support';
+import { difficultyTier, lanceFocus } from './ai/tactical';
+import { scoreTargets } from './ai/utility';
+import { lineOfSight } from './los';
+import { bearing } from './math';
+import { issueAttack } from './orders';
+import { stepWorld } from './world';
 import {
   isIdentifiedBy,
   isVisibleTo,
@@ -7,7 +13,9 @@ import {
   signatureFor,
   tileExplored,
   tileVisible,
+  updateTeamVisions,
   updateVision,
+  visionFor,
 } from './sensors';
 import type { MechEntity, World } from './types';
 
@@ -102,9 +110,87 @@ describe('updateVision', () => {
   it('treats everything as visible when there is no vision tracking', () => {
     const headless = testWorld('novision');
     expect(headless.vision).toBeNull();
+    expect(headless.visions.size).toBe(2);
     for (const entity of headless.entities) {
       expect(isVisibleTo(headless.vision, entity)).toBe(true);
     }
+  });
+
+  it('keeps each AI side on its own sensor picture', () => {
+    const headless = testWorld('team-vision');
+    const blue = headless.entities.find((entity) => entity.team === 0);
+    const red = headless.entities.find((entity) => entity.team === 1);
+    if (blue === undefined || red === undefined) throw new Error('need opposing mechs');
+    for (const entity of headless.entities) {
+      if (entity !== blue && entity !== red) entity.destroyed = true;
+    }
+
+    let positions: [{ x: number; y: number }, { x: number; y: number }] | null = null;
+    for (let row = 1; row < headless.terrain.height - 1 && positions === null; row += 1) {
+      for (let column = 1; column < headless.terrain.width - 4; column += 1) {
+        const from = headless.terrain.tileCentre(column, row);
+        const to = headless.terrain.tileCentre(column + 3, row);
+        if (!headless.terrain.passable(column, row)) continue;
+        if (!headless.terrain.passable(column + 3, row)) continue;
+        if (!lineOfSight(headless.terrain, from, to).clear) continue;
+        positions = [from, to];
+        break;
+      }
+    }
+    if (positions === null) throw new Error('need a clear sensor lane');
+
+    blue.pos = positions[0];
+    red.pos = positions[1];
+    blue.sensorRange = 1_000;
+    red.sensorRange = 1;
+    blue.signature = 1;
+    red.signature = 1;
+    updateTeamVisions(headless);
+
+    expect(visionFor(headless, blue.team)?.visible.has(red.id)).toBe(true);
+    expect(visionFor(headless, red.team)?.visible.has(blue.id)).toBe(false);
+    expect(scoreTargets(headless, red, { focusTargetId: null, currentTargetId: null })).toEqual(
+      [],
+    );
+    expect(lanceFocus(headless, red.team, difficultyTier(headless, 'regular'))).toBeNull();
+
+    red.targetId = blue.id;
+    red.facing = bearing(red.pos, blue.pos);
+    // World stepping clears stale automated firing solutions every tick, not
+    // just on the slower AI-decision cadence.
+    stepWorld(headless, headless.tick + 10);
+    expect(red.targetId).toBeNull();
+    expect(headless.events.some(
+      (event) => event.type === 'weapon_fired' && event.shooterId === red.id,
+    )).toBe(false);
+
+    // Standing player intent survives, but the live firing solution is still
+    // stripped on a non-decision tick before weapons update.
+    red.controller = 'orders';
+    issueAttack(red, blue.id, 'left_arm');
+    headless.events.length = 0;
+    stepWorld(headless, headless.tick + 10);
+    expect(red.orders.attack?.targetId).toBe(blue.id);
+    expect(red.targetId).toBeNull();
+    expect(red.calledShot).toBeNull();
+    expect(headless.events.some(
+      (event) => event.type === 'weapon_fired' && event.shooterId === red.id,
+    )).toBe(false);
+  });
+
+  it('creates a sensor picture for a team introduced after world creation', () => {
+    const headless = testWorld('late-team-vision');
+    const late = spawnDesign(headless, 'hornet_spotter', 7, { x: 500, y: 12 });
+    const target = headless.entities.find((entity) => entity.team === 0);
+    if (target === undefined) throw new Error('need a target');
+    target.pos = { x: 620, y: 12 };
+    late.sensorRange = 1_000;
+    target.signature = 1;
+
+    expect(visionFor(headless, late.team)).toBeNull();
+    updateTeamVisions(headless);
+
+    expect(visionFor(headless, late.team)?.visible.has(target.id)).toBe(true);
   });
 });
 

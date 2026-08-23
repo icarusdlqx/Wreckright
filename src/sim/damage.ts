@@ -2,6 +2,7 @@ import { abilityFactor } from './abilities';
 import type { MechLocation } from '../schema/common';
 import type { ArmourFace } from './arcs';
 import { emit } from './events';
+import { replacePath } from './pathProgress';
 import { addStabilityImpulse } from './stability';
 import type { AmmoBin, KillMethod, MechEntity, World } from './types';
 
@@ -11,8 +12,7 @@ export function destroyMech(world: World, entity: MechEntity, method: KillMethod
   entity.killMethod = method;
   entity.motion = 'stationary';
   entity.intendedMotion = entity.motion;
-  entity.path = [];
-  entity.pathIndex = 0;
+  replacePath(entity, []);
   emit(world.events, { type: 'mech_destroyed', tick: world.tick, entityId: entity.id, method });
 }
 

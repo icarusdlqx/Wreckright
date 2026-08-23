@@ -1,4 +1,4 @@
-import { Color, PointLight, Scene, Vector3 } from 'three';
+import { Color, Scene, Vector3 } from 'three';
 import type { Weapon } from '../schema/weapon';
 import type { MechLocation } from '../schema/common';
 import type { SimEvent } from '../sim/events';
@@ -9,19 +9,14 @@ import { JetLayer, ScarLayer, SmokeLayer } from './effects';
 import { measureReadoutLayout } from './readoutSafeArea';
 import { TracerLayer, type ShotBurstKind } from './tracers';
 import { MechanicalDischargeLayer } from './mechanicalEffects';
-import { disposeObjectResources } from './sceneResources';
-
-interface MuzzleFlash {
-  light: PointLight;
-  ttl: number;
-}
+import { MuzzleFlashPool } from './muzzleFlashPool';
 
 type DestructiveEvent = Extract<SimEvent, { type: 'mech_destroyed' | 'ammo_explosion' }>;
 
 function destructiveLocation(event: DestructiveEvent): MechLocation {
-  if (event.type === 'ammo_explosion') return event.location;
-  if (event.method === 'head') return 'head';
-  return 'centre_torso';
+  return event.type === 'ammo_explosion'
+    ? event.location
+    : event.method === 'head' ? 'head' : 'centre_torso';
 }
 
 export interface BattleFeedbackBindings {
@@ -45,7 +40,7 @@ const DEFAULT_SHOT: Weapon['visual'] = {
 const CRITICAL_COLOUR = 0xffd07a;
 const AMMO_COLOUR = 0xffa34f;
 const TERMINAL_COLOUR = 0xff6b38;
-const FLASH_CAPACITY = 4;
+const FLASH_CAPACITY = 10;
 
 function eventColour(weapon: Weapon | undefined): number {
   return weapon === undefined ? 0xffffff : parseInt(weapon.visual.colour.slice(1), 16);
@@ -58,6 +53,19 @@ function missAngle(event: Extract<SimEvent, { type: 'projectile_miss' }>): numbe
   return (hash >>> 0) / 0xffffffff * Math.PI * 2;
 }
 
+function projectileFlightSeconds(
+  world: World,
+  event: Extract<SimEvent, { type: 'weapon_fired' }>,
+  weapon: Weapon | undefined,
+): number | null {
+  if (weapon?.velocity === null || weapon === undefined) return null;
+  const shooter = findEntity(world, event.shooterId);
+  const target = findEntity(world, event.targetId);
+  if (shooter === null || target === null) return null;
+  const distance = Math.hypot(target.pos.x - shooter.pos.x, target.pos.y - shooter.pos.y);
+  return Math.max(world.dt, Math.ceil(distance / weapon.velocity / world.dt) * world.dt);
+}
+
 /** Combat effects and camera recoil share one clock and one fixed budget. */
 export class BattleEffects {
   private readonly tracers = new TracerLayer();
@@ -65,7 +73,7 @@ export class BattleEffects {
   private readonly smoke: SmokeLayer;
   private readonly scars = new ScarLayer();
   private readonly mechanical = new MechanicalDischargeLayer();
-  private readonly flashes: MuzzleFlash[] = [];
+  private readonly flashes: MuzzleFlashPool;
   private shakeAmplitude = 0;
   private shakeTime = 0;
   private elapsed = 0;
@@ -79,7 +87,6 @@ export class BattleEffects {
   private readonly readouts: CombatReadouts | null;
   private lowFx = false;
   private destroyed = false;
-
   constructor(
     private readonly scene: Scene,
     fogColour: Color,
@@ -95,6 +102,7 @@ export class BattleEffects {
     feedback: BattleFeedbackBindings | null = null,
   ) {
     this.smoke = new SmokeLayer(fogColour);
+    this.flashes = new MuzzleFlashPool(scene, FLASH_CAPACITY);
     this.anchorOf = feedback?.anchorOf ?? null;
     this.canLocate = feedback?.canLocate;
     this.currentPositionOf = feedback?.currentPositionOf ?? positionOf;
@@ -122,29 +130,20 @@ export class BattleEffects {
       this.mechanical.casings,
       this.mechanical.vents,
     );
-    for (let index = 0; index < FLASH_CAPACITY; index += 1) {
-      const light = new PointLight(0xffffff, 0, 120, 2);
-      light.visible = false;
-      this.flashes.push({ light, ttl: 0 });
-      scene.add(light);
-    }
     this.tracers.setPresentationMode(false, camera.reducedMotion);
     this.jets.setPresentationMode(false, camera.reducedMotion);
   }
-
   setPresentationMode(lowFx: boolean): void {
     if (this.destroyed) return;
     this.lowFx = lowFx;
     this.tracers.setPresentationMode(lowFx, this.camera.reducedMotion);
     this.jets.setPresentationMode(lowFx, this.camera.reducedMotion);
   }
-
   beginFrame(deltaSeconds: number): void {
     if (this.destroyed) return;
     this.elapsed += deltaSeconds;
     this.jets.begin();
   }
-
   finishFrame(deltaSeconds: number): void {
     if (this.destroyed) return;
     this.shakeTime += deltaSeconds;
@@ -165,20 +164,13 @@ export class BattleEffects {
     this.jets.commit();
     this.readouts?.advance(deltaSeconds);
   }
-
   advance(deltaSeconds: number): void {
     if (this.destroyed) return;
-    for (const flash of this.flashes) {
-      if (flash.ttl <= 0) continue;
-      flash.ttl -= deltaSeconds;
-      if (flash.ttl <= 0) flash.light.visible = false;
-      else flash.light.intensity *= 0.72;
-    }
-    this.tracers.update(deltaSeconds);
+    this.flashes.advance(deltaSeconds);
+    this.tracers.update(deltaSeconds, this.resolveLiveEndpoint);
     this.mechanical.update(deltaSeconds);
     this.smoke.update(deltaSeconds);
   }
-
   consume(world: World, events: readonly SimEvent[]): void {
     if (this.destroyed) return;
     this.readouts?.consume(world, events);
@@ -233,6 +225,12 @@ export class BattleEffects {
         this.effectAt.x = target.x + Math.cos(angle) * distance;
         this.effectAt.y = target.y + Math.sin(angle) * distance;
         const weapon = world.catalog.weapons.get(event.weaponId);
+        this.effectPoint.set(
+          this.effectAt.x,
+          this.heightAt(this.effectAt.x, this.effectAt.y),
+          this.effectAt.y,
+        );
+        this.tracers.resolveProjectile(event, this.effectPoint);
         this.tracers.burst(
           this.effectAt,
           this.heightAt(this.effectAt.x, this.effectAt.y) - 14,
@@ -256,6 +254,7 @@ export class BattleEffects {
       if (event.type === 'projectile_hit') {
         if (!canPresentEntity(world, event.targetId)) continue;
         if (this.locationOf(event.targetId, event.location, this.effectPoint)) {
+          this.tracers.resolveProjectile(event, this.effectPoint);
           this.toGroundPoint(this.effectPoint);
           this.emitBurst('hit', colour, 0.75 + Math.min(1.25, event.damage / 18));
           const damage = weapon?.damage ?? 5;
@@ -292,6 +291,8 @@ export class BattleEffects {
         weapon?.velocity ?? null,
         colour,
         this.heightAt,
+        event,
+        projectileFlightSeconds(world, event, weapon),
       );
       if (weapon?.type === 'ballistic' && !this.camera.reducedMotion && !this.lowFx) {
         const shooterEntity = findEntity(world, event.shooterId);
@@ -305,6 +306,19 @@ export class BattleEffects {
         );
       }
       if (!this.lowFx) this.muzzleLight(this.muzzle, colour, weapon?.damage ?? 5);
+    }
+
+    // Impact events get first claim; retired rounds then land at a render-safe endpoint.
+    for (const event of events) {
+      if (event.type === 'mech_destroyed') {
+        const located = this.canLocate?.(event.entityId) === true &&
+          this.locationOf(event.entityId, destructiveLocation(event), this.effectPoint);
+        this.tracers.resolveOutstanding(event.entityId, located ? this.effectPoint : undefined);
+      } else if (event.type === 'unit_withdrew') {
+        this.tracers.resolveOutstanding(event.entityId);
+      } else if (event.type === 'battle_ended') {
+        this.tracers.resolveOutstanding(null);
+      }
     }
   }
 
@@ -341,11 +355,7 @@ export class BattleEffects {
     this.smoke.dispose();
     this.scars.dispose();
     this.mechanical.dispose();
-    for (const flash of this.flashes) {
-      this.scene.remove(flash.light);
-      disposeObjectResources(flash.light);
-    }
-    this.flashes.length = 0;
+    this.flashes.destroy();
     this.camera.shake.set(0, 0, 0);
   }
 
@@ -359,10 +369,8 @@ export class BattleEffects {
   }
 
   private toGroundPoint(at: Vector3): void {
-    this.effectAt.x = at.x;
-    this.effectAt.y = at.z;
+    this.effectAt.x = at.x; this.effectAt.y = at.z;
   }
-
   private emitBurst(kind: ShotBurstKind, colour: number, scale: number): void {
     this.tracers.burst(this.effectAt, this.effectPoint.y - 14, kind, colour, scale);
   }
@@ -378,18 +386,15 @@ export class BattleEffects {
   }
 
   private muzzleLight(at: Vector3, colour: number, damage: number): void {
-    let flash: MuzzleFlash | null = null;
-    for (const candidate of this.flashes) {
-      if (candidate.ttl > 0) continue;
-      flash = candidate;
-      break;
-    }
-    if (flash === null) return;
-    flash.ttl = 0.09;
-    flash.light.color.setHex(colour);
-    flash.light.intensity = 300 + damage * 40;
-    flash.light.position.copy(at);
-    flash.light.visible = true;
+    this.flashes.trigger(at, colour, damage);
   }
+
+  private readonly resolveLiveEndpoint = (id: EntityId, out: Vector3): boolean => {
+    if (this.canLocate !== undefined && !this.canLocate(id)) return false;
+    const at = this.positionOf(id);
+    if (at === null) return false;
+    out.set(at.x, this.heightAt(at.x, at.y) + 14, at.y);
+    return true;
+  };
 
 }

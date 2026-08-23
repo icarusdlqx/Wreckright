@@ -19,6 +19,13 @@ import { idleWeightCorrection, legPhaseFor } from './machineCulture';
 import { localTilt, sampleGround, type GroundSample } from './locomotionGround';
 import { poseLoosePanels } from './damagedPanels';
 import { poseMachineMotion } from './machineMotion';
+import { posePowerDown, restorePoweredPose } from './powerDownPose';
+import {
+  KnockdownPoseResult,
+  poseDestroyed,
+  poseKnockdown,
+  type TerminalMotionState,
+} from './terminalMotion';
 
 export { advanceGait, gaitForTerrain, responseBlend, type GaitProfile } from './terrainGait';
 export { localTilt, sampleGround, type GroundSample } from './locomotionGround';
@@ -32,19 +39,19 @@ interface AnimationState {
   lastFacing: number;
   hasLast: boolean;
   lastStep: number;
-  fall: number;
   ground: number;
   gradeX: number;
   gradeY: number;
   hasGround: boolean;
   gait: GaitProfile;
-  landedFall: boolean;
   wasJumping: boolean;
   poses: [LegPose, LegPose];
   contact: FootContactState;
   turnPhase: number;
   turnDirection: -1 | 0 | 1;
   elapsed: number;
+  shutdownElapsed: number;
+  terminal: TerminalMotionState;
 }
 
 const NOZZLE = new Vector3();
@@ -120,34 +127,29 @@ export class Locomotion {
     poseLoosePanels(model.loosePanels, state.elapsed, state.amp, this.reducedMotion);
 
     if (entity.destroyed) {
-      state.fall = Math.min(1, state.fall + dt / model.culture.terminalFallSeconds);
-      const eased = 1 - (1 - state.fall) ** 2;
-      const direction = entity.id % 2 === 0 ? 1 : -1;
-      model.root.rotation.z = -eased * 1.22 * direction;
-      model.root.position.y -= eased * 1.2;
-      if (state.fall >= 1 && !state.landedFall) {
-        state.landedFall = true;
+      if (poseDestroyed(model, state.terminal, tilt, dt, this.reducedMotion)) {
         this.effects.land({ x: at.x, y: at.y }, 0x8a8a82, 2.5);
       }
       return;
     }
 
     const down = entity.downRemaining > 0;
-    state.fall = clamp(state.fall + dt * (down ? 2.2 : -1.8), 0, 1);
-    if (state.fall > 0) {
-      const eased = 1 - (1 - state.fall) ** 2;
-      const direction = entity.id % 2 === 0 ? 1 : -1;
-      model.root.rotation.z = -eased * 1.1 * direction;
-      model.root.position.y -= eased * 1.05;
-      if (down && state.fall >= 1 && !state.landedFall) {
-        state.landedFall = true;
-        this.effects.land({ x: at.x, y: at.y }, 0x8a8a82, 1.8);
-      }
-      if (!down) state.landedFall = false;
-      if (down) return;
-    } else {
-      model.root.rotation.z = tilt.z;
+    const knockdown = poseKnockdown(model, state.terminal, tilt, dt, down);
+    if ((knockdown & KnockdownPoseResult.Landed) !== 0) {
+      this.effects.land({ x: at.x, y: at.y }, 0x8a8a82, 1.8);
     }
+    if ((knockdown & KnockdownPoseResult.Block) !== 0) return;
+
+    if (entity.shutdownRemaining > 0) {
+      state.shutdownElapsed += Math.max(0, dt);
+      posePowerDown(model, state.shutdownElapsed, this.reducedMotion, tilt);
+      state.lastX = at.x;
+      state.lastY = at.y;
+      state.lastFacing = at.facing;
+      state.hasLast = true;
+      return;
+    }
+    state.shutdownElapsed = 0;
 
     const translated = state.hasLast ? Math.hypot(at.x - state.lastX, at.y - state.lastY) : 0;
     const turnDelta = state.hasLast ? angleDifference(state.lastFacing, at.facing) : 0;
@@ -159,7 +161,7 @@ export class Locomotion {
 
     const motion = model.motion;
     if (model.legs.length === 0 || motion === null) {
-      model.root.rotation.x = tilt.x;
+      restorePoweredPose(model, tilt);
       return;
     }
 
@@ -374,13 +376,11 @@ export class Locomotion {
       lastFacing: 0,
       hasLast: false,
       lastStep: 0,
-      fall: 0,
       ground: 0,
       gradeX: 0,
       gradeY: 0,
       hasGround: false,
       gait: { ...gaitForTerrain('open') },
-      landedFall: false,
       wasJumping: false,
       poses: [
         { hip: 0, knee: 0, ankle: 0, planted: true },
@@ -390,6 +390,8 @@ export class Locomotion {
       turnPhase: Math.PI / 2,
       turnDirection: 0,
       elapsed: 0,
+      shutdownElapsed: 0,
+      terminal: { fall: 0, landed: false, destroyed: false },
     };
     this.states.set(id, fresh);
     return fresh;

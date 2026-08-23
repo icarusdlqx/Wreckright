@@ -165,7 +165,8 @@ describe('integrated combat presentation', () => {
 
     active.consume(world, Array.from({ length: 1_000 }, () => event));
     expect(scene.children).toEqual(initialChildren);
-    expect(lights).toHaveLength(4);
+    expect(lights).toHaveLength(10);
+    expect(lights.filter((light) => light.visible)).toHaveLength(10);
     expect(add).not.toHaveBeenCalled();
 
     active.destroy();
@@ -175,5 +176,36 @@ describe('integrated combat presentation', () => {
     active.finishFrame(1 / 60);
     expect(scene.children).toHaveLength(0);
     expect(add).not.toHaveBeenCalled();
+  });
+
+  it('shows ten distinct simultaneous muzzle lights without growing the pool', () => {
+    const scene = new Scene();
+    const active = new BattleEffects(
+      scene,
+      new Color(0x101820),
+      new TacticalCamera(false),
+      () => 0,
+      () => ({ x: 120, y: 80 }),
+      (id, _weaponId, muzzle) => {
+        muzzle.set(id * 10, 14, 20);
+        return true;
+      },
+    );
+    const world = testWorld('ten-muzzle-lights');
+    const events = Array.from({ length: 10 }, (_, index): SimEvent => ({
+      type: 'weapon_fired',
+      tick: 1,
+      shooterId: index + 1,
+      targetId: 2,
+      weaponId: 'ac5',
+    }));
+
+    active.consume(world, events);
+    const visible = scene.children.filter((child): child is PointLight => (
+      child instanceof PointLight && child.visible
+    ));
+    expect(visible).toHaveLength(10);
+    expect(new Set(visible.map((light) => light.position.x)).size).toBe(10);
+    active.destroy();
   });
 });

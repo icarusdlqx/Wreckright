@@ -7,6 +7,7 @@ import {
   AudioGraph,
   FIELD_VOICE_LIMIT,
   FIELD_VOICE_WINDOW_MS,
+  TERMINAL_VOICE_RESERVE,
   type VoiceBus,
   type VoiceFrame,
 } from './audioGraph';
@@ -261,7 +262,7 @@ describe('weapon onset', () => {
 });
 
 describe('field voice admission', () => {
-  it('admits only eight voices in one 100ms window under a thousand offers', () => {
+  it('keeps two terminal slots inside the eight-voice window under a thousand offers', () => {
     const context = new FakeContext();
     const graph = new AudioGraph(
       context as unknown as AudioContext,
@@ -274,7 +275,11 @@ describe('field voice admission', () => {
       if (graph.begin({ level: 1, distance: 20 }) !== null) admitted += 1;
     }
 
-    expect(admitted).toBe(FIELD_VOICE_LIMIT);
+    expect(admitted).toBe(FIELD_VOICE_LIMIT - TERMINAL_VOICE_RESERVE);
+    for (let offer = 0; offer < TERMINAL_VOICE_RESERVE; offer += 1) {
+      expect(graph.begin({ level: 1, distance: 20 }, 'terminal')).not.toBeNull();
+    }
+    expect(graph.begin({ level: 1, distance: 20 }, 'terminal')).toBeNull();
     expect(graph.begin({ level: 1, distance: null })).not.toBeNull();
     clock.mockReturnValue(250 + FIELD_VOICE_WINDOW_MS + 1);
     expect(graph.begin({ level: 1, distance: 20 })).not.toBeNull();

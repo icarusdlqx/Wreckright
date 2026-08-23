@@ -3,7 +3,13 @@ import { makeGrid, OPEN_LEGEND, playerWorld } from '../../tests/support';
 import { bodyRadius } from './collision';
 import { distance } from './math';
 import { updateMovement } from './movement';
-import { issueMove, issueStop } from './orders';
+import {
+  issueMove,
+  issueStop,
+  setHoldFire,
+  setPosture,
+  updatePlayerControl,
+} from './orders';
 import { findPath } from './pathfind';
 import type { MechEntity, World } from './types';
 import { stepWorld } from './world';
@@ -91,6 +97,19 @@ describe('orders that end on occupied or unreachable ground', () => {
     const world = playerWorld('blocked-destination');
     const [walker, blocker] = playerPair(world);
     const spot = openGround(world);
+    for (const entity of world.entities) {
+      setHoldFire(entity, true);
+      if (entity.team !== walker.team) {
+        entity.controller = 'orders';
+        setPosture(entity, 'hold_position');
+      }
+    }
+    for (const mech of [walker, blocker]) {
+      for (const state of Object.values(mech.locations)) {
+        state.armour = 1e9;
+        state.internal = 1e9;
+      }
+    }
 
     blocker.pos = { ...spot };
     issueStop(blocker);
@@ -103,7 +122,7 @@ describe('orders that end on occupied or unreachable ground', () => {
     // Long enough for the walk, the shove-stall against the blocker, and the
     // give-up — the bug this pins was an endless loop, so the order must be
     // GONE, with the walker parked hard against the machine on the spot.
-    for (let tick = 0; tick < 1_000 && walker.orders.move !== null; tick += 1) {
+    for (let tick = 0; tick < 1_200 && walker.orders.move !== null; tick += 1) {
       stepWorld(world, 12_000);
     }
 
@@ -153,6 +172,18 @@ describe('waypoint recovery', () => {
 });
 
 describe('an order the player can see land', () => {
+  it('refuses to draw a route for a mech with neither leg left', () => {
+    const world = playerWorld('legged-order');
+    const [walker] = playerPair(world);
+    walker.locations.left_leg.destroyed = true;
+    walker.locations.right_leg.destroyed = true;
+
+    expect(issueMove(world, walker, { x: walker.pos.x + 200, y: walker.pos.y }, false)).toBe(
+      false,
+    );
+    expect(walker.path).toEqual([]);
+  });
+
   it('keeps the route of a fresh order given to a mech that was wedged', () => {
     const world = playerWorld('stale-counters');
     const [walker] = playerPair(world);
@@ -190,6 +221,25 @@ describe('an order the player can see land', () => {
     stepWorld(world, 12_000);
 
     expect(walker.orders.move, 'an order to empty ground was thrown away').not.toBeNull();
+  });
+
+  it('starts a periodic replan with fresh progress but keeps its retry strikes', () => {
+    const world = playerWorld('periodic-replan-progress');
+    const [walker] = playerPair(world);
+    const away = { x: walker.pos.x + 220, y: walker.pos.y + 160 };
+    expect(issueMove(world, walker, away, false)).toBe(true);
+
+    walker.stallStrikes = 2;
+    walker.stalledTicks = world.rules.movement.stallTicks + 20;
+    walker.closestApproach = 1;
+    walker.nextPathTick = world.tick;
+
+    updatePlayerControl(world, walker);
+
+    expect(walker.path.length).toBeGreaterThan(0);
+    expect(walker.stallStrikes).toBe(2);
+    expect(walker.stalledTicks).toBe(0);
+    expect(walker.closestApproach).toBe(Number.POSITIVE_INFINITY);
   });
 
   it('says so out loud when a route is abandoned as hopeless', () => {

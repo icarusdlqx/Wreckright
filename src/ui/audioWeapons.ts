@@ -248,7 +248,7 @@ export function playDestruction(
   profile: DestructionVoiceProfile,
   placement: VoicePlacement,
 ): void {
-  const frame = bus.begin(placement);
+  const frame = bus.begin(placement, profile.kind === 'terminal' ? 'terminal' : 'ordinary');
   if (frame === null) return;
   if (profile.kind === 'ammo') {
     const size = bounded(profile.damage / 60, 0.2, 1.25);

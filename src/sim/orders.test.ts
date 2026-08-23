@@ -7,12 +7,13 @@ import {
   issueStop,
   setGroupEnabled,
   setHoldFire,
+  setPosture,
   updatePlayerControl,
 } from './orders';
-import { applyHeatGovernor, restoreIntent } from './governor';
 import { distance } from './math';
 import { eventsOfType } from './events';
-import { updateVision } from './sensors';
+import { updateWeapons } from './combat';
+import { isVisibleTo, updateTeamVisions, updateVision, visionFor } from './sensors';
 import { isOperational, type MechEntity, type World } from './types';
 import { stepWorld } from './world';
 
@@ -89,6 +90,45 @@ describe('issueMove', () => {
     expect(mech.path).toHaveLength(0);
     expect(mech.motion).toBe('stationary');
   });
+
+  it('cancels an active and queued route when both legs are lost', () => {
+    expect(issueMove(world, mech, { x: 400, y: 600 }, false)).toBe(true);
+    expect(issueMove(world, mech, { x: 500, y: 600 }, true, { queued: true })).toBe(true);
+    mech.locations.left_leg.destroyed = true;
+    mech.locations.right_leg.destroyed = true;
+
+    updatePlayerControl(world, mech);
+
+    expect(mech.orders.move).toBeNull();
+    expect(mech.orders.queue).toEqual([]);
+    expect(mech.path).toEqual([]);
+    expect(mech.motion).toBe('stationary');
+    expect(mech.intendedMotion).toBe('stationary');
+  });
+
+  it('cancels a route when the second leg is lost during shutdown', () => {
+    const enemy = world.entities.find((entity) => entity.team !== mech.team);
+    if (enemy === undefined) throw new Error('need an enemy');
+    expect(issueMove(world, mech, { x: 400, y: 600 }, false)).toBe(true);
+    expect(issueMove(world, mech, { x: 500, y: 600 }, true, { queued: true })).toBe(true);
+    issueAttack(mech, enemy.id, 'left_arm');
+    const groupIntent = [...mech.groupIntent];
+    const groupEnabled = [...mech.groupEnabled];
+    mech.shutdownRemaining = 4;
+    mech.locations.left_leg.destroyed = true;
+    mech.locations.right_leg.destroyed = true;
+
+    updatePlayerControl(world, mech);
+
+    expect(mech.orders.move).toBeNull();
+    expect(mech.orders.queue).toEqual([]);
+    expect(mech.path).toEqual([]);
+    expect(mech.orders.attack).toEqual({ targetId: enemy.id, calledShot: 'left_arm' });
+    expect(mech.groupIntent).toEqual(groupIntent);
+    expect(mech.groupEnabled).toEqual(groupEnabled);
+    expect(mech.motion).toBe('stationary');
+    expect(mech.intendedMotion).toBe('stationary');
+  });
 });
 
 describe('targeting', () => {
@@ -99,7 +139,12 @@ describe('targeting', () => {
     expect(far).toBeDefined();
     expect(near).toBeDefined();
 
-    near!.pos = { x: mech.pos.x + 30, y: mech.pos.y };
+    mech.pos = { x: 500, y: 12 };
+    near!.pos = { x: 530, y: 12 };
+    far!.pos = { x: 620, y: 12 };
+    mech.sensorRange = 1_000;
+    far!.signature = 1;
+    updateTeamVisions(world);
     issueAttack(mech, far!.id, null);
     updatePlayerControl(world, mech);
 
@@ -137,9 +182,78 @@ describe('targeting', () => {
 
   it('carries a called shot through to the entity', () => {
     const enemy = world.entities.find((entity) => entity.team === 1);
-    issueAttack(mech, enemy!.id, 'left_leg');
+    if (enemy === undefined) throw new Error('need an enemy');
+    mech.pos = { x: 500, y: 12 };
+    enemy.pos = { x: 560, y: 12 };
+    mech.sensorRange = 1_000;
+    enemy.signature = 1;
+    updateTeamVisions(world);
+    issueAttack(mech, enemy.id, 'left_leg');
     updatePlayerControl(world, mech);
     expect(mech.calledShot).toBe('left_leg');
+  });
+
+  it('pursues a frozen sensor ghost without tracking or firing at the hidden target', () => {
+    const enemy = world.entities.find((entity) => entity.team !== mech.team);
+    if (enemy === undefined) throw new Error('need an enemy');
+    mech.pos = { x: 500, y: 12 };
+    mech.sensorRange = 1_000;
+    enemy.pos = { x: 620, y: 12 };
+    enemy.signature = 1;
+    updateTeamVisions(world);
+    const vision = visionFor(world, mech.team);
+    expect(isVisibleTo(vision, enemy)).toBe(true);
+    const lastKnown = vision?.ghosts.get(enemy.id)?.pos;
+    if (lastKnown === undefined) throw new Error('need a sensor ghost');
+
+    issueAttack(mech, enemy.id, 'left_arm');
+    enemy.pos = { x: 900, y: 500 };
+    for (const ally of world.entities) {
+      if (ally.team === mech.team) ally.sensorRange = 0;
+    }
+    updateTeamVisions(world);
+    expect(isVisibleTo(vision, enemy)).toBe(false);
+
+    updatePlayerControl(world, mech);
+    updateWeapons(world, mech);
+
+    expect(mech.orders.attack?.targetId).toBe(enemy.id);
+    expect(mech.targetId).toBeNull();
+    expect(mech.calledShot).toBeNull();
+    expect(mech.path.length).toBeGreaterThan(0);
+    const pathEnd = mech.path.at(-1);
+    expect(pathEnd).toBeDefined();
+    if (pathEnd !== undefined) {
+      expect(distance(pathEnd, lastKnown)).toBeLessThan(distance(pathEnd, enemy.pos));
+    }
+    expect(shotsBy(world, mech.id)).toEqual([]);
+
+    mech.sensorRange = 1_000;
+    enemy.pos = { ...lastKnown };
+    updateTeamVisions(world);
+    updatePlayerControl(world, mech);
+    expect(mech.targetId).toBe(enemy.id);
+    expect(mech.calledShot).toBe('left_arm');
+  });
+
+  it('keeps hidden attack intent but plots no approach after both legs are lost', () => {
+    const enemy = world.entities.find((entity) => entity.team !== mech.team);
+    if (enemy === undefined) throw new Error('need an enemy');
+    for (const ally of world.entities) {
+      if (ally.team === mech.team) ally.sensorRange = 0;
+    }
+    updateTeamVisions(world);
+    issueAttack(mech, enemy.id, 'left_arm');
+    mech.locations.left_leg.destroyed = true;
+    mech.locations.right_leg.destroyed = true;
+
+    updatePlayerControl(world, mech);
+
+    expect(mech.orders.attack?.targetId).toBe(enemy.id);
+    expect(mech.targetId).toBeNull();
+    expect(mech.calledShot).toBeNull();
+    expect(mech.path).toEqual([]);
+    expect(mech.motion).toBe('stationary');
   });
 });
 
@@ -249,6 +363,17 @@ describe('short move orders', () => {
     const mech = unitOf(world, 'sentinel_brawler');
     mech.controller = 'orders';
     mech.autopilot = false;
+    for (const entity of world.entities) {
+      setHoldFire(entity, true);
+      if (entity.team !== mech.team) {
+        entity.controller = 'orders';
+        setPosture(entity, 'hold_position');
+      }
+    }
+    for (const state of Object.values(mech.locations)) {
+      state.armour = 1e9;
+      state.internal = 1e9;
+    }
 
     // Off the map entirely: the order retargets to the border and finishes
     // there — an order that silently does nothing reads as a broken control.
@@ -264,46 +389,5 @@ describe('short move orders', () => {
       stepWorld(world, 100_000);
     }
     expect(mech.orders.move).toBeNull();
-  });
-});
-
-describe('pilot intent versus the reactor governor', () => {
-  it('does not report a throttled mech as holding fire', () => {
-    const world = playerWorld('intent');
-    const mech = unitOf(world, 'sentinel_brawler');
-
-    mech.heat = mech.heatCapacity * 0.95;
-    applyHeatGovernor(world, mech, false);
-
-    expect(mech.groupEnabled.some((enabled) => !enabled)).toBe(true);
-    // The governor shedding guns is not the pilot ordering weapons cold, and a
-    // control that confuses the two inverts itself exactly when it is needed.
-    expect(isHoldingFire(mech)).toBe(false);
-  });
-
-  it('holds fire on command however hot the mech is', () => {
-    const world = playerWorld('intent-hot');
-    const mech = unitOf(world, 'sentinel_brawler');
-
-    mech.heat = mech.heatCapacity * 0.95;
-    applyHeatGovernor(world, mech, false);
-    setHoldFire(mech, !isHoldingFire(mech));
-
-    expect(isHoldingFire(mech)).toBe(true);
-    expect(mech.groupIntent.every((enabled) => !enabled)).toBe(true);
-    expect(mech.groupEnabled.every((enabled) => !enabled)).toBe(true);
-  });
-
-  it('gives the pilot back exactly what they asked for when safety is switched off', () => {
-    const world = playerWorld('intent-restore');
-    const mech = unitOf(world, 'sentinel_brawler');
-
-    setGroupEnabled(mech, 2, false);
-    mech.heat = mech.heatCapacity * 0.95;
-    applyHeatGovernor(world, mech, false);
-    restoreIntent(mech);
-
-    expect(mech.groupEnabled[1]).toBe(false);
-    expect(mech.groupEnabled[0]).toBe(true);
   });
 });

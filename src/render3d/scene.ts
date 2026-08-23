@@ -222,15 +222,24 @@ export class Renderer {
   }
 
   consumeEvents(world: World, events: readonly SimEvent[]): void {
-    this.units.consumeEvents(events);
+    this.units.consumeEvents(world, events);
     this.effects.consume(world, events);
   }
 
-  draw(world: World, alpha: number, deltaSeconds: number, view: ViewState): void {
+  draw(
+    world: World,
+    alpha: number,
+    deltaSeconds: number,
+    view: ViewState,
+    presentationDeltaSeconds = deltaSeconds,
+  ): void {
+    const presentationDelta = Number.isFinite(presentationDeltaSeconds)
+      ? Math.max(0, presentationDeltaSeconds)
+      : 0;
     this.units.interpolate(world, alpha);
     this.units.setRenderQuality(this.camera.distance, this.lowFx);
-    this.units.beginFrame(deltaSeconds);
-    this.effects.beginFrame(deltaSeconds);
+    this.units.beginFrame(presentationDelta);
+    this.effects.beginFrame(presentationDelta);
 
     for (const entity of world.entities) {
       const tile = world.terrain.toTile(entity.pos);
@@ -250,7 +259,7 @@ export class Renderer {
       const at = this.units.at(entity);
       const ground = this.terrain.heightAt(at.x, at.y);
       const lift = jumpHeight(entity) * radiusFor(entity.tonnage) * 2.2;
-      this.locomotion.place(entity, shown.model, at, lift, deltaSeconds);
+      this.locomotion.place(entity, shown.model, at, lift, presentationDelta);
       this.units.markPlaced(entity.id, at);
       this.units.placeShadow(entity, at, lift);
 
@@ -259,7 +268,7 @@ export class Renderer {
     }
     this.units.finishFrame();
 
-    this.effects.finishFrame(deltaSeconds);
+    this.effects.finishFrame(presentationDelta);
     this.markers.draw(world, view);
     if (world.tick !== this.visionTick) {
       this.visionTick = world.tick;
@@ -270,7 +279,7 @@ export class Renderer {
     this.camera.advance(deltaSeconds);
     this.camera.update(this.viewport);
     this.renderer.render(this.scene, this.camera.camera);
-    this.effects.advance(deltaSeconds);
+    this.effects.advance(presentationDelta);
   }
 
   positionOf(id: EntityId): Vec2 | null {

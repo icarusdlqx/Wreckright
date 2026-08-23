@@ -5,7 +5,6 @@ import {
   Mesh,
   MeshStandardMaterial,
   Object3D,
-  SphereGeometry,
   type BufferGeometry,
 } from 'three';
 import type { MechLocation } from '../schema/common';
@@ -37,6 +36,8 @@ import { castsMechShadow, geometryForBlueprintPart } from './mechGeometry';
 import { applyModelDetail, markBlueprintDetail } from './modelDetail';
 import { TACTICAL_MECH_RENDER, type MechRenderOptions } from './renderQuality';
 import { createMachineMotion, type MachineMotionRig } from './machineMotion';
+import { createSealedPowerLights } from './sealedPowerLights';
+import type { TerminalFallAxis } from './unitVisualState';
 
 export type { MountArt } from './weaponModels';
 
@@ -86,7 +87,10 @@ export interface MechModel {
   hullRecoil: HullRecoil;
   startup: StartupLightRig | null;
   loosePanels: LoosePanelRig[];
+  terminalFallAxis: TerminalFallAxis | null;
 }
+
+type PresentedMount = MountArt & { destroyed?: boolean };
 
 /**
  * The mech as the blueprint describes it, at battlefield scale. The blueprint
@@ -101,7 +105,7 @@ export function buildMechModel(
   tonnage: number,
   team: number,
   destroyed: boolean,
-  mounts: readonly MountArt[],
+  mounts: readonly PresentedMount[],
   /** Locations shot off. Limbs go missing; the rest is left burnt in place. */
   lost: ReadonlySet<MechLocation> = new Set(),
   /** What each location is wired for, which shapes the structure built there. */
@@ -118,6 +122,11 @@ export function buildMechModel(
   const culture = machineCulture(faction);
   const shownWear = culture.revealsFieldDamage ? wear : {};
   const shownLost = culture.revealsFieldDamage ? lost : new Set<MechLocation>();
+  const sealedFailures = new Set<MechLocation>();
+  if (faction === 'aurelian') {
+    for (const location of lost) sealedFailures.add(location);
+    for (const mount of mounts) if (mount.destroyed === true) sealedFailures.add(mount.location);
+  }
   const tones = createMechMaterials(identity, team, destroyed);
   const burnt = createMechMaterials(identity, team, true);
   const worn = Object.values(shownWear).some((tier) => tier === 1)
@@ -182,6 +191,7 @@ export function buildMechModel(
     // a mech has stopped being dangerous like watching the arm leave. A torso
     // or a leg stays — the machine is standing on it — but it stays burnt.
     const gone = part.location !== null && shownLost.has(part.location);
+    const sealedFailure = part.location !== null && sealedFailures.has(part.location);
     const shed = gone && (part.location === 'left_arm' || part.location === 'right_arm' || part.location === 'head');
     if (shed) continue;
 
@@ -193,9 +203,10 @@ export function buildMechModel(
         : tones;
     const mesh = new Mesh(
       geometryForBlueprintPart(part, scale, options.geometry),
-      gone ? burnt[part.tone] : finish[part.tone],
+      gone || sealedFailure ? burnt[part.tone] : finish[part.tone],
     );
     mesh.userData.damageLocation = part.location;
+    mesh.userData.sealedFailure = sealedFailure;
     mesh.position.set(part.at[0] * scale, part.at[1] * scale, part.at[2] * scale);
     if (part.tilt !== undefined) mesh.rotation.z = part.tilt;
     if (
@@ -248,32 +259,10 @@ export function buildMechModel(
     }
   }
 
-  const startupLights: Mesh[] = [];
-  if (faction === 'aurelian' && !destroyed) {
-    const head = plan.parts.find((part) => part.location === 'head');
-    if (head !== undefined) {
-      const geometry = new SphereGeometry(scale * 0.042, 8, 6);
-      const material = new MeshStandardMaterial({
-        color: 0xb9fff2,
-        emissive: 0x72e8d7,
-        emissiveIntensity: 2.4,
-        roughness: 0.24,
-      });
-      ownedMaterials.push(material);
-      for (let index = 0; index < 3; index += 1) {
-        const light = new Mesh(geometry, material);
-        light.name = `startup-light:${index}`;
-        light.position.set(
-          (head.at[0] + head.size[0] * 0.52) * scale,
-          head.at[1] * scale,
-          (head.at[2] + (index - 1) * head.size[2] * 0.22) * scale,
-        );
-        light.visible = false;
-        torso.add(light);
-        startupLights.push(light);
-      }
-    }
-  }
+  const startup = faction === 'aurelian' && !destroyed
+    ? createSealedPowerLights(plan, scale, sealedFailures, ownedMaterials)
+    : null;
+  if (startup !== null) torso.add(...startup.lights);
 
   // --------------------------------------------------------------- weapons
   const stacked = new Map<MechLocation, number>();
@@ -284,7 +273,9 @@ export function buildMechModel(
     const index = stacked.get(mount.location) ?? 0;
     stacked.set(mount.location, index + 1);
 
-    const material = createWeaponMaterial(mount.type);
+    const material = mount.destroyed === true && faction === 'aurelian'
+      ? new MeshStandardMaterial({ color: 0x10171a, roughness: 0.74, metalness: 0.48 })
+      : createWeaponMaterial(mount.type);
     ownedMaterials.push(material);
     const heft = 0.5 + Math.min(1, mount.tonnage / 14);
     const weapon = buildWeaponModel(
@@ -300,12 +291,18 @@ export function buildMechModel(
     });
 
     const hardpoint = new Group();
+    hardpoint.userData.detachmentLocation = mount.location;
     hardpoint.position.set(
       anchor[0] * scale,
       (anchor[1] + index * 0.22) * scale,
       anchor[2] * scale,
     );
     hardpoint.add(weapon.root);
+    if (mount.destroyed === true && faction === 'aurelian') {
+      weapon.root.position.x -= scale * 0.055;
+      weapon.root.scale.multiplyScalar(0.94);
+      weapon.root.userData.disabledWeapon = true;
+    }
     torso.add(hardpoint);
     weapons.push(weapon.rig);
   }
@@ -336,10 +333,9 @@ export function buildMechModel(
     faction,
     culture,
     hullRecoil: { kick: 0, travel: scale * 0.018 },
-    startup: startupLights.length === 0
-      ? null
-      : { lights: startupLights, elapsed: 0, running: true },
+    startup,
     loosePanels,
+    terminalFallAxis: null,
   };
 }
 

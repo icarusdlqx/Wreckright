@@ -97,7 +97,7 @@ describe('fixed tracer pools', () => {
     expect(layer.group.children).toEqual(children);
     expect(after.geometries).toEqual(before.geometries);
     expect(after.materials).toEqual(before.materials);
-    expect(layer.stats().capacity).toBeLessThanOrEqual(320);
+    expect(layer.stats().capacity).toBeLessThanOrEqual(512);
     expect(layer.stats().active).toBeLessThanOrEqual(layer.stats().capacity);
     expect(add).not.toHaveBeenCalled();
     expect(remove).not.toHaveBeenCalled();
@@ -158,6 +158,76 @@ describe('fixed tracer pools', () => {
     expect(full.stats().families.burst.active).toBe(1);
     expect(low.stats().families.burst.active).toBe(0);
     expect(reduced.stats().families.burst.active).toBe(0);
+  });
+
+  it('absorbs the audited 4x missile and explosion peak without overwriting', () => {
+    const layer = new TracerLayer();
+    const engagement = { shooterId: 1, targetId: 2, weaponId: 'lrm20' };
+    const muzzle = new Vector3(0, 14, 0);
+
+    for (let volley = 0; volley < 20; volley += 1) {
+      layer.fire(
+        muzzle,
+        { x: 600, y: 40 },
+        visual('missile'),
+        20,
+        300,
+        0xffffff,
+        () => 0,
+        engagement,
+        2,
+      );
+    }
+    for (let explosion = 0; explosion < 106; explosion += 1) {
+      layer.burst({ x: explosion, y: 0 }, 0, 'terminal', 0xff6b38, 1);
+    }
+
+    const stats = layer.stats();
+    expect(stats.families.missile.capacity).toBeGreaterThanOrEqual(120);
+    expect(stats.families.missile.active).toBe(120);
+    expect(stats.families.missile.evicted).toBe(0);
+    expect(stats.families.burst.capacity).toBeGreaterThanOrEqual(106);
+    expect(stats.families.burst.active).toBe(126);
+    expect(stats.families.burst.evicted).toBe(0);
+    layer.dispose();
+  });
+
+  it('keeps low-FX salvo density capped after the full pools grow', () => {
+    const layer = new TracerLayer();
+    layer.setPresentationMode(true, false);
+    for (let volley = 0; volley < 20; volley += 1) {
+      layer.fire(
+        new Vector3(0, 14, 0),
+        { x: 600, y: 0 },
+        visual('missile'),
+        20,
+        300,
+        0xffffff,
+        () => 0,
+        { shooterId: volley, targetId: 40, weaponId: 'lrm20' },
+        2,
+      );
+    }
+
+    expect(layer.stats().families.missile.active).toBe(20);
+    expect(layer.stats().families.burst.active).toBe(0);
+    layer.dispose();
+  });
+
+  it('protects terminal and ammunition bursts from later decoration', () => {
+    const layer = new TracerLayer();
+    for (let cue = 0; cue < 64; cue += 1) {
+      layer.burst({ x: cue, y: 0 }, 0, 'terminal', 0xff6b38, 1);
+      layer.burst({ x: cue, y: 20 }, 0, 'ammo', 0xffa34f, 1);
+    }
+    layer.burst({ x: 0, y: 0 }, 0, 'miss', 0xffffff, 1);
+
+    expect(layer.stats().families.burst).toMatchObject({
+      active: 128,
+      dropped: 1,
+      evicted: 0,
+    });
+    layer.dispose();
   });
 
   it('tears down every GPU owner exactly once', () => {

@@ -25,6 +25,7 @@ const NEIGHBOURS: readonly (readonly [number, number, number])[] = [
 interface OpenNode {
   cell: number;
   f: number;
+  g: number;
 }
 
 class MinHeap {
@@ -177,7 +178,11 @@ export function findPath(
   cost[startCell] = 0;
   from[startCell] = -1;
   stamp[startCell] = generation;
-  heap.push({ cell: startCell, f: octile(goalTile.column - startTile.column, goalTile.row - startTile.row) * grid.minStepCost });
+  heap.push({
+    cell: startCell,
+    f: octile(goalTile.column - startTile.column, goalTile.row - startTile.row) * grid.minStepCost,
+    g: 0,
+  });
 
   let expanded = 0;
   // The closest the search ever got, kept so an unreachable goal still yields
@@ -190,6 +195,10 @@ export function findPath(
     if (current === undefined) break;
 
     const cell = current.cell;
+    // A cheaper route can put the same cell in the heap again before its old
+    // entry reaches the top. That old entry is bookkeeping, not an expansion,
+    // and charging it to the node budget made connected large-map routes fail.
+    if (stamp[cell] !== generation || current.g !== cost[cell]) continue;
     if (cell === goalCell) {
       // The exact click point survives as the final waypoint only when it is
       // really on this tile — a clamped click's point is off the map.
@@ -236,7 +245,7 @@ export function findPath(
         bestHeuristic = remaining;
         bestCell = nextCell;
       }
-      heap.push({ cell: nextCell, f: nextCost + remaining * grid.minStepCost });
+      heap.push({ cell: nextCell, f: nextCost + remaining * grid.minStepCost, g: nextCost });
     }
   }
 

@@ -125,7 +125,7 @@ describe('mech model resources', () => {
     disposeModel(model.root);
   });
 
-  it('keeps a damaged sealed shell visually complete until terminal failure', () => {
+  it('keeps a damaged sealed shell complete with a persistent blacked-out panel', () => {
     const chassis = catalog.chassis.get('sentinel_snl2');
     expect(chassis?.faction).toBe('aurelian');
     if (chassis === undefined) return;
@@ -134,24 +134,31 @@ describe('mech model resources', () => {
       new Set(['left_arm']), chassis.hardpoints, chassis.id, { left_arm: 2 }, chassis.faction,
     );
     let armMeshes = 0;
+    let failedArmMeshes = 0;
     let loose = 0;
     model.root.traverse((node) => {
       if (node.userData.damageLocation === 'left_arm') armMeshes += 1;
+      if (node.userData.damageLocation === 'left_arm' && node.userData.sealedFailure === true) {
+        failedArmMeshes += 1;
+      }
       if (node.userData.loosePanel === true) loose += 1;
     });
     expect(armMeshes).toBeGreaterThan(0);
+    expect(failedArmMeshes).toBe(armMeshes);
     expect(loose).toBe(0);
+    expect(model.startup?.enabled.filter(Boolean).length)
+      .toBeLessThan(model.startup?.lights.length ?? 0);
     disposeModel(model.root);
   });
 
-  it('sequences a fixed three-light sealed startup without growing the model', () => {
+  it('sequences bounded head lights and broad power seams without growing the model', () => {
     const chassis = catalog.chassis.get('sentinel_snl2');
     if (chassis === undefined) return;
     const model = buildMechModel(
       chassis.silhouette, chassis.traits, chassis.tonnage, 0x78c9ff, false, [],
       new Set(), chassis.hardpoints, chassis.id, {}, chassis.faction,
     );
-    expect(model.startup?.lights).toHaveLength(3);
+    expect(model.startup?.lights).toHaveLength(5);
     const children = model.torso.children.length;
     advanceStartupSequence(model, 0, false);
     expect(model.startup?.lights.filter((light) => light.visible)).toHaveLength(1);

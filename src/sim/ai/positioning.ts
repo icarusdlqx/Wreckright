@@ -15,12 +15,19 @@ export function stanceFor(
   mech: MechEntity,
   target: MechEntity,
   withdrawing: boolean,
+  current: Stance | null = null,
 ): Stance {
   if (withdrawing) return 'withdraw';
 
   const rules = world.rules.ai.positioning;
   const range = distance(mech.pos, target.pos);
   const preferred = engagementRange(world, mech, target);
+
+  // Enter a manoeuvre at the edge of the tolerance band, but do not leave it
+  // until crossing the preferred range itself. This dead band stops a moving
+  // target making the same pilot alternate close/hold every decision.
+  if (current === 'close' && range > preferred) return 'close';
+  if (current === 'back_off' && range < preferred) return 'back_off';
 
   if (range > preferred + rules.rangeTolerance) return 'close';
   if (range >= preferred - rules.rangeTolerance) return 'hold';

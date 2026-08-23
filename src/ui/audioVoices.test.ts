@@ -320,7 +320,7 @@ describe('the battle audio lifetime', () => {
     audio.destroy();
   });
 
-  it('lands each destruction voice with its faction-specific terminal fall', () => {
+  it('keeps terminal and knockdown landings aligned at every battle speed', () => {
     vi.stubGlobal('AudioContext', FakeContext as unknown as typeof AudioContext);
     const world = playerWorld('audio-collapse-culture');
     const welded = world.entities.find(
@@ -332,21 +332,23 @@ describe('the battle audio lifetime', () => {
     expect(welded).toBeDefined();
     expect(sealed).toBeDefined();
     if (welded === undefined || sealed === undefined) return;
-
-    const latestStart = (entity: typeof welded): number => {
+    const latestStart = (entity: typeof welded, speed: number, destroyed = true): number => {
       const audio = new AudioDirector();
       audio.unlock();
       audio.listenAt = entity.pos;
-      audio.consume(world, [
-        { type: 'mech_destroyed', tick: world.tick, entityId: entity.id, method: 'centre_torso' },
-      ]);
+      const event = destroyed
+        ? ({ type: 'mech_destroyed', tick: world.tick, entityId: entity.id, method: 'centre_torso' } as const)
+        : ({ type: 'knocked_down', tick: world.tick, entityId: entity.id, attackerId: null } as const);
+      audio.consume(world, [event], speed);
       const starts = FakeContext.instances.at(-1)?.sources.flatMap((source) => source.starts) ?? [];
       audio.destroy();
       return Math.max(...starts);
     };
-
-    expect(latestStart(welded)).toBeCloseTo(5.62);
-    expect(latestStart(sealed)).toBeCloseTo(5.18);
+    for (const speed of [1, 2, 4]) {
+      expect(latestStart(welded, speed)).toBeCloseTo(5 + 0.82 / speed);
+      expect(latestStart(sealed, speed)).toBeCloseTo(5 + 0.42 / speed);
+      expect(latestStart(welded, speed, false)).toBeCloseTo(5 + 0.4 / speed);
+    }
   });
 
   it('routes the new events and cancels their pending sources on destroy', () => {

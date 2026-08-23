@@ -90,6 +90,45 @@ describe('authored shot presentation', () => {
     expect(positionAt(pool(slow, 'slug')).x).toBeCloseTo(8.75);
   });
 
+  it('uses scaled presentation time for travelling rounds', () => {
+    const normal = new TracerLayer();
+    const fast = new TracerLayer();
+    const muzzle = new Vector3(0, 14, 0);
+    normal.fire(muzzle, { x: 100, y: 0 }, visual('missile'), 1, 100, 0xffffff, () => 0);
+    fast.fire(muzzle, { x: 100, y: 0 }, visual('missile'), 1, 100, 0xffffff, () => 0);
+
+    normal.update(0.05);
+    fast.update(0.2);
+
+    expect(positionAt(pool(fast, 'missile')).x)
+      .toBeCloseTo(positionAt(pool(normal, 'missile')).x * 4);
+  });
+
+  it('tracks a moving target and presents the round at its resolved endpoint', () => {
+    const layer = new TracerLayer();
+    const engagement = { shooterId: 7, targetId: 9, weaponId: 'lrm20' };
+    layer.fire(
+      new Vector3(0, 14, 0),
+      { x: 100, y: 0 },
+      visual('missile'),
+      1,
+      500,
+      0xffffff,
+      () => 0,
+      engagement,
+      1,
+    );
+
+    layer.update(0.25, (_targetId, out) => {
+      out.set(200, 14, 0);
+      return true;
+    });
+    expect(positionAt(pool(layer, 'missile')).x).toBeCloseTo(50);
+
+    expect(layer.resolveProjectile(engagement, new Vector3(260, 22, 18))).toBe(true);
+    expect(positionAt(pool(layer, 'missile')).toArray()).toEqual([260, 22, 18]);
+  });
+
   it('keeps a close fast round visible for its first rendered frame', () => {
     const layer = new TracerLayer();
     layer.fire(

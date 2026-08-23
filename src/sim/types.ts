@@ -301,6 +301,9 @@ export interface World {
   arcHitTables: FrameArcTables;
   weaponStats: Map<string, WeaponStat>;
   playerTeam: number | null;
+  /** Every controller sees through its own lance's sensors. `vision` remains
+   *  the player's view so rendering fog keeps the same public seam. */
+  visions: Map<number, TeamVision>;
   vision: TeamVision | null;
 
   resources: Map<number, number>;

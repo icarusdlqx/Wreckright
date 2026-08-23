@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { makeGrid, OPEN_LEGEND } from '../../tests/support';
+import { catalog, makeGrid, OPEN_LEGEND } from '../../tests/support';
 import { findPath, nearestPassable } from './pathfind';
+import { createTerrainGrid } from './terrain';
 
 const MAX_NODES = 4000;
 
@@ -24,6 +25,18 @@ describe('findPath', () => {
     const first = findPath(maze, { x: 5, y: 5 }, { x: 45, y: 45 }, MAX_NODES);
     const second = findPath(maze, { x: 5, y: 5 }, { x: 45, y: 45 }, MAX_NODES);
     expect(first).toEqual(second);
+  });
+
+  it('does not charge stale heap entries to the Blackglass node budget', () => {
+    const map = catalog.maps.get('blackglass_quarry');
+    if (map === undefined) throw new Error('missing blackglass_quarry');
+    const grid = createTerrainGrid(map, catalog.rules.terrain);
+    const goal = { x: 1284, y: 1236 };
+
+    const path = findPath(grid, { x: 108, y: 84 }, goal, 4000);
+
+    expect(path).not.toBeNull();
+    expect(path?.at(-1)).toEqual(goal);
   });
 
   it('walks the last few metres when start and goal share a tile', () => {

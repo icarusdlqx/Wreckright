@@ -2,15 +2,17 @@ import type { DifficultyTier } from '../../schema/rules';
 import { emit } from '../events';
 import type { ZoneState } from '../zones';
 import { applyHeatGovernor } from '../governor';
-import { assignZones } from './mission';
+import { assignZones, contestedZoneSweepPoint } from './mission';
 import { roleOf } from './roles';
 import { distance } from '../math';
 import { findPath } from '../pathfind';
-import { isVisibleTo } from '../sensors';
+import { replacePath } from '../pathProgress';
+import { isVisibleTo, visionFor } from '../sensors';
 import { canJump } from '../orders';
 import { beginJump } from '../movement';
 import {
   isDown,
+  isImmobile,
   isOperational,
   type EntityId,
   type MechEntity,
@@ -27,11 +29,13 @@ import {
 import {
   canStillFight,
   coreFraction,
-  healthFraction,
   engagementRange,
   scoreTargets,
   structureFraction,
 } from './utility';
+import { lanceFocus } from './focus';
+
+export { lanceFocus } from './focus';
 
 const LEG_LOCATIONS = ['left_leg', 'right_leg'] as const;
 
@@ -40,40 +44,6 @@ export function difficultyTier(world: World, tierId: string | null): DifficultyT
   const chosen = rules.tiers[tierId ?? rules.default] ?? rules.tiers[rules.default];
   if (chosen === undefined) throw new Error(`difficulty tier "${rules.default}" is missing`);
   return chosen;
-}
-
-/**
- * The lance agrees on one target: the weakest thing enough of them can reach.
- * Concentrating fire is what turns four mechs into a lance rather than four duels.
- */
-export function lanceFocus(world: World, team: number, tier: DifficultyTier): EntityId | null {
-  if (!tier.focusFire) return null;
-
-  const members = world.entities.filter(
-    (entity) => entity.team === team && isOperational(entity),
-  );
-  if (members.length === 0) return null;
-
-  let best: { id: EntityId; score: number } | null = null;
-
-  for (const candidate of world.entities) {
-    if (candidate.team === team || !isOperational(candidate)) continue;
-    if (world.vision?.team === team && !isVisibleTo(world.vision, candidate)) continue;
-
-    const reachable = members.filter(
-      (member) => scoreTargets(world, member, { focusTargetId: null, currentTargetId: null })
-        .some((entry) => entry.target.id === candidate.id),
-    ).length;
-    if (reachable === 0) continue;
-
-    // Weakest first, weighted by how many guns can actually bear on it.
-    const score = reachable * (1.6 - healthFraction(candidate));
-    if (best === null || score > best.score || (score === best.score && candidate.id < best.id)) {
-      best = { id: candidate.id, score };
-    }
-  }
-
-  return best?.id ?? null;
 }
 
 function chooseCalledShot(world: World, mech: MechEntity, target: MechEntity, tier: DifficultyTier): void {
@@ -108,16 +78,17 @@ function moveTo(world: World, mech: MechEntity, destination: { x: number; y: num
 
   // An empty path means "already in that tile", not "cannot get there": the
   // last few metres inside a tile still have to be walked.
-  mech.path = path === null ? [] : path.length === 0 ? [{ x: destination.x, y: destination.y }] : path;
-  mech.pathIndex = 0;
+  replacePath(
+    mech,
+    path === null ? [] : path.length === 0 ? [{ x: destination.x, y: destination.y }] : path,
+  );
   mech.nextPathTick = world.tick + world.rules.simulation.aiPathIntervalTicks;
   mech.motion = mech.path.length === 0 ? 'stationary' : run ? 'run' : 'walk';
   mech.intendedMotion = mech.motion;
 }
 
 function halt(mech: MechEntity): void {
-  mech.path = [];
-  mech.pathIndex = 0;
+  replacePath(mech, []);
   mech.motion = 'stationary';
   mech.intendedMotion = mech.motion;
   mech.ai.destination = null;
@@ -194,14 +165,10 @@ export function decideTactical(
     return;
   }
 
-  // A hull that was bolted down has no positioning problem, only a shooting
-  // one. Left to the rest of this function it would solve a path to a better
-  // firing position ten times a second, for ever, and never take a step.
-  //
-  // Deliberately the frame and not `isImmobile`: a mech that has lost both legs
-  // is also going nowhere, but it went on hoping — withdrawing, re-planning,
-  // failing to walk — and how those fights end is not this change's business.
-  if (!mech.mobile) {
+  // A bolted hull and a mech with both legs gone have the same positioning
+  // problem: none. Keep their guns useful without manufacturing routes their
+  // movement system can never consume.
+  if (isImmobile(mech)) {
     holdAndShoot(world, mech, focusTargetId, tier);
     return;
   }
@@ -231,22 +198,41 @@ export function decideTactical(
       return;
     }
     // Nothing to shoot: take the ground the mission is scored on, if any.
-    if (zoneCentre !== null && !onStation) {
-      if (!holdingCommitment(world, mech)) commitTo(world, mech, zoneCentre, true);
+    // A contested zone is not secured just because this mech crossed the broad
+    // capture radius. Sweep without using the hidden defender's position; stopping
+    // at the rim can leave both sides behind terrain, contesting it forever.
+    if (zoneCentre !== null && (!onStation || zone.contested)) {
+      if (!holdingCommitment(world, mech)) {
+        const destination = onStation && zone?.contested === true
+          ? contestedZoneSweepPoint(world, zone, mech.ai.destination, mech.id)
+          : zoneCentre;
+        commitTo(world, mech, destination, true);
+      }
       return;
     }
     if (onStation) {
       halt(mech);
       return;
     }
-    const fallback = world.entities.find(
-      (entity) => entity.team !== mech.team && isOperational(entity),
-    );
-    if (fallback === undefined) halt(mech);
-    else moveTo(world, mech, fallback.pos, true);
+    const vision = visionFor(world, mech.team);
+    const contact = world.entities
+      .filter((entity) =>
+        entity.team !== mech.team && isOperational(entity) && isVisibleTo(vision, entity),
+      )
+      .sort((a, b) => {
+        const byRange = distance(mech.pos, a.pos) - distance(mech.pos, b.pos);
+        return byRange === 0 ? a.id - b.id : byRange;
+      })[0];
+    const search = contact?.pos ?? {
+      x: (world.terrain.width * world.terrain.tileSize) / 2,
+      y: (world.terrain.height * world.terrain.tileSize) / 2,
+    };
+    if (distance(mech.pos, search) <= world.rules.movement.arrivalRadius * 2) halt(mech);
+    else if (!holdingCommitment(world, mech)) commitTo(world, mech, search, true);
     return;
   }
 
+  const previousTargetId = mech.targetId;
   mech.targetId = chosen.target.id;
 
   const nearlyDead =
@@ -254,7 +240,13 @@ export function decideTactical(
   applyHeatGovernor(world, mech, nearlyDead);
   chooseCalledShot(world, mech, chosen.target, tier);
 
-  const stance = stanceFor(world, mech, chosen.target, mech.ai.withdrawing);
+  const stance = stanceFor(
+    world,
+    mech,
+    chosen.target,
+    mech.ai.withdrawing,
+    previousTargetId === chosen.target.id ? mech.ai.stance : null,
+  );
   const stanceChanged = stance !== mech.ai.stance;
   mech.ai.stance = stance;
 
@@ -294,15 +286,16 @@ export function decideTactical(
       );
       if (jumpTowards(world, mech, landing, 60)) return;
     }
-    if (stanceChanged || !holdingCommitment(world, mech)) {
-      commitTo(world, mech, approachPoint(world, mech, chosen.target, tier), true);
-    }
+    if (holdingCommitment(world, mech)) return;
+    commitTo(world, mech, approachPoint(world, mech, chosen.target, tier), true);
     return;
   }
 
   // Inside the envelope, keep walking to the spot already chosen rather than
-  // re-solving the ring and turning toward a new neighbour every tick.
-  if (!stanceChanged && holdingCommitment(world, mech)) return;
+  // re-solving the ring and turning toward a new neighbour every tick. A
+  // non-withdraw stance change waits too: terrain can move the preferred range
+  // across a band boundary without making a half-finished manoeuvre obsolete.
+  if (holdingCommitment(world, mech)) return;
 
   const destination = choosePosition(world, mech, chosen.target, stance, tier, zone);
   if (destination === null) {
@@ -387,7 +380,7 @@ export function resolveDisengagement(world: World): void {
     mech.withdrawn = true;
     mech.motion = 'stationary';
     mech.intendedMotion = mech.motion;
-    mech.path = [];
+    replacePath(mech, []);
     emit(world.events, { type: 'unit_withdrew', tick: world.tick, entityId: mech.id, team: mech.team });
   }
 }

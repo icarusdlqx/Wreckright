@@ -191,13 +191,15 @@ export class Engine {
       if (steps >= cap) this.accumulator = 0;
     }
 
-    this.smokeTimer += deltaSeconds;
+    const presentationDelta = state.paused ? 0 : deltaSeconds * state.speed;
+    this.smokeTimer += presentationDelta;
     if (this.smokeTimer >= SMOKE_INTERVAL_SECONDS) {
       this.smokeTimer = 0;
       this.emitDamageSmoke();
     }
 
-    const alpha = state.paused ? 1 : Math.min(1, this.accumulator / this.world.dt);
+    const alpha =
+      state.paused || this.world.finished ? 1 : Math.min(1, this.accumulator / this.world.dt);
     // The selection set is rebuilt only when the store's array is replaced —
     // copying it every frame is sixty allocations a second for nothing.
     if (state.selection !== this.selectionSource) {
@@ -205,15 +207,21 @@ export class Engine {
       this.selectionSet = new Set(state.selection);
     }
     const drawStart = performance.now();
-    this.renderer.draw(this.world, alpha, deltaSeconds, {
-      selection: this.selectionSet,
-      hovered: this.hoveredId,
-      cursor: this.cursorWorld,
-      orderMode: state.orderMode,
-      selectionBox: this.selectionBox,
-      supportRadius: this.supportArea(state.supportMode),
-      supportRun: this.supportRun(state.supportMode),
-    });
+    this.renderer.draw(
+      this.world,
+      alpha,
+      deltaSeconds,
+      {
+        selection: this.selectionSet,
+        hovered: this.hoveredId,
+        cursor: this.cursorWorld,
+        orderMode: state.orderMode,
+        selectionBox: this.selectionBox,
+        supportRadius: this.supportArea(state.supportMode),
+        supportRun: this.supportRun(state.supportMode),
+      },
+      presentationDelta,
+    );
 
     this.perf?.record({
       frameMs: rawMs,
@@ -337,7 +345,7 @@ export class Engine {
     const events = this.world.events.splice(0, this.world.events.length);
     this.renderer.consumeEvents(this.world, events);
     this.audio.listenAt = this.renderer.camera.target;
-    this.audio.consume(this.world, events);
+    this.audio.consume(this.world, events, useGame.getState().speed, this.renderer.camera.reducedMotion);
     this.logEvents(events);
     if (!this.world.finished) {
       for (const warning of crossedMissionClockWarnings(before, this.clockSeconds)) {

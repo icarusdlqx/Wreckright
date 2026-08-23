@@ -13,21 +13,37 @@ export interface ShotSlot {
   opacity: number;
   count: number;
   start: number;
+  priority: ShotPriority;
+  generation: number;
 }
+
+export type ShotPriority = 0 | 1 | 2 | 3;
+
+export const SHOT_PRIORITY = Object.freeze({
+  decoration: 0,
+  standard: 1,
+  critical: 2,
+  terminal: 3,
+} satisfies Record<string, ShotPriority>);
 
 export interface ShotPoolSnapshot {
   readonly capacity: number;
   readonly active: number;
   readonly physicalCapacity: number;
+  readonly dropped: number;
+  readonly evicted: number;
 }
 
 const HIDDEN = new Matrix4().makeScale(0, 0, 0);
 
-/** The ring may overwrite an old read, but it never grows during a firefight. */
+/** Fixed storage evicts only cues at or below the incoming presentation priority. */
 export class ShotPoolCore<T extends ShotSlot> {
   readonly slots: readonly T[];
   private cursor = 0;
   private activeSlots = 0;
+  private generation = 0;
+  private dropped = 0;
+  private evicted = 0;
 
   constructor(
     readonly mesh: InstancedMesh,
@@ -49,13 +65,48 @@ export class ShotPoolCore<T extends ShotSlot> {
     this.commit();
   }
 
-  acquire(): T {
-    const slot = this.slots[this.cursor];
+  acquire(priority: ShotPriority = SHOT_PRIORITY.standard): T | null {
+    let selected = -1;
+    for (let offset = 0; offset < this.capacity; offset += 1) {
+      const index = (this.cursor + offset) % this.capacity;
+      if (this.slots[index]?.active === false) {
+        selected = index;
+        break;
+      }
+    }
+
+    if (selected < 0) {
+      let candidatePriority = Number.POSITIVE_INFINITY;
+      let oldestGeneration = Number.POSITIVE_INFINITY;
+      for (let offset = 0; offset < this.capacity; offset += 1) {
+        const index = (this.cursor + offset) % this.capacity;
+        const candidate = this.slots[index];
+        if (candidate === undefined || candidate.priority > priority) continue;
+        if (
+          candidate.priority < candidatePriority ||
+          (candidate.priority === candidatePriority && candidate.generation < oldestGeneration)
+        ) {
+          selected = index;
+          candidatePriority = candidate.priority;
+          oldestGeneration = candidate.generation;
+        }
+      }
+      if (selected < 0) {
+        this.dropped += 1;
+        return null;
+      }
+      this.evicted += 1;
+    }
+
+    const slot = this.slots[selected];
     if (slot === undefined) throw new Error('shot pool has no slots');
-    this.cursor = (this.cursor + 1) % this.capacity;
+    this.cursor = (selected + 1) % this.capacity;
     if (!slot.active) this.activeSlots += 1;
     this.hide(slot);
     slot.active = true;
+    slot.priority = priority;
+    slot.generation = this.generation;
+    this.generation += 1;
     return slot;
   }
 
@@ -100,10 +151,15 @@ export class ShotPoolCore<T extends ShotSlot> {
     for (const slot of this.slots) {
       slot.active = false;
       slot.remaining = 0;
+      slot.priority = SHOT_PRIORITY.decoration;
+      slot.generation = 0;
       this.hide(slot);
     }
     this.activeSlots = 0;
     this.cursor = 0;
+    this.generation = 0;
+    this.dropped = 0;
+    this.evicted = 0;
     this.commit();
   }
 
@@ -112,6 +168,8 @@ export class ShotPoolCore<T extends ShotSlot> {
       capacity: this.capacity,
       active: this.activeSlots,
       physicalCapacity: this.mesh.count,
+      dropped: this.dropped,
+      evicted: this.evicted,
     };
   }
 
@@ -132,6 +190,8 @@ export function baseShotSlot(start: number): ShotSlot {
     opacity: 1,
     count: 1,
     start,
+    priority: SHOT_PRIORITY.decoration,
+    generation: 0,
   };
 }
 

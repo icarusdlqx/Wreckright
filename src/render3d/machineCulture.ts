@@ -27,7 +27,7 @@ const LINEWROUGHT: Readonly<MachineCultureProfile> = Object.freeze({
   hydraulicSlop: 0.024,
   idleCorrection: 0.014,
   wholeHullRecoil: 1,
-  terminalFallSeconds: 0.62,
+  terminalFallSeconds: 0.82,
   revealsFieldDamage: true,
   instantTorsoTracking: false,
   startupLightStep: 0,
@@ -41,7 +41,7 @@ const AURELIAN: Readonly<MachineCultureProfile> = Object.freeze({
   hydraulicSlop: 0,
   idleCorrection: 0,
   wholeHullRecoil: 0,
-  terminalFallSeconds: 0.18,
+  terminalFallSeconds: 0.42,
   revealsFieldDamage: false,
   instantTorsoTracking: true,
   startupLightStep: 0.16,
@@ -87,6 +87,15 @@ export function triggerStartupShudder(
 ): void {
   if (profile.faction !== 'linewrought') return;
   recoil.kick = Math.max(recoil.kick, recoil.travel * 1.8);
+}
+
+export function triggerPowerShudder(
+  recoil: HullRecoil,
+  profile: Readonly<MachineCultureProfile>,
+  event: 'shutdown' | 'restart',
+): void {
+  if (profile.faction !== 'linewrought') return;
+  recoil.kick = Math.max(recoil.kick, recoil.travel * (event === 'shutdown' ? 2.4 : 1.8));
 }
 
 export function advanceHullRecoil(recoil: HullRecoil, deltaSeconds: number): void {

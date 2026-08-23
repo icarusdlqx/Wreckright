@@ -125,6 +125,7 @@ describe('return fire', () => {
     });
     resolveProjectiles(world);
 
+    if (world.vision !== null) updateVision(world, world.vision);
     updatePlayerControl(world, mech);
     expect(mech.targetId).toBe(foe.id);
   });
@@ -141,6 +142,7 @@ describe('return fire', () => {
 
   it('still obeys an explicit attack order', () => {
     setPosture(mech, 'return_fire');
+    if (world.vision !== null) updateVision(world, world.vision);
     issueAttack(mech, foe.id, null);
     updatePlayerControl(world, mech);
     expect(mech.targetId).toBe(foe.id);
