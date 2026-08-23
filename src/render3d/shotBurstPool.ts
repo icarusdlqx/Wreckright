@@ -58,7 +58,8 @@ export class ShotBurstPool {
   constructor(capacity: number, instancesPerSlot = 8) {
     const material = new MeshBasicMaterial({
       color: 0xffffff,
-      vertexColors: true,
+      // Enabling geometry colours would multiply these instance-only colours by black.
+      vertexColors: false,
       transparent: true,
       opacity: 1,
       blending: AdditiveBlending,
