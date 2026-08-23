@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { prepareDeployment, resolveMission } from '../campaign/campaign';
 import { loadCampaign, saveCampaign } from '../campaign/save';
 import type { Design } from '../schema/design';
@@ -17,8 +17,9 @@ import {
   storeLance,
   type SkirmishBerth,
 } from './lance';
-import { Mechbay, type BayCommission } from './mechbay/Mechbay';
+import type { BayCommission } from './mechbay/Mechbay';
 import { ObjectiveList } from './ObjectiveList';
+import { OutfitBayDialog } from './OutfitBayDialog';
 import { BriefingSetup } from './BattleSetup';
 import { difficultyChoices, type BattleSetupKey } from './battleSetupState';
 import { usePlaytest } from './playtest';
@@ -93,6 +94,7 @@ export function Battle(props: BattleProps = {}) {
     patch: state.patch,
   });
   const [outfitting, setOutfitting] = useState<number | null>(null);
+  const closeOutfitBay = useCallback(() => setOutfitting(null), []);
   const activeTraining = !state.campaignPending && missionId === TRAINING_MISSION_ID;
   const training = useTrainingPresentation({
     active: activeTraining,
@@ -234,7 +236,7 @@ export function Battle(props: BattleProps = {}) {
           title: `Berth ${outfitting + 1}`,
           cancelLabel: 'Back to briefing',
           design: berthDesign(catalog, outfitBerth) ?? (catalog.designs.get('sentinel_brawler') as Design),
-          onCancel: () => setOutfitting(null),
+          onCancel: closeOutfitBay,
           onCommit: (design) => {
             const next = lance.map((berth) => ({ ...berth }));
             const target = next[outfitting];
@@ -329,11 +331,7 @@ export function Battle(props: BattleProps = {}) {
       ) : null}
 
       {outfitBay === null ? null : (
-        <div className="manifest-backdrop" data-testid="outfit-bay">
-          <div className="refit-bay">
-            <Mechbay onExit={() => setOutfitting(null)} commission={outfitBay} />
-          </div>
-        </div>
+        <OutfitBayDialog bay={outfitBay} onClose={closeOutfitBay} />
       )}
 
       {state.briefingSeen && trainingShowsFullHud(training.presentedStep) ? (

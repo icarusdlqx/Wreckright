@@ -1,7 +1,7 @@
 import { LOCATIONS, type MechLocation } from '../schema/common';
 import type { Catalog } from '../schema/load';
 import type { Design } from '../schema/design';
-import { splitArmour } from '../sim/loadout';
+import { armourFacesForDesign } from '../sim/designArmour';
 import type { CampaignState, LocationCondition, MechRecord } from './types';
 
 export interface RepairEstimate {
@@ -120,7 +120,7 @@ export function pristineCondition(
   const entries = LOCATIONS.map((location) => {
     // Through the same helper the sim spawns with, so a mech straight out of
     // the workshop matches one that never left it.
-    const plate = splitArmour(catalog.rules.construction, location, design.armour[location]);
+    const plate = armourFacesForDesign(catalog.rules.construction, design, location);
     return [
       location,
       {

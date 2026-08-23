@@ -74,6 +74,7 @@ export interface ReactorSnapshot {
 export interface LocationSnapshot {
   armour: number;
   armourMax: number;
+  hasRearArmourFace: boolean;
   rearArmour: number;
   rearArmourMax: number;
   internal: number;

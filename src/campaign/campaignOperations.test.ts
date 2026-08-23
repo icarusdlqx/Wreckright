@@ -87,6 +87,7 @@ describe('campaign freshness', () => {
       sideContracts(catalog, fresh),
     );
   });
+
 });
 
 describe('refit', () => {
@@ -185,6 +186,31 @@ describe('refit', () => {
     expect(JSON.stringify(mech.design), 'a refused refit still changed the mech').toBe(
       designBefore,
     );
+  });
+
+  it('does not let wrong-kind stock cover a heat-sink shortage or mutate the mech', () => {
+    const mech = state.mechs.find((entry) => {
+      const candidate = structuredClone(entry.design);
+      candidate.heatSinkId = 'double_heat_sink';
+      return computeLoadout(catalog, candidate).valid;
+    });
+    expect(mech, 'starting lance has no legal Compound Heat Sink refit').toBeDefined();
+    if (mech === undefined) return;
+
+    const next = structuredClone(mech.design);
+    next.heatSinkId = 'double_heat_sink';
+    addToStore(state, 'equipment', next.heatSinkId, next.heatSinks - 1);
+    addToStore(state, 'weapon', next.heatSinkId, 50);
+    const storeBefore = structuredClone(state.store);
+    const mechBefore = structuredClone(mech);
+
+    const result = applyRefit(catalog, state, mech, next);
+
+    expect(result.ok).toBe(false);
+    expect(result.reason).toContain('1 × Compound Heat Sink');
+    expect(result.reason).toContain(`need ${next.heatSinks}, hold ${next.heatSinks - 1}`);
+    expect(state.store).toEqual(storeBefore);
+    expect(mech).toEqual(mechBefore);
   });
 
   it('offers the bay what is in stores plus what is already bolted on', () => {

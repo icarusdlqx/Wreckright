@@ -12,6 +12,10 @@ import {
 } from './input-safety.mjs';
 import { runCampaignRecovery } from './campaign-recovery.mjs';
 import { runMobilePlaythrough } from './mobile-playthrough.mjs';
+import {
+  runCampaignRefitMechbayJourney,
+  runSkirmishMechbayJourney,
+} from './mechbay-workspace.mjs';
 import { engageTrainingOpticalContact } from './training-flow.mjs';
 
 const PORT = Number(process.env.E2E_PORT ?? 5183);
@@ -857,132 +861,7 @@ async function main() {
     );
     await page.screenshot({ path: `${SHOTS}/10-objectives.png` });
 
-    process.stdout.write('\nmechbay\n');
-    await openDesktopBattleMenu(page);
-    await page.locator('[data-testid="choose-mission"]').click();
-    await page.waitForSelector('[data-testid="briefing"]');
-    await openDesktopBattleMenu(page);
-    await page.locator('[data-testid="open-mechbay"]').click();
-    await page.waitForSelector('[data-testid="mechbay"]');
-
-    check('mechbay shows all eight locations', (await page.locator('.bay-location').count()) === 8);
-    check(
-      'the starting build is legal',
-      (await page.locator('[data-testid="bay-status"]').innerText()).includes('legal') &&
-        !(await page.locator('[data-testid="bay-save"]').isDisabled()),
-    );
-    check(
-      'heat efficiency shows alpha strike and sustained heat',
-      (await page.locator('[data-testid="heat-alpha"]').innerText()).length > 0 &&
-        (await page.locator('[data-testid="heat-sustained"]').innerText()).includes('/s'),
-    );
-    check(
-      'the mechbay renders the battlefield machine and visual weapon comparisons',
-      (await page.locator('[data-testid="mech-preview-canvas"]').count()) === 1 &&
-        (await page.locator('.weapon-card').first().locator('[role="meter"]').count()) === 3 &&
-        (await page.locator('.weapon-glyph').count()) > 0,
-    );
-    await page.screenshot({ path: `${SHOTS}/05-mechbay-overview.png` });
-
-    const freeTonnage = async () =>
-      Number((await page.locator('[data-testid="free-tonnage"]').innerText()).replace('t', ''));
-    const startingFree = await freeTonnage();
-
-    // Picking a location narrows the shelf to that hardpoint. Window-shopping
-    // remains possible, but an incompatible card cannot be armed or dragged.
-    check(
-      'the shelf hides weapons the hull cannot mount',
-      (await page.locator('[data-testid="stock-weapon-gauss_rifle"]').count()) === 0,
-    );
-    await page.locator('[data-testid="bay-location-right_torso"] .bay-location-name').click();
-    check(
-      'selecting a hardpoint filters the shelf to that mount',
-      (await page.locator('[data-testid="bay-location-filter"]').innerText()).toLowerCase().includes('right torso') &&
-        (await page.locator('.weapon-card.is-unavailable').count()) === 0,
-    );
-    await page.locator('[data-testid="shelf-show-all"]').check();
-    const incompatibleGauss = page.locator('[data-testid="stock-weapon-gauss_rifle"]');
-    check(
-      'showing incompatible weapons explains rather than offering them',
-      (await incompatibleGauss.getAttribute('aria-disabled')) === 'true' &&
-        (await incompatibleGauss.getAttribute('title'))?.includes('Right Torso'),
-    );
-    await page.locator('[data-testid="shelf-show-all"]').uncheck();
-
-    // Native buttons make the same pick-then-place path work from a keyboard.
-    const mediumLaser = page.locator('[data-testid="stock-weapon-medium_laser"]');
-    await mediumLaser.focus();
-    await page.keyboard.press('Enter');
-    check(
-      'a keyboard pick arms only compatible hardpoints',
-      (await page.locator('[data-testid="bay-armed"]').count()) === 1 &&
-        (await page.locator('.bay-location.armed-target').count()) === 1 &&
-        (await page.locator('[data-testid="bay-location-right_torso"].armed-target').count()) === 1,
-    );
-    await page.locator('[data-testid="bay-location-right_torso"]').click();
-
-    const afterDrag = await freeTonnage();
-    check('keyboard pick-to-hardpoint mounts the weapon', afterDrag < startingFree, `${startingFree}t → ${afterDrag}t`);
-    check('an illegal build reports its problems', (await page.locator('[data-testid="bay-issues"] li').count()) > 0);
-    await page.screenshot({ path: `${SHOTS}/05-mechbay-illegal.png` });
-    check('save is refused for an illegal build', await page.locator('[data-testid="bay-save"]').isDisabled());
-    check('export is refused for an illegal build', await page.locator('[data-testid="bay-export"]').isDisabled());
-
-    const blocked = await page.evaluate(() => {
-      const button = document.querySelector('[data-testid="bay-save"]');
-      const before = Object.keys(localStorage).length;
-      button.click();
-      return { added: Object.keys(localStorage).length - before };
-    });
-    check('clicking a disabled save writes nothing to storage', blocked.added === 0);
-
-    await page
-      .locator('[data-testid="bay-location-right_torso"] .slot-block.tone-energy button')
-      .last()
-      .click();
-    check('removing the weapon restores a legal build', !(await page.locator('[data-testid="bay-save"]').isDisabled()));
-    check('free tonnage returns to its starting value', (await freeTonnage()) === startingFree);
-
-    // Desktop drag-and-drop uses the same fit predicate and remains available
-    // alongside the touch/keyboard grammar.
-    await page
-      .locator('[data-testid="stock-weapon-medium_laser"]')
-      .dragTo(page.locator('[data-testid="bay-location-right_torso"]'));
-    check(
-      'drag-to-hardpoint uses the same legal mount path',
-      (await freeTonnage()) < startingFree,
-    );
-    await page
-      .locator('[data-testid="bay-location-right_torso"] .slot-block.tone-energy button')
-      .last()
-      .click();
-    check('dragged weapon can be removed cleanly', (await freeTonnage()) === startingFree);
-
-    // Per-location armour lives behind a disclosure now; the everyday control
-    // is one slider for the whole machine.
-    await page.locator('[data-testid="armour-detail"] summary').click();
-    await page.locator('[data-testid="armour-head"]').fill('0');
-    check('the armour slider frees tonnage', (await freeTonnage()) > startingFree);
-    await page.locator('[data-testid="max-armour"]').click();
-    check(
-      'spending the remainder on armour keeps the build legal',
-      !(await page.locator('[data-testid="bay-save"]').isDisabled()),
-    );
-
-    await page.locator('[data-testid="bay-save"]').click();
-    const saved = await page.evaluate(() =>
-      Object.keys(localStorage).filter((key) => key.startsWith('ironline.design.')),
-    );
-    check('a legal build saves to storage', saved.length > 0, saved.join(','));
-    check(
-      'saving reports success',
-      (await page.locator('[data-testid="bay-status"]').innerText()).startsWith('Saved'),
-    );
-
-    await page.screenshot({ path: `${SHOTS}/06-mechbay-legal.png` });
-    await page.locator('[data-testid="bay-exit"]').click();
-    await page.waitForSelector('[data-testid="briefing"]');
-    check('returning to the skirmish remounts the battle', (await page.locator('.viewport canvas:not(.perf-overlay)').count()) === 1);
+    await runSkirmishMechbayJourney({ page, check, shots: SHOTS });
 
     process.stdout.write('\nlarge battlefield navigation\n');
     await page.locator('[data-testid="briefing-mission-picker"]').selectOption('exchange_register');
@@ -1261,53 +1140,7 @@ async function main() {
 
     // The bay opens on one of the company's own machines, stocked from its own
     // stores — mission prep is who drops, in what, carrying what.
-    await page.locator('[data-testid^="manifest-refit-"]').first().click();
-    await page.waitForSelector('[data-testid="refit-bay"]');
-    check(
-      'the refit bay opens on the company mech',
-      (await page.locator('[data-testid="bay-commission"]').innerText()).startsWith('Refit'),
-    );
-    const shelvedWeapons = await page
-      .locator('.bay-side [data-testid^="stock-weapon-"]')
-      .evaluateAll((entries) => entries.map((entry) => entry.getAttribute('data-testid') ?? ''));
-    check(
-      'the campaign shelf holds the selected welded mech\'s own weapons',
-      shelvedWeapons.length === 2 &&
-        shelvedWeapons.includes('stock-weapon-flamer') &&
-        shelvedWeapons.includes('stock-weapon-srm2') &&
-        !shelvedWeapons.includes('stock-weapon-medium_laser'),
-      shelvedWeapons.join(', '),
-    );
-    const coolingOptions = await page.locator('[data-testid="heat-sink-type"] option').evaluateAll(
-      (options) => options.map((option) => ({ value: option.value, label: option.textContent ?? '' })),
-    );
-    check(
-      'campaign cooling offers only the sink technology the company owns',
-      coolingOptions.length === 1 && coolingOptions[0]?.value === 'heat_sink',
-      JSON.stringify(coolingOptions),
-    );
-    check(
-      'every location draws its slots',
-      (await page.locator('.slot-block').count()) > 8,
-      `${await page.locator('.slot-block').count()} slot blocks`,
-    );
-    check(
-      'the weapon card explains its costs, heat and range without a second panel',
-      (await page.locator('[data-testid="weapon-card-flamer"] [role="meter"]').count()) === 3 &&
-        (await page.locator('[data-testid="weapon-card-flamer"]').innerText()).includes('slot') &&
-        (await page.locator('[data-testid="weapon-card-flamer"] .weapon-range-strip').count()) === 1,
-    );
-    check(
-      'campaign stock cannot be fitted twice before commit',
-      (await page.locator('[data-testid="stock-weapon-flamer"]').getAttribute('aria-disabled')) === 'true',
-    );
-    await page.locator('[data-testid="bay-save"]').click();
-    await page.waitForSelector('[data-testid="lance-manifest"]');
-    check(
-      'a company-owned no-change refit returns to the manifest',
-      (await page.locator('[data-testid="refit-bay"]').count()) === 0 &&
-        (await page.locator('[data-testid="lance-manifest"]').count()) === 1,
-    );
+    await runCampaignRefitMechbayJourney({ page, check });
 
     await page.locator('[data-testid="manifest-launch"]').click();
     await page.waitForSelector('[data-testid="briefing"]');

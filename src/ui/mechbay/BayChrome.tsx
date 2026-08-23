@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import type { Design } from '../../schema/design';
 import type { Catalog } from '../../schema/load';
+import { LinewroughtBuilder } from './LinewroughtBuilder';
 
 export interface BayStatus {
   tone: 'ok' | 'error';
@@ -16,6 +18,10 @@ interface Props {
   status: BayStatus | null;
   onNameChange: (name: string) => void;
   onDesignPick: (design: Design) => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
+  onUndo?: () => void;
+  onRedo?: () => void;
   onReset: () => void;
   onExit: () => void;
   onSave: () => void;
@@ -34,6 +40,10 @@ export function BayChrome({
   status,
   onNameChange,
   onDesignPick,
+  canUndo = false,
+  canRedo = false,
+  onUndo,
+  onRedo,
   onReset,
   onExit,
   onSave,
@@ -42,6 +52,9 @@ export function BayChrome({
   onLoad,
 }: Props) {
   const commissioned = commissionTitle !== undefined;
+  const [builderOpen, setBuilderOpen] = useState(false);
+  const undoEnabled = canUndo && onUndo !== undefined;
+  const redoEnabled = canRedo && onRedo !== undefined;
   return (
     <>
       <header className="bay-top">
@@ -54,6 +67,7 @@ export function BayChrome({
             <input
               className="bay-name"
               value={design.name}
+              aria-label="Design name"
               onChange={(event) => onNameChange(event.target.value)}
               data-testid="design-name"
             />
@@ -77,8 +91,33 @@ export function BayChrome({
                   </option>
                 ))}
             </select>
+            <button
+              type="button"
+              onClick={() => setBuilderOpen(true)}
+              data-testid="linewrought-builder-open"
+            >
+              Build Linewrought
+            </button>
           </>
         )}
+        <button
+          type="button"
+          onClick={onUndo}
+          disabled={!undoEnabled}
+          title={undoEnabled ? 'Undo the last loadout change' : 'Nothing to undo'}
+          data-testid="bay-undo"
+        >
+          Undo
+        </button>
+        <button
+          type="button"
+          onClick={onRedo}
+          disabled={!redoEnabled}
+          title={redoEnabled ? 'Redo the last undone change' : 'Nothing to redo'}
+          data-testid="bay-redo"
+        >
+          Redo
+        </button>
         <button
           type="button"
           onClick={onReset}
@@ -142,6 +181,17 @@ export function BayChrome({
           {status?.text ?? (saveable ? 'Build is legal.' : 'Build is not legal.')}
         </span>
       </footer>
+      {builderOpen ? (
+        <LinewroughtBuilder
+          catalog={catalog}
+          initialChassisId={design.chassisId}
+          onCancel={() => setBuilderOpen(false)}
+          onCreate={(created) => {
+            setBuilderOpen(false);
+            onDesignPick(created);
+          }}
+        />
+      ) : null}
     </>
   );
 }

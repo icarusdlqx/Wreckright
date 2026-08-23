@@ -19,6 +19,7 @@ function locationsOf(entity: MechEntity): Record<MechLocation, LocationSnapshot>
       {
         armour: state.armour,
         armourMax: state.armourMax,
+        hasRearArmourFace: state.hasRearArmourFace,
         rearArmour: state.rearArmour,
         rearArmourMax: state.rearArmourMax,
         internal: state.internal,

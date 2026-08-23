@@ -6,6 +6,6 @@
   "tonnage": 1,
   "slots": 1,
   "cost": 8000,
-  "stats": { "jump_distance": 30, "heat_per_jump": 3, "cooldown": 6 },
+  "stats": { "jump_distance": 30, "heat_per_jump": 3 },
   "tags": []
 }

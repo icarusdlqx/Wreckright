@@ -2,8 +2,10 @@ import type { Chassis } from '../schema/chassis';
 import { LOCATIONS, type MechLocation } from '../schema/common';
 import type { Design } from '../schema/design';
 import type { Catalog } from '../schema/load';
-import type { ConstructionRules } from '../schema/rules';
 import type { Weapon, WeaponType } from '../schema/weapon';
+import { activeArmourLocations, withArmourTotals } from './designArmour';
+export { splitArmour } from './designArmour';
+export { computeHeatProfile, type HeatProfile } from './loadoutHeat';
 
 export interface LocationUsage {
   slotsUsed: number;
@@ -26,9 +28,12 @@ export interface LoadoutIssue {
     | 'slots'
     | 'armour'
     | 'heat_sinks'
-    | 'ammo'
+    | 'dry_weapon'
+    | 'orphan_ammo'
+    | 'energy_ammo'
     | 'jump_jets';
   location: MechLocation | null;
+  reference?: 'ammo';
   message: string;
 }
 
@@ -51,34 +56,20 @@ export interface Loadout {
   valid: boolean;
 }
 
-export interface HeatProfile {
-  alphaStrikeHeat: number;
-  heatPerSecond: number;
-  dissipationPerSecond: number;
-  netHeatPerSecond: number;
-  heatCapacity: number;
-  sustainableFraction: number;
-  shutdownRiskFraction: number;
-  secondsToShutdownRisk: number | null;
-  secondsToForcedShutdown: number | null;
-  sustainable: boolean;
-  alphaSafe: boolean;
-}
-
 const WEAPON_TYPES: readonly WeaponType[] = ['energy', 'ballistic', 'missile'];
 
-function emptyUsage(chassis: Chassis, location: MechLocation): LocationUsage {
+function emptyUsage(chassis: Chassis, location: MechLocation, active: boolean): LocationUsage {
   const hardpoints = chassis.hardpoints[location];
   return {
     slotsUsed: 0,
-    slotsAvailable: hardpoints.slots,
+    slotsAvailable: active ? hardpoints.slots : 0,
     hardpointsUsed: { energy: 0, ballistic: 0, missile: 0 },
     hardpointsAvailable: {
-      energy: hardpoints.energy,
-      ballistic: hardpoints.ballistic,
-      missile: hardpoints.missile,
+      energy: active ? hardpoints.energy : 0,
+      ballistic: active ? hardpoints.ballistic : 0,
+      missile: active ? hardpoints.missile : 0,
     },
-    size: hardpoints.size,
+    size: active ? hardpoints.size : 0,
   };
 }
 
@@ -100,25 +91,7 @@ export function weaponSizeLabel(catalog: Catalog, size: number): string {
   return catalog.rules.construction.weaponSizeLabels[size - 1] ?? String(size);
 }
 
-function roundHalf(value: number): number {
-  return Math.round(value * 2) / 2;
-}
-
-/**
- * Hangs part of a location's plating on its back. The front is what is left
- * over rather than a second rounding, so the two always add back up to the one
- * number the design authored — which is what lets tonnage, repair costs and the
- * armourMax ceiling go on reading that number and never learn about the split.
- */
-export function splitArmour(
-  rules: ConstructionRules,
-  location: MechLocation,
-  total: number,
-): { front: number; rear: number } {
-  if (!rules.rearArmour.locations.includes(location)) return { front: total, rear: 0 };
-  const rear = Math.round(total * rules.rearArmour.fraction);
-  return { front: total - rear, rear };
-}
+const roundHalf = (value: number): number => Math.round(value * 2) / 2;
 
 export function engineWeightFor(catalog: Catalog, engineRating: number): number | null {
   return catalog.rules.construction.engineWeightByRating[String(engineRating)] ?? null;
@@ -167,8 +140,9 @@ export function computeLoadout(catalog: Catalog, design: Design): Loadout {
   }
 
   const construction = catalog.rules.construction;
+  const activeArmour = new Set(activeArmourLocations(catalog.rules, chassis.frame));
   const perLocation = Object.fromEntries(
-    LOCATIONS.map((location) => [location, emptyUsage(chassis, location)]),
+    LOCATIONS.map((location) => [location, emptyUsage(chassis, location, activeArmour.has(location))]),
   ) as Record<MechLocation, LocationUsage>;
 
   const engineWeight = engineWeightFor(catalog, chassis.engineRating);
@@ -185,6 +159,16 @@ export function computeLoadout(catalog: Catalog, design: Design): Loadout {
   let armourPoints = 0;
   for (const location of LOCATIONS) {
     const allocated = design.armour[location];
+    if (!activeArmour.has(location)) {
+      if (allocated > 0) {
+        issues.push({
+          code: 'armour',
+          location,
+          message: `${chassis.name} has no ${location.replaceAll('_', ' ')} armour location`,
+        });
+      }
+      continue;
+    }
     armourPoints += allocated;
     if (allocated > chassis.armourMax[location]) {
       issues.push({
@@ -242,25 +226,48 @@ export function computeLoadout(catalog: Catalog, design: Design): Loadout {
     }
   }
 
+  const mountedWeapons = new Set(design.mounts.map((mount) => mount.weaponId));
+  const liveAmmoWeapons = new Set<string>();
   for (const load of design.ammo) {
     const weapon = catalog.weapons.get(load.weaponId);
     if (weapon === undefined) {
       issues.push({
         code: 'unknown_weapon',
         location: load.location,
+        reference: 'ammo',
         message: `unknown weapon "${load.weaponId}"`,
       });
       continue;
     }
     if (weapon.ammoPerTon === null) {
       issues.push({
-        code: 'ammo',
+        code: 'energy_ammo',
         location: load.location,
         message: `${weapon.name} uses no ammo`,
+      });
+    } else if (load.tons > 0) {
+      liveAmmoWeapons.add(load.weaponId);
+    }
+    if (!mountedWeapons.has(load.weaponId)) {
+      issues.push({
+        code: 'orphan_ammo',
+        location: load.location,
+        message: `${weapon.name} ammo carried but the weapon is not mounted`,
       });
     }
     payloadWeight += load.tons;
     perLocation[load.location].slotsUsed += load.tons * construction.ammoSlotsPerTon;
+  }
+
+  for (const mount of design.mounts) {
+    const weapon = catalog.weapons.get(mount.weaponId);
+    if (weapon === undefined || weapon.ammoPerTon === null) continue;
+    if (liveAmmoWeapons.has(mount.weaponId)) continue;
+    issues.push({
+      code: 'dry_weapon',
+      location: mount.location,
+      message: `${weapon.name} is mounted with no live ammo bin`,
+    });
   }
 
   for (const fit of design.equipment) {
@@ -363,6 +370,7 @@ export function computeLoadout(catalog: Catalog, design: Design): Loadout {
 export function maximiseArmour(catalog: Catalog, design: Design): Design {
   const chassis = catalog.chassis.get(design.chassisId);
   if (chassis === undefined) return design;
+  const activeArmour = new Set(activeArmourLocations(catalog.rules, chassis.frame));
 
   const stripped: Design = {
     ...design,
@@ -374,62 +382,19 @@ export function maximiseArmour(catalog: Catalog, design: Design): Design {
 
   const bare = computeLoadout(catalog, stripped);
   const affordable = Math.max(0, bare.freeTonnage) * catalog.rules.construction.armourPointsPerTon;
-  const maxTotal = LOCATIONS.reduce((sum, location) => sum + chassis.armourMax[location], 0);
+  const maxTotal = LOCATIONS.reduce(
+    (sum, location) => sum + (activeArmour.has(location) ? chassis.armourMax[location] : 0),
+    0,
+  );
   const scale = maxTotal === 0 ? 0 : Math.min(1, affordable / maxTotal);
 
-  return {
-    ...design,
-    armour: Object.fromEntries(
-      LOCATIONS.map((location) => [location, Math.floor(chassis.armourMax[location] * scale)]),
+  return withArmourTotals(
+    design,
+    Object.fromEntries(
+      LOCATIONS.map((location) => [
+        location,
+        activeArmour.has(location) ? Math.floor(chassis.armourMax[location] * scale) : 0,
+      ]),
     ) as Record<MechLocation, number>,
-  };
-}
-
-export function computeHeatProfile(catalog: Catalog, design: Design): HeatProfile {
-  const rules = catalog.rules.heat;
-  const sink = catalog.equipment.get(design.heatSinkId);
-  const dissipationPerSink = sink?.stats.dissipation ?? 1;
-
-  let alphaStrikeHeat = 0;
-  let heatPerSecond = 0;
-
-  for (const mount of design.mounts) {
-    const weapon = catalog.weapons.get(mount.weaponId);
-    if (weapon === undefined) continue;
-    alphaStrikeHeat += weapon.heat;
-    heatPerSecond += weapon.heat / weapon.cooldown;
-  }
-
-  const dissipationPerSecond =
-    design.heatSinks * dissipationPerSink * rules.dissipationPerSinkPerSecond;
-  const heatCapacity = rules.capacityBase + rules.capacityPerSink * design.heatSinks;
-  const netHeatPerSecond = heatPerSecond - dissipationPerSecond;
-
-  // The sim starts rolling shutdown checks at the first risky tier, not at 100%.
-  const riskTier = rules.tiers.find(
-    (tier) => tier.forcedShutdown || tier.shutdownChancePerSecond > 0,
   );
-  const shutdownRiskFraction = riskTier?.fraction ?? 1;
-
-  // An alpha strike lands before any dissipation, so the climb starts from there.
-  const secondsToReach = (fraction: number): number | null => {
-    const threshold = fraction * heatCapacity;
-    if (alphaStrikeHeat >= threshold) return 0;
-    if (netHeatPerSecond <= 0) return null;
-    return (threshold - alphaStrikeHeat) / netHeatPerSecond;
-  };
-
-  return {
-    alphaStrikeHeat,
-    heatPerSecond,
-    dissipationPerSecond,
-    netHeatPerSecond,
-    heatCapacity,
-    sustainableFraction: heatPerSecond === 0 ? 1 : Math.min(1, dissipationPerSecond / heatPerSecond),
-    shutdownRiskFraction,
-    secondsToShutdownRisk: secondsToReach(shutdownRiskFraction),
-    secondsToForcedShutdown: secondsToReach(1),
-    sustainable: netHeatPerSecond <= 0,
-    alphaSafe: alphaStrikeHeat < shutdownRiskFraction * heatCapacity,
-  };
 }

@@ -1,4 +1,5 @@
 import type { Chassis } from '../../schema/chassis';
+import type { RefitAvailability } from '../../campaign/refitQuote';
 import { LOCATIONS, type MechLocation } from '../../schema/common';
 import type { Design } from '../../schema/design';
 import type { Equipment } from '../../schema/equipment';
@@ -6,7 +7,7 @@ import type { Catalog } from '../../schema/load';
 import type { Weapon } from '../../schema/weapon';
 import { computeLoadout, weaponSize, weaponSizeLabel } from '../../sim/loadout';
 
-export type BayInventory = ReadonlyMap<string, number> | undefined;
+export type BayInventory = RefitAvailability | undefined;
 
 export type WeaponFitReasonCode =
   | 'unknown_chassis'
@@ -54,14 +55,15 @@ function consume(remaining: Map<string, number>, id: string, count = 1): void {
 export function remainingInventory(
   totalInventory: BayInventory,
   draft: Design,
-): ReadonlyMap<string, number> | undefined {
+): RefitAvailability | undefined {
   if (totalInventory === undefined) return undefined;
 
-  const remaining = new Map(totalInventory);
-  for (const mount of draft.mounts) consume(remaining, mount.weaponId);
-  for (const fit of draft.equipment) consume(remaining, fit.equipmentId);
-  consume(remaining, draft.heatSinkId, draft.heatSinks);
-  return remaining;
+  const weapon = new Map(totalInventory.weapon);
+  const equipment = new Map(totalInventory.equipment);
+  for (const mount of draft.mounts) consume(weapon, mount.weaponId);
+  for (const fit of draft.equipment) consume(equipment, fit.equipmentId);
+  consume(equipment, draft.heatSinkId, draft.heatSinks);
+  return { weapon, equipment };
 }
 
 function unknownFit(code: 'unknown_chassis' | 'unknown_weapon', message: string): WeaponFit {
@@ -89,7 +91,7 @@ export function weaponFitAtLocation(
   draft: Design,
   location: MechLocation,
   weaponId: string,
-  totalInventory?: ReadonlyMap<string, number>,
+  totalInventory?: RefitAvailability,
 ): WeaponFit {
   const chassis = catalog.chassis.get(draft.chassisId);
   if (chassis === undefined) {
@@ -100,12 +102,13 @@ export function weaponFitAtLocation(
   if (weapon === undefined) return unknownFit('unknown_weapon', `Unknown weapon "${weaponId}".`);
 
   const usage = computeLoadout(catalog, draft).perLocation[location];
-  const automaticAmmoSlots =
-    weapon.ammoPerTon === null ? 0 : catalog.rules.construction.ammoSlotsPerTon;
-  const requiredSlots = weapon.slots + automaticAmmoSlots;
+  // Ammunition is a separate, explicitly placed bin. A gun consumes only its
+  // own local slots; evaluateEdit finds valid bin locations as the next step.
+  const automaticAmmoSlots = 0;
+  const requiredSlots = weapon.slots;
   const freeSlots = Math.max(0, usage.slotsAvailable - usage.slotsUsed);
   const remaining = remainingInventory(totalInventory, draft);
-  const stockLeft = remaining === undefined ? null : (remaining.get(weapon.id) ?? 0);
+  const stockLeft = remaining === undefined ? null : (remaining.weapon.get(weapon.id) ?? 0);
   const reasons: WeaponFitReason[] = [];
   const locationName = LOCATION_NAMES[location];
 
@@ -125,10 +128,7 @@ export function weaponFitAtLocation(
   }
 
   if (requiredSlots > freeSlots) {
-    const fitting =
-      automaticAmmoSlots === 0
-        ? `${weapon.name} needs ${slotPhrase(requiredSlots)}`
-        : `${weapon.name} and its automatic ammunition need ${slotPhrase(requiredSlots)}`;
+    const fitting = `${weapon.name} needs ${slotPhrase(requiredSlots)}`;
     reasons.push({
       code: 'location_slots',
       message: `${fitting}; ${locationName} has ${slotPhrase(freeSlots)} free.`,
@@ -153,7 +153,7 @@ export function compatibleLocations(
   catalog: Catalog,
   draft: Design,
   weaponId: string,
-  totalInventory?: ReadonlyMap<string, number>,
+  totalInventory?: RefitAvailability,
 ): MechLocation[] {
   return LOCATIONS.filter(
     (location) =>
@@ -176,7 +176,7 @@ export function equipmentFitsChassis(chassis: Chassis, equipment: Equipment): bo
 export function equipmentShelfItems(
   catalog: Catalog,
   draft: Design,
-  totalInventory?: ReadonlyMap<string, number>,
+  totalInventory?: RefitAvailability,
 ): Equipment[] {
   const chassis = catalog.chassis.get(draft.chassisId);
   if (chassis === undefined) return [];
@@ -186,6 +186,6 @@ export function equipmentShelfItems(
     (equipment) =>
       equipment.category !== 'heat_sink' &&
       equipmentFitsChassis(chassis, equipment) &&
-      (remaining === undefined || (remaining.get(equipment.id) ?? 0) > 0),
+      (remaining === undefined || (remaining.equipment.get(equipment.id) ?? 0) > 0),
   );
 }

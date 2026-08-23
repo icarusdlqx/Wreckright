@@ -32,11 +32,25 @@ describe('critical hits', () => {
     expect(penetrates(mech, 'centre_torso', 20, 'rear')).toBe(true);
   });
 
+  it('treats a zero-point rear allocation as a bare torso face', () => {
+    const world = playerWorld('crit-zero-rear');
+    const mech = anyMech(world);
+    const torso = mech.locations.centre_torso;
+    torso.armour = 30;
+    torso.rearArmour = 0;
+    torso.rearArmourMax = 0;
+
+    expect(torso.hasRearArmourFace).toBe(true);
+    expect(penetrates(mech, 'centre_torso', 1, 'front')).toBe(false);
+    expect(penetrates(mech, 'centre_torso', 1, 'rear')).toBe(true);
+  });
+
   it('finds a leg the same way from either side, because a leg has no back', () => {
     const world = playerWorld('crit-leg');
     const mech = anyMech(world);
     mech.locations.left_leg.armour = 30;
     expect(mech.locations.left_leg.rearArmourMax).toBe(0);
+    expect(mech.locations.left_leg.hasRearArmourFace).toBe(false);
 
     expect(penetrates(mech, 'left_leg', 20, 'rear')).toBe(false);
     expect(penetrates(mech, 'left_leg', 40, 'rear')).toBe(true);

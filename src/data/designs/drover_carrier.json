@@ -7,8 +7,8 @@
     "centre_torso": 44,
     "left_torso": 34,
     "right_torso": 34,
-    "left_arm": 5,
-    "right_arm": 5,
+    "left_arm": 0,
+    "right_arm": 0,
     "left_leg": 26,
     "right_leg": 26
   },

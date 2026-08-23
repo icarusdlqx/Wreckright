@@ -102,6 +102,17 @@ describe('saving to storage', () => {
     expect(listStoredDesigns()).toHaveLength(0);
   });
 
+  it('allows a legal build to save when its only issue is advisory', () => {
+    const design = setName(stock('sentinel_brawler'), "Sentinel 'Unshielded Bin'");
+    const containment = design.equipment.find((fit) => fit.equipmentId === 'case');
+    if (containment === undefined) throw new Error('missing containment fixture');
+    containment.location = 'head';
+
+    expect(designIssues(catalog, design)).toEqual([]);
+    expect(saveToStorage(catalog, design)).toEqual({ replaced: false });
+    expect(listStoredDesigns()).toEqual([design.id]);
+  });
+
   it('migrates retired weapon ids in imported and browser-stored builds', () => {
     const legacy = stock('sentinel_brawler');
     const mount = legacy.mounts.find((entry) => entry.weaponId === 'ac5');
@@ -138,7 +149,7 @@ describe('mounting and ammunition', () => {
   it('keeps a shared bin while a second gun still feeds from it', () => {
     let design = stock('sentinel_brawler');
     design = addMount(design, 'machine_gun', 'left_torso');
-    design = addMount(design, 'machine_gun', 'left_torso');
+    design = addMount(design, 'machine_gun', 'right_torso');
     design = addAmmo(design, 'machine_gun', 'left_torso');
 
     design = removeMount(design, design.mounts.length - 1);

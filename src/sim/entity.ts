@@ -1,9 +1,9 @@
 import { LOCATIONS, type MechLocation } from '../schema/common';
-import type { Design } from '../schema/design';
+import type { Design, TorsoLocation } from '../schema/design';
 import type { Catalog } from '../schema/load';
 import type { Pilot } from '../schema/pilot';
 import type { ConstructionRules, Rules } from '../schema/rules';
-import { splitArmour } from './loadout';
+import { armourFacesForDesign } from './designArmour';
 import { emptyOrders } from './orders';
 import { abilityIdFor } from './abilities';
 import { sensorRangeFor, sightRangeFor, signatureFor } from './sensors';
@@ -45,16 +45,17 @@ const DEGREES_TO_RADIANS = Math.PI / 180;
 
 function buildLocations(
   rules: ConstructionRules,
-  armour: Record<MechLocation, number>,
+  design: Design,
   internals: Record<MechLocation, number>,
 ): Record<MechLocation, LocationState> {
   const entries = LOCATIONS.map((location) => {
-    const plate = splitArmour(rules, location, armour[location]);
+    const plate = armourFacesForDesign(rules, design, location);
     return [
       location,
       {
         armour: plate.front,
         armourMax: plate.front,
+        hasRearArmourFace: rules.rearArmour.locations.includes(location as TorsoLocation),
         rearArmour: plate.rear,
         rearArmourMax: plate.rear,
         internal: internals[location],
@@ -208,7 +209,7 @@ export function createMech(catalog: Catalog, rules: Rules, params: SpawnParams):
     ? 0
     : (chassis.engineRating / chassis.tonnage) * rules.movement.walkSpeedFactor * speedFactor;
 
-  const locations = buildLocations(rules.construction, design.armour, chassis.internals);
+  const locations = buildLocations(rules.construction, design, chassis.internals);
   if (params.damage !== undefined) applyStartingDamage(locations, params.damage);
 
   const destroyedLocations = LOCATIONS.filter((location) => locations[location].destroyed);

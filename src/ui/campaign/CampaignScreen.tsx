@@ -18,7 +18,7 @@ import {
 } from '../../campaign/save';
 import type { CampaignState, ContractTermsId } from '../../campaign/types';
 import { getCatalog } from '../../schema/load';
-import { applyRefit, refitInventory } from '../../campaign/refit';
+import { applyRefit, refitAvailability } from '../../campaign/refit';
 import { isSideContract } from '../../campaign/sidework';
 import { createCampaignSeed, startFreshCampaign } from '../../campaign/freshness';
 import { campaignOutcomeCount } from '../../campaign/history';
@@ -105,7 +105,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
           title: refitMech.design.name,
           cancelLabel: prep === 'bay' ? 'Back to hangar' : 'Back to manifest',
           design: refitMech.design,
-          inventory: refitInventory(state, refitMech),
+          inventory: refitAvailability(state, refitMech),
           onCancel: () => setRefitting(null),
           onCommit: (next) => {
             let outcome: { ok: boolean; reason: string | null } = {

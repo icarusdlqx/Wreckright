@@ -2,9 +2,10 @@ import type { Chassis } from '../../schema/chassis';
 import type { MechLocation } from '../../schema/common';
 import type { Design } from '../../schema/design';
 import type { Catalog } from '../../schema/load';
-import { splitArmour, weaponSize, weaponSizeLabel, type LocationUsage } from '../../sim/loadout';
+import { armourFacesForDesign } from '../../sim/designArmour';
+import { weaponSize, weaponSizeLabel, type LocationUsage } from '../../sim/loadout';
 
-const SHORT_NAMES: Record<MechLocation, string> = {
+export const MECH_LOCATION_NAMES: Record<MechLocation, string> = {
   head: 'Head',
   centre_torso: 'Centre Torso',
   left_torso: 'Left Torso',
@@ -20,10 +21,34 @@ export interface DropPayload {
   id: string;
 }
 
+export function mutateAfterStableFocus(
+  focusTarget: Pick<HTMLElement, 'focus'> | null,
+  mutate: () => void,
+): void {
+  focusTarget?.focus({ preventScroll: true });
+  mutate();
+}
+
+export function stableRemovalFocusTarget(removeControl: HTMLElement): HTMLButtonElement | null {
+  const ownLocation = removeControl
+    .closest('.bay-location')
+    ?.querySelector<HTMLButtonElement>('.bay-location-name') ?? null;
+  if (ownLocation !== null && !ownLocation.disabled) return ownLocation;
+
+  const mechbay = removeControl.closest('[data-testid="mechbay"]');
+  return mechbay?.querySelector<HTMLButtonElement>(
+    '.bay-location.selected .bay-location-name:not(:disabled)',
+  ) ?? mechbay?.querySelector<HTMLButtonElement>('.bay-location-name:not(:disabled)')
+    ?? mechbay?.querySelector<HTMLButtonElement>('[data-workspace-tab][aria-selected="true"]')
+    ?? mechbay?.querySelector<HTMLButtonElement>('[data-testid="bay-exit"]')
+    ?? null;
+}
+
 /** One thing bolted into this location, and how much room it takes. */
 interface Occupant {
   key: string;
   kind: 'weapon' | 'ammo' | 'equipment';
+  id: string;
   index: number;
   label: string;
   slots: number;
@@ -79,9 +104,10 @@ export function LocationCard({
   const hardpoints = chassis.hardpoints[location];
   const slotsOver = usage.slotsUsed > usage.slotsAvailable;
 
-  const hardpointOver = (['energy', 'ballistic', 'missile'] as const).some(
+  const overHardpointTypes = (['energy', 'ballistic', 'missile'] as const).filter(
     (type) => usage.hardpointsUsed[type] > usage.hardpointsAvailable[type],
   );
+  const hardpointOver = overHardpointTypes.length > 0;
 
   // Everything fitted here, in the order it was bolted on, with the room it
   // takes. This is the loadout as the machine actually carries it.
@@ -96,6 +122,7 @@ export function LocationCard({
     occupants.push({
       key: `m${index}`,
       kind: 'weapon',
+      id: mount.weaponId,
       index,
       label: weapon?.name ?? mount.weaponId,
       slots: weapon?.slots ?? 1,
@@ -110,6 +137,7 @@ export function LocationCard({
     occupants.push({
       key: `a${index}`,
       kind: 'ammo',
+      id: load.weaponId,
       index,
       label: `${weapon?.name ?? load.weaponId} ammo ×${load.tons}`,
       slots: Math.max(1, Math.round(load.tons * catalog.rules.construction.ammoSlotsPerTon)),
@@ -124,6 +152,7 @@ export function LocationCard({
     occupants.push({
       key: `e${index}`,
       kind: 'equipment',
+      id: fit.equipmentId,
       index,
       label: gear?.name ?? fit.equipmentId,
       slots: gear?.slots ?? 1,
@@ -141,17 +170,24 @@ export function LocationCard({
     else onRemoveEquipment(item.index);
   };
 
-  // One column per slot, so a block spans exactly the room it occupies and the
-  // shape of a build is legible at a glance: a gauss rifle is visibly most of
-  // an arm, and two free slots visibly will not take one.
-  const columns = Math.max(1, Math.min(usage.slotsAvailable, 12));
-
-  const plate = splitArmour(catalog.rules.construction, location, design.armour[location]);
-  const armedWeaponFits = armed?.kind !== 'weapon' || compatible;
+  const plate = armourFacesForDesign(catalog.rules.construction, design, location);
+  const armedFits = armed === null || compatible;
+  const invalid = slotsOver || hardpointOver || sizeOver;
+  const locationName = MECH_LOCATION_NAMES[location];
+  const issueStates = [
+    ...(slotsOver ? ['Slots over capacity'] : []),
+    ...overHardpointTypes.map(
+      (type) => `${type.slice(0, 1).toUpperCase()}${type.slice(1)} hardpoints over capacity`,
+    ),
+    ...(sizeOver ? ['Weapon too large'] : []),
+  ];
+  const fitState = armed === null
+    ? compatible ? 'Fits previewed part' : null
+    : compatible ? 'Fits held part' : 'Cannot fit held part';
 
   const classes = ['bay-location', `loc-${location}`];
-  if (slotsOver || hardpointOver || sizeOver) classes.push('invalid');
-  if (armed !== null && (armed.kind !== 'weapon' || compatible)) classes.push('armed-target');
+  if (invalid) classes.push('invalid');
+  if (armed !== null && compatible) classes.push('armed-target');
   if (selected) classes.push('selected');
   if (hovered) classes.push('hovered');
   if (compatible) classes.push('compatible');
@@ -162,6 +198,10 @@ export function LocationCard({
       data-testid={`bay-location-${location}`}
       data-selected={selected || undefined}
       data-compatible={compatible || undefined}
+      data-invalid={invalid || undefined}
+      role="group"
+      aria-label={`${locationName} location${selected ? ', selected' : ''}${fitState === null ? '' : `, ${fitState.toLowerCase()}`}${issueStates.length === 0 ? '' : `, ${issueStates.join(', ').toLowerCase()}`}`}
+      aria-invalid={invalid || undefined}
       onPointerEnter={() => onHover?.(location)}
       onPointerLeave={() => onHover?.(null)}
       onDragOver={(event) => {
@@ -174,12 +214,11 @@ export function LocationCard({
         if (raw === '') return;
         onDrop(JSON.parse(raw) as DropPayload, location);
       }}
-      // The other half of pick-then-place. A click anywhere on the card counts,
-      // because on a phone the slot grid is a few millimetres tall and asking
-      // for a precise tap is asking for a mis-tap.
+      // The other half of pick-then-place. The card surface remains a generous
+      // touch target while fitted-part controls keep their own explicit jobs.
       onClick={() => {
         if (armed !== null) {
-          if (armedWeaponFits) onDrop(armed, location);
+          if (armedFits) onDrop(armed, location);
           return;
         }
         onSelect?.(location);
@@ -190,18 +229,35 @@ export function LocationCard({
           type="button"
           className="bay-location-name"
           aria-pressed={selected}
-          disabled={armed?.kind === 'weapon' && !compatible}
+          aria-label={armed === null ? `Select ${locationName}` : `Fit held part in ${locationName}`}
+          disabled={armed !== null && !compatible}
           onClick={(event) => {
             event.stopPropagation();
             onSelect?.(location);
           }}
         >
-          {SHORT_NAMES[location]}
+          {locationName}
         </button>
-        <span className={`bay-slots ${slotsOver ? 'over' : ''}`} data-testid={`slots-${location}`}>
-          {usage.slotsUsed}/{usage.slotsAvailable}
+        <span
+          className={`bay-slots ${slotsOver ? 'over' : ''}`}
+          data-testid={`slots-${location}`}
+          aria-label={`${usage.slotsUsed} of ${usage.slotsAvailable} slots used`}
+        >
+          {usage.slotsUsed}/{usage.slotsAvailable} slots
         </span>
       </header>
+
+      <div className="bay-location-flags">
+        {selected ? <span className="location-flag location-flag--selected">Selected</span> : null}
+        {fitState === null ? null : (
+          <span className={`location-flag ${compatible ? 'location-flag--compatible' : 'location-flag--blocked'}`}>
+            {fitState}
+          </span>
+        )}
+        {issueStates.map((issue) => (
+          <span key={issue} className="location-flag location-flag--invalid">{issue}</span>
+        ))}
+      </div>
 
       <div className="bay-hardpoints">
         {(['energy', 'ballistic', 'missile'] as const).map((type) =>
@@ -210,6 +266,7 @@ export function LocationCard({
               key={type}
               className={`pip ${type} ${usage.hardpointsUsed[type] > hardpoints[type] ? 'over' : ''}`}
               title={`${type} hardpoints`}
+              aria-label={`${type} hardpoints: ${usage.hardpointsUsed[type]} of ${hardpoints[type]} used`}
             >
               {type.slice(0, 1).toUpperCase()} {usage.hardpointsUsed[type]}/{hardpoints[type]}
             </span>
@@ -219,6 +276,7 @@ export function LocationCard({
           className={`pip size ${sizeOver ? 'over' : ''}`}
           title={`Takes ${weaponSizeLabel(catalog, usage.size)} weapons and smaller`}
           data-testid={`size-${location}`}
+          aria-label={`Maximum weapon size: ${weaponSizeLabel(catalog, usage.size)}`}
         >
           ≤ {weaponSizeLabel(catalog, usage.size)}
         </span>
@@ -226,66 +284,70 @@ export function LocationCard({
 
       <ul
         className="bay-slotgrid"
-        style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
         data-testid={`slots-grid-${location}`}
+        aria-label={`Fitted parts in ${locationName}`}
       >
         {occupants.map((item) => (
           <li
             key={item.key}
             className={`slot-block tone-${item.tone}${item.oversized ? ' too-big' : ''}`}
-            style={{ gridColumn: `span ${Math.min(item.slots, columns)}` }}
             title={
               item.oversized
                 ? `${item.label} — too large for this mount`
-                : `${item.label} — ${item.slots} slot${item.slots === 1 ? '' : 's'}. Click to remove.`
+                : `${item.label} — ${item.slots} slot${item.slots === 1 ? '' : 's'}`
             }
           >
             <button
               type="button"
-              // While something is armed the whole card is a drop target, so a
-              // tap on a fitted block places rather than removes — otherwise
-              // aiming at a gap between blocks becomes load-bearing.
+              className="slot-block__inspect"
+              data-testid={`inspect-${item.kind}-${item.index}`}
+              aria-label={`Inspect ${item.label}`}
               onClick={(event) => {
-                if (armed === null) {
-                  event.stopPropagation();
-                  remove(item);
-                }
+                event.stopPropagation();
+                onInspect?.({ kind: item.kind, id: item.id });
               }}
-              onFocus={() =>
-                onInspect?.({
-                  kind: item.kind,
-                  id:
-                    item.kind === 'weapon'
-                      ? (design.mounts[item.index]?.weaponId ?? '')
-                      : item.kind === 'ammo'
-                        ? (design.ammo[item.index]?.weaponId ?? '')
-                        : (design.equipment[item.index]?.equipmentId ?? ''),
-                })
-              }
+              onFocus={() => onInspect?.({ kind: item.kind, id: item.id })}
             >
-              {item.label}
+              <span>{item.label}</span>
+              <small>{item.kind === 'ammo' ? 'Ammo' : item.kind === 'equipment' ? 'Gear' : 'Weapon'} · {item.slots} slot{item.slots === 1 ? '' : 's'}</small>
+            </button>
+            <button
+              type="button"
+              className="slot-block__remove"
+              data-testid={`remove-${item.kind}-${item.index}`}
+              aria-label={`Remove ${item.label} from ${locationName}`}
+              title={`Remove ${item.label} from ${locationName}`}
+              onClick={(event) => {
+                event.stopPropagation();
+                mutateAfterStableFocus(stableRemovalFocusTarget(event.currentTarget), () => remove(item));
+              }}
+            >
+              Remove
             </button>
           </li>
         ))}
-        {Array.from({ length: empty }, (_, index) => (
-          <li key={`free-${index}`} className="slot-block empty" />
-        ))}
+        <li className="slot-block empty" data-testid={`free-slots-${location}`}>
+          {usage.slotsAvailable === 0
+            ? 'No fitting space'
+            : `${empty} slot${empty === 1 ? '' : 's'} free`}
+        </li>
       </ul>
 
-      {/* Armour reads here and is set from the machine column: one slider for
-          the whole mech, with per-location detail behind a disclosure. The
-          front/back split is the workshop's business, not a control — this is
-          where the player finds out the torsos have a thin side. */}
+      {/* Armour is edited in the workbench; this card mirrors its exact split. */}
       <span
         className="bay-armour-read"
+        data-testid={`armour-faces-${location}`}
+        aria-label={`Armour: ${plate.front} front, ${plate.rear} rear, ${design.armour[location]} of ${chassis.armourMax[location]} total`}
         title={
           plate.rear === 0
             ? 'Armour on this location'
-            : `${plate.front} on the front, ${plate.rear} on the back — a shot from behind meets the thin plate`
+            : `${plate.front} on the front, ${plate.rear} on the back — shots from behind meet the rear allocation`
         }
       >
-        {design.armour[location]}/{chassis.armourMax[location]} armour
-        {plate.rear === 0 ? '' : ` (${plate.front} front / ${plate.rear} rear)`}
+        <strong>Armour</strong>
+        <span>{plate.front} front</span>
+        <span>{plate.rear} rear</span>
+        <span>{design.armour[location]}/{chassis.armourMax[location]} total</span>
       </span>
     </div>
   );

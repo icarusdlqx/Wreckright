@@ -1,22 +1,26 @@
+import { useEffect, useMemo, useState } from 'react';
 import type { Chassis } from '../../schema/chassis';
 import type { MechLocation } from '../../schema/common';
 import type { Design } from '../../schema/design';
-import type { Equipment } from '../../schema/equipment';
 import type { Catalog } from '../../schema/load';
 import type { Weapon } from '../../schema/weapon';
-import { computeLoadout } from '../../sim/loadout';
 import {
   ammoShelfWeapons,
-  compatibleLocations as findCompatibleLocations,
-  equipmentShelfItems,
   remainingInventory,
-  weaponFitAtLocation,
   type BayInventory,
 } from './bayFit';
-import { Dossier, type Inspected } from './Dossier';
+import { Dossier, type Inspected, type InspectorFit } from './Dossier';
 import type { DropPayload } from './LocationCard';
+import { shelfFit } from './shelfFit';
+import { ShelfToolbar } from './ShelfToolbar';
+import {
+  shelfSearchMatches,
+  weaponMatchesShelfFilters,
+  type WeaponCategoryFilter,
+} from './shelfFilter';
 import { WeaponCard } from './WeaponCard';
-import { WEAPON_CATEGORIES, weaponsByCategory } from './weaponPresentation';
+import { WEAPON_CATEGORIES, weaponCategory } from './weaponPresentation';
+import './storeShelf.css';
 
 export type Shelf = 'weapons' | 'ammo' | 'equipment';
 
@@ -25,7 +29,9 @@ function ShelfItem({
   label,
   detail,
   stock,
+  fit,
   armed,
+  inspected,
   onInspect,
   onArm,
 }: {
@@ -33,26 +39,33 @@ function ShelfItem({
   label: string;
   detail: string;
   stock?: number;
+  fit: InspectorFit;
   armed: boolean;
+  inspected: boolean;
   onInspect: (payload: DropPayload) => void;
   onArm: (payload: DropPayload) => void;
 }) {
   const exhausted = stock !== undefined && stock <= 0;
+  const unavailable = exhausted || !fit.ok;
   return (
-    <li className={`bay-stock${exhausted ? ' exhausted' : ''}${armed ? ' armed' : ''}`}>
+    <li
+      className={`bay-stock${unavailable ? ' exhausted' : ''}${armed ? ' armed' : ''}${inspected ? ' inspected' : ''}`}
+    >
       <button
         type="button"
-        draggable={!exhausted}
+        draggable={!unavailable}
         aria-pressed={armed}
-        aria-disabled={exhausted || undefined}
+        aria-current={inspected ? 'true' : undefined}
+        aria-disabled={unavailable || undefined}
+        aria-controls="bay-shelf-inspector"
         data-testid={`stock-${payload.kind}-${payload.id}`}
         onFocus={() => onInspect(payload)}
         onClick={() => {
           onInspect(payload);
-          if (!exhausted) onArm(payload);
+          if (!unavailable) onArm(payload);
         }}
         onDragStart={(event) => {
-          if (exhausted) return event.preventDefault();
+          if (unavailable) return event.preventDefault();
           onInspect(payload);
           event.dataTransfer.setData('application/ironline', JSON.stringify(payload));
           event.dataTransfer.effectAllowed = 'copy';
@@ -63,20 +76,12 @@ function ShelfItem({
           {stock === undefined ? null : <em className="stock-count">×{Math.max(0, stock)}</em>}
         </span>
         <span className="stock-detail">{detail}</span>
+        <span className={`bay-stock__fit ${fit.ok ? 'is-fit' : 'is-blocked'}`}>
+          {fit.ok ? 'Fits' : fit.reason}
+        </span>
       </button>
     </li>
   );
-}
-
-function selectedEquipmentFits(
-  catalog: Catalog,
-  design: Design,
-  equipment: Equipment,
-  location: MechLocation | null,
-): boolean {
-  if (location === null) return true;
-  const usage = computeLoadout(catalog, design).perLocation[location];
-  return equipment.slots <= usage.slotsAvailable - usage.slotsUsed;
 }
 
 interface Props {
@@ -114,131 +119,197 @@ export function StoreShelf({
   onArm,
   onHoverWeapon,
 }: Props) {
-  const remaining = remainingInventory(inventory, design);
-  const mountedWeapons = design.mounts
-    .map((mount) => catalog.weapons.get(mount.weaponId))
-    .filter((weapon): weapon is Weapon => weapon !== undefined);
-  const mountedWeaponIds = new Set(mountedWeapons.map((weapon) => weapon.id));
-  const knownWeapons = [...catalog.weapons.values()].filter(
-    (weapon) => inventory === undefined || inventory.has(weapon.id),
+  const [query, setQuery] = useState('');
+  const [category, setCategory] = useState<WeaponCategoryFilter>('all');
+  useEffect(() => {
+    setQuery('');
+    setCategory('all');
+  }, [chassis.id]);
+
+  const remaining = useMemo(() => remainingInventory(inventory, design), [inventory, design]);
+  const mountedWeapons = useMemo(
+    () =>
+      design.mounts
+        .map((mount) => catalog.weapons.get(mount.weaponId))
+        .filter((weapon): weapon is Weapon => weapon !== undefined),
+    [catalog, design],
   );
-  const weaponFits = (weapon: Weapon): { ok: boolean; reason: string | null } => {
-    if (selectedLocation !== null) {
-      const fit = weaponFitAtLocation(catalog, design, selectedLocation, weapon.id, inventory);
-      return { ok: fit.ok, reason: fit.reasons[0]?.message ?? null };
-    }
-    const locations = findCompatibleLocations(catalog, design, weapon.id, inventory);
-    return {
-      ok: locations.length > 0,
-      reason: locations.length > 0 ? null : 'No free compatible hardpoint on this chassis.',
-    };
-  };
-  const shownWeapons = knownWeapons.filter(
-    (weapon) =>
-      showAll ||
-      weaponFits(weapon).ok ||
-      (selectedLocation === null && mountedWeaponIds.has(weapon.id)),
+  const mountedWeaponIds = useMemo(
+    () => new Set(mountedWeapons.map((weapon) => weapon.id)),
+    [mountedWeapons],
   );
-  const groups = weaponsByCategory(catalog, shownWeapons);
-  const ammo = ammoShelfWeapons(catalog, design).filter(() => {
-    if (selectedLocation === null) return true;
-    const usage = computeLoadout(catalog, design).perLocation[selectedLocation];
-    return catalog.rules.construction.ammoSlotsPerTon <= usage.slotsAvailable - usage.slotsUsed;
-  });
-  const gear = equipmentShelfItems(catalog, design, inventory).filter((entry) =>
-    selectedEquipmentFits(catalog, design, entry, selectedLocation),
+  const knownWeapons = useMemo(
+    () =>
+      [...catalog.weapons.values()].filter(
+        (weapon) => inventory === undefined || inventory.weapon.has(weapon.id),
+      ),
+    [catalog, inventory],
   );
+  const weaponRows = useMemo(
+    () =>
+      knownWeapons.map((weapon) => ({
+        weapon,
+        fit: shelfFit(
+          catalog,
+          design,
+          { kind: 'weapon', id: weapon.id },
+          inventory,
+          selectedLocation,
+        ),
+      })),
+    [catalog, design, inventory, knownWeapons, selectedLocation],
+  );
+  const availableWeaponRows = weaponRows.filter(
+    ({ weapon, fit }) =>
+      showAll || fit.ok || (selectedLocation === null && mountedWeaponIds.has(weapon.id)),
+  );
+  const categoryOrder = new Map(WEAPON_CATEGORIES.map((entry, index) => [entry.id, index]));
+  const visibleWeaponRows = availableWeaponRows
+    .filter(({ weapon }) => weaponMatchesShelfFilters(catalog, weapon, query, category))
+    .sort(
+      (left, right) =>
+        (categoryOrder.get(weaponCategory(catalog, left.weapon)) ?? 0) -
+        (categoryOrder.get(weaponCategory(catalog, right.weapon)) ?? 0),
+    );
+  const categories = WEAPON_CATEGORIES.filter((entry) =>
+    knownWeapons.some((weapon) => weaponCategory(catalog, weapon) === entry.id),
+  );
+  const ammoRows = ammoShelfWeapons(catalog, design)
+    .map((weapon) => ({
+      weapon,
+      fit: shelfFit(
+        catalog,
+        design,
+        { kind: 'ammo', id: weapon.id },
+        inventory,
+        selectedLocation,
+      ),
+    }))
+    .filter(({ fit }) => showAll || fit.ok)
+    .filter(({ weapon }) =>
+      shelfSearchMatches(query, weapon.name, weapon.type, `${weapon.ammoPerTon ?? 0} rounds`));
+  const knownGear = [...catalog.equipment.values()].filter(
+    (entry) =>
+      entry.category !== 'heat_sink'
+      && (inventory === undefined || inventory.equipment.has(entry.id)),
+  );
+  const gearRows = knownGear
+    .map((equipment) => ({
+      equipment,
+      fit: shelfFit(
+        catalog,
+        design,
+        { kind: 'equipment', id: equipment.id },
+        inventory,
+        selectedLocation,
+      ),
+    }))
+    .filter(({ fit }) => showAll || fit.ok)
+    .filter(({ equipment }) =>
+      shelfSearchMatches(query, equipment.name, equipment.category, equipment.faction));
   const selectedName = selectedLocation?.replaceAll('_', ' ') ?? null;
+  const expectedKind = shelf === 'weapons' ? 'weapon' : shelf === 'ammo' ? 'ammo' : 'equipment';
+  const matchingInspected = inspected?.kind === expectedKind ? inspected : null;
+  const defaultInspected: Inspected | null =
+    shelf === 'weapons'
+      ? visibleWeaponRows[0] === undefined
+        ? null
+        : { kind: 'weapon', id: visibleWeaponRows[0].weapon.id }
+      : shelf === 'ammo'
+        ? ammoRows[0] === undefined
+          ? null
+          : { kind: 'ammo', id: ammoRows[0].weapon.id }
+        : gearRows[0] === undefined
+          ? null
+          : { kind: 'equipment', id: gearRows[0].equipment.id };
+  const inspector = matchingInspected ?? defaultInspected;
+  const inspectorFit = inspector?.kind === 'weapon'
+    ? (weaponRows.find(({ weapon }) => weapon.id === inspector.id)?.fit ?? null)
+    : inspector?.kind === 'ammo'
+      ? (ammoRows.find(({ weapon }) => weapon.id === inspector.id)?.fit ?? null)
+      : inspector?.kind === 'equipment'
+        ? (gearRows.find(({ equipment }) => equipment.id === inspector.id)?.fit ?? null)
+        : null;
+  const resultLabel =
+    shelf === 'weapons'
+      ? `${visibleWeaponRows.length} of ${knownWeapons.length} weapons · ${showAll ? 'all fit states' : 'fits only'}`
+      : shelf === 'ammo'
+        ? `${ammoRows.length} of ${ammoShelfWeapons(catalog, design).length} ammo bins · ${showAll ? 'all fit states' : 'fits only'}`
+        : `${gearRows.length} of ${knownGear.length} gear items · ${showAll ? 'all fit states' : 'fits only'}`;
 
   return (
-    <section className="bay-side" data-testid="bay-shelf">
-      <div className="bay-shelf-head">
-        <div className="bay-shelf-tabs" role="tablist">
-          {(['weapons', 'ammo', 'equipment'] as const).map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              role="tab"
-              aria-selected={shelf === tab}
-              className={shelf === tab ? 'active' : ''}
-              onClick={() => onShelfChange(tab)}
-              data-testid={`shelf-${tab}`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-        {selectedName === null ? null : (
-          <div className="bay-location-filter" data-testid="bay-location-filter">
-            <span>Fitting {selectedName}</span>
-            <button type="button" onClick={onClearLocation}>Clear filter</button>
-          </div>
-        )}
-        {shelf !== 'weapons' ? null : (
-          <label className="bay-show-all">
-            <input
-              type="checkbox"
-              checked={showAll}
-              onChange={(event) => onShowAllChange(event.target.checked)}
-              data-testid="shelf-show-all"
-            />
-            {selectedName === null
-              ? 'Show weapons this hull cannot mount'
-              : 'Show incompatible for this mount'}
-          </label>
-        )}
-      </div>
+    <section className="bay-side bay-catalog" data-testid="bay-shelf">
+      <ShelfToolbar
+        faction={chassis.faction}
+        shelf={shelf}
+        query={query}
+        category={category}
+        categories={categories}
+        showAll={showAll}
+        selectedName={selectedName}
+        resultLabel={resultLabel}
+        onShelfChange={onShelfChange}
+        onQueryChange={setQuery}
+        onCategoryChange={setCategory}
+        onShowAllChange={onShowAllChange}
+        onClearLocation={onClearLocation}
+      />
 
-      <div className="bay-stocks" data-testid="bay-stocks">
+      <Dossier
+        catalog={catalog}
+        inspected={inspector}
+        heatSinkId={design.heatSinkId}
+        mountedWeapons={mountedWeapons}
+        chassisFaction={chassis.faction}
+        fit={inspectorFit}
+      />
+
+      <div
+        id="bay-shelf-results"
+        className="bay-stocks"
+        data-testid="bay-stocks"
+        role="tabpanel"
+        aria-labelledby={`shelf-tab-${shelf}`}
+      >
         {shelf === 'weapons' ? (
-          shownWeapons.length === 0 ? (
+          visibleWeaponRows.length === 0 ? (
             <p className="bay-shelf-empty">
-              Nothing on the shelf fits {selectedName ?? 'this chassis'}. Clear the filter or free a slot.
+              No weapons match these filters. Clear the search or include Doesn't fit.
             </p>
           ) : (
-            WEAPON_CATEGORIES.map((category) => {
-              const weapons = groups.get(category.id) ?? [];
-              if (weapons.length === 0) return null;
-              return (
-                <section className="weapon-category" key={category.id}>
-                  <h4>{category.label}</h4>
-                  <ul>
-                    {weapons.map((weapon) => {
-                      const fit = weaponFits(weapon);
-                      return (
-                        <li key={weapon.id}>
-                          <WeaponCard
-                            catalog={catalog}
-                            weapon={weapon}
-                            mountedWeapons={mountedWeapons}
-                            chassisFaction={chassis.faction}
-                            stock={remaining?.get(weapon.id)}
-                            selected={armed?.kind === 'weapon' && armed.id === weapon.id}
-                            unavailableReason={fit.ok ? null : fit.reason}
-                            testId={`stock-weapon-${weapon.id}`}
-                            onInspect={() => onInspect({ kind: 'weapon', id: weapon.id })}
-                            onPick={() => onArm({ kind: 'weapon', id: weapon.id })}
-                            onHover={(hovered) => onHoverWeapon(hovered ? weapon.id : null)}
-                          />
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </section>
-              );
-            })
+            <ul className="weapon-catalog-list">
+              {visibleWeaponRows.map(({ weapon, fit }) => (
+                <li key={weapon.id}>
+                  <WeaponCard
+                    catalog={catalog}
+                    weapon={weapon}
+                    chassisFaction={chassis.faction}
+                    stock={remaining?.weapon.get(weapon.id)}
+                    selected={armed?.kind === 'weapon' && armed.id === weapon.id}
+                    inspected={inspector?.kind === 'weapon' && inspector.id === weapon.id}
+                    unavailableReason={fit.ok ? null : fit.reason}
+                    testId={`stock-weapon-${weapon.id}`}
+                    onInspect={() => onInspect({ kind: 'weapon', id: weapon.id })}
+                    onPick={() => onArm({ kind: 'weapon', id: weapon.id })}
+                    onHover={(hovered) => onHoverWeapon(hovered ? weapon.id : null)}
+                  />
+                </li>
+              ))}
+            </ul>
           )
         ) : null}
 
         {shelf === 'ammo' ? (
           <ul className="bay-simple-stocks">
-            {ammo.map((weapon) => (
+            {ammoRows.map(({ weapon, fit }) => (
               <ShelfItem
                 key={weapon.id}
                 payload={{ kind: 'ammo', id: weapon.id }}
                 label={`${weapon.name} ammunition`}
                 detail={`1 ton · ${weapon.ammoPerTon ?? 0} rounds`}
+                fit={fit}
                 armed={armed?.kind === 'ammo' && armed.id === weapon.id}
+                inspected={inspector?.kind === 'ammo' && inspector.id === weapon.id}
                 onInspect={onInspect}
                 onArm={onArm}
               />
@@ -248,14 +319,16 @@ export function StoreShelf({
 
         {shelf === 'equipment' ? (
           <ul className="bay-simple-stocks">
-            {gear.map((entry) => (
+            {gearRows.map(({ equipment: entry, fit }) => (
               <ShelfItem
                 key={entry.id}
                 payload={{ kind: 'equipment', id: entry.id }}
                 label={entry.name}
                 detail={`${entry.tonnage}t · ${entry.slots} slot${entry.slots === 1 ? '' : 's'}`}
-                stock={remaining?.get(entry.id)}
+                stock={remaining?.equipment.get(entry.id)}
+                fit={fit}
                 armed={armed?.kind === 'equipment' && armed.id === entry.id}
+                inspected={inspector?.kind === 'equipment' && inspector.id === entry.id}
                 onInspect={onInspect}
                 onArm={onArm}
               />
@@ -263,10 +336,6 @@ export function StoreShelf({
           </ul>
         ) : null}
       </div>
-
-      {shelf === 'weapons' ? null : (
-        <Dossier catalog={catalog} inspected={inspected} heatSinkId={design.heatSinkId} />
-      )}
     </section>
   );
 }

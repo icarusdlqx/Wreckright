@@ -1,9 +1,10 @@
 import type { MechLocation } from '../../schema/common';
 import { LOCATIONS } from '../../schema/common';
 import { DesignSchema, type Design } from '../../schema/design';
+import { validateDesign } from '../../schema/designValidation';
 import type { Catalog } from '../../schema/load';
 import { migrateDesignWeaponIds } from '../../schema/weaponMigration';
-import { computeLoadout, maximiseArmour as fitArmour } from '../../sim/loadout';
+import { maximiseArmour as fitArmour } from '../../sim/loadout';
 
 const STORAGE_PREFIX = 'ironline.design.';
 
@@ -46,11 +47,11 @@ export function removeMount(design: Design, index: number): Design {
   // unless another mount of the same weapon still feeds from it.
   if (removed !== undefined) {
     const stillFed = next.mounts.some(
-      (mount) => mount.weaponId === removed.weaponId && mount.location === removed.location,
+      (mount) => mount.weaponId === removed.weaponId,
     );
     if (!stillFed) {
       next.ammo = next.ammo.filter(
-        (bin) => !(bin.weaponId === removed.weaponId && bin.location === removed.location),
+        (bin) => bin.weaponId !== removed.weaponId,
       );
     }
   }
@@ -224,18 +225,9 @@ export class InvalidBuildError extends Error {
  * the blank name only surfaces on the way back in, as a file that will not load.
  */
 export function designIssues(catalog: Catalog, design: Design): string[] {
-  const loadout = computeLoadout(catalog, design);
-  const issues = loadout.valid ? [] : loadout.issues.map((issue) => issue.message);
-
-  const parsed = DesignSchema.safeParse(design);
-  if (parsed.success) return issues;
-
-  return [
-    ...issues,
-    ...parsed.error.issues.map(
-      (issue) => `${issue.path.map(String).join('.') || '(root)'}: ${issue.message}`,
-    ),
-  ];
+  return validateDesign(catalog, design).issues
+    .filter((issue) => issue.severity === 'error')
+    .map((issue) => issue.message);
 }
 
 function checkOrThrow(catalog: Catalog, design: Design): void {

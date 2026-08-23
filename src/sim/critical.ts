@@ -27,7 +27,7 @@ export function penetrates(
   // Against the plate the shot actually meets. Testing the glacis would let an
   // intact front keep criticals out of a mech being shot in the back, which is
   // most of what having a back is for.
-  const plate = face === 'rear' && state.rearArmourMax > 0 ? state.rearArmour : state.armour;
+  const plate = face === 'rear' && state.hasRearArmourFace ? state.rearArmour : state.armour;
   return damage > plate;
 }
 

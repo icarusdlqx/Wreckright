@@ -1,0 +1,93 @@
+.bay.bay--workspace {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'top'
+    'tabs'
+    'workspace'
+    'act';
+}
+
+.bay--workspace > .bay-workspace-tabs { grid-area: tabs; }
+
+.bay--workspace > .bay-workspace-panel { grid-area: workspace; }
+
+.bay--workspace .bay-issues li {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.bay--workspace .bay-issues li.bay-issue--warning { color: var(--warn); }
+
+.bay--workspace .build-review__issue-group.has-warnings {
+  border-left-color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 5%, transparent);
+}
+
+.bay--workspace .build-review__issue-group.has-warnings h5 { color: var(--warn); }
+
+.bay-workspace-panel--loadout {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.65fr) minmax(600px, 1.65fr) minmax(300px, 0.8fr);
+  grid-template-areas: 'machine grid side';
+  gap: 12px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (min-width: 1181px) {
+  .bay-workspace-panel--loadout .location-overview {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-rows: max-content;
+  }
+
+  .bay-workspace-panel--loadout .location-overview > .bay-location {
+    min-height: max-content;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1180px) {
+  .bay-workspace-panel--loadout {
+    grid-template-columns: minmax(250px, 0.75fr) minmax(420px, 1.25fr);
+    grid-template-areas:
+      'machine grid'
+      'side side';
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  .bay.bay--workspace {
+    grid-template: none / minmax(0, 1fr);
+    grid-auto-rows: min-content;
+  }
+
+  .bay.bay--workspace > .bay-top,
+  .bay.bay--workspace > .bay-actions,
+  .bay.bay--workspace > .bay-workspace-tabs,
+  .bay.bay--workspace > .bay-workspace-panel {
+    grid-area: auto;
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .bay.bay--workspace .mech-preview {
+    height: clamp(160px, 32dvh, 220px);
+  }
+
+  .bay-workspace-panel--loadout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: none;
+    grid-auto-flow: row;
+    grid-auto-rows: min-content;
+    overflow: visible;
+  }
+
+  .bay.bay--workspace .bay-workspace-panel--loadout > * {
+    grid-area: auto;
+    grid-column: 1;
+    grid-row: auto;
+    min-width: 0;
+    width: auto;
+  }
+}

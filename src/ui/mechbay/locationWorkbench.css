@@ -1,0 +1,328 @@
+.bay-grid.location-workbench {
+  display: grid;
+  grid-template: auto auto minmax(0, 1fr) / minmax(0, 1fr);
+  gap: 8px;
+  align-content: stretch;
+  overflow: hidden;
+}
+
+.location-workbench__guide {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 14px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.location-workbench__eyebrow {
+  display: block;
+  color: var(--accent);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.location-workbench__guide h3 {
+  margin: 2px 0 0;
+  font-size: 13px;
+}
+
+.location-fit-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.location-fit-steps li {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 0 5px;
+  align-items: center;
+  min-width: 0;
+  padding: 4px 5px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: var(--muted);
+}
+
+.location-fit-steps li > span {
+  grid-row: 1 / 3;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 10px;
+}
+
+.location-fit-steps strong,
+.location-fit-steps small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.location-fit-steps strong {
+  color: var(--text);
+  font-size: 10px;
+}
+
+.location-fit-steps small {
+  font-size: 9px;
+}
+
+.location-fit-steps li.current {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(140, 224, 255, 0.08);
+}
+
+.location-fit-steps li.complete {
+  color: #8fd49a;
+}
+
+.location-workbench__status {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.location-workbench > .bay-armed-banner {
+  grid-column: 1;
+}
+
+.location-overview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  min-height: 0;
+  overflow-y: auto;
+  align-content: start;
+  padding-right: 2px;
+}
+
+.location-overview > .bay-location {
+  grid-area: auto;
+  min-width: 0;
+  min-height: 0;
+  gap: 5px;
+  padding: 8px;
+}
+
+.bay-location-flags {
+  display: flex;
+  min-height: 16px;
+  gap: 4px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.location-flag {
+  padding: 1px 5px;
+  border: 1px solid var(--edge);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.location-flag--selected {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+.location-flag--compatible {
+  border-color: #8fd49a;
+  color: #8fd49a;
+}
+
+.location-flag--blocked,
+.location-flag--invalid {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.location-overview .bay-slotgrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 4px;
+  margin: 2px 0 4px;
+}
+
+.location-overview .slot-block {
+  display: grid;
+  grid-column: 1 !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  height: auto;
+  min-height: 34px;
+  overflow: visible;
+}
+
+.location-overview .slot-block__inspect,
+.location-overview .slot-block__remove {
+  width: auto;
+  height: auto;
+  min-width: 0;
+  padding: 4px 6px;
+  font: inherit;
+  font-size: 10px;
+  line-height: 1.15;
+}
+
+.location-overview .slot-block__inspect {
+  display: grid;
+  gap: 1px;
+  color: inherit;
+}
+
+.slot-block__inspect > span,
+.slot-block__inspect > small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.slot-block__inspect > small {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.location-overview .slot-block__remove {
+  border: 0;
+  border-left: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.16);
+  color: var(--muted);
+  text-align: center;
+}
+
+.location-overview .slot-block__inspect:hover,
+.location-overview .slot-block__inspect:focus-visible {
+  background: rgba(140, 224, 255, 0.1);
+  color: var(--accent);
+}
+
+.location-overview .slot-block__remove:hover,
+.location-overview .slot-block__remove:focus-visible {
+  background: rgba(255, 138, 107, 0.12);
+  color: var(--danger);
+}
+
+.location-overview .slot-block__inspect:focus-visible,
+.location-overview .slot-block__remove:focus-visible {
+  position: relative;
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.location-overview .slot-block.empty {
+  display: flex;
+  min-height: 24px;
+  align-items: center;
+  padding: 2px 6px;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.location-overview .bay-armour-read {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: auto;
+  color: var(--muted);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+.location-overview .bay-armour-read strong {
+  color: var(--text);
+}
+
+.location-overview .bay-armour-read span:not(:last-child)::after {
+  margin-left: 4px;
+  color: rgba(255, 255, 255, 0.2);
+  content: '\00b7';
+}
+
+@media (min-width: 1680px) {
+  .location-overview {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+  .bay-grid.location-workbench {
+    grid-template-rows: none;
+    overflow: visible;
+  }
+
+  .location-workbench__guide {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .location-fit-steps li {
+    grid-template-columns: 22px minmax(0, 1fr);
+    min-height: 44px;
+  }
+
+  .location-fit-steps li > span {
+    width: 22px;
+    height: 22px;
+  }
+
+  .location-fit-steps small {
+    display: none;
+  }
+
+  .location-workbench__status {
+    font-size: 11px;
+  }
+
+  .location-flag,
+  .location-overview .bay-armour-read {
+    font-size: 10px;
+  }
+
+  .location-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+    padding: 0;
+  }
+
+  .location-overview > .bay-location {
+    padding: 6px;
+  }
+
+  .location-overview .slot-block,
+  .location-overview .slot-block__inspect,
+  .location-overview .slot-block__remove {
+    min-height: 44px;
+  }
+
+  .location-overview .slot-block__inspect,
+  .location-overview .slot-block__remove,
+  .slot-block__inspect > small {
+    font-size: 11px;
+  }
+
+  .location-overview .slot-block__remove {
+    min-width: 58px;
+    padding-right: 5px;
+    padding-left: 5px;
+  }
+
+  .location-overview .slot-block.empty {
+    display: none;
+  }
+}

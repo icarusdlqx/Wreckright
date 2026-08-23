@@ -53,6 +53,24 @@ describe('damage presentation ledger', () => {
     });
   });
 
+  it('presents a zero-point rear face as structure damage', () => {
+    const world = testWorld('damage-ledger-zero-rear');
+    const target = unitOf(world, 'sentinel_brawler');
+    const torso = target.locations.centre_torso;
+    torso.armour = 30;
+    torso.rearArmour = 0;
+    torso.rearArmourMax = 0;
+    torso.internal = 20;
+    const ledger = new DamageLedger(world);
+
+    expect(torso.hasRearArmourFace).toBe(true);
+    expect(ledger.classify(world, hit(target.id, 5, 'rear'))).toEqual({
+      armour: 0,
+      structure: 5,
+      known: true,
+    });
+  });
+
   it('resyncs from the authoritative world between event batches', () => {
     const world = testWorld('damage-ledger-sync');
     const target = unitOf(world, 'sentinel_brawler');

@@ -1,9 +1,26 @@
 import { LOCATIONS, type MechLocation } from '../schema/common';
 import type { Design } from '../schema/design';
+import { validateDesign } from '../schema/designValidation';
 import type { Catalog } from '../schema/load';
-import { computeLoadout, maximiseArmour } from '../sim/loadout';
+import { armourFacesForDesign, carryArmourDamage } from '../sim/designArmour';
+import { maximiseArmour } from '../sim/loadout';
 import { pristineCondition, startRepair } from './repair';
-import { addToStore, storeCount, takeFromStore, type CampaignState, type MechRecord } from './types';
+import {
+  quoteRefit,
+  refitAvailability,
+  settleRefitQuote,
+  type RefitQuote,
+} from './refitQuote';
+import { addToStore, takeFromStore, type CampaignState, type MechRecord } from './types';
+
+export { quoteRefit, refitAvailability } from './refitQuote';
+export type {
+  RefitAvailability,
+  RefitPartRole,
+  RefitQuote,
+  RefitShortage,
+  RefitStockLine,
+} from './refitQuote';
 
 export interface RefitResult {
   ok: boolean;
@@ -20,7 +37,11 @@ function copy(design: Design): Design {
  * pointing at the old numbers. Rescale it rather than replacing it: a refit is
  * bolting a gun on, not a free rebuild, and the damage has to survive it.
  */
-function rescaleCondition(catalog: Catalog, mech: MechRecord, design: Design): void {
+function rescaledCondition(
+  catalog: Catalog,
+  mech: MechRecord,
+  design: Design,
+): MechRecord['condition'] {
   const fresh = pristineCondition(catalog, design);
   const next = { ...fresh };
 
@@ -28,15 +49,30 @@ function rescaleCondition(catalog: Catalog, mech: MechRecord, design: Design): v
     const was = mech.condition[location];
     const now = fresh[location];
     if (was === undefined || now === undefined) continue;
+    const previousMax = armourFacesForDesign(
+      catalog.rules.construction,
+      mech.design,
+      location,
+    );
+    const nextMax = armourFacesForDesign(catalog.rules.construction, design, location);
+    const carried = carryArmourDamage(
+      { front: was.armour, rear: was.rearArmour },
+      previousMax,
+      nextMax,
+    );
     next[location] = {
-      armour: Math.min(was.armour, now.armour),
-      rearArmour: Math.min(was.rearArmour, now.rearArmour),
+      armour: carried.front,
+      rearArmour: carried.rear,
       internal: Math.min(was.internal, now.internal),
       destroyed: was.destroyed,
     };
   }
 
-  mech.condition = next;
+  return next;
+}
+
+function rescaleCondition(catalog: Catalog, mech: MechRecord, design: Design): void {
+  mech.condition = rescaledCondition(catalog, mech, design);
 }
 
 function withWeapon(design: Design, weaponId: string, location: MechLocation): Design {
@@ -72,13 +108,13 @@ export function planFit(
 
     if (weapon.ammoPerTon !== null && !candidate.ammo.some((e) => e.weaponId === weaponId)) {
       const withRounds = withAmmo(candidate, weaponId, location);
-      if (computeLoadout(catalog, maximiseArmour(catalog, withRounds)).valid) {
+      if (validateDesign(catalog, maximiseArmour(catalog, withRounds)).valid) {
         candidate = withRounds;
       }
     }
 
     const balanced = maximiseArmour(catalog, candidate);
-    if (computeLoadout(catalog, balanced).valid) return { location, design: balanced };
+    if (validateDesign(catalog, balanced).valid) return { location, design: balanced };
   }
 
   return null;
@@ -107,8 +143,8 @@ export function fitFromStore(
     return { ok: false, reason: 'none of those in stores', location: null };
   }
 
-  mech.design = plan.design;
   rescaleCondition(catalog, mech, plan.design);
+  mech.design = plan.design;
   return { ok: true, reason: null, location: plan.location };
 }
 
@@ -134,10 +170,27 @@ export function stripToStore(
 
   const next = copy(mech.design);
   next.mounts.splice(mountIndex, 1);
+  if (!next.mounts.some((candidate) => candidate.weaponId === mount.weaponId)) {
+    next.ammo = next.ammo.filter((bin) => bin.weaponId !== mount.weaponId);
+  }
 
-  mech.design = maximiseArmour(catalog, next);
-  rescaleCondition(catalog, mech, mech.design);
-  addToStore(state, 'weapon', mount.weaponId);
+  const fitted = maximiseArmour(catalog, next);
+  const report = validateDesign(catalog, fitted);
+  if (!report.valid) {
+    const issue = report.issues.find((entry) => entry.severity === 'error');
+    return {
+      ok: false,
+      reason: issue?.message ?? 'stripping that weapon would leave an illegal build',
+      location: issue?.location ?? null,
+    };
+  }
+
+  const condition = rescaledCondition(catalog, mech, fitted);
+  const storeDraft = { ...state, store: state.store.map((item) => ({ ...item })) };
+  addToStore(storeDraft, 'weapon', mount.weaponId);
+  state.store = storeDraft.store;
+  mech.design = fitted;
+  mech.condition = condition;
 
   return { ok: true, reason: null, location: mount.location };
 }
@@ -159,33 +212,32 @@ export function rebuildHulk(
   return { ok: result.ok, reason: result.reason, location: null };
 }
 
-/** How many of each item a design has bolted to it, by item id. */
-function billOfMaterials(design: Design): Map<string, number> {
-  const bill = new Map<string, number>();
-  const add = (id: string, count = 1): void => {
-    bill.set(id, (bill.get(id) ?? 0) + count);
-  };
-  add(design.heatSinkId, design.heatSinks);
-  for (const mount of design.mounts) add(mount.weaponId);
-  for (const fit of design.equipment) add(fit.equipmentId);
-  return bill;
-}
-
 /** What the company can put on a mech: its stores, plus what is already on it. */
 export function refitInventory(
   state: CampaignState,
   mech: MechRecord,
 ): Map<string, number> {
+  const typed = refitAvailability(state, mech);
   const available = new Map<string, number>();
-  for (const item of state.store) {
-    available.set(item.itemId, (available.get(item.itemId) ?? 0) + item.count);
-  }
-  // Anything already bolted on is available to move: taking it off puts it in
-  // the player's hand, not on the shelf, and the bay works from one list.
-  for (const [id, count] of billOfMaterials(mech.design)) {
-    available.set(id, (available.get(id) ?? 0) + count);
+  // Temporary bay adapter. Campaign quotes never use this kind-erasing view;
+  // the UI will move to refitAvailability once its shelf accepts typed stock.
+  for (const inventory of [typed.weapon, typed.equipment]) {
+    for (const [id, count] of inventory) {
+      available.set(id, (available.get(id) ?? 0) + count);
+    }
   }
   return available;
+}
+
+function shortageReason(catalog: Catalog, quote: RefitQuote): string {
+  const lines = quote.shortages.map((shortage) => {
+    const name = shortage.kind === 'weapon'
+      ? catalog.weapons.get(shortage.itemId)?.name
+      : catalog.equipment.get(shortage.itemId)?.name;
+    return `${shortage.missing} × ${name ?? shortage.itemId} ` +
+      `(need ${shortage.count}, hold ${shortage.available})`;
+  });
+  return `stores are short ${lines.join('; ')}`;
 }
 
 /**
@@ -213,42 +265,30 @@ export function applyRefit(
     return { ok: false, reason: 'that build is for a different chassis', location: null };
   }
 
-  const loadout = computeLoadout(catalog, next);
-  if (!loadout.valid) {
-    return { ok: false, reason: loadout.issues[0]?.message ?? 'the build is not legal', location: null };
+  const report = validateDesign(catalog, next);
+  if (!report.valid) {
+    const issue = report.issues.find((entry) => entry.severity === 'error');
+    return {
+      ok: false,
+      reason: issue?.message ?? 'the build is not legal',
+      location: issue?.location ?? null,
+    };
   }
 
-  const before = billOfMaterials(mech.design);
-  const after = billOfMaterials(next);
-  const ids = new Set([...before.keys(), ...after.keys()]);
-
-  // Check the whole bill before moving any of it, so a refused refit leaves
-  // the stores exactly as it found them.
-  const wanted: { id: string; count: number }[] = [];
-  for (const id of ids) {
-    const short = (after.get(id) ?? 0) - (before.get(id) ?? 0);
-    if (short <= 0) continue;
-    const kind = catalog.weapons.has(id) ? 'weapon' : 'equipment';
-    if (storeCount(state, kind, id) < short) {
-      const name = catalog.weapons.get(id)?.name ?? catalog.equipment.get(id)?.name ?? id;
-      return {
-        ok: false,
-        reason: `stores hold ${storeCount(state, kind, id)} × ${name}; the build needs ${short} more`,
-        location: null,
-      };
-    }
-    wanted.push({ id, count: short });
+  const quote = quoteRefit(state, mech.design, next);
+  if (!quote.ok) {
+    return { ok: false, reason: shortageReason(catalog, quote), location: null };
   }
 
-  for (const { id, count } of wanted) {
-    takeFromStore(state, catalog.weapons.has(id) ? 'weapon' : 'equipment', id, count);
-  }
-  for (const id of ids) {
-    const spare = (before.get(id) ?? 0) - (after.get(id) ?? 0);
-    if (spare > 0) addToStore(state, catalog.weapons.has(id) ? 'weapon' : 'equipment', id, spare);
+  const settledStore = settleRefitQuote(state.store, quote);
+  if (settledStore === null) {
+    return { ok: false, reason: 'stores changed before the refit could be booked', location: null };
   }
 
-  mech.design = JSON.parse(JSON.stringify(next)) as Design;
-  rescaleCondition(catalog, mech, mech.design);
+  const fitted = copy(next);
+  const condition = rescaledCondition(catalog, mech, fitted);
+  state.store = settledStore;
+  mech.design = fitted;
+  mech.condition = condition;
   return { ok: true, reason: null, location: null };
 }

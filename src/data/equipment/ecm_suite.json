@@ -6,6 +6,6 @@
   "tonnage": 1.5,
   "slots": 2,
   "cost": 200000,
-  "stats": { "incoming_accuracy_factor": 0.85, "radius": 120 },
+  "stats": { "incoming_accuracy_factor": 0.85 },
   "tags": []
 }

@@ -4,6 +4,7 @@ import {
   verifyTouchOrders,
 } from './touch-battle.mjs';
 import { engageTrainingOpticalContact } from './training-flow.mjs';
+import { runMobileMechbayJourney } from './mobile-mechbay.mjs';
 
 const PORTRAIT = { width: 390, height: 844 };
 const LANDSCAPE = { width: 844, height: 390 };
@@ -250,71 +251,14 @@ async function runOrientation({ browser, url, shots, check, viewport, label, sho
     await page.locator('[data-testid="open-mechbay"]').tap();
     await page.waitForSelector('[data-testid="mechbay"]');
 
-    const bay = await overflowOf(page, '[data-testid="mechbay"]');
-    check(`${prefix} mechbay is one column`, await oneColumn(page, '[data-testid="mechbay"]'));
-    check(
-      `${prefix} mechbay has no horizontal overflow`,
-      bay.scrollWidth <= bay.clientWidth + 1,
-      `${bay.scrollWidth}/${bay.clientWidth}`,
-    );
-    const bayPanelOrder = await page.evaluate(() => ({
-      hardpoints: document.querySelector('.bay-grid')?.getBoundingClientRect().top ?? Infinity,
-      shelf: document.querySelector('.bay-side')?.getBoundingClientRect().top ?? -Infinity,
-    }));
-    check(
-      `${prefix} mechbay puts hardpoints before the weapon shelf`,
-      bayPanelOrder.hardpoints < bayPanelOrder.shelf,
-      `${bayPanelOrder.hardpoints}/${bayPanelOrder.shelf}`,
-    );
-    await page.screenshot({ path: `${shots}/14-mobile-${shotLabel}-mechbay-preview.png` });
-    const beforeFit = await page.locator('[data-testid="free-tonnage"]').innerText();
-    await page.locator('[data-testid="bay-location-right_torso"] .bay-location-name').tap();
-    check(
-      `${prefix} mechbay hardpoint selection filters the shelf`,
-      (await page.locator('[data-testid="bay-location-filter"]').count()) === 1,
-    );
-    const mobileWeapon = page.locator('[data-testid="stock-weapon-medium_laser"]');
-    await mobileWeapon.scrollIntoViewIfNeeded();
-    check(
-      `${prefix} filtered weapon card is visibly reachable`,
-      await mobileWeapon.evaluate((element) => {
-        const bounds = element.getBoundingClientRect();
-        return bounds.width > 0 && bounds.height > 0 && bounds.top >= 0 && bounds.bottom <= innerHeight;
-      }),
-    );
-    await page.screenshot({ path: `${shots}/14-mobile-${shotLabel}-mechbay-shelf.png` });
-    await mobileWeapon.tap();
-    await page.waitForFunction(
-      () => document.activeElement?.closest('[data-testid="bay-location-right_torso"]') !== null,
-    );
-    check(
-      `${prefix} mechbay shelf arms only a compatible target`,
-      (await page.locator('[data-testid="bay-armed"]').count()) === 1 &&
-        (await page.locator('.bay-location.armed-target').count()) === 1 &&
-        (await page.locator('[data-testid="bay-location-right_torso"].armed-target').count()) === 1,
-    );
-    check(
-      `${prefix} mechbay placement banner spans the hardpoint grid`,
-      await page.locator('[data-testid="bay-armed"]').evaluate((banner) => {
-        const bannerBounds = banner.getBoundingClientRect();
-        const gridBounds = banner.parentElement?.getBoundingClientRect();
-        return gridBounds !== undefined && Math.abs(bannerBounds.width - gridBounds.width) <= 2;
-      }),
-    );
-    await page.screenshot({ path: `${shots}/14-mobile-${shotLabel}-mechbay-placement.png` });
-    await page.locator('[data-testid="bay-location-right_torso"]').tap();
-    const afterFit = await page.locator('[data-testid="free-tonnage"]').innerText();
-    check(
-      `${prefix} mechbay location accepts the armed item`,
-      beforeFit !== afterFit && (await page.locator('[data-testid="bay-armed"]').count()) === 0,
-      `${beforeFit} → ${afterFit}`,
-    );
-    await page.locator('[data-testid="bay-save"]').scrollIntoViewIfNeeded();
-    check(`${prefix} mechbay actions remain reachable`, await fullyInViewport(page, '[data-testid="bay-save"]'));
-    await page.screenshot({ path: `${shots}/14-mobile-${shotLabel}-mechbay.png` });
-    await page.locator('[data-testid="bay-exit"]').tap();
-    await page.waitForSelector('[data-testid="briefing"]');
-    check(`${prefix} mechbay exit remains reachable`, true);
+    await runMobileMechbayJourney({
+      page,
+      check,
+      prefix,
+      shots,
+      shotLabel,
+      viewport,
+    });
     check(`${prefix} reports no page errors`, errors.length === 0, errors.slice(0, 3).join(' | '));
   } finally {
     await context.close();

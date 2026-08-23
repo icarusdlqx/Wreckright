@@ -169,6 +169,29 @@ describe('validation', () => {
     ).toBe(true);
   });
 
+  it('rejects payload hidden in frame locations that authored attacks cannot hit', () => {
+    const courser = clone('courser_patrol');
+    const bin = courser.ammo[0];
+    if (bin === undefined) throw new Error('missing Courser ammunition fixture');
+    bin.location = 'left_arm';
+    const redoubt = clone('redoubt_emplacement');
+    const containment = redoubt.equipment[0];
+    if (containment === undefined) throw new Error('missing Redoubt equipment fixture');
+    containment.location = 'left_leg';
+
+    for (const [design, location] of [
+      [courser, 'left_arm'],
+      [redoubt, 'left_leg'],
+    ] as const) {
+      const loadout = computeLoadout(catalog, design);
+      expect(loadout.perLocation[location].slotsAvailable).toBe(0);
+      expect(loadout.issues).toContainEqual(expect.objectContaining({
+        code: 'slots',
+        location,
+      }));
+    }
+  });
+
   it('rejects armour above the chassis maximum', () => {
     const design = clone('sentinel_brawler');
     design.armour.head += 100;
@@ -190,7 +213,9 @@ describe('validation', () => {
   it('rejects ammo for a weapon that uses none', () => {
     const design = clone('sentinel_brawler');
     design.ammo.push({ weaponId: 'medium_laser', location: 'right_torso', tons: 1 });
-    expect(computeLoadout(catalog, design).issues.some((issue) => issue.code === 'ammo')).toBe(true);
+    expect(
+      computeLoadout(catalog, design).issues.some((issue) => issue.code === 'energy_ammo'),
+    ).toBe(true);
   });
 
   it('reports an unknown chassis without throwing', () => {

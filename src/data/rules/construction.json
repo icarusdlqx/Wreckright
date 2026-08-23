@@ -72,6 +72,23 @@
       "centre_torso",
       "left_torso",
       "right_torso"
+    ],
+    "presets": [
+      {
+        "id": "front_facing",
+        "label": "Front-facing",
+        "fraction": 0.15
+      },
+      {
+        "id": "balanced",
+        "label": "Balanced",
+        "fraction": 0.25
+      },
+      {
+        "id": "rear_guard",
+        "label": "Rear guard",
+        "fraction": 0.35
+      }
     ]
   },
   "weaponSizeTonnage": [

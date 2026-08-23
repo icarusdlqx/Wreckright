@@ -152,8 +152,9 @@ export function applyDamage(
       continue;
     }
 
-    // A leg has no back, so rear fire on one meets the only plate it has.
-    const plate = face === 'rear' && state.rearArmourMax > 0 ? 'rearArmour' : 'armour';
+    // A leg has no back, so rear fire on one meets the only plate it has. A
+    // torso with zero rear points still has a rear face; it is simply bare.
+    const plate = face === 'rear' && state.hasRearArmourFace ? 'rearArmour' : 'armour';
     if (state[plate] > 0) {
       const applied = Math.min(state[plate], remaining);
       state[plate] -= applied;

@@ -44,8 +44,8 @@ function Cell({
   const internal = state.internalMax === 0 ? 0 : state.internal / state.internalMax;
   // Only the torsos have a back, so only three cells grow a third bar. The bar
   // lives inside the button because the cell is the called-shot control.
-  const hasBack = state.rearArmourMax > 0;
-  const rear = hasBack ? state.rearArmour / state.rearArmourMax : 0;
+  const hasBack = state.hasRearArmourFace;
+  const rear = state.rearArmourMax === 0 ? 0 : state.rearArmour / state.rearArmourMax;
   const classes = ['doll-cell'];
   if (state.destroyed) classes.push('destroyed');
   if (active) classes.push('active');
