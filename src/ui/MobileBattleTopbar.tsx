@@ -1,19 +1,14 @@
 import type { BattleTopbarProps } from './BattleTopbar';
-import { SetupToolbar } from './BattleSetup';
+import { BattleMenu } from './BattleMenu';
 import { formatMissionClock, missionClockUrgency } from './missionClock';
-import { usePlaytest } from './playtest';
 import { useGame } from './store';
 import { trainingShowsFullHud } from './trainingPresentation';
 
 export function MobileBattleTopbar(props: BattleTopbarProps) {
   const state = useGame();
-  const { openFeedback } = usePlaytest();
   const fullHud = trainingShowsFullHud(props.trainingStep ?? null);
   const remainingSeconds = Math.max(0, state.missionDurationSeconds - state.elapsedSeconds);
   const speed = state.speed === 1 ? 2 : state.speed === 2 ? 4 : 1;
-  const lockedTitle = state.campaignPending
-    ? 'The lance is in the field — resolve the contract first.'
-    : 'The lance is in the field — choose a mission to leave this run.';
 
   return (
     <header
@@ -51,93 +46,8 @@ export function MobileBattleTopbar(props: BattleTopbarProps) {
         >
           {state.speed}×
         </button>
-      ) : (
-        <button
-          type="button"
-          className="pause"
-          onClick={() => props.onMuted(props.engine?.audio.toggleMuted() ?? false)}
-          title={props.muted ? 'Sound is off' : 'Sound is on'}
-          data-testid="mute-button"
-        >
-          {props.muted ? '\u{1F507}' : '\u{1F50A}'}
-        </button>
-      )}
-      {fullHud ? (
-        <details className="mobile-battle-menu">
-          <summary data-testid="mobile-menu-toggle">Menu</summary>
-          <div className="mobile-menu-sheet" data-testid="mobile-menu-sheet">
-            <strong>{state.missionName}</strong>
-            <div className="mobile-menu-buttons">
-              <button
-                type="button"
-                className="pause"
-                onClick={() => props.onMuted(props.engine?.audio.toggleMuted() ?? false)}
-                data-testid="mute-button"
-              >
-                {props.muted ? 'Sound off' : 'Sound on'}
-              </button>
-              <button
-                type="button"
-                className={`pause ${props.lowFx ? 'active' : ''}`}
-                onClick={() => props.onLowFx(props.engine?.toggleLowFx() ?? false)}
-                data-testid="fx-toggle"
-              >
-                {props.lowFx ? 'FX low' : 'FX full'}
-              </button>
-              <button
-                type="button"
-                className="pause"
-                disabled={props.locked}
-                title={props.locked ? lockedTitle : ''}
-                onClick={() => state.patch({ screen: 'mechbay' })}
-                data-testid="open-mechbay"
-              >
-                Mechbay
-              </button>
-              <button
-                type="button"
-                className="pause"
-                disabled={props.locked}
-                title={props.locked ? lockedTitle : ''}
-                onClick={() => state.patch({ screen: 'campaign' })}
-                data-testid="open-campaign"
-              >
-                Campaign
-              </button>
-            </div>
-            <SetupToolbar
-              missionId={props.setupMissionId}
-              difficultyId={props.setupDifficultyId}
-              missions={props.missions}
-              difficulties={props.difficulties}
-              campaignMissionName={state.campaignPending ? state.missionName : null}
-              locked={props.locked}
-              showActions={props.locked && !state.finished}
-              onMission={props.onMission}
-              onDifficulty={props.onDifficulty}
-              onRestart={props.onRestart}
-              onChooseMission={props.onChooseMission}
-            />
-            <button
-              type="button"
-              className="pause feedback-link"
-              onClick={openFeedback}
-              data-testid="feedback-link"
-            >
-              Feedback
-            </button>
-          </div>
-        </details>
-      ) : (
-        <button
-          type="button"
-          className={`pause ${props.lowFx ? 'active' : ''}`}
-          onClick={() => props.onLowFx(props.engine?.toggleLowFx() ?? false)}
-          data-testid="fx-toggle"
-        >
-          {props.lowFx ? 'FX low' : 'FX full'}
-        </button>
-      )}
+      ) : null}
+      <BattleMenu {...props} fullHud={fullHud} variant="mobile" />
     </header>
   );
 }

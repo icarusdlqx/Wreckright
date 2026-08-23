@@ -144,6 +144,76 @@ async function entityPoint(page, id) {
   }, id);
 }
 
+export async function verifyTouchDockControls({ page, check, prefix }) {
+  await page.locator('[data-testid="mobile-tab-support"]').tap();
+  check(
+    `${prefix} support tab embeds the three calls without another drawer`,
+    (await page.locator('[data-testid="mobile-tray-support"] [data-testid="support-palette"]').isVisible()) &&
+      (await page.locator('[data-testid="mobile-tray-support"] .support-call').count()) === 3 &&
+      (await page.locator('[data-testid="mobile-tray-support"] [data-testid="support-toggle"]').count()) === 0,
+  );
+
+  await page.locator('[data-testid="mobile-tab-orders"]').tap();
+  check(
+    `${prefix} keeps advanced orders behind Tactics`,
+    (await page.locator('[data-testid="tactics-toggle"]').isVisible()) &&
+      !(await page.locator('[data-testid="command-hold_fire"]').isVisible()),
+  );
+  await page.locator('[data-testid="tactics-toggle"]').tap();
+  check(
+    `${prefix} Tactics reveals advanced orders and formation`,
+    (await page.locator('[data-testid="command-hold_fire"]').isVisible()) &&
+      (await page.locator('.tactics-formation').isVisible()),
+  );
+  await page.locator('[data-testid="tactics-toggle"]').tap();
+
+  check(
+    `${prefix} hides Queue and Cancel until an order is armed`,
+    (await page.locator('[data-testid="mobile-queue"]').count()) === 0 &&
+      (await page.locator('[data-testid="mobile-cancel"]').count()) === 0,
+  );
+  await page.locator('[data-testid="command-move"]').tap();
+  check(
+    `${prefix} order palette arms a move and reveals route actions`,
+    (await page.evaluate(() => globalThis.__ironline.useGame.getState().orderMode)) === 'move' &&
+      (await page.locator('[data-testid="command-move"]').getAttribute('aria-pressed')) === 'true' &&
+      (await page.locator('[data-testid="mobile-queue"]').isVisible()) &&
+      (await page.locator('[data-testid="mobile-cancel"]').isVisible()),
+  );
+  await page.locator('[data-testid="mobile-queue"]').tap();
+  check(
+    `${prefix} queue mode arms from the dock`,
+    await page.evaluate(() => globalThis.__ironline.useGame.getState().queueOrders),
+  );
+  await page.locator('[data-testid="mobile-cancel"]').tap();
+  check(
+    `${prefix} cancel clears the route and hides transient actions`,
+    !(await page.evaluate(() => globalThis.__ironline.useGame.getState().queueOrders)) &&
+      (await page.evaluate(() => globalThis.__ironline.useGame.getState().orderMode)) === null &&
+      (await page.locator('[data-testid="mobile-queue"]').count()) === 0 &&
+      (await page.locator('[data-testid="mobile-cancel"]').count()) === 0,
+  );
+
+  await page.locator('[data-testid="command-move"]').tap();
+  await page.locator('[data-testid="mobile-queue"]').tap();
+  await page.locator('[data-testid="command-attack"]').tap();
+  check(
+    `${prefix} switching to a target order clears queued routing`,
+    !(await page.evaluate(() => globalThis.__ironline.useGame.getState().queueOrders)) &&
+      (await page.evaluate(() => globalThis.__ironline.useGame.getState().orderMode)) === 'attack' &&
+      (await page.locator('[data-testid="mobile-queue"]').count()) === 0 &&
+      (await page.locator('[data-testid="mobile-cancel"]').isVisible()),
+  );
+  await page.locator('[data-testid="mobile-cancel"]').tap();
+  check(
+    `${prefix} cancel clears an armed order`,
+    (await page.evaluate(() => globalThis.__ironline.useGame.getState().orderMode)) === null &&
+      (await page.locator('[data-testid="command-attack"]').getAttribute('aria-pressed')) === 'false' &&
+      (await page.locator('[data-testid="mobile-queue"]').count()) === 0 &&
+      (await page.locator('[data-testid="mobile-cancel"]').count()) === 0,
+  );
+}
+
 export async function verifyTouchNavigation({ page, check, prefix }) {
   const firstLance = page.locator('[data-testid="lance-bar"] button').first();
   await firstLance.tap();

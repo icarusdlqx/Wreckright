@@ -17,12 +17,10 @@ export async function checkBriefingInputSafety({
   const compactDesktop = await page.evaluate(() => {
     const hitIds = [
       'pause-button',
-      'fx-toggle',
-      'open-mechbay',
-      'open-campaign',
-      'difficulty-picker',
-      'mission-picker',
-      'feedback-link',
+      'speed-1',
+      'speed-2',
+      'speed-4',
+      'desktop-menu-toggle',
     ];
     const blocked = hitIds.filter((testId) => {
       const target = document.querySelector(`[data-testid="${testId}"]`);
@@ -31,20 +29,64 @@ export async function checkBriefingInputSafety({
       const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
       return hit === null || !target.contains(hit);
     });
-    const hint = document.querySelector('.topbar .hint');
     const topbar = document.querySelector('[data-testid="topbar"]');
+    const children = topbar instanceof HTMLElement
+      ? [...topbar.children]
+          .filter((child) => child instanceof HTMLElement && getComputedStyle(child).display !== 'none')
+          .map((child) => child.getBoundingClientRect())
+      : [];
+    const centres = children.map((rect) => rect.top + rect.height / 2);
+    const overlaps = children.flatMap((left, index) =>
+      children.slice(index + 1).filter((right) =>
+        left.left < right.right && left.right > right.left && left.top < right.bottom && left.bottom > right.top,
+      ),
+    );
     return {
       blocked,
-      hintHidden: hint === null || getComputedStyle(hint).display === 'none',
       fits: topbar instanceof HTMLElement && topbar.scrollWidth <= topbar.clientWidth + 1,
+      height: topbar instanceof HTMLElement ? topbar.getBoundingClientRect().height : Infinity,
+      oneLine:
+        centres.length > 0 && Math.max(...centres) - Math.min(...centres) <= 2,
+      overlaps: overlaps.length,
     };
   });
   check(
-    '1280px briefing leaves desktop navigation on top',
+    '1280px briefing leaves the primary battle controls on top',
     compactDesktop.blocked.length === 0,
     compactDesktop.blocked.join(', '),
   );
-  check('1280px topbar fits without a shortcut column', compactDesktop.hintHidden && compactDesktop.fits);
+  check(
+    '1280px topbar is one line with no overlap',
+    compactDesktop.fits && compactDesktop.oneLine && compactDesktop.overlaps === 0 && compactDesktop.height <= 54,
+    JSON.stringify(compactDesktop),
+  );
+  check(
+    'desktop secondary controls are closed by default',
+    !(await page.locator('[data-testid="desktop-menu-sheet"]').isVisible()),
+  );
+  await openDesktopBattleMenu(page);
+  const secondaryControls = await page.evaluate(() => {
+    const ids = [
+      'fx-toggle',
+      'open-mechbay',
+      'open-campaign',
+      'difficulty-picker',
+      'mission-picker',
+      'feedback-link',
+    ];
+    return ids.filter((testId) => {
+      const target = document.querySelector(`[data-testid="${testId}"]`);
+      if (!(target instanceof HTMLElement)) return true;
+      const rect = target.getBoundingClientRect();
+      const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      return hit === null || !target.contains(hit);
+    });
+  });
+  check(
+    '1280px battle menu exposes every secondary control above the field',
+    secondaryControls.length === 0,
+    secondaryControls.join(', '),
+  );
   await page.screenshot({ path: `${shots}/01-boot-1280x720.png` });
 
   const predeployUnit = await page.evaluate(() => {
@@ -112,7 +154,20 @@ export async function clearControlFocus(page) {
   });
 }
 
+export async function openDesktopBattleMenu(page) {
+  const sheet = page.locator('[data-testid="desktop-menu-sheet"]');
+  if (!(await sheet.isVisible())) await page.locator('[data-testid="desktop-menu-toggle"]').click();
+  await sheet.waitFor({ state: 'visible' });
+}
+
+export async function closeDesktopBattleMenu(page) {
+  const sheet = page.locator('[data-testid="desktop-menu-sheet"]');
+  if (await sheet.isVisible()) await page.locator('[data-testid="desktop-menu-toggle"]').click();
+  await sheet.waitFor({ state: 'hidden' });
+}
+
 export async function checkDeployedInputSafety({ page, check, state }) {
+  await openDesktopBattleMenu(page);
   const fxToggle = page.locator('[data-testid="fx-toggle"]');
   const fxBefore = await fxToggle.innerText();
   const pauseBeforeFx = (await state(page)).paused;
@@ -130,4 +185,5 @@ export async function checkDeployedInputSafety({ page, check, state }) {
     );
   });
   check('a repeated toggle key does not change pause', (await state(page)).paused === pauseBeforeFx);
+  await closeDesktopBattleMenu(page);
 }

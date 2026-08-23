@@ -13,6 +13,7 @@ import {
   type HeatTier,
 } from './audioCues';
 import { AudioGraph, type VoicePlacement } from './audioGraph';
+import { playSupportResolution } from './audioSupport';
 import {
   playAbility,
   playAlphaStrike,
@@ -249,6 +250,15 @@ export class AudioDirector {
         case 'jump_landed':
           if (canPresentEntity(world, event.entityId)) {
             playLanding(graph, this.placementAt({ x: event.x, y: event.y }), 1);
+          }
+          break;
+        case 'support_resolved':
+          if (event.team === (world.playerTeam ?? 0)) {
+            playSupportResolution(
+              graph,
+              event.call,
+              this.placementAt({ x: event.x, y: event.y }),
+            );
           }
           break;
         case 'zone_captured':

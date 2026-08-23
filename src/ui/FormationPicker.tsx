@@ -25,7 +25,9 @@ export function FormationPicker({ value, compact = false, onChange }: FormationP
       <select
         aria-label="Formation at destination"
         value={value}
-        onKeyDown={(event) => event.stopPropagation()}
+        onKeyDown={(event) => {
+          if (event.key !== 'Escape') event.stopPropagation();
+        }}
         onKeyUp={(event) => event.stopPropagation()}
         onChange={(event) => {
           if (isFormationPreset(event.currentTarget.value)) onChange(event.currentTarget.value);

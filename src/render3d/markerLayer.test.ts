@@ -1,5 +1,6 @@
-import { BufferAttribute, Line, Mesh } from 'three';
+import { BufferAttribute, Line, Mesh, RingGeometry } from 'three';
 import { describe, expect, it } from 'vitest';
+import { playerWorld } from '../../tests/support';
 import type { World } from '../sim/types';
 import { MarkerLayer, type MarkerViewState } from './markerLayer';
 
@@ -56,6 +57,50 @@ describe('support placement markers', () => {
     expect(points.getZ(2)).toBe(423);
     expect(points.getX(4)).toBe(points.getX(0));
     expect(points.getZ(4)).toBe(points.getZ(0));
+    layer.dispose();
+  });
+
+  it('does not disclose an enemy support call through the marker layer', () => {
+    const layer = new MarkerLayer(() => 0, () => null);
+    layer.draw({
+      ...emptyWorld,
+      support: {
+        pending: [{
+          call: 'air_strike', team: 1, target: { x: 400, y: 400 }, heading: 0, resolveTick: 80,
+        }],
+        trucks: [],
+        minefields: [],
+      },
+    }, baseView);
+
+    expect(layer.group.children.some((child) => child instanceof Mesh && child.visible)).toBe(false);
+    layer.dispose();
+  });
+
+  it('uses the authored repair radius and leaves air lanes to support presentation', () => {
+    const world = playerWorld('pending-support-markers');
+    world.support.pending.push({
+      call: 'repair_truck',
+      team: world.playerTeam ?? 0,
+      target: { x: 300, y: 420 },
+      heading: 0,
+      resolveTick: 80,
+    });
+    const layer = new MarkerLayer(() => 0, () => null);
+    layer.draw(world, baseView);
+    const repair = layer.group.children.find((child) => child instanceof Mesh && child.visible) as Mesh;
+    expect((repair.geometry as RingGeometry).parameters.innerRadius)
+      .toBeCloseTo(world.rules.support.repair_truck.radius - 1.6);
+
+    world.support.pending[0] = {
+      call: 'air_strike',
+      team: world.playerTeam ?? 0,
+      target: { x: 300, y: 420 },
+      heading: 0,
+      resolveTick: 80,
+    };
+    layer.draw(world, baseView);
+    expect(layer.group.children.some((child) => child instanceof Mesh && child.visible)).toBe(false);
     layer.dispose();
   });
 });

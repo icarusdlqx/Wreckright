@@ -16,6 +16,19 @@ interface TouchInputOptions {
   onPinchStart: () => void;
 }
 
+/** A rejected call stays armed so the player can correct its target or budget. */
+export function clearSupportModeOnSuccess(
+  result: { ok: boolean; reason: string | null },
+  clear: () => void,
+): void {
+  if (result.ok) {
+    useGame.setState({ supportNotice: null });
+    clear();
+  } else {
+    useGame.setState({ supportNotice: result.reason });
+  }
+}
+
 /** The phone's camera and order grammar, kept apart from mouse and keyboard state. */
 export class TouchInput {
   private readonly gesture = new TouchGesture();
@@ -121,13 +134,13 @@ export class TouchInput {
     if (aim !== null) {
       engine.supportAim = null;
       const result = engine.callSupport(aim.call, aim.at, aim.to);
-      if (result.ok) state.setSupportMode(null);
+      clearSupportModeOnSuccess(result, () => state.setSupportMode(null));
       return;
     }
 
     if (state.supportMode !== null) {
       const result = engine.callSupport(state.supportMode, world);
-      if (result.ok) state.setSupportMode(null);
+      clearSupportModeOnSuccess(result, () => state.setSupportMode(null));
       return;
     }
 

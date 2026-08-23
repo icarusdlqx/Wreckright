@@ -32,6 +32,7 @@ import {
 } from './sceneResources';
 import { buildTerrain, type TerrainMesh } from './terrain';
 import { UnitViews } from './unitViews';
+import { SupportEffects } from './supportEffects';
 
 export interface ViewState extends MarkerViewState {
   hovered: EntityId | null;
@@ -59,6 +60,7 @@ export class Renderer {
   private readonly fog: FogLayer;
   private readonly units: UnitViews;
   private readonly effects: BattleEffects;
+  private readonly supportEffects: SupportEffects;
   private readonly locomotion: Locomotion;
   private readonly markers: MarkerLayer;
   private readonly host: HTMLElement;
@@ -121,6 +123,14 @@ export class Renderer {
       },
     );
     this.effects.setPresentationMode(this.lowFx);
+    this.supportEffects = new SupportEffects(
+      this.terrain.heightAt,
+      (id) => this.units.positionOf(id),
+      this.camera.reducedMotion,
+      world.rules.support.air_strike.shots,
+    );
+    this.supportEffects.setPresentationMode(this.lowFx);
+    this.scene.add(this.supportEffects.group);
     this.locomotion = new Locomotion(
       this.terrain.heightAt,
       (at) => this.terrainAt(at),
@@ -184,6 +194,7 @@ export class Renderer {
     }
     configureRenderer(this.renderer, low, globalThis.devicePixelRatio ?? 1);
     this.effects.setPresentationMode(low);
+    this.supportEffects.setPresentationMode(low);
     this.resize();
     this.scene.traverse((node) => {
       const mesh = node as Mesh;
@@ -203,9 +214,10 @@ export class Renderer {
     if (this.destroyed) return;
     this.destroyed = true;
     this.effects.destroy();
+    this.supportEffects.dispose();
     this.units.dispose();
     this.markers.dispose();
-    this.scene.remove(this.markers.group, this.fog.mesh, this.props.group);
+    this.scene.remove(this.markers.group, this.supportEffects.group, this.fog.mesh, this.props.group);
     this.fog.dispose();
     this.props.dispose();
     disposeObjectResources(this.scene);
@@ -224,6 +236,7 @@ export class Renderer {
   consumeEvents(world: World, events: readonly SimEvent[]): void {
     this.units.consumeEvents(world, events);
     this.effects.consume(world, events);
+    this.supportEffects.consume(world, events);
   }
 
   draw(
@@ -269,6 +282,7 @@ export class Renderer {
     this.units.finishFrame();
 
     this.effects.finishFrame(presentationDelta);
+    this.supportEffects.draw(world, presentationDelta);
     this.markers.draw(world, view);
     if (world.tick !== this.visionTick) {
       this.visionTick = world.tick;

@@ -31,6 +31,7 @@ describe('battle entry', () => {
       missionStatus: 'failure',
       missionReason: 'old result',
       supportMode: 'air_strike',
+      supportNotice: 'old support warning',
       marquee: { x: 1, y: 2, width: 3, height: 4 },
     });
 
@@ -67,6 +68,7 @@ describe('battle entry', () => {
       missionStatus: 'active',
       missionReason: null,
       supportMode: null,
+      supportNotice: null,
       marquee: null,
     });
   });
@@ -75,5 +77,18 @@ describe('battle entry', () => {
     useGame.getState().patch({ log: ['old mission event'], selection: [7], ready: true });
     useGame.getState().patch(battleRemountState());
     expect(useGame.getState()).toMatchObject({ log: [], selection: [], ready: false });
+  });
+
+  it('keeps queued routing only while a route command can consume it', () => {
+    useGame.getState().patch({ queueOrders: true });
+    useGame.getState().setOrderMode('move');
+    expect(useGame.getState().queueOrders).toBe(true);
+
+    useGame.getState().setOrderMode('attack');
+    expect(useGame.getState().queueOrders).toBe(false);
+
+    useGame.getState().patch({ queueOrders: true });
+    useGame.getState().setSupportMode('sensor_probe');
+    expect(useGame.getState()).toMatchObject({ orderMode: null, queueOrders: false });
   });
 });

@@ -53,6 +53,8 @@ export function MobileBattleHud({
       }),
   );
   const armed = state.orderMode !== null || state.supportMode !== null || state.queueOrders;
+  const routeOrder =
+    state.orderMode === 'move' || state.orderMode === 'run' || state.orderMode === 'attack_move';
   const tabs: { id: DockPanel; label: string }[] = [];
   if (showsOrders) tabs.push({ id: 'orders', label: 'Orders' });
   if (fullHud) tabs.push({ id: 'support', label: `Support · ${state.resourcePoints}` });
@@ -132,7 +134,7 @@ export function MobileBattleHud({
             onSelect={(id) => state.setSelection([id])}
           />
           <CentreSelectionButton engine={engine} className="mobile-lance-action" />
-          {fullHud ? (
+          {fullHud && routeOrder ? (
             <button
               type="button"
               className={`mobile-lance-action ${state.queueOrders ? 'active' : ''}`}
@@ -143,11 +145,10 @@ export function MobileBattleHud({
               Queue
             </button>
           ) : null}
-          {trainingStep === 0 ? null : (
+          {trainingStep === 0 || !armed ? null : (
             <button
               type="button"
               className={`mobile-lance-action ${armed ? 'armed' : ''}`}
-              disabled={!armed}
               onClick={cancel}
               data-testid="mobile-cancel"
             >
@@ -209,7 +210,9 @@ export function MobileBattleHud({
                 options={supportOptions}
                 resourcePoints={state.resourcePoints}
                 active={state.supportMode}
+                notice={state.supportNotice}
                 reservesLeft={state.reservesLeft}
+                embedded
                 onPick={(call) => state.setSupportMode(state.supportMode === call ? null : call)}
               />
             ) : panel === 'contacts' ? (

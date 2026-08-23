@@ -9,6 +9,7 @@ import {
   RingGeometry,
 } from 'three';
 import { teamColour, UI } from '../render/palette';
+import type { PendingCall } from '../sim/support';
 import { isOperational, type EntityId, type MechEntity, type Vec2, type World } from '../sim/types';
 
 export interface MarkerViewState {
@@ -80,7 +81,8 @@ export class MarkerLayer {
     }
 
     for (const pending of world.support.pending) {
-      this.groundRing(pending.target, 26, UI.attackMarker, 0.85);
+      if (world.playerTeam !== null && pending.team !== world.playerTeam) continue;
+      this.pendingCall(world, pending);
     }
 
     if (view.supportRadius !== null) {
@@ -116,6 +118,20 @@ export class MarkerLayer {
       const line = this.pathPool[index];
       if (line !== undefined) line.visible = false;
     }
+  }
+
+  private pendingCall(world: World, pending: PendingCall): void {
+    if (pending.call === 'air_strike') return;
+    const radius = pending.call === 'sensor_probe'
+      ? world.rules.support.sensor_probe.radius
+      : pending.call === 'repair_truck'
+        ? world.rules.support.repair_truck.radius
+        : pending.call === 'artillery_strike'
+          ? world.rules.support.artillery_strike.radius
+          : pending.call === 'minelayer'
+            ? world.rules.support.minelayer.radius
+            : 26;
+    this.groundRing(pending.target, radius, UI.attackMarker, 0.85);
   }
 
   private weaponReaches(world: World, entity: MechEntity): void {

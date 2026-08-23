@@ -36,6 +36,11 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
   const onCommand = (command: Command): void => {
     if (engine === null) return;
 
+    const routeCommand = ['move', 'run', 'attack_move'].includes(command.id);
+    if (!routeCommand || state.orderMode === command.mode) {
+      state.patch({ queueOrders: false });
+    }
+
     if (command.id === 'hold_fire') {
       engine.toggleHoldFire();
       return;
@@ -105,40 +110,45 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
             onSelect={(id) => state.setSelection([id])}
           />
         </div>
-        {visibleCommands !== null && visibleCommands.size === 0 ? null : (
-          <CommandPalette
-            leading={
-              fullHud ? (
-                <FormationPicker
-                  value={state.formationPreset}
-                  onChange={state.setFormationPreset}
-                />
-              ) : undefined
-            }
-            visibleCommandIds={visibleCommands}
-            orderMode={state.orderMode}
-            enabled={playerControlled}
-            holdingFire={unit?.holdingFire ?? false}
-            heatSafety={unit?.heatSafety ?? false}
-            ability={unit?.ability ?? null}
-            alpha={unit?.alpha ?? null}
-            jump={
-              unit === null
-                ? null
-                : { ready: unit.canJump, range: unit.jumpRange, cooldown: unit.jumpCooldown }
-            }
-            posture={unit?.posture ?? 'free'}
-            onCommand={onCommand}
-          />
-        )}
-        {fullHud ? (
-          <SupportPalette
-            options={supportOptions}
-            resourcePoints={state.resourcePoints}
-            active={state.supportMode}
-            reservesLeft={state.reservesLeft}
-            onPick={(call) => state.setSupportMode(state.supportMode === call ? null : call)}
-          />
+        {fullHud || visibleCommands === null || visibleCommands.size > 0 ? (
+          <div className="command-support-row">
+            {visibleCommands !== null && visibleCommands.size === 0 ? null : (
+              <CommandPalette
+                leading={
+                  fullHud ? (
+                    <FormationPicker
+                      value={state.formationPreset}
+                      onChange={state.setFormationPreset}
+                    />
+                  ) : undefined
+                }
+                visibleCommandIds={visibleCommands}
+                orderMode={state.orderMode}
+                enabled={playerControlled}
+                holdingFire={unit?.holdingFire ?? false}
+                heatSafety={unit?.heatSafety ?? false}
+                ability={unit?.ability ?? null}
+                alpha={unit?.alpha ?? null}
+                jump={
+                  unit === null
+                    ? null
+                    : { ready: unit.canJump, range: unit.jumpRange, cooldown: unit.jumpCooldown }
+                }
+                posture={unit?.posture ?? 'free'}
+                onCommand={onCommand}
+              />
+            )}
+            {fullHud ? (
+              <SupportPalette
+                options={supportOptions}
+                resourcePoints={state.resourcePoints}
+                active={state.supportMode}
+                notice={state.supportNotice}
+                reservesLeft={state.reservesLeft}
+                onPick={(call) => state.setSupportMode(state.supportMode === call ? null : call)}
+              />
+            ) : null}
+          </div>
         ) : null}
       </footer>
     </>

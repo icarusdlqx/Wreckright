@@ -218,6 +218,7 @@ export interface GameState {
   missionStatus: 'active' | 'success' | 'failure';
   missionReason: string | null;
   supportMode: SupportCallId | null;
+  supportNotice: string | null;
   reservesLeft: number;
   /** The drag-select box in screen pixels, while one is open. */
   marquee: { x: number; y: number; width: number; height: number } | null;
@@ -271,6 +272,7 @@ export function battleRemountState() {
     missionStatus: 'active',
     missionReason: null,
     supportMode: null,
+    supportNotice: null,
     reservesLeft: 0,
     marquee: null,
     hitPreview: null,
@@ -313,6 +315,7 @@ export const useGame = create<GameState & GameActions>((set) => ({
   missionStatus: 'active',
   missionReason: null,
   supportMode: null,
+  supportNotice: null,
   reservesLeft: 0,
   marquee: null,
   hitPreview: null,
@@ -328,9 +331,16 @@ export const useGame = create<GameState & GameActions>((set) => ({
   setSelection: (ids) => set({ selection: ids }),
   assignControlGroup: (slot, ids) =>
     set((state) => ({ controlGroups: { ...state.controlGroups, [slot]: ids } })),
-  setOrderMode: (mode) => set({ orderMode: mode, supportMode: null }),
+  setOrderMode: (mode) =>
+    set((state) => ({
+      orderMode: mode,
+      supportMode: null,
+      queueOrders:
+        mode === 'move' || mode === 'run' || mode === 'attack_move' ? state.queueOrders : false,
+    })),
   setFormationPreset: (formationPreset) => set({ formationPreset }),
-  setSupportMode: (call) => set({ supportMode: call, orderMode: null }),
+  setSupportMode: (call) =>
+    set({ supportMode: call, supportNotice: null, orderMode: null, queueOrders: false }),
   setCalledShotLocation: (location) => set({ calledShotLocation: location }),
   patch: (partial) => set(partial),
   pushLog: (line) =>
