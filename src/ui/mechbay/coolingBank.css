@@ -1,0 +1,249 @@
+.cooling-bank {
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.cooling-bank__header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cooling-bank__header h4,
+.cooling-bank__header p,
+.cooling-bank__help,
+.cooling-bank__stock,
+.cooling-bank__fit-note {
+  margin: 0;
+}
+
+.cooling-bank__header h4 {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.cooling-bank__header p {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cooling-bank__verdict {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.cooling-bank .is-stable {
+  color: var(--ok, #8fe6a6);
+}
+
+.cooling-bank .is-risk {
+  color: var(--warning, #ffc46b);
+}
+
+.cooling-bank__allocation,
+.cooling-bank__heat {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.cooling-bank__allocation {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cooling-bank__heat {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cooling-bank__allocation > div,
+.cooling-bank__heat > div {
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.cooling-bank dt {
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cooling-bank dd {
+  margin: 2px 0 0;
+  color: var(--text);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.cooling-bank__allocation span,
+.cooling-bank__heat span {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.cooling-bank__controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, 1.3fr);
+  gap: 6px 9px;
+  align-items: center;
+}
+
+.cooling-bank__controls > label,
+#cooling-count-label {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.cooling-bank select,
+.cooling-bank input,
+.cooling-bank button {
+  min-height: 44px;
+  border: 1px solid var(--edge);
+  border-radius: 4px;
+  color: var(--text);
+  font: inherit;
+}
+
+.cooling-bank select,
+.cooling-bank input {
+  min-width: 0;
+  background: rgba(8, 14, 19, 0.92);
+}
+
+.cooling-bank select {
+  width: 100%;
+  padding: 0 8px;
+  font-size: 10px;
+}
+
+.cooling-bank__stepper {
+  display: grid;
+  grid-template-columns: 44px minmax(54px, 1fr) 44px;
+  gap: 4px;
+}
+
+.cooling-bank__stepper button,
+.cooling-bank__fit {
+  background: rgba(140, 224, 255, 0.08);
+  cursor: pointer;
+}
+
+.cooling-bank__stepper button {
+  padding: 0;
+  color: var(--accent);
+  font-size: 18px;
+}
+
+.cooling-bank__stepper input {
+  width: 100%;
+  padding: 0 6px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.cooling-bank__help,
+.cooling-bank__stock {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.cooling-bank__stock {
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cooling-bank__fit {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 10px;
+  color: var(--accent) !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  text-align: left;
+}
+
+.cooling-bank__fit span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.cooling-bank__fit-note {
+  color: var(--warning, #ffc46b);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.cooling-bank button:disabled,
+.cooling-bank option:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
+}
+
+.cooling-bank button:focus-visible,
+.cooling-bank input:focus-visible,
+.cooling-bank select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 420px) {
+  .cooling-bank__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cooling-bank__verdict {
+    align-self: start;
+  }
+
+  .cooling-bank__allocation,
+  .cooling-bank__heat,
+  .cooling-bank__controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cooling-bank__controls > label,
+  #cooling-count-label {
+    margin-top: 2px;
+  }
+
+  .cooling-bank__help,
+  .cooling-bank__stock {
+    grid-column: 1;
+  }
+}
+
+@media (pointer: coarse) and (max-width: 1100px) {
+  .cooling-bank select,
+  .cooling-bank input,
+  .cooling-bank button {
+    min-height: 44px;
+  }
+}

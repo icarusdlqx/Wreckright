@@ -1,6 +1,11 @@
 export async function verifySensorProbe({ page, check, mission, canvasBox }) {
   const probeSetup = await page.evaluate(() => {
     const { engine, useGame, world } = globalThis.__ironline;
+    const wasPaused = useGame.getState().paused;
+    // Isolate the probe from ordinary observer movement while comparing the
+    // optical fog buffers. forceStep still advances the two deterministic
+    // support/vision ticks below, but the browser clock cannot add extra ones.
+    useGame.getState().patch({ paused: true });
     const playerTeam = useGame.getState().playerTeam;
     const friendly = world.entities.find((entity) => (
       entity.team === playerTeam && !entity.destroyed && !entity.withdrawn
@@ -30,7 +35,7 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
       explored: Array.from(world.vision.explored),
     };
     const screen = engine.renderer.camera.worldToScreen(enemy.pos, engine.renderer.viewport, 0);
-    return { enemyId: enemy.id, friendlyId: friendly.id, screen };
+    return { enemyId: enemy.id, friendlyId: friendly.id, screen, wasPaused };
   });
   const revealsBefore = await page.evaluate(() => globalThis.__ironline.world.reveals.length);
   await page.locator('[data-testid="support-sensor_probe"]').click();
@@ -92,14 +97,15 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
     JSON.stringify(sensorCardState),
   );
   await sensorCard.click();
-  const investigation = await page.evaluate(() => {
+  const investigation = await page.evaluate((wasPaused) => {
     const { useGame, world } = globalThis.__ironline;
     const selected = world.entities.find((entity) => useGame.getState().selection.includes(entity.id));
+    useGame.getState().patch({ paused: wasPaused });
     return {
       engage: selected?.orders.move?.engage === true,
       attack: selected?.orders.attack ?? null,
     };
-  });
+  }, probeSetup.wasPaused);
   check(
     'Investigate attack-moves to the coarse area without retaining a hidden target',
     investigation.engage && investigation.attack === null,

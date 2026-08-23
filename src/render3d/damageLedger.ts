@@ -6,6 +6,7 @@ type HitEvent = Extract<SimEvent, { type: 'projectile_hit' }>;
 
 interface LedgerLocation {
   armour: number;
+  hasRearArmourFace: boolean;
   rearArmour: number;
   rearArmourMax: number;
   internal: number;
@@ -39,6 +40,7 @@ function copyLocations(entity: MechEntity): LedgerUnit {
     const state = entity.locations[location];
     copy[location] = {
       armour: state.armour,
+      hasRearArmourFace: state.hasRearArmourFace,
       rearArmour: state.rearArmour,
       rearArmourMax: state.rearArmourMax,
       internal: state.internal,
@@ -82,7 +84,7 @@ export class DamageLedger {
         continue;
       }
 
-      const rear = event.arc === 'rear' && state.rearArmourMax > 0;
+      const rear = event.arc === 'rear' && state.hasRearArmourFace;
       const plate = rear ? 'rearArmour' : 'armour';
       const armour = Math.min(state[plate], remaining);
       state[plate] -= armour;
@@ -112,6 +114,7 @@ export class DamageLedger {
         const source = entity.locations[location];
         const target = known[location];
         target.armour = source.armour;
+        target.hasRearArmourFace = source.hasRearArmourFace;
         target.rearArmour = source.rearArmour;
         target.rearArmourMax = source.rearArmourMax;
         target.internal = source.internal;

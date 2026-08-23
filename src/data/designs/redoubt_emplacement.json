@@ -3,14 +3,14 @@
   "name": "Redoubt RDT-1 'Emplacement'",
   "chassisId": "redoubt_rdt1",
   "armour": {
-    "head": 15,
-    "centre_torso": 62,
-    "left_torso": 43,
-    "right_torso": 43,
-    "left_arm": 3,
-    "right_arm": 3,
-    "left_leg": 3,
-    "right_leg": 3
+    "head": 16,
+    "centre_torso": 66,
+    "left_torso": 46,
+    "right_torso": 46,
+    "left_arm": 0,
+    "right_arm": 0,
+    "left_leg": 0,
+    "right_leg": 0
   },
   "heatSinkId": "heat_sink",
   "heatSinks": 14,

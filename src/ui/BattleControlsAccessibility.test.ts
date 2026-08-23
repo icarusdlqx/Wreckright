@@ -9,6 +9,7 @@ import type { LocationSnapshot, UnitSnapshot } from './store';
 const LOCATION: LocationSnapshot = {
   armour: 10,
   armourMax: 10,
+  hasRearArmourFace: false,
   rearArmour: 0,
   rearArmourMax: 0,
   internal: 8,

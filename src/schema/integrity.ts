@@ -1,4 +1,4 @@
-import { LOCATIONS, type MechLocation } from './common';
+import { validateDesign } from './designValidation';
 import type { Catalog, ContentIssue } from './load';
 import type { Deployment } from './mission';
 
@@ -11,87 +11,9 @@ const DUPLICATE_PILOT_EXEMPTIONS = new Set(['mirror_ridge']);
 function checkDesigns(catalog: Catalog, push: Push): void {
   for (const design of catalog.designs.values()) {
     const file = `designs/${design.id}.json`;
-    const chassis = catalog.chassis.get(design.chassisId);
-
-    if (chassis === undefined) {
-      push(file, 'chassisId', `unknown chassis "${design.chassisId}"`);
-      continue;
-    }
-
-    if (design.heatSinks < chassis.internalHeatSinks) {
-      push(
-        file,
-        'heatSinks',
-        `${chassis.name} carries ${chassis.internalHeatSinks} internal heat sinks; a design cannot fit fewer`,
-      );
-    }
-
-    if (catalog.equipment.get(design.heatSinkId)?.category !== 'heat_sink') {
-      push(file, 'heatSinkId', `"${design.heatSinkId}" is not a heat sink`);
-    }
-
-    for (const location of LOCATIONS) {
-      if (design.armour[location] > chassis.armourMax[location]) {
-        push(
-          file,
-          `armour.${location}`,
-          `${design.armour[location]} exceeds the chassis maximum of ${chassis.armourMax[location]}`,
-        );
-      }
-    }
-
-    const used = new Map<MechLocation, { energy: number; ballistic: number; missile: number }>();
-    for (const mount of design.mounts) {
-      const weapon = catalog.weapons.get(mount.weaponId);
-      if (weapon === undefined) {
-        push(file, 'mounts', `unknown weapon "${mount.weaponId}"`);
-        continue;
-      }
-      const counts = used.get(mount.location) ?? { energy: 0, ballistic: 0, missile: 0 };
-      counts[weapon.type] += 1;
-      used.set(mount.location, counts);
-    }
-
-    for (const [location, counts] of used) {
-      const available = chassis.hardpoints[location];
-      for (const type of ['energy', 'ballistic', 'missile'] as const) {
-        if (counts[type] > available[type]) {
-          push(
-            file,
-            `mounts.${location}`,
-            `${counts[type]} ${type} weapons need ${counts[type]} hardpoints, chassis has ${available[type]}`,
-          );
-        }
-      }
-    }
-
-    const mountedWeapons = new Set(design.mounts.map((mount) => mount.weaponId));
-    for (const load of design.ammo) {
-      const weapon = catalog.weapons.get(load.weaponId);
-      if (weapon === undefined) {
-        push(file, 'ammo', `unknown weapon "${load.weaponId}"`);
-        continue;
-      }
-      if (weapon.ammoPerTon === null) {
-        push(file, 'ammo', `${weapon.name} uses no ammo`);
-      }
-      if (!mountedWeapons.has(load.weaponId)) {
-        push(file, 'ammo', `${weapon.name} ammo carried but the weapon is not mounted`);
-      }
-    }
-
-    for (const mount of design.mounts) {
-      const weapon = catalog.weapons.get(mount.weaponId);
-      if (weapon === undefined || weapon.ammoPerTon === null) continue;
-      if (!design.ammo.some((load) => load.weaponId === mount.weaponId)) {
-        push(file, 'mounts', `${weapon.name} is mounted with no ammo allocated`);
-      }
-    }
-
-    for (const fit of design.equipment) {
-      if (!catalog.equipment.has(fit.equipmentId)) {
-        push(file, 'equipment', `unknown equipment "${fit.equipmentId}"`);
-      }
+    for (const issue of validateDesign(catalog, design).issues) {
+      const path = issue.path.map(String).join('.') || issue.component;
+      push(file, path, issue.message);
     }
   }
 }

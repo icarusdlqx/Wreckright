@@ -1,0 +1,398 @@
+.bay-workspace-tabs {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) minmax(0, 0.8fr);
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.bay-workspace-tabs__tab {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.bay-workspace-tabs__tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.bay-workspace-tabs__tab.is-active {
+  border-color: color-mix(in srgb, var(--accent) 48%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
+}
+
+.bay-workspace-tabs__count {
+  display: inline-grid;
+  min-width: 20px;
+  min-height: 20px;
+  place-items: center;
+  padding: 0 5px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+.bay-workspace-tabs__count.has-issues { color: var(--danger); }
+
+.bay-workspace-panel {
+  min-width: 0;
+  min-height: 0;
+}
+
+.bay-workspace-panel:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.bay-workspace-panel[hidden] { display: none; }
+
+.bay-workspace-panel--armour {
+  display: grid;
+  grid-template-columns: minmax(16rem, 0.8fr) minmax(0, 2fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.bay-workspace-panel--review { width: min(100%, 72rem); margin-inline: auto; }
+
+.build-review {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--edge);
+  border-radius: 8px;
+  background: linear-gradient(145deg, rgba(20, 27, 32, 0.96), rgba(9, 13, 16, 0.94));
+}
+
+.build-review__header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.build-review__header h3,
+.build-review__header p,
+.build-review__gear-group h4,
+.build-review__gear-group p,
+.build-review__issues h4,
+.build-review__issue-group h5,
+.build-review__next p {
+  margin: 0;
+}
+
+.build-review__eyebrow {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.build-review__header h3 {
+  margin-top: 3px;
+  color: var(--text);
+  font-size: clamp(17px, 2vw, 24px);
+}
+
+.build-review__verdict {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 2px;
+  max-width: 290px;
+  padding: 9px 11px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+}
+
+.build-review__verdict.is-legal,
+.build-review__clear { color: var(--ok, #8fe6a6); }
+
+.build-review__verdict.is-blocked,
+.build-review__metrics .is-warning { color: var(--danger); }
+
+.build-review__verdict strong {
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.build-review__verdict span {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.build-review__metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  margin: 0;
+}
+
+.build-review__metrics > div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  padding: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.build-review__metrics dt {
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.build-review__metrics dd {
+  margin: 0;
+  color: currentColor;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.build-review__metrics > div:not(.is-warning) dd { color: var(--text); }
+
+.build-review__metrics span {
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.build-review__gear {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.build-review__gear-group {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 5px;
+}
+
+.build-review__gear-group h4,
+.build-review__issues > h4 {
+  color: var(--text);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.build-review__gear-group ul,
+.build-review__issue-group ol {
+  display: grid;
+  gap: 5px;
+  margin: 7px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.build-review__gear-group li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  color: var(--text);
+  font-size: 10px;
+}
+
+.build-review__gear-group li span,
+.build-review__gear-group p {
+  color: var(--muted);
+  font-size: 9px;
+  text-align: right;
+}
+
+.build-review__clear {
+  display: grid;
+  gap: 2px;
+  padding: 10px;
+  border: 1px solid currentColor;
+  border-radius: 5px;
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+
+.build-review__issues {
+  display: grid;
+  gap: 8px;
+}
+
+.build-review__issues > h4 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.build-review__issues > h4 > span {
+  min-width: 22px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--danger) 18%, transparent);
+  color: var(--danger);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.build-review__issue-group {
+  display: grid;
+  grid-template-columns: minmax(100px, 0.26fr) minmax(0, 1fr);
+  gap: 10px;
+  padding: 9px;
+  border-left: 2px solid var(--danger);
+  background: rgba(255, 138, 107, 0.045);
+}
+
+.build-review__issue-group h5 {
+  color: var(--danger);
+  font-size: 10px;
+}
+
+.build-review__issue-group ol { margin: 0; }
+
+.build-review__issue-group li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 3px 7px;
+  color: var(--text);
+  font-size: 10px;
+}
+
+.build-review__location {
+  align-self: start;
+  padding: 2px 5px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.build-review__issue-action {
+  grid-column: 2;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.build-review__next {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.build-review__next p {
+  color: var(--text);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.build-review__next button {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 7px 11px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .bay-workspace-panel--armour,
+  .build-review__gear {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .build-review__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .bay-workspace-tabs {
+    gap: 2px;
+    padding: 3px;
+  }
+
+  .bay-workspace-tabs__tab {
+    gap: 4px;
+    padding-inline: 5px;
+    font-size: 9px;
+    letter-spacing: 0.02em;
+  }
+
+  .build-review {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .build-review__header,
+  .build-review__next {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .build-review__verdict { max-width: none; }
+
+  .build-review__metrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .build-review__issue-group {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .build-review__gear-group li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .build-review__gear-group li span,
+  .build-review__gear-group p {
+    text-align: left;
+  }
+
+  .build-review__next button { width: 100%; }
+}
+
+@media (max-height: 600px) and (orientation: landscape) {
+  .build-review {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .build-review__metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .build-review__issue-group {
+    padding-block: 6px;
+  }
+}

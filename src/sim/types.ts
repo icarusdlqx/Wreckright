@@ -56,10 +56,10 @@ export interface LocationState {
   armour: number;
   armourMax: number;
   /**
-   * The plate over the back, thinner than the glacis. Zero on everything but
-   * the torsos — a rearArmourMax of 0 is how the rest of the code asks whether
-   * a location has a back at all.
+   * Whether the authored construction rules give this location a distinct
+   * rear face, independent of how many points are allocated to that face.
    */
+  readonly hasRearArmourFace: boolean;
   rearArmour: number;
   rearArmourMax: number;
   internal: number;

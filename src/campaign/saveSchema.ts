@@ -18,7 +18,7 @@ const LocationConditionSchema = z.strictObject({
 // different state: it may be stored, rebuilt and saved before the company fits
 // its first gun. Keep that exception local to campaign persistence rather than
 // weakening authored-design validation.
-const StoredDesignSchema = DesignSchema.extend({
+const StoredDesignSchema = DesignSchema.safeExtend({
   mounts: z.array(WeaponMountSchema).max(24),
 });
 

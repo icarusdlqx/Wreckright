@@ -10,6 +10,13 @@ import {
   weaponFitAtLocation,
 } from './bayFit';
 
+function inventory(
+  weapon: ReadonlyMap<string, number> = new Map(),
+  equipment: ReadonlyMap<string, number> = new Map(),
+) {
+  return { weapon, equipment };
+}
+
 function design(id = 'sentinel_brawler'): Design {
   const found = catalog.designs.get(id);
   if (found === undefined) throw new Error(`missing design ${id}`);
@@ -33,34 +40,35 @@ describe('bay inventory', () => {
   it('subtracts the current campaign draft without charging ammo as another gun', () => {
     const draft = design();
     const remaining = remainingInventory(
-      new Map([
+      inventory(new Map([
         ['ac5', 2],
         ['medium_laser', 4],
         ['srm6', 1],
+      ]), new Map([
         ['case', 2],
         ['heat_sink', 12],
         ['double_heat_sink', 10],
-      ]),
+      ])),
       draft,
     );
 
-    expect(remaining?.get('ac5')).toBe(1);
-    expect(remaining?.get('medium_laser')).toBe(1);
-    expect(remaining?.get('srm6')).toBe(0);
-    expect(remaining?.get('case')).toBe(1);
-    expect(remaining?.get('heat_sink')).toBe(2);
-    expect(remaining?.get('double_heat_sink')).toBe(10);
+    expect(remaining?.weapon.get('ac5')).toBe(1);
+    expect(remaining?.weapon.get('medium_laser')).toBe(1);
+    expect(remaining?.weapon.get('srm6')).toBe(0);
+    expect(remaining?.equipment.get('case')).toBe(1);
+    expect(remaining?.equipment.get('heat_sink')).toBe(2);
+    expect(remaining?.equipment.get('double_heat_sink')).toBe(10);
   });
 
   it('uses same-chassis draft counts to prevent fitting one stored gun twice', () => {
     const draft = design();
-    const inventory = new Map([['medium_laser', 4]]);
+    const stock = inventory(new Map([['medium_laser', 4]]));
     const first = weaponFitAtLocation(
       catalog,
       draft,
       'right_torso',
       'medium_laser',
-      inventory,
+      stock,
     );
     expect(first.ok).toBe(true);
     expect(first.stockLeft).toBe(1);
@@ -71,7 +79,7 @@ describe('bay inventory', () => {
       draft,
       'right_torso',
       'medium_laser',
-      inventory,
+      stock,
     );
 
     expect(reasonCodes(second)).toEqual(['stock']);
@@ -112,7 +120,7 @@ describe('selected-location weapon fit', () => {
     );
   });
 
-  it('reserves a local slot for the ammunition added with an ammo-fed weapon', () => {
+  it('fits the gun alone because ammunition is placed as a separate next step', () => {
     const draft = design();
     draft.equipment.push(
       ...Array.from({ length: 3 }, () => ({
@@ -123,13 +131,10 @@ describe('selected-location weapon fit', () => {
 
     const result = weaponFitAtLocation(catalog, draft, 'right_torso', 'machine_gun');
 
-    expect(reasonCodes(result)).toEqual(['location_slots']);
-    expect(result.requiredSlots).toBe(2);
-    expect(result.automaticAmmoSlots).toBe(1);
+    expect(reasonCodes(result)).toEqual([]);
+    expect(result.requiredSlots).toBe(1);
+    expect(result.automaticAmmoSlots).toBe(0);
     expect(result.freeSlots).toBe(1);
-    expect(result.reasons[0]?.message).toBe(
-      'Machine Gun and its automatic ammunition need 2 slots; Right Torso has 1 slot free.',
-    );
   });
 
   it('returns only locations that accept the next shelf action', () => {
@@ -137,7 +142,12 @@ describe('selected-location weapon fit', () => {
 
     expect(compatibleLocations(catalog, draft, 'medium_laser')).toEqual(['right_torso']);
     expect(
-      compatibleLocations(catalog, draft, 'medium_laser', new Map([['medium_laser', 3]])),
+      compatibleLocations(
+        catalog,
+        draft,
+        'medium_laser',
+        inventory(new Map([['medium_laser', 3]])),
+      ),
     ).toEqual([]);
   });
 });
@@ -169,14 +179,18 @@ describe('shelf filters', () => {
       equipmentShelfItems(
         catalog,
         design(),
-        new Map([
+        inventory(new Map(), new Map([
           ['jump_jet', 1],
           ['case', 2],
-        ]),
+        ])),
       ).map((equipment) => equipment.id),
     ).toEqual(['case']);
     expect(
-      equipmentShelfItems(catalog, design('wisp_scout'), new Map([['jump_jet', 3]])).map(
+      equipmentShelfItems(
+        catalog,
+        design('wisp_scout'),
+        inventory(new Map(), new Map([['jump_jet', 3]])),
+      ).map(
         (equipment) => equipment.id,
       ),
     ).toEqual(['jump_jet']);

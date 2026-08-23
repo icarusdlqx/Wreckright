@@ -28,19 +28,18 @@ describe('weapon card', () => {
     expect(html).toContain('type="button"');
     expect(html).toContain('draggable="true"');
     expect(html).toContain('aria-pressed="true"');
+    expect(html).toContain('aria-controls="bay-shelf-inspector"');
     expect(html).toContain('data-testid="weapon-card-ac5"');
   });
 
-  it('renders exactly three numeric accessible comparison meters', () => {
+  it('keeps only the three quick comparison numbers in the repeated row', () => {
     const html = render('lrm20');
-    expect(html.match(/role="meter"/g)).toHaveLength(3);
-    expect(html).toContain('aria-label="Damage"');
-    expect(html).toContain('aria-label="Reach"');
-    expect(html).toContain('aria-label="Heat"');
-    expect(html).toContain('aria-valuetext="10.25 damage per second"');
-    expect(html).toContain('aria-valuetext="540 metres"');
-    expect(html).toContain('higher is hotter');
-    expect(html.indexOf('</button>')).toBeGreaterThan(html.indexOf('role="meter"'));
+    expect(html).toContain('aria-label="Weapon summary"');
+    expect(html).toContain('10.25/s damage');
+    expect(html).toContain('540m reach');
+    expect(html).toContain('1.5/s heat');
+    expect(html).not.toContain('role="meter"');
+    expect(html).not.toContain('weapon-range-strip');
   });
 
   it('uses faction text as well as tint and marks foreign-pattern equipment', () => {
@@ -48,19 +47,20 @@ describe('weapon card', () => {
     expect(foreign).toContain('data-faction="aurelian"');
     expect(foreign).toContain('faction-aurelian');
     expect(foreign).toContain('Aurelian Stock');
-    expect(foreign).toContain('Foreign pattern');
+    expect(foreign).toContain('Foreign pattern — origin only');
+    expect(foreign).toContain('Culture is informational; mount, slots, tonnage, and stock decide fit.');
 
     const domestic = render('large_laser', { chassisFaction: 'aurelian' });
     expect(domestic).not.toContain('Foreign pattern');
   });
 
-  it('shows current-stat costs and truthful missile and minimum-range copy', () => {
-    const html = render('lrm10', { mountedWeapons: [weapon('srm6')] });
-    expect(html).toContain('5 tons, 2 slots; adds 1 heat/s;');
-    expect(html).toContain('1 ton of ammo lasts 48s at full cycle.');
-    expect(html).toContain('line of sight is still required');
-    expect(html).toContain('50% accuracy inside 60m');
-    expect(html).not.toMatch(/dead inside|Lobs over cover|indirect fire/);
+  it('shows fit state and keeps expanded operating prose out of every row', () => {
+    const html = render('lrm10');
+    expect(html).toContain('data-fit="true"');
+    expect(html).toContain('>Fit<');
+    expect(html).toContain('Ready to place.');
+    expect(html).not.toContain('1 ton of ammo lasts');
+    expect(html).not.toContain('line of sight is still required');
   });
 
   it('keeps unavailable cards inspectable but prevents activation and dragging', () => {
@@ -70,6 +70,8 @@ describe('weapon card', () => {
     });
     expect(html).toContain('aria-disabled="true"');
     expect(html).toContain('draggable="false"');
+    expect(html).toContain('data-fit="false"');
+    expect(html).toContain("Doesn&#x27;t fit");
     expect(html).toContain('Needs a heavy ballistic mount.');
     expect(html).toContain('×2');
   });

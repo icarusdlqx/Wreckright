@@ -1,6 +1,7 @@
 import type { Faction } from '../../schema/faction';
 import type { Catalog } from '../../schema/load';
 import type { Weapon } from '../../schema/weapon';
+import { machineCulturePresentation } from './machineCulturePresentation';
 
 export const WEAPON_CATEGORIES = [
   { id: 'machine-guns', label: 'Machine Guns' },
@@ -30,11 +31,6 @@ export interface NormalisedWeaponMetrics {
   reach: number;
   heat: number;
 }
-
-const FACTION_PRESENTATION: Record<Faction, { label: string; className: string }> = {
-  linewrought: { label: 'Linewrought', className: 'faction-linewrought' },
-  aurelian: { label: 'Aurelian Stock', className: 'faction-aurelian' },
-};
 
 export function weaponCategory(catalog: Catalog, weapon: Weapon): WeaponCategory {
   if (weapon.visual.style === 'flame') return 'flamers';
@@ -167,7 +163,10 @@ export function weaponTraitLines(catalog: Catalog, weapon: Weapon): readonly str
 }
 
 export function factionPresentation(faction: Faction): { label: string; className: string } {
-  return FACTION_PRESENTATION[faction];
+  return {
+    label: machineCulturePresentation(faction).originLabel,
+    className: `faction-${faction}`,
+  };
 }
 
 export function isForeignPattern(weapon: Weapon, chassisFaction: Faction | undefined): boolean {

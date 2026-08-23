@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { IdSchema, MechLocationSchema } from './common';
+import { IdSchema } from './common';
+import { TORSO_LOCATIONS } from './design';
 import { FactionSchema } from './faction';
 import { Factor, NameLike, Probability } from './rulesShared';
 
@@ -253,16 +254,20 @@ export const ConstructionRulesSchema = z.strictObject({
   armourPointsPerTon: z.number().positive(),
   ammoSlotsPerTon: z.number().positive(),
   /**
-   * A design authors one armour number per location; that is the whole plating,
-   * and this says how much of it hangs on the back. Splitting it here rather
-   * than in the design keeps the bay at one armour control, keeps every design
-   * file and save that predates rear armour loading, and keeps tonnage
-   * arithmetic reading the one authored number it always read.
+   * A design's armour number remains the whole paid plating. This is the
+   * fallback split for older designs and saves that do not persist exact rear
+   * points, plus named starting allocations for new bay edits.
    */
   rearArmour: z.strictObject({
     fraction: z.number().positive().max(0.5),
     /** Only the torsos have a back. A leg is a leg from any angle. */
-    locations: z.array(MechLocationSchema),
+    locations: z.array(z.enum(TORSO_LOCATIONS)),
+    /** Named starting points for the bay; designs still persist exact points. */
+    presets: z.array(z.strictObject({
+      id: IdSchema,
+      label: NameLike,
+      fraction: z.number().nonnegative().max(0.5),
+    })).min(1),
   }),
   /**
    * Upper tonnage of a size-1, size-2 and size-3 weapon; anything heavier is

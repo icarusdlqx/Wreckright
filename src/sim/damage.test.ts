@@ -58,6 +58,33 @@ describe('applyDamage', () => {
     expect(torso.armour).toBe(torso.armourMax - 9);
   });
 
+  it('routes a rear hit through a rear-capable torso with zero rear plate', () => {
+    const torso = mech.locations.centre_torso;
+    torso.armour = 30;
+    torso.rearArmour = 0;
+    torso.rearArmourMax = 0;
+    const internalBefore = torso.internal;
+
+    expect(torso.hasRearArmourFace).toBe(true);
+    const absorbed = applyDamage(world, mech, 'centre_torso', 5, 'rear');
+
+    expect(torso.armour).toBe(30);
+    expect(torso.internal).toBe(internalBefore - absorbed);
+  });
+
+  it('keeps rear fire on a one-faced leg against its front plate', () => {
+    const leg = mech.locations.left_leg;
+    const armourBefore = leg.armour;
+    const internalBefore = leg.internal;
+
+    expect(leg.hasRearArmourFace).toBe(false);
+    expect(leg.rearArmourMax).toBe(0);
+    const absorbed = applyDamage(world, mech, 'left_leg', 5, 'rear');
+
+    expect(leg.armour).toBe(armourBefore - absorbed);
+    expect(leg.internal).toBe(internalBefore);
+  });
+
   it('stops at the centre torso rather than looping', () => {
     const absorbed = applyDamage(world, mech, 'centre_torso', 100_000);
     expect(absorbed).toBeLessThan(100_000);
