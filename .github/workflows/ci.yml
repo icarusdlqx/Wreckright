@@ -20,6 +20,7 @@ concurrency:
 
 env:
   CI: 'true'
+  WRANGLER_SEND_METRICS: 'false'
 
 jobs:
   quality:
@@ -57,6 +58,9 @@ jobs:
 
       - name: Build hosted release
         run: npm run build
+
+      - name: Validate Worker deployment package
+        run: npm run verify:worker
 
       - name: Build single-file release
         run: npm run build:single

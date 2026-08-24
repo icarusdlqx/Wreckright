@@ -3,5 +3,8 @@ dist-single
 node_modules/
 coverage/
 .vite/
+.wrangler/
+.dev.vars*
+!.dev.vars.example
 *.local
 reports/
