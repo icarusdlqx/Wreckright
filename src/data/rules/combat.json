@@ -91,7 +91,10 @@
   "elevation": {
     "accuracyPerLevel": 1.08,
     "maxLevels": 2,
-    "visionPerLevel": 1.12
+    "visionPerLevel": 1.12,
+    "rangePerLevel": 1.06,
+    "rangeMinimumLevels": 2,
+    "rangeMaxFactor": 1.12
   },
   "returnFireSeconds": 6
 }

@@ -38,6 +38,24 @@ describe('contact shadows', () => {
     expect(contactShadowStrength(22, 10)).toBeGreaterThan(0);
   });
 
+  it('puts a submerged shadow below the glints and fades the black oval away', () => {
+    const shadows = new ContactShadowLayer(() => 11, 2);
+    shadows.begin();
+    shadows.place({ x: 40, y: 70 }, 10, 0, 0, 8);
+    shadows.commit();
+
+    const matrix = new Matrix4();
+    const at = new Vector3();
+    shadows.mesh.getMatrixAt(0, matrix);
+    at.setFromMatrixPosition(matrix);
+    const strength = shadows.mesh.geometry.getAttribute(
+      'shadowStrength',
+    ) as InstancedBufferAttribute;
+    expect(at.y).toBeCloseTo(11.16);
+    expect(strength.getX(0)).toBeLessThan(0.1);
+    expect(contactShadowStrength(0, 10, 0)).toBe(1);
+  });
+
   it('disposes its local geometry and shader', () => {
     const shadows = new ContactShadowLayer(() => 0);
     const geometry = shadows.mesh.geometry;

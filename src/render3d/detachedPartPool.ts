@@ -100,7 +100,8 @@ export class DetachedPartPool {
       slot.root.add(copy);
     }
 
-    const side = location === 'left_arm' ? 1 : location === 'right_arm' ? -1 : seed % 2 === 0 ? 1 : -1;
+    const side = location.startsWith('left') ? 1
+      : location.startsWith('right') ? -1 : seed % 2 === 0 ? 1 : -1;
     const heading = Math.atan2(source.matrixWorld.elements[2] ?? 0, source.matrixWorld.elements[0] ?? 1);
     const drift = heading + side * Math.PI * 0.48 + ((seed % 7) - 3) * 0.045;
     const speed = this.reducedMotion ? 1.5 : this.lowFx ? 5.5 : 8;
@@ -180,9 +181,11 @@ export class DetachedPartPool {
 
 function collectShedMeshes(root: Object3D, location: MechLocation): Mesh[] {
   const result: Mesh[] = [];
+  const lowerLeg = location === 'left_leg' || location === 'right_leg';
   root.traverse((node) => {
     if (!(node instanceof Mesh) || node instanceof InstancedMesh) return;
-    if (node.userData.damageLocation === location || detachedAncestorAt(node, location)) result.push(node);
+    const belongs = node.userData.damageLocation === location || detachedAncestorAt(node, location);
+    if (belongs && (!lowerLeg || node.userData.limbJoint !== 'hip')) result.push(node);
   });
   return result;
 }
@@ -197,7 +200,8 @@ function detachedAncestorAt(node: Object3D, location: MechLocation): boolean {
 }
 
 function isShedLocation(location: MechLocation): boolean {
-  return location === 'left_arm' || location === 'right_arm' || location === 'head';
+  return location === 'left_arm' || location === 'right_arm' || location === 'head'
+    || location === 'left_leg' || location === 'right_leg';
 }
 
 function cloneGeometry(

@@ -1,4 +1,4 @@
-import { InstancedMesh } from 'three';
+import { InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
 import { catalog } from '../../tests/support';
 import type { TerrainMapData } from '../schema/map';
@@ -69,6 +69,27 @@ describe('PropLayer', () => {
 
   it.each(Object.keys(EXPECTED_BATCHES))('places %s props deterministically', (mapId) => {
     expect(signature(build(mapId))).toEqual(signature(build(mapId)));
+  });
+
+  it('grows a taller forest without adding another tree batch', () => {
+    const tree = meshes(build('ridge_pass')).find((mesh) => mesh.name === 'props-tree');
+    expect(tree).toBeDefined();
+    if (tree === undefined) return;
+
+    const matrix = new Matrix4();
+    const scale = new Vector3();
+    const position = new Vector3();
+    const rotation = new Quaternion();
+    const heights: number[] = [];
+    for (let index = 0; index < tree.count; index += 1) {
+      tree.getMatrixAt(index, matrix);
+      matrix.decompose(position, rotation, scale);
+      heights.push(scale.y);
+    }
+
+    expect(heights.every((height) => height >= 10.5 && height <= 18)).toBe(true);
+    expect(Math.max(...heights)).toBeGreaterThan(16);
+    expect(meshes(build('ridge_pass')).filter((mesh) => mesh.name === 'props-tree')).toHaveLength(1);
   });
 
   it('uploads only newly revealed forest instances after the first sweep', () => {

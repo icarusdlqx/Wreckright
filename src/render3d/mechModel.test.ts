@@ -151,6 +151,48 @@ describe('mech model resources', () => {
     disposeModel(model.root);
   });
 
+  it.each([
+    ['sentinel_snl2', 'aurelian'],
+    ['hornet_hnt2', 'linewrought'],
+  ] as const)(
+    'turns a destroyed %s leg into a visible stump without hiding pre-loss damage',
+    (chassisId, faction) => {
+      const chassis = catalog.chassis.get(chassisId);
+      expect(chassis?.faction).toBe(faction);
+      if (chassis === undefined) return;
+      const build = (destroyed: boolean) => buildMechModel(
+        chassis.silhouette, chassis.traits, chassis.tonnage, 0x78c9ff, false, [],
+        new Set(destroyed ? ['left_leg'] : []), chassis.hardpoints, chassis.id,
+        { left_leg: 2 }, chassis.faction,
+      );
+      const damaged = build(false);
+      const lost = build(true);
+      const lowerMeshes = (model: typeof damaged): number => {
+        let count = 0;
+        model.root.traverse((node) => {
+          if (
+            node.userData.damageLocation === 'left_leg' &&
+            (node.userData.limbJoint === 'knee' || node.userData.limbJoint === 'ankle')
+          ) count += 1;
+        });
+        return count;
+      };
+      let stumpMeshes = 0;
+      lost.root.traverse((node) => {
+        if (
+          node.userData.damageLocation === 'left_leg' && node.userData.limbJoint === 'hip'
+        ) stumpMeshes += 1;
+      });
+
+      expect(lowerMeshes(damaged)).toBeGreaterThan(0);
+      expect(lowerMeshes(lost)).toBe(0);
+      expect(stumpMeshes).toBeGreaterThan(0);
+      expect(lost.legs.find((leg) => leg.location === 'left_leg')?.destroyed).toBe(true);
+      disposeModel(damaged.root);
+      disposeModel(lost.root);
+    },
+  );
+
   it('sequences bounded head lights and broad power seams without growing the model', () => {
     const chassis = catalog.chassis.get('sentinel_snl2');
     if (chassis === undefined) return;

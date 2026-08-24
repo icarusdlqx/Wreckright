@@ -13,6 +13,7 @@ import { weaponBearing } from './movement';
 import { addStabilityImpulse, impulseOf } from './stability';
 import { isSightedBy, visionFor } from './sensors';
 import { weaponHasFiringSolution } from './weaponEngagement';
+import { weaponMaximumReach } from './weaponRange';
 import {
   findAmmoBin,
   findEntity,
@@ -41,10 +42,15 @@ function rangeFactor(rules: CombatRules, weapon: Weapon, range: number): number 
  * uncapped bonus would turn the high ground into a firing range rather than a
  * position worth taking.
  */
-export function heightFactor(world: World, shooter: MechEntity, target: MechEntity): number {
+export function heightFactor(
+  world: World,
+  shooter: MechEntity,
+  target: MechEntity,
+  from: Vec2 = shooter.pos,
+): number {
   const rules = world.rules.combat.elevation;
   const above =
-    world.terrain.elevationAtPoint(shooter.pos) - world.terrain.elevationAtPoint(target.pos);
+    world.terrain.elevationAtPoint(from) - world.terrain.elevationAtPoint(target.pos);
   if (above <= 0) return 1;
   return rules.accuracyPerLevel ** Math.min(above, rules.maxLevels);
 }
@@ -57,6 +63,8 @@ export function hitChance(
   range: number,
   /** Heat penalty as it stood when the volley began; see updateWeapons. */
   heatAccuracy?: number,
+  /** A candidate firing point used by deterministic tactical previews. */
+  from: Vec2 = shooter.pos,
 ): number {
   const rules = world.rules.combat;
   const gunnery = rules.gunneryBase[shooter.pilot.gunnery - 1] ?? rules.gunneryBase[0] ?? 0.5;
@@ -70,7 +78,7 @@ export function hitChance(
     : Math.min(1, motionPenalty * shooter.movingAccuracyFactor);
   chance *= rules.targetMotion[target.motion];
   chance *= coverFactorAt(world.terrain, target.pos);
-  chance *= heightFactor(world, shooter, target);
+  chance *= heightFactor(world, shooter, target, from);
   chance *= target.incomingAccuracyFactor * abilityFactor(world, target, 'incoming');
   // A mech on the ground is a stationary target the size of a barn. This is the
   // whole reward for knocking one down, and because hit chance feeds the AI's
@@ -230,7 +238,7 @@ export function updateWeapons(world: World, shooter: MechEntity): void {
     const weapon = world.catalog.weapons.get(mount.weaponId);
     if (weapon === undefined) continue;
     if (!weaponHasFiringSolution(world, shooter, target, weapon)) continue;
-    if (range > weapon.range.long * world.rules.combat.maxRangeMultiplier) continue;
+    if (range > weaponMaximumReach(world, weapon, shooter.pos, target.pos)) continue;
     if (!alpha && shooter.heat + weapon.heat >= shooter.heatCapacity) continue;
 
     let bin: AmmoBin | null = null;

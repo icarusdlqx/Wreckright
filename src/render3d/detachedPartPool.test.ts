@@ -57,4 +57,24 @@ describe('detached part pool', () => {
     geometry.dispose();
     material.dispose();
   });
+
+  it('throws only the severed lower leg and leaves the upper support stump behind', () => {
+    const scene = new Scene();
+    const source = new Group();
+    const geometry = new BoxGeometry(1, 1, 1);
+    const material = new MeshStandardMaterial();
+    for (const joint of ['hip', 'knee', 'ankle'] as const) {
+      const segment = new Mesh(geometry, material);
+      segment.userData.damageLocation = 'left_leg';
+      segment.userData.limbJoint = joint;
+      source.add(segment);
+    }
+    const pool = new DetachedPartPool(scene, () => 0, false);
+
+    expect(pool.spawn(source, 'left_leg', 3)).toBe(true);
+    expect(scene.children.find((child) => child.visible)?.children).toHaveLength(2);
+    pool.dispose();
+    geometry.dispose();
+    material.dispose();
+  });
 });

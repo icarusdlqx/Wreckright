@@ -4,6 +4,7 @@ import { distance } from '../math';
 import { isSightedBy, visionFor } from '../sensors';
 import { findAmmoBin, isOperational, type MechEntity, type Vec2, type World } from '../types';
 import { weaponHasFiringSolution } from '../weaponEngagement';
+import { weaponMaximumReach } from '../weaponRange';
 import { roleOf } from './roles';
 
 export interface TargetScore {
@@ -56,7 +57,7 @@ export function expectedDps(
     if (mount.destroyed) continue;
     const weapon = world.catalog.weapons.get(mount.weaponId);
     if (weapon === undefined) continue;
-    if (range > weapon.range.long * world.rules.combat.maxRangeMultiplier) continue;
+    if (range > weaponMaximumReach(world, weapon, shooter.pos, target.pos)) continue;
     if (weapon.ammoPerTon !== null && findAmmoBin(shooter, weapon.id) === null) continue;
 
     const chance = hitChance(world, shooter, target, weapon, range);
@@ -80,11 +81,11 @@ export function availableDps(
     if (mount.destroyed) continue;
     const weapon = world.catalog.weapons.get(mount.weaponId);
     if (weapon === undefined) continue;
-    if (range > weapon.range.long * world.rules.combat.maxRangeMultiplier) continue;
+    if (range > weaponMaximumReach(world, weapon, from, target.pos)) continue;
     if (weapon.ammoPerTon !== null && findAmmoBin(shooter, weapon.id) === null) continue;
     if (!weaponHasFiringSolution(world, shooter, target, weapon, from)) continue;
 
-    const chance = hitChance(world, shooter, target, weapon, range);
+    const chance = hitChance(world, shooter, target, weapon, range, undefined, from);
     total += (weapon.damage * weapon.projectiles * chance) / weapon.cooldown;
   }
 
@@ -137,7 +138,7 @@ export function engagementRange(world: World, shooter: MechEntity, target: MechE
     if (mount.destroyed) continue;
     const weapon = world.catalog.weapons.get(mount.weaponId);
     if (weapon === undefined) continue;
-    longest = Math.max(longest, weapon.range.long * world.rules.combat.maxRangeMultiplier);
+    longest = Math.max(longest, weaponMaximumReach(world, weapon, shooter.pos, target.pos));
   }
   if (longest === 0) return 0;
 
@@ -169,7 +170,7 @@ export function preferredRange(world: World, shooter: MechEntity, target: MechEn
     if (mount.destroyed) continue;
     const weapon = world.catalog.weapons.get(mount.weaponId);
     if (weapon === undefined) continue;
-    longest = Math.max(longest, weapon.range.long * world.rules.combat.maxRangeMultiplier);
+    longest = Math.max(longest, weaponMaximumReach(world, weapon, shooter.pos, target.pos));
   }
   if (longest === 0) return 0;
 

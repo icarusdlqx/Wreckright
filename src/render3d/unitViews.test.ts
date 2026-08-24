@@ -77,6 +77,22 @@ describe('rendered weapon mounts', () => {
     units.dispose();
   });
 
+  it('falls back to the presented submerged body when a location has no plate anchor', () => {
+    const world = testWorld('submerged-location-fallback');
+    const entity = unitOf(world, 'sentinel_brawler');
+    const units = new UnitViews(new Scene(), () => 20);
+    const view = units.viewFor(world, entity);
+    view.model.root.position.set(30, -8, 40);
+    view.anchors.left_arm = [];
+    units.beginFrame();
+    units.markPlaced(entity.id);
+    const anchor = new Vector3();
+
+    expect(units.locationOf(entity.id, 'left_arm', anchor)).toBe(true);
+    expect(anchor.y).toBeCloseTo((20 + -8 + view.model.height) * 0.5);
+    units.dispose();
+  });
+
   it('keeps an impact on the currently displayed anatomy while the next sample moves', () => {
     const world = testWorld('stale-location-anchor');
     const entity = unitOf(world, 'sentinel_brawler');

@@ -10,6 +10,7 @@ import {
   type World,
 } from '../types';
 import { usableWeapon, weaponHasLineOfFire } from '../weaponEngagement';
+import { weaponMaximumReach } from '../weaponRange';
 import { exposureAt } from './positioning';
 import { roleOf } from './roles';
 
@@ -31,7 +32,9 @@ function hasFireSupport(
     return mate.weapons.some((mount) => {
       const weapon = usableWeapon(world, mate, mount, 'intent');
       if (weapon === null) return false;
-      const reach = weapon.range.long * world.rules.combat.maxRangeMultiplier;
+      const reach = contact === undefined
+        ? weapon.range.long * world.rules.combat.maxRangeMultiplier
+        : weaponMaximumReach(world, weapon, mate.pos, contact);
       if (reach < usefulReach) return false;
       return contact === undefined || (
         distance(mate.pos, contact) <= reach &&

@@ -1,5 +1,5 @@
 import type { TerrainMapData } from '../schema/map';
-import type { TerrainRules, TerrainType } from '../schema/rules';
+import type { MovementRules, TerrainRules, TerrainType } from '../schema/rules';
 import type { Vec2 } from './types';
 
 export interface TileRef {
@@ -17,6 +17,9 @@ export interface TerrainGrid {
   typeAtPoint(point: Vec2): TerrainType;
   elevationAt(column: number, row: number): number;
   elevationAtPoint(point: Vec2): number;
+  /** Terrain, plateau and uphill pace as one multiplier shared with routing. */
+  moveMultiplierAt(column: number, row: number, rise?: number): number;
+  moveMultiplierAtPoint(point: Vec2, rise?: number): number;
   passable(column: number, row: number): boolean;
   inBounds(column: number, row: number): boolean;
   toTile(point: Vec2): TileRef;
@@ -33,7 +36,11 @@ const OFF_MAP: TerrainType = {
   passable: false,
 };
 
-export function createTerrainGrid(data: TerrainMapData, rules: TerrainRules): TerrainGrid {
+export function createTerrainGrid(
+  data: TerrainMapData,
+  rules: TerrainRules,
+  movement?: MovementRules,
+): TerrainGrid {
   const cells: TerrainType[] = new Array<TerrainType>(data.width * data.height);
   const elevations = new Uint8Array(data.width * data.height);
 
@@ -49,13 +56,6 @@ export function createTerrainGrid(data: TerrainMapData, rules: TerrainRules): Te
     }
   }
 
-  let minStepCost = Number.POSITIVE_INFINITY;
-  for (const terrain of Object.values(rules.types)) {
-    if (!terrain.passable || terrain.moveMultiplier <= 0) continue;
-    minStepCost = Math.min(minStepCost, 1 / terrain.moveMultiplier);
-  }
-  if (!Number.isFinite(minStepCost)) minStepCost = 1;
-
   const inBounds = (column: number, row: number): boolean =>
     column >= 0 && row >= 0 && column < data.width && row < data.height;
 
@@ -64,6 +64,24 @@ export function createTerrainGrid(data: TerrainMapData, rules: TerrainRules): Te
 
   const elevationAt = (column: number, row: number): number =>
     inBounds(column, row) ? (elevations[row * data.width + column] ?? 0) : 0;
+
+  const moveMultiplierAt = (column: number, row: number, rise = 0): number => {
+    const terrain = typeAt(column, row);
+    if (movement === undefined) return terrain.moveMultiplier;
+    const levels = Math.min(elevationAt(column, row), movement.elevationSpeedMaxLevels);
+    const plateau = movement.elevationSpeedPerLevel ** levels;
+    const climb = 1 / (1 + Math.max(0, rise) * (1 - movement.climbSpeedFactor));
+    return terrain.moveMultiplier * plateau * climb;
+  };
+
+  let minStepCost = Number.POSITIVE_INFINITY;
+  for (let row = 0; row < data.height; row += 1) {
+    for (let column = 0; column < data.width; column += 1) {
+      const pace = moveMultiplierAt(column, row);
+      if (pace > 0) minStepCost = Math.min(minStepCost, 1 / pace);
+    }
+  }
+  if (!Number.isFinite(minStepCost)) minStepCost = 1;
 
   return {
     id: data.id,
@@ -77,6 +95,13 @@ export function createTerrainGrid(data: TerrainMapData, rules: TerrainRules): Te
     elevationAt,
     elevationAtPoint: (point) =>
       elevationAt(Math.floor(point.x / data.tileSize), Math.floor(point.y / data.tileSize)),
+    moveMultiplierAt,
+    moveMultiplierAtPoint: (point, rise) =>
+      moveMultiplierAt(
+        Math.floor(point.x / data.tileSize),
+        Math.floor(point.y / data.tileSize),
+        rise,
+      ),
     passable: (column, row) => {
       const terrain = typeAt(column, row);
       return terrain.passable && terrain.moveMultiplier > 0;

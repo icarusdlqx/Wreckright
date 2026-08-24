@@ -51,7 +51,7 @@ describe('large battlefield traversal', () => {
     const data = mission(id);
     const map = catalog.maps.get(data.mapId);
     if (map === undefined) throw new Error(`missing map "${data.mapId}"`);
-    const grid = createTerrainGrid(map, catalog.rules.terrain);
+    const grid = createTerrainGrid(map, catalog.rules.terrain, catalog.rules.movement);
     const maxNodes = catalog.rules.simulation.pathfindMaxNodes;
     const extentX = map.width * map.tileSize;
     const extentY = map.height * map.tileSize;

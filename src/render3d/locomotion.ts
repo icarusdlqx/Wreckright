@@ -5,6 +5,14 @@ import type { EntityId, MechEntity, Vec2 } from '../sim/types';
 import type { BattleEffects } from './battleEffects';
 import { resetFootContact, settleFootContact } from './footContact';
 import { resetLegPose, writeJumpPose, writeStridePose, writeTurnPose } from './legMotion';
+import {
+  advanceLegLossStumble,
+  applyPersistentLimp,
+  poseLegLossStumble,
+  posePersistentLimpLeg,
+  singleDestroyedLeg,
+  triggerLegLossStumble,
+} from './limbDamageMotion';
 import type { MechModel } from './mechModel';
 import { strideLengthFor, strideSwing, turnStrideLength } from './motionProfiles';
 import {
@@ -25,6 +33,7 @@ import {
   settleDestroyed,
 } from './terminalMotion';
 import { createAnimationState, type AnimationState } from './locomotionState';
+import { lockSubmergedBody, placeMachineRoot } from './submergedLocomotion';
 
 export { advanceGait, gaitForTerrain, responseBlend, type GaitProfile } from './terrainGait';
 export { localTilt, sampleGround, type GroundSample } from './locomotionGround';
@@ -46,6 +55,14 @@ export class Locomotion {
     private readonly reducedMotion = false,
   ) {}
 
+  beginFrame(deltaSeconds: number): void {
+    for (const state of this.states.values()) advanceLegLossStumble(state, deltaSeconds);
+  }
+
+  triggerLegLoss(id: EntityId, location: 'left_leg' | 'right_leg'): void {
+    triggerLegLossStumble(this.stateFor(id), location);
+  }
+
   authorizeTerminalFall(id: EntityId): void {
     this.terminalFallAuthorizations.add(id);
   }
@@ -66,7 +83,7 @@ export class Locomotion {
     at: Interpolated,
     lift: number,
     deltaSeconds: number,
-  ): void {
+  ): number {
     const state = this.stateFor(entity.id);
     if (entity.destroyed && !this.terminalFallAuthorizations.has(entity.id)) {
       settleDestroyed(state.terminal);
@@ -75,22 +92,22 @@ export class Locomotion {
     const ground = sampleGround(this.heightAt, at, footprint);
     this.followGround(state, ground, deltaSeconds);
     const tilt = localTilt(state.gradeX, state.gradeY, at.facing);
-
-    const contact = entity.jump === null ? state.contact.body : 0;
-    const hullKick = model.hullRecoil.kick;
-    model.root.position.set(
-      at.x - Math.cos(at.facing) * hullKick,
-      state.ground + lift + contact,
-      at.y - Math.sin(at.facing) * hullKick,
+    const terrainId = this.terrainAt(at);
+    const submergence = placeMachineRoot(
+      entity, model, state, at, lift, terrainId, deltaSeconds,
     );
     model.root.rotation.y = -at.facing;
     model.root.rotation.x = tilt.x;
     model.root.rotation.z = tilt.z;
     model.torso.rotation.y = -at.torso;
 
-    this.animate(entity, model, at, deltaSeconds, tilt, this.terrainAt(at));
+    this.animate(entity, model, at, deltaSeconds, tilt, terrainId);
+    if (submergence !== 0 && state.terminal.fall <= 0) {
+      lockSubmergedBody(model, state, state.ground + lift + submergence);
+    }
     poseMachineMotion(model.machineMotion);
     if (entity.jump !== null) this.burn(entity, model);
+    return submergence;
   }
 
   private followGround(state: AnimationState, target: GroundSample, dt: number): void {
@@ -152,6 +169,8 @@ export class Locomotion {
     state.lastFacing = at.facing;
     state.hasLast = true;
 
+    if (poseLegLossStumble(entity, model, state, tilt, this.heightAt, dt, this.reducedMotion)) return;
+
     const motion = model.motion;
     if (model.legs.length === 0 || motion === null) {
       restorePoweredPose(model, tilt);
@@ -162,7 +181,9 @@ export class Locomotion {
     const profile = state.gait;
     const grade = Math.hypot(state.gradeX, state.gradeY);
     const climb = clamp(grade / 0.45, 0, 1);
-    const strideLength = strideLengthFor(model.legReach, motion, profile) * (1 - climb * 0.18);
+    const lostLeg = singleDestroyedLeg(entity, model);
+    const strideLength = strideLengthFor(model.legReach, motion, profile)
+      * (1 - climb * 0.18) * (lostLeg < 0 ? 1 : 0.72);
 
     if (entity.jump !== null) {
       state.wasJumping = true;
@@ -202,7 +223,7 @@ export class Locomotion {
       posePhase = state.turnDirection === 0 ? state.phase : state.turnPhase;
     }
 
-    if (model.faction === 'aurelian' && translated === 0 && turned === 0) {
+    if (model.faction === 'aurelian' && translated === 0 && turned === 0 && lostLeg < 0) {
       state.amp = 0;
       state.lean = 0;
       for (let index = 0; index < model.legs.length; index += 1) {
@@ -245,6 +266,9 @@ export class Locomotion {
       leg.knee.rotation.z = pose.knee;
       leg.ankle.rotation.z = pose.ankle;
     }
+    if (lostLeg === 0 || lostLeg === 1) {
+      posePersistentLimpLeg(model, state, lostLeg, posePhase, swing, knee);
+    }
 
     const bob = motion.bob * profile.bob * (1 - climb * 0.35) * model.culture.bobScale;
     const idleCorrection = this.reducedMotion || travelled !== 0 || turned !== 0
@@ -261,6 +285,7 @@ export class Locomotion {
       model.culture.torsoMotionScale +
       Math.sin(posePhase - 0.22) * model.culture.hydraulicSlop * state.amp +
       idleCorrection;
+    applyPersistentLimp(model, lostLeg, posePhase, state.amp, this.reducedMotion);
     model.root.rotation.x = tilt.x;
     model.root.rotation.z = tilt.z;
     settleFootContact(

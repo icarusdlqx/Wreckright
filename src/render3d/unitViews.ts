@@ -54,11 +54,12 @@ export class UnitViews {
 
   constructor(
     private readonly scene: Scene,
-    heightAt: (x: number, y: number) => number,
+    private readonly heightAt: (x: number, y: number) => number,
     private readonly reducedMotion = false,
   ) {
     this.shadows = new ContactShadowLayer(heightAt);
-    this.picking = new UnitPicking(heightAt, (entity) => this.at(entity), (id) => this.views.get(id));
+    this.picking = new UnitPicking(heightAt, (entity) => this.at(entity),
+      (id) => this.placed.has(id) ? this.views.get(id) : undefined);
     this.detachedParts = new DetachedPartPool(scene, heightAt, reducedMotion);
     scene.add(this.shadows.mesh);
   }
@@ -106,8 +107,8 @@ export class UnitViews {
     this.placed.add(id);
   }
 
-  placeShadow(entity: MechEntity, at: Interpolated, lift: number): void {
-    this.shadows.place(at, radiusFor(entity.tonnage), at.facing, lift);
+  placeShadow(entity: MechEntity, at: Interpolated, lift: number, submergence = 0): void {
+    this.shadows.place(at, radiusFor(entity.tonnage), at.facing, lift, -submergence);
   }
 
   finishFrame(): void {
@@ -236,7 +237,6 @@ export class UnitViews {
     return view !== undefined && view.model.root.visible && this.placed.has(id);
   }
 
-  /** Death falls require a live model the player saw before the terminal event. */
   wasPresentedLive(id: EntityId): boolean {
     const view = this.views.get(id);
     return this.wasPresented(id) && view?.terminal === false;
@@ -245,11 +245,19 @@ export class UnitViews {
   canAnimateTerminalEvent(world: World, id: EntityId): boolean {
     return canPresentEntity(world, id) && this.wasPresentedLive(id);
   }
+  canAnimateVisibleEvent(world: World, id: EntityId): boolean {
+    return canPresentEntity(world, id) && this.wasPresented(id);
+  }
 
   locationOf(id: EntityId, location: (typeof LOCATIONS)[number], out: Vector3): boolean {
     const view = this.views.get(id);
     if (view === undefined || !this.canLocate(id)) return false;
-    return locationWorldAnchor(view.anchors, location, out);
+    if (locationWorldAnchor(view.anchors, location, out)) return true;
+    const top = view.model.root.position.y + view.model.height;
+    const base = Math.min(top, Math.max(view.model.root.position.y,
+      this.heightAt(view.model.root.position.x, view.model.root.position.z)));
+    out.set(view.model.root.position.x, (base + top) * 0.5, view.model.root.position.z);
+    return true;
   }
 
   /** Chooses the physical copy that fired when a design carries duplicate weapon ids. */

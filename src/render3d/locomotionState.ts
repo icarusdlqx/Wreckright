@@ -16,6 +16,8 @@ export interface AnimationState {
   gradeX: number;
   gradeY: number;
   hasGround: boolean;
+  submergence: number;
+  hasSubmergence: boolean;
   gait: GaitProfile;
   wasJumping: boolean;
   poses: [LegPose, LegPose];
@@ -24,6 +26,8 @@ export interface AnimationState {
   turnDirection: -1 | 0 | 1;
   elapsed: number;
   shutdownElapsed: number;
+  stumbleRemaining: number;
+  stumbleSide: -1 | 0 | 1;
   terminal: TerminalMotionState;
 }
 
@@ -41,6 +45,8 @@ export function createAnimationState(): AnimationState {
     gradeX: 0,
     gradeY: 0,
     hasGround: false,
+    submergence: 0,
+    hasSubmergence: false,
     gait: { ...gaitForTerrain('open') },
     wasJumping: false,
     poses: [
@@ -52,6 +58,8 @@ export function createAnimationState(): AnimationState {
     turnDirection: 0,
     elapsed: 0,
     shutdownElapsed: 0,
+    stumbleRemaining: 0,
+    stumbleSide: 0,
     terminal: { fall: 0, landed: false, destroyed: false },
   };
 }

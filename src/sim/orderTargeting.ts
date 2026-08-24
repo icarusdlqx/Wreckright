@@ -6,6 +6,7 @@ import { findEntity, isOperational, type MechEntity, type Vec2, type World } fro
 import {
   hasUsableFiringSolution,
   hasUsableLineOfFire,
+  longestUsableWeaponMaximumReach,
   longestUsableWeaponReach,
 } from './weaponEngagement';
 
@@ -79,7 +80,7 @@ export function approachToEngage(
   entity: MechEntity,
   quarry: MechEntity,
 ): boolean {
-  const reach = longestUsableWeaponReach(world, entity, 'intent');
+  const reach = longestUsableWeaponReach(world, entity, 'intent', quarry.pos);
   // Nothing to shoot with: charging a machine you cannot hurt is not an
   // approach, it is a donation.
   if (reach <= 0) return false;
@@ -226,8 +227,7 @@ export function applyPlayerTargeting(
  * not halt an advance; a target worth shooting does.
  */
 export function engageWorthTarget(world: World, entity: MechEntity): MechEntity | null {
-  const reach =
-    longestUsableWeaponReach(world, entity, 'intent') * world.rules.combat.maxRangeMultiplier;
+  const reach = longestUsableWeaponMaximumReach(world, entity, 'intent', entity.pos);
   if (reach === 0) return null;
 
   let best: MechEntity | null = null;
@@ -240,7 +240,13 @@ export function engageWorthTarget(world: World, entity: MechEntity): MechEntity 
     if (!isOperational(candidate)) continue;
 
     const range = distance(entity.pos, candidate.pos);
-    if (range > reach || range >= bestRange) continue;
+    const candidateReach = longestUsableWeaponMaximumReach(
+      world,
+      entity,
+      'intent',
+      candidate.pos,
+    );
+    if (range > candidateReach || range >= bestRange) continue;
     if (!hasUsableFiringSolution(world, entity, candidate, 'intent')) continue;
 
     best = candidate;

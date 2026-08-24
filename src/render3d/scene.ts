@@ -33,6 +33,7 @@ import { buildTerrain, type TerrainMesh } from './terrain';
 import { UnitViews } from './unitViews';
 import { SupportEffects } from './supportEffects';
 import { canPresentEntity } from './visibilityPresentation';
+import { routeVisibleLegLoss } from './legLossEventPresentation';
 
 export interface ViewState extends MarkerViewState {
   hovered: EntityId | null;
@@ -240,12 +241,13 @@ export class Renderer {
 
   consumeEvents(world: World, events: readonly SimEvent[]): void {
     for (const event of events) {
-      if (event.type !== 'mech_destroyed') continue;
-      if (this.units.canAnimateTerminalEvent(world, event.entityId)) {
-        this.locomotion.authorizeTerminalFall(event.entityId);
-      } else {
-        this.locomotion.settleTerminal(event.entityId);
-      }
+      if (event.type === 'mech_destroyed') {
+        if (this.units.canAnimateTerminalEvent(world, event.entityId)) {
+          this.locomotion.authorizeTerminalFall(event.entityId);
+        } else {
+          this.locomotion.settleTerminal(event.entityId);
+        }
+      } else routeVisibleLegLoss(world, event, this.units, this.locomotion);
     }
     this.units.consumeEvents(world, events);
     this.effects.consume(world, events);
@@ -265,6 +267,7 @@ export class Renderer {
     this.units.interpolate(world, alpha);
     this.units.setRenderQuality(this.camera.distance, this.lowFx);
     this.units.beginFrame(presentationDelta);
+    this.locomotion.beginFrame(presentationDelta);
     this.effects.beginFrame(presentationDelta);
 
     for (const entity of world.entities) {
@@ -279,9 +282,11 @@ export class Renderer {
       const at = this.units.at(entity);
       const ground = this.terrain.heightAt(at.x, at.y);
       const lift = jumpHeight(entity) * radiusFor(entity.tonnage) * 2.2;
-      this.locomotion.place(entity, shown.model, at, lift, presentationDelta);
+      const submergence = this.locomotion.place(
+        entity, shown.model, at, lift, presentationDelta,
+      );
       this.units.markPlaced(entity.id, at);
-      this.units.placeShadow(entity, at, lift);
+      this.units.placeShadow(entity, at, lift, entity.jump === null ? submergence : 0);
 
       shown.ring.position.set(at.x, ground + 1.2, at.y);
       shown.hoverRing.position.set(at.x, ground + 1.1, at.y);
