@@ -13,6 +13,7 @@
     "test:watch": "vitest",
     "sim": "vite-node src/headless/cli.ts --",
     "verify:ui": "node tests/e2e/playthrough.mjs",
+    "verify:deploy": "node tools/verify-deployment.mjs",
     "sbom": "node tools/generate-sbom.mjs",
     "notices:check": "node tools/generate-third-party-notices.mjs --check",
     "notices:write": "node tools/generate-third-party-notices.mjs --write"

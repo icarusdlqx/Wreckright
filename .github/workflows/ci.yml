@@ -1,41 +1,182 @@
-# Checks every push. Cloudflare Pages does the publishing — it builds from the
-# repository directly — so this exists to catch a break early and to put a red
-# mark on the commit that caused it, not to deploy anything.
-#
-# `npm run build` runs `tsc --noEmit` before Vite, so a type error also fails
-# the Cloudflare build and never reaches the live site.
+# This workflow is the merge gate for main. Cloudflare separately builds and
+# deploys the same main commit after merge; see docs/RELEASING.md.
 name: CI
 
 on:
   push:
     branches: [main]
   pull_request:
+    branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: '17 3 * * 1'
+
+permissions:
+  contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-jobs:
-  check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+env:
+  CI: 'true'
 
-      - uses: actions/setup-node@v4
+jobs:
+  quality:
+    name: Quality and release builds
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .node-version
           cache: npm
 
-      - run: npm ci
-      - run: npx tsc --noEmit
-      - run: npx eslint .
+      - name: Install locked dependencies
+        run: npm ci
 
-      # Balance and browser suites are left out: they are slow, and they gate
-      # design decisions rather than whether the game builds and runs. The
-      # balance gate (src/sim/balance.test.ts, ~13 minutes of mirror matches)
-      # is run locally by whoever changes /sim or sim-affecting data.
-      - run: npx vitest run --exclude "**/balance.test.ts" --exclude "**/e2e/**"
+      - name: Typecheck
+        run: npm run typecheck
 
-      - run: npm run build
-      - run: npm run build:single
+      - name: Lint
+        run: npm run lint
+
+      - name: Run fast test suite
+        run: npx vitest run --exclude "**/balance.test.ts" --exclude "**/e2e/**"
+
+      - name: Verify dependency inventory
+        run: |
+          npm run sbom > /dev/null
+          npm run notices:check
+
+      - name: Build hosted release
+        run: npm run build
+
+      - name: Build single-file release
+        run: npm run build:single
+
+      - name: Preserve tested release artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-${{ github.sha }}
+          path: |
+            dist/
+            dist-single/
+          if-no-files-found: error
+          retention-days: 14
+
+  browser:
+    name: Browser playthrough
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser playthrough
+        run: npm run verify:ui
+
+      - name: Preserve browser evidence after failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: browser-failure-${{ github.sha }}
+          path: reports/e2e/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  simulation:
+    name: Simulation gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source and history
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Detect simulation-affecting changes
+        id: relevance
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        shell: bash
+        run: |
+          if [[ "$EVENT_NAME" == "workflow_dispatch" || "$EVENT_NAME" == "schedule" ]]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [[ -z "$BASE_SHA" || "$BASE_SHA" =~ ^0+$ ]] || ! git cat-file -e "${BASE_SHA}^{commit}"; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          changed_files="$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" -- \
+            package.json package-lock.json \
+            src/sim src/campaign src/data src/headless src/schema)"
+          if [[ -n "$changed_files" ]]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "No simulation-affecting files changed."
+          fi
+
+      - name: Set up Node
+        if: ${{ steps.relevance.outputs.run == 'true' }}
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install locked dependencies
+        if: ${{ steps.relevance.outputs.run == 'true' }}
+        run: npm ci
+
+      - name: Run deterministic balance and campaign gates
+        if: ${{ steps.relevance.outputs.run == 'true' }}
+        run: |
+          npx vitest run src/sim/balance.test.ts
+          npx vitest run src/campaign/acceptance.test.ts
+
+  production-gate:
+    name: Production gate
+    if: ${{ always() }}
+    needs: [quality, browser, simulation]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Require every release check
+        env:
+          QUALITY_RESULT: ${{ needs.quality.result }}
+          BROWSER_RESULT: ${{ needs.browser.result }}
+          SIMULATION_RESULT: ${{ needs.simulation.result }}
+        shell: bash
+        run: |
+          printf 'quality=%s\nbrowser=%s\nsimulation=%s\n' \
+            "$QUALITY_RESULT" "$BROWSER_RESULT" "$SIMULATION_RESULT"
+          test "$QUALITY_RESULT" = success
+          test "$BROWSER_RESULT" = success
+          test "$SIMULATION_RESULT" = success
