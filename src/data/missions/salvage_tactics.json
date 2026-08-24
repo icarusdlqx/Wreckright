@@ -3,7 +3,7 @@
   "name": "Field Exercise — Salvage Tactics",
   "type": "defend",
   "mapId": "ridge_pass",
-  "briefing": "Field exercise. Hold the recovery yard until the clock while one live range target presses it. Use Called Shot, take one leg, then the other, and press Hold Fire immediately when both are gone. A standing attack order keeps shooting. If your side holds the field, an operational machine with both legs gone is recorded as legged: the best hull-recovery chance you can deliberately make here, never a guaranteed recovery. The exercise pays no C-bills and adds nothing to inventory.",
+  "briefing": "Field exercise. Hold the recovery yard until the clock while one live range target presses it. Use Called Shot, take one leg, then the other, and press Hold Fire immediately when both are gone. A standing attack order keeps shooting. If your side holds the field, an operational machine with both legs gone is recorded as legged: the best hull-recovery chance you can deliberately make here, never a guaranteed recovery. The exercise pays no credits and adds nothing to inventory.",
   "maxDurationSeconds": 60,
   "startingResourcePoints": 0,
   "lances": [

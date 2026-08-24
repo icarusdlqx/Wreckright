@@ -9,6 +9,7 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { encodeNoticePayload } from './single-file-utils.mjs';
 
 const OUT_DIR = 'dist-single';
 
@@ -21,10 +22,9 @@ const pick = (extension) => {
   return readFileSync(join(OUT_DIR, 'assets', name), 'utf8');
 };
 
-const shell = readFileSync(join(OUT_DIR, 'index.html'), 'utf8');
-const body = (shell.match(/<body>([\s\S]*?)<\/body>/)?.[1] ?? '')
-  .replace(/<script[^>]*src="[^"]*"[^>]*><\/script>/g, '')
-  .trim();
+const notices = encodeNoticePayload(
+  readFileSync(join('public', 'THIRD_PARTY_NOTICES.txt'), 'utf8'),
+);
 
 // The host wraps this in its own shell, so pin the game to the viewport rather
 // than trusting a percentage height chain through ancestors we do not control.
@@ -42,7 +42,8 @@ const page = [
   '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">',
   '<title>IRONLINE</title>',
   `<style>\n${pick('.css')}\n${fill}</style>`,
-  body,
+  '<div id="root"></div>',
+  `<script type="application/octet-stream" id="third-party-notices" data-encoding="base64">${notices}</script>`,
   `<script type="module">\n${pick('.js')}\n</script>`,
 ].join('\n');
 

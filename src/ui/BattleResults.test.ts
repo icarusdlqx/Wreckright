@@ -188,7 +188,7 @@ describe('battle results screen', () => {
       }),
     );
 
-    expect(markup).toContain('Field exercise · no inventory or C-bill reward');
+    expect(markup).toContain('Field exercise · no inventory or credit reward');
     expect(markup).toContain('High-salvage standard met');
     expect(markup).toContain('Legged');
     expect(markup).toContain('85%');

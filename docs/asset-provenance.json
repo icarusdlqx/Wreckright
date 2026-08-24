@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "scope": ["public", "src"],
+  "assets": [
+    {
+      "path": "public/icons/apple-touch-icon.png",
+      "sha256": "b986ffdf4b355e08804008d4c232ed88eb03a62b9cf466cf14f3d88aa21e23f4",
+      "introducedBy": "94dde01e3bf4a71c684fd8f58d072d9531d7f20e",
+      "originEvidence": "Repository commit describes a game-specific app icon baked to PNG; no external source or license is recorded.",
+      "clearance": "owner-attestation-required"
+    },
+    {
+      "path": "public/icons/icon-192.png",
+      "sha256": "b230023e5151a6b403f11aa9c3e5ce0bb9116f4336493be678d8fabfc82ff635",
+      "introducedBy": "94dde01e3bf4a71c684fd8f58d072d9531d7f20e",
+      "originEvidence": "Repository commit describes a game-specific app icon baked to PNG; no external source or license is recorded.",
+      "clearance": "owner-attestation-required"
+    },
+    {
+      "path": "public/icons/icon-512.png",
+      "sha256": "142cf99c630c9faf23ac166d83ae53f6edf78e13dd54d1a6bc2e6887fd80d91c",
+      "introducedBy": "94dde01e3bf4a71c684fd8f58d072d9531d7f20e",
+      "originEvidence": "Repository commit describes a game-specific app icon baked to PNG; no external source or license is recorded.",
+      "clearance": "owner-attestation-required"
+    }
+  ]
+}

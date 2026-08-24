@@ -20,7 +20,7 @@ export function SalvageDrillResults({
   return (
     <section className="salvage-drill-results" aria-labelledby="salvage-drill-result-title">
       <header>
-        <span>Field exercise · no inventory or C-bill reward</span>
+        <span>Field exercise · no inventory or credit reward</span>
         <h3 id="salvage-drill-result-title">
           {report.standardMet ? 'High-salvage standard met' : 'High-salvage standard not met'}
         </h3>
@@ -46,7 +46,7 @@ export function SalvageDrillResults({
       <p>
         The base chance is the campaign hull-condition chance before any contract salvage share.
         It is not a guarantee, and no recovery roll is made here. Nothing is added to inventory and
-        no C-bills are paid.
+        no credits are paid.
       </p>
     </section>
   );
