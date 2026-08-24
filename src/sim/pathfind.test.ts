@@ -30,7 +30,7 @@ describe('findPath', () => {
   it('does not charge stale heap entries to the Blackglass node budget', () => {
     const map = catalog.maps.get('blackglass_quarry');
     if (map === undefined) throw new Error('missing blackglass_quarry');
-    const grid = createTerrainGrid(map, catalog.rules.terrain);
+    const grid = createTerrainGrid(map, catalog.rules.terrain, catalog.rules.movement);
     const goal = { x: 1284, y: 1236 };
 
     const path = findPath(grid, { x: 108, y: 84 }, goal, 4000);

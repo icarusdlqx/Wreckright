@@ -58,6 +58,30 @@ export function writeJumpPose(
   out.planted = false;
 }
 
+/** A failed actuator drags through a short arc while the surviving leg carries the hull. */
+export function writeLimpPose(
+  out: LegPose,
+  phase: number,
+  swing: number,
+  kneeLift: number,
+): void {
+  const cycle = positiveModulo(phase, FULL_CYCLE);
+  const drag = Math.sin(cycle);
+  const hitch = Math.max(0, -Math.cos(cycle));
+  out.hip = -0.1 + drag * swing * 0.22;
+  out.knee = -0.24 - hitch * kneeLift * 0.34;
+  out.ankle = ankleCounterRotation(out.hip, out.knee, 0);
+  out.planted = false;
+}
+
+/** One smooth brace serves both full and reduced-motion stumble reads. */
+export function writeStumblePose(out: LegPose, lost: boolean, envelope: number): void {
+  out.hip = (lost ? -0.15 : 0.06) * envelope;
+  out.knee = (lost ? -0.7 : -0.2) * envelope;
+  out.ankle = ankleCounterRotation(out.hip, out.knee, 0);
+  out.planted = !lost;
+}
+
 export function resetLegPose(out: LegPose): void {
   out.hip = 0;
   out.knee = 0;

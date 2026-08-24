@@ -82,7 +82,7 @@ export function makeGrid(spec: GridSpec): TerrainGrid {
     ...(spec.elevation === undefined ? {} : { elevation: spec.elevation }),
   };
 
-  return createTerrainGrid(data, catalog.rules.terrain);
+  return createTerrainGrid(data, catalog.rules.terrain, catalog.rules.movement);
 }
 
 export const OPEN_LEGEND = { '.': 'open', '#': 'impassable', f: 'forest', b: 'building' };

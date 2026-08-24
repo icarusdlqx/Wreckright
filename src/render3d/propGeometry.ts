@@ -73,20 +73,26 @@ function tree(theme: PropTheme): BufferGeometry {
     {
       geometry: new CylinderGeometry(0.18, 0.25, 1, 5),
       colour: bark,
-      position: [0, 0.29, 0],
-      scale: [1, 0.58, 1],
+      position: [0, 0.33, 0],
+      scale: [1, 0.66, 1],
     },
     {
       geometry: new ConeGeometry(1, 1, 6),
       colour: foliage,
-      position: [0, 0.52, 0],
-      scale: [1, 0.56, 1],
+      position: [0, 0.47, 0],
+      scale: [1.12, 0.5, 1.12],
     },
     {
-      geometry: new ConeGeometry(0.72, 1, 6),
+      geometry: new ConeGeometry(0.82, 1, 6),
       colour: foliage,
-      position: [0, 0.76, 0],
-      scale: [1, 0.48, 1],
+      position: [0, 0.68, 0],
+      scale: [1, 0.46, 1],
+    },
+    {
+      geometry: new ConeGeometry(0.6, 1, 6),
+      colour: foliage,
+      position: [0, 0.84, 0],
+      scale: [1, 0.32, 1],
     },
   ]);
 }

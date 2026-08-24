@@ -33,20 +33,20 @@ function climbAhead(world: World, entity: MechEntity, heading: number): number {
 
 export function speedFor(world: World, entity: MechEntity, heading = entity.facing): number {
   const base = entity.motion === 'run' ? entity.runSpeed : entity.walkSpeed;
-  const terrain = world.terrain.typeAtPoint(entity.pos);
   const heat = currentHeatTier(world, entity).movementFactor;
-  const legs = legPenaltyFactor(entity, world.rules.damage.legDestroyedSpeedFactor);
+  const legs = legPenaltyFactor(entity, world.rules.movement.singleLegSpeedFactor);
   // A mech fighting to stay upright is not also striding out.
   const footing = isStaggered(entity, world.rules.stability.staggerThreshold)
     ? world.rules.stability.staggeredSpeedFactor
     : 1;
 
   // Ground that rises under a mech has to be felt, or a ridge is a painted
-  // backdrop that costs nothing to walk up and the high ground is free.
+  // backdrop that costs nothing to walk up. The terrain grid also prices the
+  // thinner footing on a plateau, so live pace and route choice cannot drift.
   const rise = Math.max(0, climbAhead(world, entity, heading));
-  const climb = 1 / (1 + rise * (1 - world.rules.movement.climbSpeedFactor));
+  const ground = world.terrain.moveMultiplierAtPoint(entity.pos, rise);
 
-  return base * terrain.moveMultiplier * heat * legs * footing * climb * abilityFactor(world, entity, 'speed');
+  return base * ground * heat * legs * footing * abilityFactor(world, entity, 'speed');
 }
 
 function turnToward(world: World, entity: MechEntity, focus: Vec2): number {

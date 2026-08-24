@@ -11,6 +11,7 @@ import {
   type World,
 } from './types';
 import { weaponHasFiringSolution } from './weaponEngagement';
+import { weaponMaximumReach } from './weaponRange';
 
 /**
  * The to-hit readout: what the player is told before committing to a shot.
@@ -147,7 +148,7 @@ export function hitPreview(world: World, shooter: MechEntity, target: MechEntity
     if (weapon.ammoPerTon !== null && findAmmoBin(shooter, weapon.id) === null) {
       return { ...base, chance: null, blocked: 'ammo' as const };
     }
-    if (range > weapon.range.long * world.rules.combat.maxRangeMultiplier) {
+    if (range > weaponMaximumReach(world, weapon, shooter.pos, target.pos)) {
       return { ...base, chance: null, blocked: 'range' as const };
     }
     if (!weaponHasFiringSolution(world, shooter, target, weapon)) {

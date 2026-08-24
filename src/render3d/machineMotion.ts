@@ -15,6 +15,7 @@ export interface MachineMotionLeg {
   knee: Object3D;
   ankle: Object3D;
   hipRestZ: number;
+  destroyed?: boolean;
 }
 
 export interface PistonLink {
@@ -75,6 +76,7 @@ export function createMachineMotion(
   }
 
   const links = legs.flatMap((leg, index) => {
+    if (leg.destroyed === true) return NO_LINKS;
     const side = Math.sign(leg.hipRestZ) || (index === 0 ? -1 : 1);
     return legLinks(leg, side, scale);
   });

@@ -44,9 +44,10 @@ const FRAGMENT_SHADER = `
   }
 `;
 
-export function contactShadowStrength(lift: number, radius: number): number {
+export function contactShadowStrength(lift: number, radius: number, waterDepth = 0): number {
   const jump = Math.max(0, Math.min(1, lift / Math.max(1, radius * 2.2)));
-  return 1 - jump * 0.86;
+  const submerged = Math.max(0, Math.min(0.94, waterDepth / Math.max(1, radius * 0.36)));
+  return (1 - jump * 0.86) * (1 - submerged);
 }
 
 /** Low FX drops the shadow map, so this fixed pool keeps the machines planted. */
@@ -84,7 +85,7 @@ export class ContactShadowLayer {
     this.used = 0;
   }
 
-  place(at: Vec2, radius: number, facing: number, lift: number): void {
+  place(at: Vec2, radius: number, facing: number, lift: number, waterDepth = 0): void {
     if (this.disposed || this.used >= this.capacity) return;
 
     const reach = Math.max(3, radius * 0.4);
@@ -97,11 +98,12 @@ export class ContactShadowLayer {
     YAW.setFromAxisAngle(UP, -facing);
     TURN.copy(ALIGN).multiply(YAW);
 
+    const shadowStrength = contactShadowStrength(lift, radius, waterDepth);
     const jump = 1 - contactShadowStrength(lift, radius);
-    AT.set(at.x, this.heightAt(at.x, at.y) + 0.42, at.y);
+    AT.set(at.x, this.heightAt(at.x, at.y) + (waterDepth > 0 ? 0.16 : 0.42), at.y);
     SIZE.set(radius * (1.12 + jump * 0.22), 1, radius * (0.76 + jump * 0.16));
     this.mesh.setMatrixAt(this.used, MATRIX.compose(AT, TURN, SIZE));
-    this.strength.setX(this.used, contactShadowStrength(lift, radius));
+    this.strength.setX(this.used, shadowStrength);
     this.used += 1;
   }
 

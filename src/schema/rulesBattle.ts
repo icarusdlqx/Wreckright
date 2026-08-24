@@ -25,6 +25,10 @@ export const MovementRulesSchema = z.strictObject({
   turnRateDegreesPerSecond: z.number().positive(),
   turnRateReferenceTonnage: z.number().positive(),
   singleLegSpeedFactor: Probability,
+  /** Pace retained per elevation level while moving across high ground. */
+  elevationSpeedPerLevel: z.number().positive().max(1),
+  /** Caps the plateau penalty on maps with extreme authored relief. */
+  elevationSpeedMaxLevels: z.number().int().min(0).max(9),
   jumpDistancePerJet: z.number().positive(),
   jumpHeatPerJet: z.number().nonnegative(),
   jumpCooldownSeconds: z.number().positive(),
@@ -182,6 +186,12 @@ export const CombatRulesSchema = z.strictObject({
     maxLevels: z.number().int().min(0).max(9),
     /** What a level of height adds to how far a mech can see from it. */
     visionPerLevel: Factor,
+    /** Extra usable weapon reach per level when firing downhill. */
+    rangePerLevel: z.number().min(1).max(2),
+    /** Relief needed before an embankment counts as high ground for reach. */
+    rangeMinimumLevels: z.number().int().min(1).max(9),
+    /** Hard ceiling on the downhill weapon-reach bonus. */
+    rangeMaxFactor: z.number().min(1).max(2),
   }),
   /** How long a mech under return-fire orders remembers who shot at it. */
   returnFireSeconds: z.number().positive(),
@@ -239,7 +249,6 @@ export const DamageRulesSchema = z
     ammoExplosionCap: z.number().positive(),
     volatileExplosionFactor: z.number().nonnegative(),
     headDestroyedEjectionChance: Probability,
-    legDestroyedSpeedFactor: Probability,
     /**
      * What happens when a shot gets past the plate and into the frame. A
      * critical is not simply more damage: it is the shot that finds the thing

@@ -44,6 +44,14 @@ describe('render terrain height', () => {
     expect(sample(0.7, 0.6)).toBeCloseTo(d + (c - d) * 0.3 + (b - d) * 0.4, 6);
 
     terrain.mesh.geometry.dispose();
+    terrain.waterSurface?.geometry.dispose();
+    if (terrain.waterSurface !== null) {
+      if (Array.isArray(terrain.waterSurface.material)) {
+        terrain.waterSurface.material.forEach((material) => material.dispose());
+      } else {
+        terrain.waterSurface.material.dispose();
+      }
+    }
     if (Array.isArray(terrain.mesh.material)) {
       terrain.mesh.material.forEach((material) => material.dispose());
     } else {

@@ -38,6 +38,7 @@ import { TACTICAL_MECH_RENDER, type MechRenderOptions } from './renderQuality';
 import { createMachineMotion, type MachineMotionRig } from './machineMotion';
 import { createSealedPowerLights } from './sealedPowerLights';
 import type { TerminalFallAxis } from './unitVisualState';
+import { markDamagedLimbMesh, settleDamagedLegRig } from './limbDamagePresentation';
 
 export type { MountArt } from './weaponModels';
 
@@ -49,6 +50,9 @@ export interface LegRig {
   hipRestX: number;
   hipRestY: number;
   hipRestZ: number;
+  location: 'left_leg' | 'right_leg';
+  damageTier: DamageWearTier;
+  destroyed: boolean;
 }
 
 export interface Footprint {
@@ -180,20 +184,29 @@ export function buildMechModel(
     knee.add(ankle);
     hip.add(knee);
     root.add(hip);
-    const rig = { hip, knee, ankle, hipRestX, hipRestY, hipRestZ };
+    const rig = {
+      hip, knee, ankle, hipRestX, hipRestY, hipRestZ,
+      location: side, damageTier: 0 as const, destroyed: false,
+    };
     rigs.set(side, rig);
     return rig;
   };
 
   for (const part of plan.parts) {
     if (options.geometry === 'tactical' && part.detail === 'hero') continue;
-    // An arm or a head that has been blown off is gone: nothing tells a player
-    // a mech has stopped being dangerous like watching the arm leave. A torso
-    // or a leg stays — the machine is standing on it — but it stays burnt.
+    // An arm or head leaves outright. A lost leg keeps only its upper load path,
+    // which preserves the animation rig while reading as a support stump.
     const gone = part.location !== null && shownLost.has(part.location);
     const sealedFailure = part.location !== null && sealedFailures.has(part.location);
     const shed = gone && (part.location === 'left_arm' || part.location === 'right_arm' || part.location === 'head');
-    if (shed) continue;
+    const severedLowerLeg = plan.articulated && part.location !== null && lost.has(part.location)
+      && (part.location === 'left_leg' || part.location === 'right_leg')
+      && part.joint !== 'hip';
+    if (shed || severedLowerLeg) {
+      if (severedLowerLeg && plan.articulated)
+        rigFor(part.location as 'left_leg' | 'right_leg', part.at[2] * scale);
+      continue;
+    }
 
     const tier = part.location === null ? 0 : (shownWear[part.location] ?? 0);
     const finish = tier === 2 && scorched !== null
@@ -206,9 +219,17 @@ export function buildMechModel(
       gone || sealedFailure ? burnt[part.tone] : finish[part.tone],
     );
     mesh.userData.damageLocation = part.location;
+    mesh.userData.limbJoint = part.joint;
     mesh.userData.sealedFailure = sealedFailure;
     mesh.position.set(part.at[0] * scale, part.at[1] * scale, part.at[2] * scale);
     if (part.tilt !== undefined) mesh.rotation.z = part.tilt;
+    const limbTier = part.location === null
+      ? 0
+      : lost.has(part.location) ? 2 : (wear[part.location] ?? 0);
+    markDamagedLimbMesh(
+      mesh, part.location, limbTier, faction, scale,
+      part.location !== null && lost.has(part.location),
+    );
     if (
       tier === 2 &&
       part.location !== null &&
@@ -257,6 +278,11 @@ export function buildMechModel(
     } else {
       torso.add(mesh);
     }
+  }
+
+  for (const rig of rigs.values()) {
+    const tier = lost.has(rig.location) ? 2 : (wear[rig.location] ?? 0);
+    settleDamagedLegRig(rig, tier, scale, lost.has(rig.location));
   }
 
   const startup = faction === 'aurelian' && !destroyed

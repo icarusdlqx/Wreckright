@@ -8,11 +8,14 @@ import {
 import type { TerrainMapData } from '../schema/map';
 import type { TerrainGrid } from '../sim/terrain';
 import { mix, shade, TERRAIN_COLOURS } from '../render/palette';
+import { buildWaterSurface } from './waterSurface';
 
 /** Bare rock, for ground too steep to hold anything else. */
 const ROCK = 0x6d675d;
 /** What deep water grades toward away from its own shore. */
 const DEEP_WATER = 0x102636;
+/** Pale stone and sky reflected over fordable water near a bank. */
+const SHALLOW_WATER = 0x376477;
 
 /**
  * Metres of height per elevation step in the map data. Purely a matter of how
@@ -94,6 +97,8 @@ function cornerHeight(grid: TerrainGrid, column: number, row: number): number {
 
 export interface TerrainMesh {
   mesh: Mesh;
+  /** One capped ripple draw for wet maps; null keeps dry maps at their old budget. */
+  waterSurface: Mesh | null;
   /** Ground height under a battlefield point, for standing mechs on the hills. */
   heightAt(x: number, y: number): number;
 }
@@ -184,7 +189,12 @@ export function buildTerrain(
       } else {
         // Water reads as depth: pale over the shallows it is fordable at,
         // grading to something you would not walk a mech into.
-        colour = mix(colour, DEEP_WATER, wetness(tileColumn, tileRow) * 0.85);
+        const depth = wetness(tileColumn, tileRow);
+        colour = mix(
+          shade(SHALLOW_WATER, lift),
+          shade(DEEP_WATER, lift),
+          0.18 + depth * 0.74,
+        );
       }
 
       scratch.setHex(colour);
@@ -219,9 +229,15 @@ export function buildTerrain(
   mesh.receiveShadow = true;
   mesh.name = 'terrain';
 
+  const heightAt = (x: number, y: number): number =>
+    sampleHeight(heights, across, grid, x, y);
+  const waterSurface = buildWaterSurface(grid, data, heightAt);
+  if (waterSurface !== null) mesh.add(waterSurface);
+
   return {
     mesh,
-    heightAt: (x, y) => sampleHeight(heights, across, grid, x, y),
+    waterSurface,
+    heightAt,
   };
 }
 

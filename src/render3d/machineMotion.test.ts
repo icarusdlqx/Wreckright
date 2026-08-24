@@ -2,6 +2,7 @@ import { InstancedMesh, Matrix4, Mesh, Vector3 } from 'three';
 import { describe, expect, it, vi } from 'vitest';
 import { catalog, testWorld, unitOf } from '../../tests/support';
 import { chassisBlueprint } from '../render/blueprint';
+import type { MechLocation } from '../schema/common';
 import type { BattleEffects } from './battleEffects';
 import { Locomotion } from './locomotion';
 import {
@@ -11,7 +12,7 @@ import {
 } from './machineMotion';
 import { buildMechModel, disposeModel, type MechModel } from './mechModel';
 
-function modelFor(chassisId: string): MechModel {
+function modelFor(chassisId: string, lost: ReadonlySet<MechLocation> = new Set()): MechModel {
   const chassis = catalog.chassis.get(chassisId);
   if (chassis === undefined) throw new Error(`unknown chassis ${chassisId}`);
   return buildMechModel(
@@ -21,7 +22,7 @@ function modelFor(chassisId: string): MechModel {
     0x78c9ff,
     false,
     [],
-    new Set(),
+    lost,
     chassis.hardpoints,
     chassis.id,
     {},
@@ -108,6 +109,22 @@ describe('linewrought machine motion', () => {
       expect(Math.min(low.distanceTo(from), high.distanceTo(from))).toBeLessThan(1e-5);
       expect(Math.min(low.distanceTo(to), high.distanceTo(to))).toBeLessThan(1e-5);
       expect(matrix.elements.every(Number.isFinite)).toBe(true);
+    } finally {
+      disposeModel(model.root);
+    }
+  });
+
+  it('removes every actuator span from a destroyed leg while keeping the support rig', () => {
+    const model = modelFor('hornet_hnt2', new Set(['left_leg']));
+    try {
+      const lost = model.legs.find((leg) => leg.location === 'left_leg');
+      expect(lost).toBeDefined();
+      expect(lost?.destroyed).toBe(true);
+      expect(model.machineMotion.links).toHaveLength(2);
+      expect(model.machineMotion.pistons?.count).toBe(2);
+      expect(model.machineMotion.links.some((link) =>
+        link.from === lost?.hip || link.from === lost?.knee || link.to === lost?.ankle,
+      )).toBe(false);
     } finally {
       disposeModel(model.root);
     }

@@ -37,6 +37,7 @@ describe('unit damage presentation', () => {
     units.beginFrame();
     units.markPlaced(entity.id);
     world.vision?.visible.delete(entity.id);
+    expect(units.canAnimateVisibleEvent(world, entity.id)).toBe(false);
 
     units.consumeEvents(world, [
       { type: 'location_destroyed', tick: 4, entityId: entity.id, location: 'left_arm' },
@@ -45,6 +46,8 @@ describe('unit damage presentation', () => {
     expect(scene.children.some(
       (child) => child.name === 'detached-part-slot' && child.visible,
     )).toBe(false);
+    world.vision?.visible.add(entity.id);
+    expect(units.canAnimateVisibleEvent(world, entity.id)).toBe(true);
     units.dispose();
   });
 
@@ -154,6 +157,44 @@ describe('unit damage presentation', () => {
     expect(units.viewFor(world, entity).model.root).not.toBe(failed.model.root);
     units.dispose();
   });
+
+  it.each(['sentinel_brawler', 'hornet_spotter'])(
+    'rebuilds %s with readable arm and leg wear before either limb is lost',
+    (designId) => {
+      const world = testWorld(`limb-wear-${designId}`);
+      const entity = unitOf(world, designId);
+      const units = new UnitViews(new Scene(), () => 0);
+      const clean = units.viewFor(world, entity);
+      const cleanLegY = clean.model.legs.find(
+        (candidate) => candidate.location === 'left_leg',
+      )?.hipRestY;
+      for (const location of ['left_arm', 'left_leg'] as const) {
+        entity.locations[location].armour = 0;
+        entity.locations[location].rearArmour = 0;
+        entity.locations[location].internal *= 0.2;
+      }
+
+      const damaged = units.viewFor(world, entity);
+      let markedArmMeshes = 0;
+      let armDroop = 0;
+      damaged.model.root.traverse((node) => {
+        if (
+          node.userData.damageLocation === 'left_arm' &&
+          (node.userData.limbDamageTier as number | undefined) !== undefined
+        ) {
+          markedArmMeshes += 1;
+          armDroop = Math.max(armDroop, Math.abs(node.rotation.x));
+        }
+      });
+      const leg = damaged.model.legs.find((candidate) => candidate.location === 'left_leg');
+      expect(damaged.model.root).not.toBe(clean.model.root);
+      expect(markedArmMeshes).toBeGreaterThan(0);
+      expect(armDroop).toBeGreaterThan(0.05);
+      expect(leg?.damageTier).toBe(2);
+      expect(leg?.hipRestY).toBeLessThan(cleanLegY ?? 0);
+      units.dispose();
+    },
+  );
 
   it('keeps duplicate destroyed emitters dark and cycles only live copies', () => {
     const world = testWorld('sealed-disabled-duplicate');

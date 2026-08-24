@@ -2,6 +2,7 @@ import type { Weapon } from '../schema/weapon';
 import { lineOfSight } from './los';
 import { distance } from './math';
 import { isSightedBy, visionFor } from './sensors';
+import { weaponLongReach, weaponMaximumReach, weaponReach } from './weaponRange';
 import {
   findAmmoBin,
   type MechEntity,
@@ -63,11 +64,28 @@ export function longestUsableWeaponReach(
   world: World,
   mech: MechEntity,
   state: WeaponGroupState,
+  target: Vec2,
+  from: Vec2 = mech.pos,
 ): number {
   let reach = 0;
   for (const mount of mech.weapons) {
     const weapon = usableWeapon(world, mech, mount, state);
-    if (weapon !== null) reach = Math.max(reach, weapon.range.long);
+    if (weapon !== null) reach = Math.max(reach, weaponLongReach(world, weapon, from, target));
+  }
+  return reach;
+}
+
+export function longestUsableWeaponMaximumReach(
+  world: World,
+  mech: MechEntity,
+  state: WeaponGroupState,
+  target: Vec2,
+  from: Vec2 = mech.pos,
+): number {
+  let reach = 0;
+  for (const mount of mech.weapons) {
+    const weapon = usableWeapon(world, mech, mount, state);
+    if (weapon !== null) reach = Math.max(reach, weaponMaximumReach(world, weapon, from, target));
   }
   return reach;
 }
@@ -86,7 +104,7 @@ export function hasUsableFiringSolution(
     const weapon = usableWeapon(world, shooter, mount, state);
     return (
       weapon !== null &&
-      range <= weapon.range.long * rangeMultiplier &&
+      range <= weaponReach(world, weapon, from, target.pos, rangeMultiplier) &&
       weaponHasFiringSolution(world, shooter, target, weapon, from)
     );
   });

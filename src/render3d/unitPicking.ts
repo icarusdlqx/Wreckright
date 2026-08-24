@@ -13,7 +13,7 @@ import { canPresentEntity } from './visibilityPresentation';
 
 export interface PickableUnitView {
   model: {
-    root: { visible: boolean };
+    root: { visible: boolean; position: { y: number } };
     height: number;
   };
 }
@@ -34,10 +34,14 @@ export class UnitPicking {
     viewport: Viewport,
   ): { x: number; y: number; radius: number } {
     const at = this.at(entity);
-    const ground = this.heightAt(at.x, at.y);
     const size = radiusFor(entity.tonnage);
-    const centre = camera.worldToScreen(at, viewport, ground + size);
-    const top = camera.worldToScreen(at, viewport, ground + size * 2);
+    const view = this.viewOf(entity.id);
+    const height = view?.model.height ?? size * 2;
+    const base = this.baseY(entity, at, view);
+    const topY = base + height;
+    const visibleBase = Math.min(topY, Math.max(base, this.heightAt(at.x, at.y)));
+    const centre = camera.worldToScreen(at, viewport, (visibleBase + topY) * 0.5);
+    const top = camera.worldToScreen(at, viewport, topY);
     return { x: centre.x, y: centre.y, radius: Math.abs(top.y - centre.y) };
   }
 
@@ -64,8 +68,7 @@ export class UnitPicking {
       const at = this.at(entity);
       const height = view.model.height;
       const radius = radiusFor(entity.tonnage) * 1.2;
-      const lift = jumpHeight(entity) * radiusFor(entity.tonnage) * 2.2;
-      const footY = this.heightAt(at.x, at.y) + lift;
+      const footY = this.baseY(entity, at, view);
 
       this.delta.set(at.x - ray.origin.x, footY - ray.origin.y, at.y - ray.origin.z);
       const d = ray.direction;
@@ -99,10 +102,15 @@ export class UnitPicking {
     for (const entity of world.entities) {
       if (!visible(entity)) continue;
       const at = this.at(entity);
+      const view = this.viewOf(entity.id);
+      const height = view?.model.height ?? radiusFor(entity.tonnage) * 2;
+      const base = this.baseY(entity, at, view);
+      const top = base + height;
+      const visibleBase = Math.min(top, Math.max(base, this.heightAt(at.x, at.y)));
       const body = camera.worldToScreen(
         at,
         viewport,
-        this.heightAt(at.x, at.y) + radiusFor(entity.tonnage),
+        (visibleBase + top) * 0.5,
       );
       const range = Math.hypot(body.x - screen.x, body.y - screen.y);
       if (range < bestRange) {
@@ -111,5 +119,13 @@ export class UnitPicking {
       }
     }
     return best;
+  }
+
+  private baseY(entity: MechEntity, at: Vec2, view: PickableUnitView | undefined): number {
+    if (view?.model.root.visible === true && Number.isFinite(view.model.root.position.y)) {
+      return view.model.root.position.y;
+    }
+    const lift = jumpHeight(entity) * radiusFor(entity.tonnage) * 2.2;
+    return this.heightAt(at.x, at.y) + lift;
   }
 }

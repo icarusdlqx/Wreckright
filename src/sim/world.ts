@@ -137,7 +137,7 @@ export function createWorld(catalog: Catalog, options: WorldOptions): World {
     rng: createRng(options.seed),
     catalog,
     rules: catalog.rules,
-    terrain: createTerrainGrid(mapData, catalog.rules.terrain),
+    terrain: createTerrainGrid(mapData, catalog.rules.terrain, catalog.rules.movement),
     mission,
     entities,
     projectiles: [],

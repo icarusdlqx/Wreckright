@@ -17,14 +17,17 @@ describe('unit visual state', () => {
     expect(fallbackFallAxis(1)).not.toEqual(fallbackFallAxis(2));
   });
 
-  it('keeps sealed wear hidden but rebuilds persistent system failures', () => {
+  it('keeps sealed core wear hidden but rebuilds visible limb damage and failures', () => {
     const world = testWorld('sealed-signature-failures');
     const entity = unitOf(world, 'sentinel_brawler');
     const clean = modelDamageSignature(entity, 'aurelian');
-    entity.locations.left_arm.armour *= 0.2;
+    entity.locations.left_torso.armour *= 0.2;
     expect(modelDamageSignature(entity, 'aurelian')).toBe(clean);
+    entity.locations.left_arm.armour *= 0.2;
+    const damaged = modelDamageSignature(entity, 'aurelian');
+    expect(damaged).not.toBe(clean);
     entity.locations.left_arm.destroyed = true;
-    expect(modelDamageSignature(entity, 'aurelian')).not.toBe(clean);
+    expect(modelDamageSignature(entity, 'aurelian')).not.toBe(damaged);
   });
 
   it('does not articulate a sealed hull toward an optically lost target', () => {

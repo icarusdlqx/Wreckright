@@ -5,6 +5,7 @@ import { nearestPassable } from '../pathfind';
 import { isSightedBy, visionFor } from '../sensors';
 import { isOperational, type MechEntity, type Stance, type Vec2, type World } from '../types';
 import { hasUsableLineOfFire, usableWeapon, weaponHasLineOfFire } from '../weaponEngagement';
+import { weaponMaximumReach } from '../weaponRange';
 import { lanceFrontage, roleOf } from './roles';
 import { availableDps, engagementRange, exchangeRatio, healthFraction } from './utility';
 
@@ -209,7 +210,7 @@ export function exposureAt(world: World, mech: MechEntity, point: Vec2): number 
       const weapon = usableWeapon(world, enemy, mount, 'intent');
       return (
         weapon !== null &&
-        range <= weapon.range.long * world.rules.combat.maxRangeMultiplier &&
+        range <= weaponMaximumReach(world, weapon, enemy.pos, point) &&
         weaponHasLineOfFire(world, enemy.pos, point, weapon)
       );
     });

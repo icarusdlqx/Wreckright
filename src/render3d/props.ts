@@ -154,8 +154,8 @@ export class PropLayer {
           for (let i = 0; i < trees; i += 1) {
             const x = (column + 0.15 + 0.7 * h(13 + i * 7)) * size;
             const y = (row + 0.15 + 0.7 * h(17 + i * 7)) * size;
-            const height = 8 + h(19 + i * 7) * 6;
-            const radius = height * 0.32;
+            const height = 10.5 + h(19 + i * 7) * 7.5;
+            const radius = height * 0.34;
             const snagChance = theme === 'shale' ? 0.32 : theme === 'alpine' ? 0.16 : 0;
             const dead = h(107 + i * 7) < snagChance;
             const tone = shade(0xffffff, 0.82 + h(23 + i * 7) * 0.18);

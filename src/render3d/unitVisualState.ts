@@ -5,6 +5,7 @@ import { isSightedBy } from '../sim/sensors';
 import type { MechEntity, World } from '../sim/types';
 import { damageWearTier } from './damageLedger';
 import { machineCulture } from './machineCulture';
+import { isLimbLocation } from './limbDamagePresentation';
 
 export interface VisualPose {
   x: number;
@@ -33,7 +34,9 @@ export function modelDamageSignature(entity: MechEntity, faction: Faction): numb
     const location = LOCATIONS[index];
     if (location === undefined) continue;
     const state = entity.locations[location];
-    const mark = (revealsWear ? damageWearTier(state) : 0) + (state.destroyed ? 4 : 0);
+    const wear = damageWearTier(state);
+    const mark = (revealsWear || isLimbLocation(location) ? wear : 0)
+      + (state.destroyed ? 4 : 0);
     if (mark === 0) continue;
     bits = Math.imul(bits ^ ((index + 1) * 11 + mark), 16777619);
   }

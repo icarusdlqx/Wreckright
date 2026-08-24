@@ -41,8 +41,8 @@ describe('unit screen projection and picking', () => {
     world.entities = [far, near];
     world.vision = null;
     const views = new Map<number, PickableUnitView>([
-      [near.id, { model: { root: { visible: true }, height: 40 } }],
-      [far.id, { model: { root: { visible: true }, height: 40 } }],
+      [near.id, { model: { root: { visible: true, position: { y: 0 } }, height: 40 } }],
+      [far.id, { model: { root: { visible: true, position: { y: 0 } }, height: 40 } }],
     ]);
     const camera = {
       rayAt: vi.fn(() => new Ray(new Vector3(0, 15, 0), new Vector3(1, 0, 0))),
@@ -72,6 +72,25 @@ describe('unit screen projection and picking', () => {
         (entity) => entity === far,
       ),
     ).toBe(far);
+  });
+
+  it('projects a submerged rendered body from its presented root instead of dry ground', () => {
+    const world = testWorld('submerged-body-projection');
+    const entity = unitOf(world, 'sentinel_brawler');
+    const heights: number[] = [];
+    const view = {
+      model: { root: { visible: true, position: { y: -12 } }, height: 40 },
+    };
+    const camera = {
+      worldToScreen: vi.fn((_point: Vec2, _viewport: Viewport, height = 0) => {
+        heights.push(height);
+        return { x: 0, y: -height };
+      }),
+    } as unknown as TacticalCamera;
+    const picking = new UnitPicking(() => 9, () => entity.pos, () => view);
+
+    expect(picking.screenBodyOf(entity, camera, VIEWPORT).radius).toBe(9.5);
+    expect(heights).toEqual([18.5, 28]);
   });
 
   it('retains the pixel-radius fallback for a non-operational marker', () => {
