@@ -10,6 +10,7 @@ import './ui/formationPicker.css';
 import './ui/cameraControls.css';
 import './ui/supportPalette.css';
 import './ui/sidebarDetails.css';
+import './ui/resilience.css';
 
 const host = document.getElementById('root');
 if (host === null) throw new Error('missing #root');

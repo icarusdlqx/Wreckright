@@ -7,7 +7,7 @@
  * Writes dist-single/wreckright.html.
  */
 import { execFileSync } from 'node:child_process';
-import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { encodeNoticePayload } from './single-file-utils.mjs';
 
@@ -17,8 +17,19 @@ execFileSync('npx', ['vite', 'build', '--config', 'vite.config.single.ts'], { st
 
 const assets = readdirSync(join(OUT_DIR, 'assets'));
 const pick = (extension) => {
-  const name = assets.find((file) => file.endsWith(extension));
+  // The hosted build splits; this one must not. `inlineDynamicImports` collapses
+  // it back to a single chunk, and taking the first match of several would drop
+  // the rest on the floor and ship a game that boots into nothing — so insist on
+  // exactly one rather than trusting the config to have held.
+  const names = assets.filter((file) => file.endsWith(extension));
+  const [name] = names;
   if (name === undefined) throw new Error(`no ${extension} in ${OUT_DIR}/assets`);
+  if (names.length > 1) {
+    throw new Error(
+      `${OUT_DIR}/assets holds ${names.length} ${extension} files (${names.join(', ')}); ` +
+        'the single-file build expects one. Check inlineDynamicImports.',
+    );
+  }
   return readFileSync(join(OUT_DIR, 'assets', name), 'utf8');
 };
 
@@ -49,4 +60,13 @@ const page = [
 
 const target = join(OUT_DIR, 'wreckright.html');
 writeFileSync(target, page + '\n');
+
+// Everything the Vite step left behind is now inlined above. Leaving it in
+// place would double the upload and offer a second, unintended entry point
+// into the same build, so the directory holds exactly the one deliverable.
+for (const leftover of readdirSync(OUT_DIR)) {
+  if (leftover === 'wreckright.html') continue;
+  rmSync(join(OUT_DIR, leftover), { recursive: true, force: true });
+}
+
 console.log(`\n${target} — ${(page.length / 1024 / 1024).toFixed(2)} MB, no external requests`);

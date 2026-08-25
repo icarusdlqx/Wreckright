@@ -67,6 +67,15 @@ export class Renderer {
   private readonly host: HTMLElement;
   private visionTick = -1;
   private destroyed = false;
+  private contextLost = false;
+
+  /**
+   * Raised when the GPU takes its context back — a backgrounded tab, a driver
+   * reset, one canvas too many. Nothing here rebuilds the scene, so the battle
+   * cannot continue; the listener exists to say so rather than leave the player
+   * watching a black field that the simulation is still ticking underneath.
+   */
+  onContextLost: (() => void) | null = null;
 
   lowFx = readLowFx();
 
@@ -90,6 +99,7 @@ export class Renderer {
     );
     this.renderer.toneMappingExposure = rig.exposure;
     host.appendChild(this.renderer.domElement);
+    this.renderer.domElement.addEventListener('webglcontextlost', this.handleContextLost);
     this.scene.background = rig.sky;
     this.scene.fog = rig.fog;
 
@@ -211,9 +221,20 @@ export class Renderer {
     this.camera.update({ width, height });
   }
 
+  private readonly handleContextLost = (event: Event): void => {
+    if (this.destroyed || this.contextLost) return;
+    // Cancelling the default is what lets a browser offer the context back at
+    // all. Nothing reclaims it here, but suppressing the default also stops
+    // three.js from continuing to issue calls against a dead context.
+    event.preventDefault();
+    this.contextLost = true;
+    this.onContextLost?.();
+  };
+
   destroy(): void {
     if (this.destroyed) return;
     this.destroyed = true;
+    this.renderer.domElement.removeEventListener('webglcontextlost', this.handleContextLost);
     this.effects.destroy();
     this.supportEffects.dispose();
     this.units.dispose();
@@ -261,6 +282,7 @@ export class Renderer {
     view: ViewState,
     presentationDeltaSeconds = deltaSeconds,
   ): void {
+    if (this.destroyed || this.contextLost) return;
     const presentationDelta = Number.isFinite(presentationDeltaSeconds)
       ? Math.max(0, presentationDeltaSeconds)
       : 0;

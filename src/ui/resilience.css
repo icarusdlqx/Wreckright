@@ -1,0 +1,154 @@
+/*
+ * The two screens nobody plans to see: a route still loading, and a route that
+ * threw. Both have to stand on their own, because whatever styles the failed
+ * screen owned may never have mounted.
+ */
+
+.route-loading {
+  display: grid;
+  place-items: center;
+  height: 100dvh;
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  background: var(--bg);
+}
+
+.crash {
+  display: grid;
+  place-items: center;
+  height: 100dvh;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-right, 0px))
+    calc(16px + env(safe-area-inset-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px));
+  background: var(--bg);
+  overflow-y: auto;
+}
+
+.crash-panel {
+  max-width: 46rem;
+  border: 1px solid var(--edge);
+  border-left: 3px solid var(--danger);
+  background: var(--panel);
+  padding: 24px 26px;
+}
+
+.crash-eyebrow {
+  margin: 0 0 6px;
+  color: var(--danger);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.crash-title {
+  margin: 0 0 12px;
+  color: var(--text);
+  font-size: clamp(1.3rem, 4vw, 1.7rem);
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.crash-body {
+  margin: 0 0 14px;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.65;
+  max-width: 60ch;
+}
+
+.crash-detail {
+  margin: 0 0 20px;
+  padding: 10px 12px;
+  border: 1px solid var(--edge);
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.crash-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.crash-actions button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.crash-actions button:hover {
+  background: rgba(140, 224, 255, 0.1);
+}
+
+.crash-actions .crash-secondary {
+  border-color: var(--edge);
+  color: var(--muted);
+}
+
+/*
+ * High-contrast and forced-colours support.
+ *
+ * The battlefield reads by hue and by value, but the chrome around it leans on
+ * low-contrast hairlines and translucent panels. Both of those are the first
+ * things to disappear for a player who has asked the operating system for more
+ * contrast, so firm up the edges and drop the transparency rather than letting
+ * the interface dissolve into the background.
+ */
+@media (prefers-contrast: more) {
+  :root {
+    --panel: #05080a;
+    --edge: rgba(160, 232, 255, 0.62);
+    --text: #f2f8fc;
+    --muted: #b6c6d2;
+    --accent: #b6ecff;
+    --warn: #ffd27a;
+    --danger: #ff9f86;
+  }
+
+  button,
+  [role='tab'],
+  [role='dialog'] {
+    border-color: var(--edge);
+  }
+}
+
+@media (forced-colors: active) {
+  /*
+   * Forced colours replaces our palette wholesale, and anything that carried
+   * meaning purely as a background fill stops carrying it. Give every control
+   * and panel a real border so structure survives the substitution.
+   */
+  .crash-panel,
+  .crash-detail,
+  .crash-actions button,
+  [role='dialog'],
+  [role='tab'],
+  [role='meter'],
+  [role='progressbar'],
+  button {
+    border: 1px solid CanvasText;
+  }
+
+  .crash-actions button {
+    color: LinkText;
+  }
+
+  /* Selection and hover states are conveyed by colour alone elsewhere; in this
+     mode the system decides colour, so lean on the border weight instead. */
+  [aria-pressed='true'],
+  [aria-selected='true'],
+  [aria-current='true'] {
+    border-width: 3px;
+  }
+}

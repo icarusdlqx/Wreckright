@@ -1,5 +1,6 @@
 import { useEffect, useRef, type RefObject } from 'react';
-import { Mechbay, type BayCommission } from './mechbay/Mechbay';
+import { LazyMechbay } from './mechbay/LazyMechbay';
+import type { BayCommission } from './mechbay/Mechbay';
 import { useDialogFocus } from './useDialogFocus';
 
 interface IsolatedState {
@@ -64,7 +65,7 @@ export function OutfitBayDialog({
         aria-label={`Refit ${bay.title}`}
         tabIndex={-1}
       >
-        <Mechbay onExit={onClose} commission={bay} />
+        <LazyMechbay onExit={onClose} commission={bay} />
       </div>
     </div>
   );

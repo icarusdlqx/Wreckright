@@ -88,6 +88,15 @@ export class Engine {
     this.perf?.toggle();
   }
 
+  /**
+   * Stops the frame loop and leaves everything else standing. Teardown belongs
+   * to whoever created the engine, so a battle that cannot draw any more stops
+   * spending frames without pulling the canvas out from under React.
+   */
+  halt(): void {
+    this.running = false;
+  }
+
   /** Halves the GPU's job on the spot: shadows off, pixel ratio down. */
   toggleLowFx(): boolean {
     const low = !this.renderer.lowFx;

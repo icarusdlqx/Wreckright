@@ -42,9 +42,9 @@ npx eslint .           # lint (includes the sim-purity import rules)
 npx vitest run --exclude "**/balance.test.ts" --exclude "**/e2e/**"
                        # fast suite — exactly what CI runs
 npx vitest run src/sim/balance.test.ts
-                       # balance gate: ~13 minutes of mirror matches
+                       # balance gate: ~90s of mirror matches (200 seeds)
 node tests/e2e/playthrough.mjs
-                       # browser playthrough (~100 checks); spawns its own
+                       # browser playthrough (~400 checks); spawns its own
                        # vite on port 5183; needs a Chromium that Playwright
                        # can find
 npm run build          # production build (runs tsc first)

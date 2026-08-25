@@ -1,4 +1,3 @@
-import { Renderer } from '../render3d/scene';
 import { loadCatalog } from '../schema/load';
 import { missionTickBudget } from '../schema/missionClock';
 import type { World } from '../sim/types';
@@ -40,8 +39,20 @@ export async function createEngine(host: HTMLElement, options: EngineOptions = {
   const atmosphere = catalog.atmospheres.get(atmosphereId);
   if (atmosphere === undefined) throw new Error(`unknown atmosphere "${atmosphereId}"`);
 
+  // three.js and every model that depends on it arrive here rather than in the
+  // entry chunk: the home screen, the briefing and the campaign map all paint
+  // before anyone asks for a battlefield.
+  const { Renderer } = await import('../render3d/scene');
   const renderer = new Renderer(host, world, mapData, atmosphere);
   const engine = new Engine(world, renderer, missionTickBudget(catalog, missionId));
+  renderer.onContextLost = () => {
+    engine.halt();
+    useGame.getState().patch({
+      paused: true,
+      error:
+        'The graphics context was lost, so the battlefield has stopped drawing. Reload the page to return to the drop.',
+    });
+  };
   renderer.onFootfall = (at, tonnage, faction) => engine.audio.footfall(at, tonnage, faction);
   engine.audio.setTerrain(mapData);
   engine.audio.setAmbient(atmosphereId);

@@ -1,7 +1,8 @@
 import { useRef } from 'react';
 import type { CampaignState } from '../../campaign/types';
 import type { Catalog } from '../../schema/load';
-import { Mechbay, type BayCommission } from '../mechbay/Mechbay';
+import { LazyMechbay } from '../mechbay/LazyMechbay';
+import type { BayCommission } from '../mechbay/Mechbay';
 import { useDialogFocus } from '../useDialogFocus';
 import { Hangar } from './Hangar';
 import { LanceManifest } from './LanceManifest';
@@ -79,7 +80,7 @@ function RefitDialog({ bay, onClose }: { bay: BayCommission; onClose: () => void
         aria-label={`Refit ${bay.title}`}
         tabIndex={-1}
       >
-        <Mechbay onExit={onClose} commission={bay} />
+        <LazyMechbay onExit={onClose} commission={bay} />
       </div>
     </div>
   );

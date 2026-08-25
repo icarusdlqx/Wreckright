@@ -1,4 +1,4 @@
-import { useEffect, type RefObject } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
 
 const FOCUSABLE =
   'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -15,6 +15,13 @@ export function useDialogFocus(
   initialFocusRef: RefObject<HTMLElement | null>,
   onEscape?: () => void,
 ): void {
+  // Latched rather than depended upon. A caller that passes an inline arrow
+  // would otherwise re-run the whole effect on every parent render, and the
+  // teardown restores focus to whatever held it before the dialog opened —
+  // so a re-render would walk the keyboard user back to the start each time.
+  const escapeRef = useRef(onEscape);
+  escapeRef.current = onEscape;
+
   useEffect(() => {
     const priorFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const initialFocus = initialFocusRef.current ?? focusableWithin(dialogRef.current ?? document.body)[0];
@@ -22,9 +29,10 @@ export function useDialogFocus(
     initialFocus?.focus();
 
     const onKeyDown = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape' && onEscape !== undefined) {
+      const escape = escapeRef.current;
+      if (event.key === 'Escape' && escape !== undefined) {
         event.preventDefault();
-        onEscape();
+        escape();
         return;
       }
       if (event.key !== 'Tab' || dialogRef.current === null) return;
@@ -53,5 +61,5 @@ export function useDialogFocus(
       document.removeEventListener('keydown', onKeyDown);
       priorFocus?.focus();
     };
-  }, [dialogRef, initialFocusRef, onEscape]);
+  }, [dialogRef, initialFocusRef]);
 }

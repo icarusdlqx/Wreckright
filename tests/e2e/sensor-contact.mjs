@@ -35,7 +35,13 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
       explored: Array.from(world.vision.explored),
     };
     const screen = engine.renderer.camera.worldToScreen(enemy.pos, engine.renderer.viewport, 0);
-    return { enemyId: enemy.id, friendlyId: friendly.id, screen, wasPaused };
+    // Read the balance here rather than trusting a figure captured earlier in
+    // the run: objectives and zone captures award RP mid-mission, so the only
+    // reading the probe can be measured against is the one taken once the sim
+    // is already paused. `callSupport` debits at the click, before either tick
+    // below, so nothing can move this number but the probe itself.
+    const rpBefore = world.resources.get(world.playerTeam ?? 0);
+    return { enemyId: enemy.id, friendlyId: friendly.id, screen, wasPaused, rpBefore };
   });
   const revealsBefore = await page.evaluate(() => globalThis.__wreckright.world.reveals.length);
   await page.locator('[data-testid="support-sensor_probe"]').click();
@@ -45,6 +51,9 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
   );
   const sensorOutcome = await page.evaluate((enemyId) => {
     const { engine, world } = globalThis.__wreckright;
+    // The debit lands with the call, so bank it before the resolution ticks:
+    // once the sim advances again a zone can claim and credit the same purse.
+    const rp = world.resources.get(world.playerTeam ?? 0);
     engine.forceStep();
     engine.forceStep();
     const before = globalThis.__probeFogBefore;
@@ -52,7 +61,7 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
     const track = world.vision?.tracks.get(enemyId);
     return {
       reveals: world.reveals.length,
-      rp: world.resources.get(world.playerTeam ?? 0),
+      rp,
       detected: world.vision?.detected.has(enemyId) ?? false,
       visible: world.vision?.visible.has(enemyId) ?? false,
       track: track === undefined ? null : {
@@ -70,7 +79,7 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
   check(
     'the sensor probe spends RP, classifies a coarse contact, and leaves optical fog unchanged',
     sensorOutcome.reveals > revealsBefore &&
-      sensorOutcome.rp === mission.rp - mission.sensorCost &&
+      sensorOutcome.rp === probeSetup.rpBefore - mission.sensorCost &&
       sensorOutcome.detected &&
       !sensorOutcome.visible &&
       sensorOutcome.track?.id === probeSetup.enemyId &&

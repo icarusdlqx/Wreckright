@@ -26,6 +26,9 @@ export type CampaignStorageRead =
   | { kind: 'missing' }
   | { kind: 'unavailable'; error: string };
 
+// Deliberately not renamed with the rest of the identity: the key is the only
+// handle on a player's existing campaign, and changing it orphans every save
+// already on disk. The same goes for the other `ironline.` keys across the UI.
 const STORAGE_KEY = 'ironline.campaign';
 const READY: CampaignPersistenceState = {
   mode: 'persistent',

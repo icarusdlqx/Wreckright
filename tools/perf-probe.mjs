@@ -16,8 +16,11 @@ import { chromium } from 'playwright';
 const mission = process.argv[2] ?? 'foundry_sweep';
 const url = process.argv[3] ?? 'http://localhost:5199/';
 
+// Sandboxes ship Chromium at a fixed path; everywhere else Playwright already
+// knows where its own browser is, so only override when told to.
+const executablePath = process.env.PLAYWRIGHT_CHROMIUM;
 const browser = await chromium.launch({
-  executablePath: process.env.PLAYWRIGHT_CHROMIUM ?? '/opt/pw-browsers/chromium',
+  ...(executablePath === undefined ? {} : { executablePath }),
   args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'],
 });
 const page = await browser.newPage({ viewport: { width: 1400, height: 860 } });
