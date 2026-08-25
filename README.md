@@ -2,7 +2,7 @@
 
 **No new machines. Only new owners.**
 
-Real-time-with-pause tactical mech combat. See [`IRONLINE_DESIGN.md`](IRONLINE_DESIGN.md)
+Real-time-with-pause tactical mech combat. See [`WRECKRIGHT_DESIGN.md`](WRECKRIGHT_DESIGN.md)
 for the full design and build specification; [`CLAUDE.md`](CLAUDE.md) holds the
 agent working rules; [`docs/HOSTING.md`](docs/HOSTING.md) covers publishing it.
 
@@ -11,20 +11,20 @@ playable in Safari on a phone as well as on a desktop. See
 [`docs/HOSTING.md`](docs/HOSTING.md) for the build settings and how to deploy
 without pushing.
 
-## Legacy internal identifiers
+## Repository identity
 
-Wreckright was previously developed under the Ironline name. The player-facing
-title has changed, but identifiers that existing saves, links, and deployment
-automation depend on deliberately have not:
+The product, source repository (`icarusdlqx/Wreckright`), Worker
+(`wreckright.ligand-ave.workers.dev`), diagnostic hook, downloads, and release
+tooling use the Wreckright name.
 
-- browser storage and save keys retain the `ironline.*` prefix;
-- the Cloudflare Worker and its `workers.dev` hostname retain `ironline`;
-- the GitHub repository remains `icarusdlqx/Ironline`;
-- `IRONLINE_DESIGN.md` retains its historical filename; and
-- authored data ids and the `globalThis.__ironline` test hook remain stable.
+Browser storage and serialized playtest identifiers deliberately retain their
+original `ironline.*` values. They are non-visible compatibility contracts: the
+first Wreckright deployment already wrote them, and keeping them stable protects
+existing saves and rollback safety.
 
-Treat these as compatibility and operations identifiers, not alternate product
-titles. Renaming one requires its own migration and backward-compatibility plan.
+Authored data ids remain stable because they are save and simulation contracts,
+not product branding. The earlier project remains independent in its original
+repository and deployment.
 
 ## Layout
 

@@ -394,7 +394,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
 
   function onExportRecovery(): void {
     if (persistence.recoveryRaw === null) return;
-    downloadCampaignFile(rawCampaignBlob(persistence.recoveryRaw), 'ironline-campaign-recovery.txt');
+    downloadCampaignFile(rawCampaignBlob(persistence.recoveryRaw), 'wreckright-campaign-recovery.txt');
     setStatus('Original save exported.');
   }
 }

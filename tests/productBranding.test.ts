@@ -39,7 +39,7 @@ describe('Wreckright product branding', () => {
     expect(headers).toContain('/wreckright.html');
   });
 
-  it('retains legacy save, test-hook, repository, and Worker identifiers', () => {
+  it('uses Wreckright runtime, repository, and Worker identifiers while preserving save contracts', () => {
     const compatibilitySources = [
       read('src', 'campaign', 'storage.ts'),
       read('src', 'ui', 'store.ts'),
@@ -50,6 +50,7 @@ describe('Wreckright product branding', () => {
     const wrangler = JSON.parse(read('wrangler.jsonc')) as { name: string };
     const readme = read('README.md');
     const releasing = read('docs', 'RELEASING.md');
+    const cloudflareRelease = read('docs', 'CLOUDFLARE_RELEASE.md');
 
     for (const key of [
       'ironline.campaign',
@@ -57,12 +58,15 @@ describe('Wreckright product branding', () => {
       'ironline.training',
       'ironline.lance.',
       'ironline.playtest.v1',
+      'ironline.playtest/v1',
     ]) {
       expect(compatibilitySources).toContain(key);
     }
-    expect(read('src', 'ui', 'engineFactory.ts')).toContain('__ironline');
-    expect(wrangler.name).toBe('ironline');
-    expect(readme).toContain('icarusdlqx/Ironline');
-    expect(releasing).toContain('Workers Builds: ironline');
+    expect(read('src', 'ui', 'engineFactory.ts')).toContain('__wreckright');
+    expect(wrangler.name).toBe('wreckright');
+    expect(readme).toContain('icarusdlqx/Wreckright');
+    expect(releasing).toContain('Production gate');
+    expect(cloudflareRelease).toContain('wrangler versions upload');
+    expect(readme).toContain('non-visible compatibility contracts');
   });
 });

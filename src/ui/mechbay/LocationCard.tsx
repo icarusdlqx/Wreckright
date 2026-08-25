@@ -210,7 +210,7 @@ export function LocationCard({
       }}
       onDrop={(event) => {
         event.preventDefault();
-        const raw = event.dataTransfer.getData('application/ironline');
+        const raw = event.dataTransfer.getData('application/wreckright');
         if (raw === '') return;
         onDrop(JSON.parse(raw) as DropPayload, location);
       }}

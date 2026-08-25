@@ -50,10 +50,10 @@ async function waitForServer(url, timeoutMs = 60_000) {
   throw new Error(`dev server did not start at ${url}`);
 }
 
-const state = (page) => page.evaluate(() => globalThis.__ironline.useGame.getState());
+const state = (page) => page.evaluate(() => globalThis.__wreckright.useGame.getState());
 const sim = (page) =>
   page.evaluate(() => {
-    const { world } = globalThis.__ironline;
+    const { world } = globalThis.__wreckright;
     return {
       tick: world.tick,
       finished: world.finished,
@@ -79,7 +79,7 @@ const sim = (page) =>
 
 async function arrowCameraShift(page, key) {
   const before = await page.evaluate(() => {
-    const { engine, world } = globalThis.__ironline;
+    const { engine, world } = globalThis.__wreckright;
     const { camera, viewport } = engine.renderer;
     camera.centreOn({
       x: (world.terrain.width * world.terrain.tileSize) / 2,
@@ -95,7 +95,7 @@ async function arrowCameraShift(page, key) {
   await page.keyboard.up(key);
 
   return page.evaluate((previousTarget) => {
-    const { camera, viewport } = globalThis.__ironline.engine.renderer;
+    const { camera, viewport } = globalThis.__wreckright.engine.renderer;
     camera.update(viewport);
     const previousOnScreen = camera.worldToScreen(previousTarget, viewport);
     return {
@@ -116,7 +116,7 @@ async function freshHomePage(browser, url) {
 
 async function forceTrainingResult(page, status) {
   await page.evaluate((nextStatus) => {
-    const { useGame, world } = globalThis.__ironline;
+    const { useGame, world } = globalThis.__wreckright;
     const winner = nextStatus === 'success' ? useGame.getState().playerTeam : 1;
     world.finished = true;
     world.winner = winner;
@@ -210,16 +210,16 @@ async function main() {
     });
 
     await page.addInitScript(() => {
-      if (sessionStorage.getItem('ironline.e2e.initialised') !== null) return;
+      if (sessionStorage.getItem('wreckright.e2e.initialised') !== null) return;
       localStorage.clear();
-      sessionStorage.setItem('ironline.e2e.initialised', 'true');
+      sessionStorage.setItem('wreckright.e2e.initialised', 'true');
     });
     await page.goto(URL);
     await page.waitForSelector('[data-testid="home-screen"]');
     check(
       'a fresh profile opens on Home without mounting the engine',
       (await page.locator('.viewport canvas').count()) === 0 &&
-        (await page.evaluate(() => globalThis.__ironline === undefined)),
+        (await page.evaluate(() => globalThis.__wreckright === undefined)),
     );
     check(
       'Home offers learn, campaign, and skirmish routes',
@@ -231,13 +231,13 @@ async function main() {
         (await page.locator('[data-testid="home-learn"] strong').textContent()) === 'Learn Command',
     );
     await page.locator('[data-testid="home-learn"]').click();
-    await page.waitForFunction(() => globalThis.__ironline !== undefined, { timeout: 30_000 });
+    await page.waitForFunction(() => globalThis.__wreckright !== undefined, { timeout: 30_000 });
     await page.waitForSelector('[data-testid="briefing"]');
     check(
       'Learn Command opens the authored training field',
-      (await page.evaluate(() => globalThis.__ironline.world.mission.id)) === 'training_ground' &&
+      (await page.evaluate(() => globalThis.__wreckright.world.mission.id)) === 'training_ground' &&
         (await page.evaluate(() =>
-          globalThis.__ironline.world.entities.filter((entity) => entity.team === 0).length,
+          globalThis.__wreckright.world.entities.filter((entity) => entity.team === 0).length,
         )) === 2,
     );
     const trainingBriefingText = await page.locator('[data-testid="briefing"]').innerText();
@@ -282,7 +282,7 @@ async function main() {
         (await page.locator('[data-testid="command-run"]').count()) === 0,
     );
     await page.evaluate(() => {
-      const { useGame } = globalThis.__ironline;
+      const { useGame } = globalThis.__wreckright;
       const current = useGame.getState();
       const selected = new Set(current.selection);
       current.patch({
@@ -326,7 +326,7 @@ async function main() {
     await page.waitForSelector('[data-testid="home-screen"]');
     await page.locator('[data-testid="home-skirmish"]').click();
     await page.waitForFunction(
-      () => globalThis.__ironline?.world.mission.id === 'skirmish_ridge',
+      () => globalThis.__wreckright?.world.mission.id === 'skirmish_ridge',
       { timeout: 30_000 },
     );
     await verifyAlternateTrainingRoutes(browser, URL);
@@ -381,7 +381,7 @@ async function main() {
     check('deploying starts the clock', running.tick > beforeBriefing, `${beforeBriefing} → ${running.tick}`);
     check(
       'typing then tapping deploy locks the normalized Battle code',
-      (await page.evaluate(() => globalThis.__ironline.useGame.getState().battleCode)) ===
+      (await page.evaluate(() => globalThis.__wreckright.useGame.getState().battleCode)) ===
         'ridge-touch-0000002a',
     );
     await checkDeployedInputSafety({ page, check, state });
@@ -477,7 +477,7 @@ async function main() {
     // once became an empty box-select that cleared the selection, after which
     // the destination order that followed did nothing at all, silently.
     const wobbleTarget = await page.evaluate(() => {
-      const { engine, world, useGame } = globalThis.__ironline;
+      const { engine, world, useGame } = globalThis.__wreckright;
       const s = useGame.getState();
       s.setSelection([]);
       const mine = world.entities.filter((e) => e.team === s.playerTeam);
@@ -520,7 +520,7 @@ async function main() {
     process.stdout.write('\nformation move\n');
     await page.keyboard.press('Space');
     const formation = await page.evaluate(() => {
-      const { engine, world, useGame } = globalThis.__ironline;
+      const { engine, world, useGame } = globalThis.__wreckright;
       const ids = world.entities.filter((entity) => entity.team === 0 && !entity.destroyed).map((entity) => entity.id);
       const centre = ids.reduce((sum, id) => {
         const entity = world.entities.find((candidate) => candidate.id === id);
@@ -556,7 +556,7 @@ async function main() {
       JSON.stringify(formation),
     );
     await page.screenshot({ path: `${SHOTS}/03-formation-order.png` });
-    await page.evaluate((id) => globalThis.__ironline.useGame.getState().setSelection([id]), selectedId);
+    await page.evaluate((id) => globalThis.__wreckright.useGame.getState().setSelection([id]), selectedId);
     await page.keyboard.press('Space');
 
     process.stdout.write('\nweapon groups and hold fire\n');
@@ -584,7 +584,7 @@ async function main() {
     process.stdout.write('\ncamera\n');
     const zoomPointer = { x: box.width * 0.72, y: box.height * 0.46 };
     const before = await page.evaluate((screen) => {
-      const { renderer } = globalThis.__ironline.engine;
+      const { renderer } = globalThis.__wreckright.engine;
       return {
         target: { ...renderer.camera.target },
         distance: renderer.camera.distance,
@@ -598,7 +598,7 @@ async function main() {
     await page.mouse.move(box.x + zoomPointer.x, box.y + zoomPointer.y);
     await page.mouse.wheel(0, -600);
     const afterZoom = await page.evaluate((screen) => {
-      const { renderer } = globalThis.__ironline.engine;
+      const { renderer } = globalThis.__wreckright.engine;
       return {
         target: { ...renderer.camera.target },
         distance: renderer.camera.distance,
@@ -651,7 +651,7 @@ async function main() {
 
     const centreError = async () =>
       page.evaluate(() => {
-        const { engine, useGame, world } = globalThis.__ironline;
+        const { engine, useGame, world } = globalThis.__wreckright;
         const selected = new Set(useGame.getState().selection);
         const units = world.entities.filter((entity) => selected.has(entity.id));
         const sum = units.reduce(
@@ -683,7 +683,7 @@ async function main() {
     await openDesktopBattleMenu(page);
     await page.locator('[data-testid="feedback-link"]').focus();
     const outcome = await page.evaluate(async () => {
-      const { engine } = globalThis.__ironline;
+      const { engine } = globalThis.__wreckright;
       const deadline = Date.now() + 25_000;
       while (!engine.world.finished && Date.now() < deadline) {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -703,7 +703,7 @@ async function main() {
       await page.evaluate(() => document.activeElement?.classList.contains('battle-results')),
     );
     const debriefInputBefore = await page.evaluate(() => {
-      const { engine, useGame } = globalThis.__ironline;
+      const { engine, useGame } = globalThis.__wreckright;
       return {
         paused: useGame.getState().paused,
         orderMode: useGame.getState().orderMode,
@@ -715,7 +715,7 @@ async function main() {
     await sleep(120);
     await page.keyboard.up('ArrowRight');
     const debriefInputAfter = await page.evaluate(() => {
-      const { engine, useGame } = globalThis.__ironline;
+      const { engine, useGame } = globalThis.__wreckright;
       return {
         paused: useGame.getState().paused,
         orderMode: useGame.getState().orderMode,
@@ -776,7 +776,7 @@ async function main() {
     await page.waitForSelector('[data-testid="objective-list"]');
 
     const mission = await page.evaluate(() => {
-      const { world } = globalThis.__ironline;
+      const { world } = globalThis.__wreckright;
       return {
         id: world.mission.id,
         zones: world.zones.length,
@@ -801,18 +801,18 @@ async function main() {
         (await page.locator('[data-testid="difficulty-picker"]').isDisabled()),
     );
     await page.evaluate(() => {
-      globalThis.__setupEngine = globalThis.__ironline.engine;
+      globalThis.__setupEngine = globalThis.__wreckright.engine;
     });
     await openDesktopBattleMenu(page);
     await page.locator('[data-testid="restart-battle"]').click();
     await page.waitForFunction(
       () =>
-        globalThis.__ironline.engine !== globalThis.__setupEngine &&
-        globalThis.__ironline.engine.world.mission.id === 'base_capture_ridge',
+        globalThis.__wreckright.engine !== globalThis.__setupEngine &&
+        globalThis.__wreckright.engine.world.mission.id === 'base_capture_ridge',
     );
     const restarted = await page.evaluate(() => {
       delete globalThis.__setupEngine;
-      const state = globalThis.__ironline.useGame.getState();
+      const state = globalThis.__wreckright.useGame.getState();
       return { briefingSeen: state.briefingSeen, paused: state.paused };
     });
     check(
@@ -826,7 +826,7 @@ async function main() {
     await runDesktopSupportChecks({ page, check, state, mission, shots: SHOTS });
 
     const triggered = await page.evaluate(async () => {
-      const { engine } = globalThis.__ironline;
+      const { engine } = globalThis.__wreckright;
       const world = engine.world;
       const zone = world.zones.find((z) => z.id === 'south_post');
       const relief = world.triggers.find((trigger) => trigger.id === 'relief_lance');
@@ -845,7 +845,7 @@ async function main() {
         enemiesBefore,
         enemiesAfter: world.entities.filter((e) => e.team === 1).length,
         reliefFired: relief?.fired ?? 0,
-        spawnLog: globalThis.__ironline.useGame.getState().log.join(' | '),
+        spawnLog: globalThis.__wreckright.useGame.getState().log.join(' | '),
       };
     });
     check('holding a comm post captures it', triggered.owner === 0);
@@ -874,10 +874,10 @@ async function main() {
     );
     await page.locator('[data-testid="briefing-deploy"]').click();
     await page.waitForFunction(
-      () => globalThis.__ironline.world.mission.id === 'exchange_register',
+      () => globalThis.__wreckright.world.mission.id === 'exchange_register',
     );
     const largeField = await page.evaluate(() => {
-      const { engine, world } = globalThis.__ironline;
+      const { engine, world } = globalThis.__wreckright;
       const width = world.terrain.width * world.terrain.tileSize;
       const height = world.terrain.height * world.terrain.tileSize;
       engine.renderer.camera.panBy(-100_000, -100_000);
@@ -924,13 +924,13 @@ async function main() {
       (await page.locator('canvas.minimap').count()) === 1,
     );
     await page.screenshot({ path: `${SHOTS}/15-cutbank-large-field.png` });
-    await page.evaluate(() => globalThis.__ironline.useGame.getState().pushLog('old field marker'));
+    await page.evaluate(() => globalThis.__wreckright.useGame.getState().pushLog('old field marker'));
     await openDesktopBattleMenu(page);
     await page.locator('[data-testid="choose-mission"]').click();
     await page.waitForSelector('[data-testid="briefing"]');
     check(
       'choosing another field clears the previous mission log',
-      (await page.evaluate(() => globalThis.__ironline.useGame.getState().log.length)) === 0,
+      (await page.evaluate(() => globalThis.__wreckright.useGame.getState().log.length)) === 0,
     );
 
     process.stdout.write('\ncampaign\n');
@@ -1153,7 +1153,7 @@ async function main() {
     check('deploying launches the contracted mission', (await page.locator('.viewport canvas:not(.perf-overlay)').count()) === 1);
 
     const deployed = await page.evaluate(() => {
-      const { world } = globalThis.__ironline;
+      const { world } = globalThis.__wreckright;
       return {
         mission: world.mission.id,
         playerMechs: world.entities.filter((e) => e.team === 0).map((e) => e.name),
@@ -1167,7 +1167,7 @@ async function main() {
     check('the campaign lance deployed', deployed.playerMechs.length === 4, deployed.playerMechs.join(', '));
 
     await page.evaluate(async () => {
-      const { engine } = globalThis.__ironline;
+      const { engine } = globalThis.__wreckright;
       const deadline = Date.now() + 25_000;
       while (!engine.world.finished && Date.now() < deadline) {
         await new Promise((resolve) => setTimeout(resolve, 0));

@@ -1,133 +1,110 @@
 # Releasing Wreckright safely
 
-`main` is the production branch. A merge to it starts a Cloudflare Workers
-Build, so release safety begins before the merge. GitHub's `Production gate`
-is the stable status check for branch protection.
+`main` is the release source, not an automatic deployment trigger. GitHub CI
+must finish successfully for the exact commit before that commit is uploaded
+and promoted to the `wreckright` Worker.
 
-The repository path `icarusdlqx/Ironline`, Worker name `ironline`,
-`Workers Builds: ironline` check, and current `workers.dev` hostname are legacy
-operations identifiers retained after the player-facing rename. Do not replace
-them in commands or required-check settings without a coordinated migration.
+The production identity is:
+
+- repository: `icarusdlqx/Wreckright`;
+- Worker: `wreckright`;
+- public URL: `https://wreckright.ligand-ave.workers.dev/`;
+- required GitHub status: `Production gate`.
 
 ## What CI guarantees
 
-Every pull request runs three independent jobs:
+Every pull request and push to `main` runs three independent jobs:
 
 - **Quality and release builds** installs the lockfile, typechecks, lints, runs
-  the fast suite, builds both distributions, and retains the tested files for
-  14 days.
-- **Browser playthrough** installs the Playwright Chromium revision and runs
-  the complete browser journey. Failure screenshots are retained for 14 days.
-- **Simulation gate** runs the deterministic balance and campaign acceptance
-  suites when simulation, campaign, schema, or game-data files change. It also
-  runs unconditionally from manual and weekly scheduled workflows.
+  the fast suite, checks dependency notices and the SBOM, builds both
+  distributions, validates the Worker package, and retains the artifacts.
+- **Browser playthrough** installs Chromium and runs the complete desktop,
+  campaign, portrait, landscape, and tablet journey.
+- **Simulation gate** runs deterministic balance and campaign acceptance when
+  simulation-affecting files change, and on manual and weekly runs.
 
-`Production gate` fails unless all three jobs succeed. Every referenced Action
-is GitHub-owned and pinned to an immutable commit SHA. Workflow permissions
-are read-only.
+`Production gate` fails unless all three jobs succeed. Workflow permissions are
+read-only and every referenced Action is pinned to a commit SHA.
 
-Cloudflare rebuilds the main tree rather than consuming GitHub's archived
-artifact. After deployment, verify that the public files match a fresh local
-build exactly; do not treat a green build alone as proof that production has
-the expected bytes.
+## Repository protection
 
-## One-time repository protection
-
-Apply these settings only after the CI workflow containing `Production gate`
-has landed and completed once. The checked-in JSON files make the intended
-settings reviewable and repeatable.
+The intended repository and branch settings are checked in under `.github/`.
+Apply them only after `Production gate` has completed at least once:
 
 ```sh
 gh api --method PUT \
   -H 'X-GitHub-Api-Version: 2026-03-10' \
-  repos/icarusdlqx/Ironline/actions/permissions \
+  repos/icarusdlqx/Wreckright/actions/permissions \
   --input .github/actions-permissions.json
 
 gh api --method PUT \
   -H 'X-GitHub-Api-Version: 2026-03-10' \
-  repos/icarusdlqx/Ironline/actions/permissions/selected-actions \
+  repos/icarusdlqx/Wreckright/actions/permissions/selected-actions \
   --input .github/selected-actions.json
 
 gh api --method PATCH \
   -H 'X-GitHub-Api-Version: 2026-03-10' \
-  repos/icarusdlqx/Ironline \
+  repos/icarusdlqx/Wreckright \
   --input .github/repository-settings.json
 
 gh api --method PUT \
   -H 'X-GitHub-Api-Version: 2026-03-10' \
-  repos/icarusdlqx/Ironline/branches/main/protection \
+  repos/icarusdlqx/Wreckright/branches/main/protection \
   --input .github/main-branch-protection.json
 ```
 
-The protection requires an up-to-date pull request, the GitHub Actions
-`Production gate`, the Cloudflare preview build, resolved review threads, and
-linear history. It applies to administrators and blocks force-pushes and
-deletion. Squash merge is the only enabled merge method.
+GitHub may require a paid plan to protect a private repository. If the final
+request returns 403, record protection as unresolved; do not describe it as
+enforced. Until it is available, use a topic branch, wait for its CI, advance
+`main` to that exact commit without rewriting history, and wait for main CI
+again before promotion.
 
-Approval count is intentionally zero while the project has one maintainer.
-GitHub does not count an author's approval of their own pull request, so a
-one-approval rule would stop all ordinary releases without adding an
-independent reviewer. Add `CODEOWNERS` and raise the count to one when a second
-maintainer with write access accepts release-review responsibility.
+Approval count is zero while the project has one maintainer. Add `CODEOWNERS`
+and require an independent approval when a second maintainer accepts release
+responsibility.
 
-Verify the resulting settings:
+## Production procedure
 
-```sh
-gh api repos/icarusdlqx/Ironline/branches/main/protection
-gh api repos/icarusdlqx/Ironline/actions/permissions
-gh api repos/icarusdlqx/Ironline/actions/permissions/selected-actions
-gh api repos/icarusdlqx/Ironline --jq \
-  '{allow_merge_commit,allow_squash_merge,allow_rebase_merge,delete_branch_on_merge}'
-```
-
-## Pull request to production
-
-1. Start from current `main` and use a `codex/`, `claude/`, or human-owned
-   topic branch as appropriate.
-2. Complete the pull request template. Run the proportional local checks from
-   `AGENTS.md` before pushing.
-3. Inspect the Cloudflare preview on every relevant form factor. Resolve all
-   review threads and wait for `Production gate` and `Workers Builds: ironline`.
-4. Squash-merge. Do not push directly to `main`.
-5. In Cloudflare, confirm that the production deployment names the merged Git
-   SHA. Wait for the post-merge GitHub workflow to complete as a second check.
-6. From the exact main commit, run a clean build and compare every served file:
+1. Start from current `main` on a `codex/`, `claude/`, or human-owned topic
+   branch.
+2. Run the proportional local checks from `AGENTS.md`, push the branch, and
+   wait for `Production gate`.
+3. Review the diff and browser evidence. Advance `main` to that exact commit
+   and wait for the main-branch `Production gate`.
+4. Check out the exact `main` SHA with a clean worktree and rebuild it:
 
    ```sh
+   git status --porcelain
+   git rev-parse HEAD
    npm ci
+   npm run typecheck
+   npm run lint
+   npx vitest run --exclude "**/balance.test.ts" --exclude "**/e2e/**"
    npm run build
-   npm run verify:deploy -- \
-     --url https://ironline.ligand-ave.workers.dev/ \
-     --attempts 20 \
-     --interval-ms 3000
+   npm run build:single
+   npm run verify:worker
    ```
 
-7. Run the short player smoke path: Home, training briefing, campaign load,
-   skirmish deployment, sound toggle, and save/reload. Record the Git SHA,
-   Cloudflare version ID, verification result, and any known limitation in the
-   release notes.
-
-Cloudflare project identifiers, security headers, and dashboard verification
-are documented in `docs/CLOUDFLARE_RELEASE.md`.
+5. Upload, inspect, and explicitly promote the resulting Worker version using
+   `docs/CLOUDFLARE_RELEASE.md`.
+6. Byte-verify production, inspect the live headers, and run the short player
+   smoke: Home, training Move/Attack, campaign save/reload, and console errors.
+7. Record the Git SHA, candidate version ID, deployment ID, previous stable
+   version, public URL, and verification time.
 
 ## Rollback and repository recovery
 
-Use rollback when production has a player-blocking failure, save corruption,
-unrecoverable rendering failure, or a serious security/privacy regression.
+Use rollback for a player-blocking failure, save corruption, rendering failure,
+or serious security/privacy regression.
 
-1. In Cloudflare, roll back immediately to the last verified version. This
-   restores traffic without rewriting Git history.
-2. Verify the restored version and run the player smoke path. Preserve the
-   failed GitHub and Cloudflare logs.
+1. Roll Cloudflare traffic back to the last verified version and repeat the
+   live verification.
+2. Preserve the failed CI and deployment evidence.
 3. Create a topic branch from current `main` and use `git revert` for the bad
-   squash commit. Never reset or force-push `main`.
-4. Open a recovery pull request. The same production gates apply; document why
-   rollback was necessary and whether player saves written by the bad version
-   remain readable.
-5. Merge the revert so repository state and production converge again. Verify
-   the new deployment, then record the restored SHA and version ID.
+   commit. Never reset or force-push `main`.
+4. Put the revert through the same gates, merge it, and promote that exact
+   commit so repository and production state converge again.
 
-A dashboard rollback is temporary operational recovery. The revert pull
-request is what prevents the broken tree from being deployed again on the next
-push. Save-schema changes must be designed so the immediately previous release
-can safely read or reject newer data; test that rollback path before release.
+Save-format changes must be designed so the immediately previous release can
+safely read or reject newer data. Wreckright retains its original non-visible
+`ironline.*` storage and playtest-schema identifiers for this reason.

@@ -67,7 +67,7 @@ function ShelfItem({
         onDragStart={(event) => {
           if (unavailable) return event.preventDefault();
           onInspect(payload);
-          event.dataTransfer.setData('application/ironline', JSON.stringify(payload));
+          event.dataTransfer.setData('application/wreckright', JSON.stringify(payload));
           event.dataTransfer.effectAllowed = 'copy';
         }}
       >

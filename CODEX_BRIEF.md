@@ -29,7 +29,7 @@ change, capture an after set, and look at both.** A visual change that you have
 not looked at is not finished. Attach the pair to the pull request.
 
 For anything the harness does not reach, `npm run dev` serves the game and
-`window.__ironline = { engine, world, useGame }` is live in the console.
+`window.__wreckright = { engine, world, useGame }` is live in the console.
 
 ## Hard boundaries
 
@@ -58,8 +58,9 @@ Breaking one of these wastes a review cycle, so they are worth reading twice.
   dropped in `public/` and referenced by URL will 404 there. Art that must
   appear in-game has to be `import`ed from `src/` (which inlines it as a data
   URI, so mind the file size) or drawn procedurally.
-- **Do not rename the `ironline.*` localStorage keys.** Renaming them silently
-  destroys every existing player's save and settings.
+- **Do not rename the legacy `ironline.*` localStorage keys.** They are
+  non-visible compatibility identifiers retained by Wreckright; changing them
+  silently loses existing saves and breaks rollback.
 - Files stay under ~400 lines. `src/ui/mechbay/Mechbay.tsx` is at 700 and wants
   splitting, not growing.
 - Comments explain **why**, never what. Match the prose voice already in the

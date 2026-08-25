@@ -23,7 +23,7 @@ describe('Cloudflare static Worker configuration', () => {
       $schema: './node_modules/wrangler/config-schema.json',
       assets: { directory: './dist' },
       compatibility_date: '2026-08-24',
-      name: 'ironline',
+      name: 'wreckright',
     });
     expect(config.main).toBeUndefined();
   });

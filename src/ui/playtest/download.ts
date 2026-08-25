@@ -1,6 +1,6 @@
 import type { PlaytestJournal } from './journal';
 
-export const PLAYTEST_REPORT_FILE_NAME = 'ironline-playtest-report.json';
+export const PLAYTEST_REPORT_FILE_NAME = 'wreckright-playtest-report.json';
 
 export function downloadPlaytestReport(journal: PlaytestJournal, note = ''): boolean {
   journal.record({ name: 'report_downloaded' });

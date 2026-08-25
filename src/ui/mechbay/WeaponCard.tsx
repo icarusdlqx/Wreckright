@@ -107,7 +107,7 @@ export function WeaponCard({
           }
           onInspect?.(weapon);
           event.dataTransfer.setData(
-            'application/ironline',
+            'application/wreckright',
             JSON.stringify({ kind: 'weapon', id: weapon.id }),
           );
           event.dataTransfer.effectAllowed = 'copy';

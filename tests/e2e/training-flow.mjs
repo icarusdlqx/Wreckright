@@ -11,7 +11,7 @@ async function activate(locator, touch) {
 
 async function selectShortRangeTrainer(page, touch) {
   const id = await page.evaluate(() => {
-    const { useGame } = globalThis.__ironline;
+    const { useGame } = globalThis.__wreckright;
     const state = useGame.getState();
     const candidates = state.units.filter(
       (unit) => unit.team === state.playerTeam && unit.alive,
@@ -25,14 +25,14 @@ async function selectShortRangeTrainer(page, touch) {
   });
   await activate(page.locator(`[data-testid="lance-card-${id}"]`), touch);
   await page.waitForFunction(
-    (selectedId) => globalThis.__ironline.useGame.getState().selection[0] === selectedId,
+    (selectedId) => globalThis.__wreckright.useGame.getState().selection[0] === selectedId,
     id,
   );
 }
 
 async function gateScreenPoint(page) {
   return page.evaluate(() => {
-    const { engine, world } = globalThis.__ironline;
+    const { engine, world } = globalThis.__wreckright;
     const zone = world.zones.find((candidate) => candidate.id === 'range_gate');
     const canvas = document.querySelector('.viewport canvas:not(.perf-overlay)');
     if (zone === undefined || !(canvas instanceof HTMLCanvasElement)) {
@@ -55,7 +55,7 @@ async function issueGateMove(page, touch) {
   if (touch) await page.touchscreen.tap(gate.x, gate.y);
   else await page.mouse.click(gate.x, gate.y);
   await page.waitForFunction(() => {
-    const { useGame, world } = globalThis.__ironline;
+    const { useGame, world } = globalThis.__wreckright;
     const selected = new Set(useGame.getState().selection);
     return world.entities.some(
       (entity) => entity.team === world.playerTeam && selected.has(entity.id) && entity.orders.move !== null,
@@ -65,7 +65,7 @@ async function issueGateMove(page, touch) {
 
 async function stepUntilSensorOpticalOrGate(page) {
   return page.evaluate((limit) => {
-    const { engine, world } = globalThis.__ironline;
+    const { engine, world } = globalThis.__wreckright;
     const playerTeam = world.playerTeam ?? 0;
     const gate = world.zones.find((zone) => zone.id === 'range_gate');
     if (gate === undefined || world.vision === null) throw new Error('training vision or gate is missing');
@@ -103,7 +103,7 @@ async function stepUntilSensorOpticalOrGate(page) {
 
 async function stepUntilOpticalOrReveal(page) {
   return page.evaluate((limit) => {
-    const { engine, world } = globalThis.__ironline;
+    const { engine, world } = globalThis.__wreckright;
     const playerTeam = world.playerTeam ?? 0;
     const gate = world.zones.find((zone) => zone.id === 'range_gate');
     const trigger = world.triggers.find((candidate) => candidate.id === 'range_open');
@@ -174,7 +174,7 @@ async function investigateSensorIfPresent({ page, check, prefix, touch, sensorId
     ariaLabel.includes('not a firing solution') && sensorText.includes('investigate track');
   await activate(sensor, touch);
   await page.waitForFunction(() => {
-    const { useGame, world } = globalThis.__ironline;
+    const { useGame, world } = globalThis.__wreckright;
     const selected = new Set(useGame.getState().selection);
     return world.entities.some(
       (entity) =>
@@ -226,13 +226,13 @@ export async function engageTrainingOpticalContact({ page, check, prefix = '', t
     ? await stepUntilOpticalOrReveal(page)
     : {
       targetId: beforeReveal.opticalIds[0],
-      playerTeam: await page.evaluate(() => globalThis.__ironline.world.playerTeam ?? 0),
+      playerTeam: await page.evaluate(() => globalThis.__wreckright.world.playerTeam ?? 0),
       gateOwner: null,
       triggerFired: 0,
       revealed: false,
     };
   await page.waitForFunction(
-    (targetId) => globalThis.__ironline.useGame.getState().enemies.some((enemy) => enemy.id === targetId),
+    (targetId) => globalThis.__wreckright.useGame.getState().enemies.some((enemy) => enemy.id === targetId),
     optical.targetId,
   );
   if (touch) await page.locator('[data-testid="mobile-tab-contacts"]').tap();
@@ -254,7 +254,7 @@ export async function engageTrainingOpticalContact({ page, check, prefix = '', t
   );
   await activate(hostile, touch);
   await page.waitForFunction((targetId) => {
-    const { useGame, world } = globalThis.__ironline;
+    const { useGame, world } = globalThis.__wreckright;
     const selected = new Set(useGame.getState().selection);
     return world.entities.some(
       (entity) =>

@@ -25,18 +25,18 @@ const errors = [];
 page.on('pageerror', (event) => errors.push(event.message));
 
 await page.goto(url, { waitUntil: 'networkidle' });
-await page.waitForFunction(() => globalThis.__ironline !== undefined, { timeout: 40_000 });
+await page.waitForFunction(() => globalThis.__wreckright !== undefined, { timeout: 40_000 });
 await page.selectOption('[data-testid="mission-picker"]', mission).catch(() => {});
 await page.waitForTimeout(1_000);
 const deploy = page.locator('.briefing button').first();
 if ((await deploy.count()) > 0) await deploy.click().catch(() => {});
-await page.waitForFunction(() => globalThis.__ironline !== undefined, { timeout: 40_000 });
+await page.waitForFunction(() => globalThis.__wreckright !== undefined, { timeout: 40_000 });
 await page.waitForTimeout(1_000);
 
 const report = await page.evaluate(
   () =>
     new Promise((resolve) => {
-      const g = globalThis.__ironline;
+      const g = globalThis.__wreckright;
       const info = g.engine.renderer.renderer.info;
       const t0 = performance.now();
       let frames = 0;

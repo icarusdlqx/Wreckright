@@ -63,7 +63,7 @@ describe('campaign recovery notice', () => {
     vi.stubGlobal('URL', { createObjectURL, revokeObjectURL });
     const blob = new Blob(['{raw']);
 
-    downloadCampaignFile(blob, 'ironline-campaign-recovery.txt');
+    downloadCampaignFile(blob, 'wreckright-campaign-recovery.txt');
 
     expect(createObjectURL).toHaveBeenCalledWith(blob);
     expect(click).toHaveBeenCalledOnce();

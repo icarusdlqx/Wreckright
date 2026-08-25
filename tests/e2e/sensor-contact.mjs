@@ -1,6 +1,6 @@
 export async function verifySensorProbe({ page, check, mission, canvasBox }) {
   const probeSetup = await page.evaluate(() => {
-    const { engine, useGame, world } = globalThis.__ironline;
+    const { engine, useGame, world } = globalThis.__wreckright;
     const wasPaused = useGame.getState().paused;
     // Isolate the probe from ordinary observer movement while comparing the
     // optical fog buffers. forceStep still advances the two deterministic
@@ -37,14 +37,14 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
     const screen = engine.renderer.camera.worldToScreen(enemy.pos, engine.renderer.viewport, 0);
     return { enemyId: enemy.id, friendlyId: friendly.id, screen, wasPaused };
   });
-  const revealsBefore = await page.evaluate(() => globalThis.__ironline.world.reveals.length);
+  const revealsBefore = await page.evaluate(() => globalThis.__wreckright.world.reveals.length);
   await page.locator('[data-testid="support-sensor_probe"]').click();
   await page.mouse.click(
     canvasBox.x + probeSetup.screen.x,
     canvasBox.y + probeSetup.screen.y,
   );
   const sensorOutcome = await page.evaluate((enemyId) => {
-    const { engine, world } = globalThis.__ironline;
+    const { engine, world } = globalThis.__wreckright;
     engine.forceStep();
     engine.forceStep();
     const before = globalThis.__probeFogBefore;
@@ -80,7 +80,7 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
   const sensorCard = page.locator(`[data-testid="sensor-contact-${probeSetup.enemyId}"]`);
   await sensorCard.waitFor({ state: 'visible' });
   await page.waitForFunction((friendlyId) => {
-    const current = globalThis.__ironline.useGame.getState();
+    const current = globalThis.__wreckright.useGame.getState();
     return current.selection.includes(friendlyId) &&
       current.units.some((unit) => unit.id === friendlyId && unit.alive);
   }, probeSetup.friendlyId);
@@ -98,7 +98,7 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
   );
   await sensorCard.click();
   const investigation = await page.evaluate((wasPaused) => {
-    const { useGame, world } = globalThis.__ironline;
+    const { useGame, world } = globalThis.__wreckright;
     const selected = world.entities.find((entity) => useGame.getState().selection.includes(entity.id));
     useGame.getState().patch({ paused: wasPaused });
     return {

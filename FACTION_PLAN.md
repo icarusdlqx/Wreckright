@@ -5,10 +5,11 @@ catalogue half its current size and twice its character, a campaign that earns
 the salvage loop, and a mechbay a newcomer can read. Work the phases in order:
 each one depends on the one before it, and each ends at a gate.
 
-**Naming boundary.** The public game and setting are **Wreckright**. Historical
-filenames and stable internal identifiers such as `border_dispute`,
-`line_maintenance` and the `ironline.*` localStorage keys remain unchanged for
-save compatibility. They are implementation details, not player-facing lore.
+**Naming boundary.** The public game, repository, deployment and diagnostic
+namespace are **Wreckright**. Stable authored identifiers such as
+`border_dispute` and `line_maintenance`, plus the legacy `ironline.*` browser
+storage keys, remain unchanged for save and simulation compatibility. They are
+implementation details, not player-facing lore.
 
 ## The one rule that changed
 

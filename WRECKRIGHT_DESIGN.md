@@ -579,7 +579,7 @@ Use original names for everything a player can read — chassis, weapons, equipm
 ## 14. Getting Started
 
 ```bash
-cd ironline
+cd Wreckright
 npm install
 npm test
 ```

@@ -90,7 +90,7 @@ export async function checkBriefingInputSafety({
   await page.screenshot({ path: `${shots}/01-boot-1280x720.png` });
 
   const predeployUnit = await page.evaluate(() => {
-    const { useGame, world } = globalThis.__ironline;
+    const { useGame, world } = globalThis.__wreckright;
     const state = useGame.getState();
     const unit = world.entities.find((entity) => entity.team === state.playerTeam);
     if (unit === undefined) throw new Error('player unit missing');
@@ -117,7 +117,7 @@ export async function checkBriefingInputSafety({
       stateAfterPointer.orderMode === 'move',
   );
   await page.evaluate(() => {
-    const state = globalThis.__ironline.useGame.getState();
+    const state = globalThis.__wreckright.useGame.getState();
     state.setOrderMode(null);
     state.setSelection([]);
   });

@@ -1,5 +1,5 @@
-# This workflow is the merge gate for main. Cloudflare separately builds and
-# deploys the same main commit after merge; see docs/RELEASING.md.
+# This workflow is the merge gate for main. Production is promoted separately
+# from the exact tested main commit; see docs/RELEASING.md.
 name: CI
 
 on:

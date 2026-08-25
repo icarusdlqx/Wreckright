@@ -5,17 +5,16 @@ session — human or agent — can pick the list up where the last one stopped.
 
 ## The name
 
-"Iron Line" is already a game on Steam (app 2707410, a tower-defence title),
-so the player-facing title is now **WRECKRIGHT**. Complete a formal trademark
+The working public title is **WRECKRIGHT**. Complete a formal trademark
 clearance and storefront search before a paid release; choosing the title does
 not replace that review.
 
-The rename intentionally stops at the public product boundary. The
-`ironline.*` browser-storage keys preserve existing campaigns and settings;
-the Cloudflare Worker, `workers.dev` hostname, GitHub repository, authored data
-ids, and historical design-document filename remain legacy internal
-identifiers. Each would need a separately tested migration before it could be
-renamed safely.
+The product, repository, Worker, deployment hostname, downloads, and tooling
+now share the Wreckright identity. Existing browser-storage and serialized
+playtest identifiers retain their original `ironline.*` values as non-visible
+compatibility contracts, preserving saves and rollback safety from the first
+Wreckright deployment. Authored data ids likewise remain stable because they
+are save and simulation contracts rather than branding.
 
 ## The IP scrub (done, August 2026)
 

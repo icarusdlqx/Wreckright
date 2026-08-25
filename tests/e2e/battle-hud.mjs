@@ -85,13 +85,13 @@ export async function runDesktopSupportChecks({ page, check, state, mission, sho
   // the player pick another point after the underlying condition changes.
   await page.locator('[data-testid="support-repair_truck"]').click();
   await page.evaluate(() => {
-    const { useGame, world } = globalThis.__ironline;
+    const { useGame, world } = globalThis.__wreckright;
     world.resources.set(useGame.getState().playerTeam, 0);
     useGame.getState().patch({ resourcePoints: 0 });
   });
   await page.mouse.click(canvasBox.x + canvasBox.width * 0.55, canvasBox.y + canvasBox.height * 0.4);
   const rejectedSupport = await page.evaluate(() => {
-    const { useGame, world } = globalThis.__ironline;
+    const { useGame, world } = globalThis.__wreckright;
     const current = useGame.getState();
     return {
       mode: current.supportMode,
@@ -107,7 +107,7 @@ export async function runDesktopSupportChecks({ page, check, state, mission, sho
     JSON.stringify(rejectedSupport),
   );
   await page.evaluate((resourcePoints) => {
-    const { useGame, world } = globalThis.__ironline;
+    const { useGame, world } = globalThis.__wreckright;
     world.resources.set(useGame.getState().playerTeam, resourcePoints);
     useGame.getState().setSupportMode(null);
     useGame.getState().patch({ resourcePoints });
@@ -126,7 +126,7 @@ export async function runDesktopSupportChecks({ page, check, state, mission, sho
   await page.mouse.up();
   await page.waitForTimeout(80);
   const pendingAir = await page.evaluate(() => {
-    const { engine, world } = globalThis.__ironline;
+    const { engine, world } = globalThis.__wreckright;
     let lanes = 0;
     engine.renderer.scene.traverse((object) => {
       if (object.name.startsWith('support-air-pending-') && object.visible) lanes += 1;
@@ -145,14 +145,14 @@ export async function runDesktopSupportChecks({ page, check, state, mission, sho
   await page.screenshot({ path: `${shots}/09-support-lane.png` });
 
   const resolvedAir = await page.evaluate((delaySeconds) => {
-    const { engine, world } = globalThis.__ironline;
+    const { engine, world } = globalThis.__wreckright;
     const steps = Math.ceil(delaySeconds / world.dt) + 1;
     for (let step = 0; step < steps; step += 1) engine.forceStep();
     return world.support.pending.filter((entry) => entry.call === 'air_strike').length;
   }, mission.airDelay);
   await page.waitForTimeout(80);
   const airVisuals = await page.evaluate(() => {
-    const scene = globalThis.__ironline.engine.renderer.scene;
+    const scene = globalThis.__wreckright.engine.renderer.scene;
     const visibleThroughParents = (object) => {
       let current = object;
       while (current !== null) {
@@ -178,7 +178,7 @@ export async function runDesktopSupportChecks({ page, check, state, mission, sho
   );
 
   const repairTarget = await page.evaluate((resourcePoints) => {
-    const { engine, useGame, world } = globalThis.__ironline;
+    const { engine, useGame, world } = globalThis.__wreckright;
     world.resources.set(useGame.getState().playerTeam, resourcePoints);
     useGame.getState().patch({ resourcePoints });
     const entity = world.entities
@@ -197,8 +197,8 @@ export async function runDesktopSupportChecks({ page, check, state, mission, sho
   }, mission.rp);
   await page.waitForTimeout(50);
   const repairPoint = await page.evaluate((id) => {
-    const body = globalThis.__ironline.engine.renderer.screenBodyOf(
-      globalThis.__ironline.world.entities.find((entity) => entity.id === id),
+    const body = globalThis.__wreckright.engine.renderer.screenBodyOf(
+      globalThis.__wreckright.world.entities.find((entity) => entity.id === id),
     );
     return { x: body.x, y: body.y };
   }, repairTarget.id);
@@ -216,7 +216,7 @@ export async function runDesktopSupportChecks({ page, check, state, mission, sho
   await page.mouse.click(canvasBox.x + repairPoint.x, canvasBox.y + repairPoint.y);
 
   const afterCall = await page.evaluate(() => {
-    const { world } = globalThis.__ironline;
+    const { world } = globalThis.__wreckright;
     return { rp: world.resources.get(0), pending: world.support.pending.length };
   });
   check(
@@ -233,7 +233,7 @@ export async function runDesktopSupportChecks({ page, check, state, mission, sho
   await page.screenshot({ path: `${shots}/09-support.png` });
 
   const resolvedTruck = await page.evaluate(({ delaySeconds, id, location }) => {
-    const { engine, world } = globalThis.__ironline;
+    const { engine, world } = globalThis.__wreckright;
     const steps = Math.ceil(delaySeconds / world.dt) + Math.ceil(1 / world.dt);
     for (let step = 0; step < steps; step += 1) engine.forceStep();
     const entity = world.entities.find((candidate) => candidate.id === id);
@@ -246,7 +246,7 @@ export async function runDesktopSupportChecks({ page, check, state, mission, sho
   }, { delaySeconds: mission.truckDelay, id: repairTarget.id, location: repairTarget.location });
   await page.waitForTimeout(80);
   const truckVisuals = await page.evaluate(() => {
-    const scene = globalThis.__ironline.engine.renderer.scene;
+    const scene = globalThis.__wreckright.engine.renderer.scene;
     let trucks = 0;
     let radii = 0;
     let links = 0;
@@ -271,7 +271,7 @@ export async function runDesktopSupportChecks({ page, check, state, mission, sho
   );
 
   const supportOutcome = await page.evaluate(async ({ airAccepted, truckAccepted }) => {
-    const { engine } = globalThis.__ironline;
+    const { engine } = globalThis.__wreckright;
     const world = engine.world;
     const mod = await import('/src/sim/support.ts');
     world.resources.set(0, 20000);
@@ -297,9 +297,9 @@ export async function runDesktopSupportChecks({ page, check, state, mission, sho
   );
   check('every accepted call resolved', supportOutcome.pending === 0);
 
-  await page.waitForFunction(() => globalThis.__ironline.useGame.getState().reservesLeft === 0);
+  await page.waitForFunction(() => globalThis.__wreckright.useGame.getState().reservesLeft === 0);
   await page.evaluate((resourcePoints) => {
-    const { useGame, world } = globalThis.__ironline;
+    const { useGame, world } = globalThis.__wreckright;
     world.resources.set(useGame.getState().playerTeam, resourcePoints);
     useGame.getState().patch({ resourcePoints });
   }, mission.rp);

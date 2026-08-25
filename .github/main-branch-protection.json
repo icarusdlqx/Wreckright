@@ -5,10 +5,6 @@
       {
         "context": "Production gate",
         "app_id": 15368
-      },
-      {
-        "context": "Workers Builds: ironline",
-        "app_id": 85455
       }
     ]
   },
