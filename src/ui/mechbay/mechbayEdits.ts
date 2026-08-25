@@ -1,5 +1,5 @@
 import type { RefitAvailability } from '../../campaign/refitQuote';
-import { LOCATIONS, type MechLocation } from '../../schema/common';
+import type { MechLocation } from '../../schema/common';
 import type { Design } from '../../schema/design';
 import type { Catalog } from '../../schema/load';
 import { evaluateEdit, type EditEvaluation, type EditIntent } from './editPreview';
@@ -23,17 +23,4 @@ export function evaluateDrop(
   availability?: RefitAvailability,
 ): EditEvaluation {
   return evaluateEdit(catalog, design, installIntent(payload, location), availability);
-}
-
-/** Locations that can accept the chosen part without silently changing another location. */
-export function compatibleDropLocations(
-  catalog: Catalog,
-  design: Design,
-  payload: DropPayload | null,
-  availability?: RefitAvailability,
-): MechLocation[] {
-  if (payload === null) return [];
-  return LOCATIONS.filter(
-    (location) => evaluateDrop(catalog, design, payload, location, availability).status !== 'blocked',
-  );
 }

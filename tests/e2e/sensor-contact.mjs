@@ -30,9 +30,25 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
     world.vision.visible.delete(enemy.id);
     world.vision.detected.delete(enemy.id);
     world.vision.tracks.delete(enemy.id);
+    // Only the ground the probe sweeps is evidence about the probe. The lance
+    // keeps its own small footprint alive on the far side of the map, and a
+    // metre of settling there rewrites tiles this assertion never meant to
+    // watch — so snapshot the sweep, not the whole board.
+    const sweepRadius = world.rules.support.sensor_probe.radius;
+    const grid = world.terrain;
+    const centre = grid.toTile(enemy.pos);
+    const span = Math.ceil(sweepRadius / grid.tileSize) + 1;
+    const watched = [];
+    for (let row = centre.row - span; row <= centre.row + span; row += 1) {
+      for (let column = centre.column - span; column <= centre.column + span; column += 1) {
+        if (!grid.inBounds(column, row)) continue;
+        watched.push(row * grid.width + column);
+      }
+    }
     globalThis.__probeFogBefore = {
-      tiles: Array.from(world.vision.tiles),
-      explored: Array.from(world.vision.explored),
+      watched,
+      tiles: watched.map((index) => world.vision.tiles[index]),
+      explored: watched.map((index) => world.vision.explored[index]),
     };
     const screen = engine.renderer.camera.worldToScreen(enemy.pos, engine.renderer.viewport, 0);
     // Read the balance here rather than trusting a figure captured earlier in
@@ -70,10 +86,15 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
         chassisClass: track.chassisClass,
         position: track.pos,
       },
+      // An empty window would make every() pass on nothing at all.
+      watchedTiles: before === undefined ? 0 : before.watched.length,
       fogUnchanged:
         before !== undefined &&
-        before.tiles.every((value, index) => value === world.vision?.tiles[index]) &&
-        before.explored.every((value, index) => value === world.vision?.explored[index]),
+        before.watched.length > 0 &&
+        before.watched.every((tile, index) => before.tiles[index] === world.vision?.tiles[tile]) &&
+        before.watched.every(
+          (tile, index) => before.explored[index] === world.vision?.explored[tile],
+        ),
     };
   }, probeSetup.enemyId);
   check(

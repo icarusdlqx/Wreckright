@@ -12,6 +12,7 @@ function render(options: {
   armed?: DropPayload | null;
   selectedLocation?: MechLocation | null;
   compatibleLocations?: ReadonlySet<MechLocation>;
+  locationFits?: ReadonlyMap<MechLocation, { ok: boolean; reason: string | null }>;
 } = {}): string {
   const design = catalog.designs.get('sentinel_brawler');
   const chassis = catalog.chassis.get('sentinel_snl2');
@@ -25,7 +26,9 @@ function render(options: {
     selectedLocation: options.selectedLocation ?? null,
     hoveredLocation: null,
     compatibleLocations: options.compatibleLocations ?? new Set<MechLocation>(),
+    locationFits: options.locationFits ?? new Map(),
     onCancelArmed: () => undefined,
+    onAutoFit: () => undefined,
     onDrop: () => undefined,
     onRemoveMount: () => undefined,
     onRemoveAmmo: () => undefined,

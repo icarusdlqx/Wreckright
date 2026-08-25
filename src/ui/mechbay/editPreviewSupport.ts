@@ -117,6 +117,21 @@ export function editLine(
   return { itemId, location, quantity };
 }
 
+/**
+ * Refusals are read mid-build by someone deciding what to do next, so they say
+ * what is missing rather than reciting both sides of the arithmetic.
+ */
+function slotShortfall(missing: number): string {
+  return `Not enough room here — ${missing} slot${missing === 1 ? '' : 's'} short.`;
+}
+
+function hardpointShortfall(type: string, capacity: number): string {
+  return capacity === 0
+    ? `This location has no ${type} hardpoints.`
+    : `Every ${type} hardpoint here is already taken.`;
+}
+
+
 export function placementReasons(
   catalog: Catalog,
   before: DesignReport,
@@ -134,7 +149,7 @@ export function placementReasons(
   if (nextSlotExcess > priorSlotExcess) {
     reasons.push(editReason(
       'location_slots', 'local', component,
-      `${next.slotsUsed} slots would be used where ${next.slotsAvailable} are available.`,
+      slotShortfall(next.slotsUsed - next.slotsAvailable),
       itemId, location,
       { required: next.slotsUsed, available: next.slotsAvailable, missing: nextSlotExcess },
     ));
@@ -150,7 +165,7 @@ export function placementReasons(
   if (nextHardpointExcess > priorHardpointExcess) {
     reasons.push(editReason(
       'hardpoint', 'local', 'weapon',
-      `${next.hardpointsUsed[weapon.type]} ${weapon.type} weapons need ${next.hardpointsUsed[weapon.type]} hardpoints; ${next.hardpointsAvailable[weapon.type]} are available.`,
+      hardpointShortfall(weapon.type, next.hardpointsAvailable[weapon.type]),
       itemId, location,
       {
         required: next.hardpointsUsed[weapon.type],

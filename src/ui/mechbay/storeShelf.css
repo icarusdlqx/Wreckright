@@ -332,3 +332,59 @@
     border-left: 0;
   }
 }
+
+/*
+ * The one-click path. Picking a bay is the step players stall on, so the shelf
+ * offers to choose for them; the card itself still arms for hand placement, and
+ * dragging still works, so nothing is taken away by adding this.
+ */
+.bay-stock__autofit {
+  margin-top: 3px;
+  min-height: 26px;
+  border: 1px solid rgba(140, 224, 255, 0.35);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.bay-stock__autofit:hover {
+  background: rgba(140, 224, 255, 0.12);
+}
+
+@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+  .bay-stock__autofit {
+    min-height: var(--tap-size, 44px);
+    font-size: 11px;
+  }
+}
+
+.weapon-card__autofit {
+  width: 100%;
+  min-height: 26px;
+  margin-top: 2px;
+  border: 1px solid rgba(140, 224, 255, 0.35);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.weapon-card__autofit:hover {
+  background: rgba(140, 224, 255, 0.12);
+}
+
+@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+  .weapon-card__autofit {
+    min-height: var(--tap-size, 44px);
+    font-size: 11px;
+  }
+}

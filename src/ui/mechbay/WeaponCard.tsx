@@ -24,6 +24,8 @@ export interface WeaponCardProps {
   className?: string;
   testId?: string;
   onPick?: (weapon: Weapon) => void;
+  /** Fits the gun without asking the player to choose a bay. */
+  onAutoFit?: (weapon: Weapon) => void;
   onInspect?: (weapon: Weapon) => void;
   onHover?: (hovered: boolean) => void;
   onWeaponDragStart?: (weapon: Weapon, event: DragEvent<HTMLButtonElement>) => void;
@@ -40,6 +42,7 @@ export function WeaponCard({
   className = '',
   testId,
   onPick,
+  onAutoFit,
   onInspect,
   onHover,
   onWeaponDragStart,
@@ -146,6 +149,17 @@ export function WeaponCard({
           <span id={detailId}>{fitDetail}</span>
         </span>
       </button>
+      {unavailable || onAutoFit === undefined ? null : (
+        <button
+          type="button"
+          className="weapon-card__autofit"
+          data-testid={testId === undefined ? undefined : `autofit-${testId}`}
+          aria-label={`Fit ${weapon.name} in the best location`}
+          onClick={() => onAutoFit(weapon)}
+        >
+          Fit it for me
+        </button>
+      )}
     </article>
   );
 }

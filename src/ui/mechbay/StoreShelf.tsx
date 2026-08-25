@@ -34,6 +34,7 @@ function ShelfItem({
   inspected,
   onInspect,
   onArm,
+  onAutoFit,
 }: {
   payload: DropPayload;
   label: string;
@@ -44,6 +45,7 @@ function ShelfItem({
   inspected: boolean;
   onInspect: (payload: DropPayload) => void;
   onArm: (payload: DropPayload) => void;
+  onAutoFit: (payload: DropPayload) => void;
 }) {
   const exhausted = stock !== undefined && stock <= 0;
   const unavailable = exhausted || !fit.ok;
@@ -80,6 +82,17 @@ function ShelfItem({
           {fit.ok ? 'Fits' : fit.reason}
         </span>
       </button>
+      {unavailable ? null : (
+        <button
+          type="button"
+          className="bay-stock__autofit"
+          data-testid={`autofit-${payload.kind}-${payload.id}`}
+          aria-label={`Fit ${label} automatically`}
+          onClick={() => onAutoFit(payload)}
+        >
+          Fit
+        </button>
+      )}
     </li>
   );
 }
@@ -99,6 +112,7 @@ interface Props {
   onClearLocation: () => void;
   onInspect: (payload: DropPayload) => void;
   onArm: (payload: DropPayload) => void;
+  onAutoFit: (payload: DropPayload) => void;
   onHoverWeapon: (weaponId: string | null) => void;
 }
 
@@ -117,6 +131,7 @@ export function StoreShelf({
   onClearLocation,
   onInspect,
   onArm,
+  onAutoFit,
   onHoverWeapon,
 }: Props) {
   const [query, setQuery] = useState('');
@@ -291,6 +306,7 @@ export function StoreShelf({
                     testId={`stock-weapon-${weapon.id}`}
                     onInspect={() => onInspect({ kind: 'weapon', id: weapon.id })}
                     onPick={() => onArm({ kind: 'weapon', id: weapon.id })}
+                    onAutoFit={() => onAutoFit({ kind: 'weapon', id: weapon.id })}
                     onHover={(hovered) => onHoverWeapon(hovered ? weapon.id : null)}
                   />
                 </li>
@@ -312,6 +328,7 @@ export function StoreShelf({
                 inspected={inspector?.kind === 'ammo' && inspector.id === weapon.id}
                 onInspect={onInspect}
                 onArm={onArm}
+                onAutoFit={onAutoFit}
               />
             ))}
           </ul>
@@ -331,6 +348,7 @@ export function StoreShelf({
                 inspected={inspector?.kind === 'equipment' && inspector.id === entry.id}
                 onInspect={onInspect}
                 onArm={onArm}
+                onAutoFit={onAutoFit}
               />
             ))}
           </ul>

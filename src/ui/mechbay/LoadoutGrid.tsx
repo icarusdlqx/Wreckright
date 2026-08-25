@@ -3,6 +3,7 @@ import type { Chassis } from '../../schema/chassis';
 import type { Design } from '../../schema/design';
 import type { Catalog } from '../../schema/load';
 import type { Loadout } from '../../sim/loadout';
+import type { LocationFit } from './autoFit';
 import { LocationCard, MECH_LOCATION_NAMES, type DropPayload } from './LocationCard';
 import './locationWorkbench.css';
 
@@ -15,7 +16,9 @@ interface Props {
   selectedLocation: MechLocation | null;
   hoveredLocation: MechLocation | null;
   compatibleLocations: ReadonlySet<MechLocation>;
+  locationFits: ReadonlyMap<MechLocation, LocationFit>;
   onCancelArmed: () => void;
+  onAutoFit: (payload: DropPayload) => void;
   onDrop: (payload: DropPayload, location: MechLocation) => void;
   onRemoveMount: (index: number) => void;
   onRemoveAmmo: (index: number) => void;
@@ -34,7 +37,9 @@ export function LoadoutGrid({
   selectedLocation,
   hoveredLocation,
   compatibleLocations,
+  locationFits,
   onCancelArmed,
+  onAutoFit,
   onDrop,
   onRemoveMount,
   onRemoveAmmo,
@@ -108,6 +113,15 @@ export function LoadoutGrid({
           </span>
           <button
             type="button"
+            className="bay-armed-fit"
+            onClick={() => onAutoFit(armed)}
+            data-testid="bay-armed-autofit"
+            aria-label={`Fit ${heldName} in the best location`}
+          >
+            Fit it for me
+          </button>
+          <button
+            type="button"
             onClick={onCancelArmed}
             data-testid="bay-armed-cancel"
             aria-label={`Cancel placement of ${heldName}`}
@@ -135,6 +149,7 @@ export function LoadoutGrid({
             selected={selectedLocation === location}
             hovered={hoveredLocation === location}
             compatible={compatibleLocations.has(location)}
+            refusal={locationFits.get(location)?.reason ?? null}
             armed={armed}
           />
         ))}

@@ -31,11 +31,17 @@ import {
   redoDesign,
   undoDesign,
 } from './designHistory';
+import {
+  bestAmmoLocation,
+  bestLocationFor,
+  compatibleFrom,
+  fitByLocation,
+} from './autoFit';
 import { evaluateEdit, type EditEvaluation, type EditIntent } from './editPreview';
 import { LoadoutGrid } from './LoadoutGrid';
-import type { DropPayload } from './LocationCard';
+import { MECH_LOCATION_NAMES, type DropPayload } from './LocationCard';
 import { MachinePanel } from './MachinePanel';
-import { compatibleDropLocations, evaluateDrop } from './mechbayEdits';
+import { evaluateDrop } from './mechbayEdits';
 import { StoreShelf, type Shelf } from './StoreShelf';
 import { useArmedPlacementFocus } from './useArmedPlacementFocus';
 import './mechbayWorkspaceLayout.css';
@@ -92,10 +98,13 @@ export function Mechbay({
   const guideWeaponId = guidedWeaponId(armed, hoveredWeaponId);
   const guidePayload: DropPayload | null =
     armed ?? (guideWeaponId === null ? null : { kind: 'weapon', id: guideWeaponId });
-  const compatible = useMemo(
-    () => new Set(compatibleDropLocations(catalog, design, guidePayload, inventory)),
+  // One pass over the eight locations serves both jobs: which to highlight, and
+  // what to tell the player about the ones that refused.
+  const locationFits = useMemo(
+    () => fitByLocation(catalog, design, guidePayload, inventory),
     [design, guidePayload, inventory],
   );
+  const compatible = useMemo(() => new Set(compatibleFrom(locationFits)), [locationFits]);
 
   useArmedPlacementFocus({
     armed,
@@ -154,9 +163,38 @@ export function Mechbay({
       return false;
     }
 
-    commitDraft(evaluation.nextDesign);
     if (evaluation.status === 'needs_ammo') {
-      const payload: DropPayload = { kind: 'ammo', id: evaluation.continuation.weaponId };
+      const { weaponId, locations } = evaluation.continuation;
+      const weaponName = catalog.weapons.get(weaponId)?.name ?? weaponId;
+      // A gun with no feed is not a decision, it is a chore. Stow the first ton
+      // somewhere survivable and say where it went; moving or removing it is
+      // still one click, and the player never meets an illegal build they did
+      // not ask for.
+      const berth = bestAmmoLocation(catalog, evaluation.nextDesign, locations);
+      const stowed =
+        berth === null
+          ? null
+          : evaluateEdit(
+              catalog,
+              evaluation.nextDesign,
+              { type: 'add_ammo', weaponId, location: berth },
+              inventory,
+            );
+
+      if (berth !== null && stowed?.status === 'applied') {
+        commitDraft(stowed.nextDesign);
+        if (location !== null) setSelectedLocation(location);
+        setArmed(null);
+        setStatus({
+          tone: 'ok',
+          text: `${weaponName} fitted — one ton of ammunition stowed in the ${MECH_LOCATION_NAMES[berth].toLowerCase()}.`,
+        });
+        return true;
+      }
+
+      // No berth would take it automatically; fall back to letting the player place it.
+      commitDraft(evaluation.nextDesign);
+      const payload: DropPayload = { kind: 'ammo', id: weaponId };
       setSelectedLocation(null);
       setShelf('ammo');
       setInspected(payload);
@@ -164,6 +202,8 @@ export function Mechbay({
       setStatus({ tone: 'ok', text: evaluation.reasons[0]?.message ?? 'Choose an ammunition bin.' });
       return true;
     }
+
+    commitDraft(evaluation.nextDesign);
 
     if (location !== null) setSelectedLocation(location);
     setArmed(null);
@@ -176,6 +216,22 @@ export function Mechbay({
 
   const onDrop = (payload: DropPayload, location: MechLocation): void => {
     acceptEvaluation(evaluateDrop(catalog, design, payload, location, inventory), location);
+  };
+
+  /**
+   * Fits a part without asking where. Picking the bay is the step players stall
+   * on, and for most parts only one or two locations were ever legal — so offer
+   * the choice, do not require it. Dragging still places by hand.
+   */
+  const autoFit = (payload: DropPayload): void => {
+    const fits = fitByLocation(catalog, design, payload, inventory);
+    const berth = bestLocationFor(catalog, design, payload, fits);
+    if (berth === null) {
+      const refusal = [...fits.values()].find((fit) => !fit.ok)?.reason;
+      setStatus({ tone: 'error', text: refusal ?? 'Nothing on this machine will take that.' });
+      return;
+    }
+    onDrop(payload, berth);
   };
 
   const selectLocation = (location: MechLocation): void => {
@@ -313,7 +369,9 @@ export function Mechbay({
           selectedLocation={selectedLocation}
           hoveredLocation={hoveredLocation}
           compatibleLocations={compatible}
+          locationFits={locationFits}
           onCancelArmed={() => setArmed(null)}
+          onAutoFit={autoFit}
           onDrop={onDrop}
           onRemoveMount={(index) => applyIntent({ type: 'remove_weapon', index })}
           onRemoveAmmo={(index) => {
@@ -345,6 +403,7 @@ export function Mechbay({
             setInspected(payload);
             setArmed(payload);
           }}
+          onAutoFit={autoFit}
           onHoverWeapon={setHoveredWeaponId}
         />
       </BayWorkspacePanel>

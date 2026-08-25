@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { catalog } from '../../../tests/support';
-import { compatibleDropLocations, evaluateDrop, installIntent } from './mechbayEdits';
+import { compatibleFrom, fitByLocation } from './autoFit';
+import { evaluateDrop, installIntent } from './mechbayEdits';
 
 function sentinel() {
   const design = catalog.designs.get('sentinel_brawler');
@@ -41,11 +42,10 @@ describe('mechbay drop transactions', () => {
       ...Array.from({ length: 4 }, () => ({ equipmentId: 'case', location: 'right_torso' as const })),
     );
 
-    expect(
-      compatibleDropLocations(catalog, design, { kind: 'equipment', id: 'case' }),
-    ).not.toContain('right_torso');
-    expect(
-      compatibleDropLocations(catalog, design, { kind: 'ammo', id: 'srm6' }),
-    ).not.toContain('right_torso');
+    const destinations = (payload: Parameters<typeof fitByLocation>[2]) =>
+      compatibleFrom(fitByLocation(catalog, design, payload));
+
+    expect(destinations({ kind: 'equipment', id: 'case' })).not.toContain('right_torso');
+    expect(destinations({ kind: 'ammo', id: 'srm6' })).not.toContain('right_torso');
   });
 });

@@ -326,3 +326,27 @@
     display: none;
   }
 }
+
+/*
+ * A location that refuses a part should say which rule it broke. The fit check
+ * already produces the sentence; showing it is the difference between a bay
+ * that teaches its own constraints and one that just says no.
+ */
+.bay-location-refusal {
+  margin: 0;
+  color: var(--warn);
+  font-size: 10px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.bay-armed-fit {
+  border-color: rgba(140, 224, 255, 0.45);
+  color: var(--accent);
+}
+
+@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+  .bay-location-refusal {
+    font-size: 12px;
+  }
+}

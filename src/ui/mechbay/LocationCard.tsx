@@ -75,6 +75,8 @@ interface Props {
   selected?: boolean;
   hovered?: boolean;
   compatible?: boolean;
+  /** Why this location refused the held part, in words the player can act on. */
+  refusal?: string | null;
   /**
    * What the player has picked up off the shelf and not yet placed. Dragging
    * does not exist on a touch screen, so the bay also works as pick-then-place:
@@ -99,6 +101,7 @@ export function LocationCard({
   selected = false,
   hovered = false,
   compatible = false,
+  refusal = null,
   armed = null,
 }: Props) {
   const hardpoints = chassis.hardpoints[location];
@@ -184,6 +187,9 @@ export function LocationCard({
   const fitState = armed === null
     ? compatible ? 'Fits previewed part' : null
     : compatible ? 'Fits held part' : 'Cannot fit held part';
+  // A refusal the player cannot read is indistinguishable from a bug, so carry
+  // the reason the fit check already produced instead of dropping it.
+  const refusalText = armed !== null && !compatible ? refusal : null;
 
   const classes = ['bay-location', `loc-${location}`];
   if (invalid) classes.push('invalid');
@@ -200,7 +206,7 @@ export function LocationCard({
       data-compatible={compatible || undefined}
       data-invalid={invalid || undefined}
       role="group"
-      aria-label={`${locationName} location${selected ? ', selected' : ''}${fitState === null ? '' : `, ${fitState.toLowerCase()}`}${issueStates.length === 0 ? '' : `, ${issueStates.join(', ').toLowerCase()}`}`}
+      aria-label={`${locationName} location${selected ? ', selected' : ''}${fitState === null ? '' : `, ${fitState.toLowerCase()}`}${refusalText === null ? '' : `, ${refusalText}`}${issueStates.length === 0 ? '' : `, ${issueStates.join(', ').toLowerCase()}`}`}
       aria-invalid={invalid || undefined}
       onPointerEnter={() => onHover?.(location)}
       onPointerLeave={() => onHover?.(null)}
@@ -258,6 +264,12 @@ export function LocationCard({
           <span key={issue} className="location-flag location-flag--invalid">{issue}</span>
         ))}
       </div>
+
+      {refusalText === null ? null : (
+        <p className="bay-location-refusal" data-testid={`bay-refusal-${location}`}>
+          {refusalText}
+        </p>
+      )}
 
       <div className="bay-hardpoints">
         {(['energy', 'ballistic', 'missile'] as const).map((type) =>

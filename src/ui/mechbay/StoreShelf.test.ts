@@ -32,6 +32,7 @@ function render(
       design,
       inventory: undefined,
       shelf: 'weapons',
+      onAutoFit: () => undefined,
       showAll: false,
       selectedLocation: null,
       armed: null,
