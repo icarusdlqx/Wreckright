@@ -6,32 +6,27 @@ contents of `dist/` at `wreckright.ligand-ave.workers.dev`.
 
 ## Cloudflare production
 
-Production is promoted explicitly from an exact, tested Git commit. The
-repository is not currently connected to Workers Builds, so pushing `main`
-does not deploy by itself.
+Production is connected to the private GitHub repository through Workers
+Builds. A push to the configured production branch, `main`, builds and deploys
+automatically, so advancing `main` is a production action.
 
 The checked-in `wrangler.jsonc` names the existing Worker and points its static
 assets at `./dist`. Node is pinned by `.node-version`, and Wrangler is pinned in
 `devDependencies`; keep dependency installation lockfile-driven.
 
-The release sequence is:
-
-1. land a green commit on `main`;
-2. build that exact clean commit;
-3. upload it as a version with `wrangler versions upload`;
-4. inspect the version preview;
-5. promote that version explicitly with `wrangler versions deploy`;
-6. byte-verify the public site and run the short browser smoke.
+The release sequence is: inspect the topic-branch preview, land only a fully
+green commit on `main`, verify that Workers Builds deployed that exact SHA,
+then byte-verify the public site and run the short browser smoke.
 
 The exact commands, verification steps, and rollback procedure are in
 `docs/CLOUDFLARE_RELEASE.md` and `docs/RELEASING.md`.
 
 ### Preview versions
 
-`wrangler versions upload` creates a version without moving production
-traffic. Add a preview alias when uploading a release candidate, and use the
-returned preview URL for final inspection. Preview URLs are public unless
-protected separately with Cloudflare Access.
+Workers Builds creates a non-production preview for a topic branch when branch
+builds and preview URLs are enabled. Confirm the full commit SHA in the build
+details before inspecting it. Preview URLs are public unless protected
+separately with Cloudflare Access.
 
 ### Caching and security headers
 

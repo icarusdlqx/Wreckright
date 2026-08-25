@@ -50,7 +50,6 @@ describe('Wreckright product branding', () => {
     const wrangler = JSON.parse(read('wrangler.jsonc')) as { name: string };
     const readme = read('README.md');
     const releasing = read('docs', 'RELEASING.md');
-    const cloudflareRelease = read('docs', 'CLOUDFLARE_RELEASE.md');
 
     for (const key of [
       'ironline.campaign',
@@ -65,8 +64,7 @@ describe('Wreckright product branding', () => {
     expect(read('src', 'ui', 'engineFactory.ts')).toContain('__wreckright');
     expect(wrangler.name).toBe('wreckright');
     expect(readme).toContain('icarusdlqx/Wreckright');
-    expect(releasing).toContain('Production gate');
-    expect(cloudflareRelease).toContain('wrangler versions upload');
+    expect(releasing).toContain('Workers Builds: wreckright');
     expect(readme).toContain('non-visible compatibility contracts');
   });
 });

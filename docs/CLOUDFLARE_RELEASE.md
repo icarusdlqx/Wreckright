@@ -1,29 +1,28 @@
 # Cloudflare release runbook
 
-Wreckright production is a static-asset Worker promoted explicitly with the
-pinned Wrangler CLI. The repository is not currently connected to Workers
-Builds, and a push to `main` does not change production traffic.
+Wreckright production is a static-asset Worker deployed by Workers Builds from
+the private GitHub repository. The configured production branch is `main`, so
+advancing `main` builds and publishes the site.
 
 Record these identifiers together for every release:
 
 - full Git commit SHA;
-- uploaded Worker version ID;
+- Workers Build UUID;
+- Worker version ID created by that build;
 - production deployment ID;
 - previous stable version ID;
 - production URL and verification time.
 
 A version contains static assets and configuration. A deployment determines
-which version receives traffic. Uploading a version must not promote it.
+which version receives traffic.
 
 ## Build the exact candidate
 
-Start from a clean checkout of the green `main` commit:
+Start from a clean checkout of the exact candidate commit:
 
 ```sh
 test -z "$(git status --porcelain)"
-release_sha=$(git rev-parse HEAD)
-release_short=$(git rev-parse --short=12 HEAD)
-release_short8=$(git rev-parse --short=8 HEAD)
+git rev-parse HEAD
 npm ci
 npm run build
 npm run build:single
@@ -37,35 +36,20 @@ The hosted build must contain `dist/index.html`, hashed JavaScript and CSS under
 `dist/assets/`, and `dist/_headers`. The self-contained distribution must be
 `dist-single/wreckright.html` and make no external requests.
 
-## Upload and inspect without promoting
+## Inspect the branch preview
 
-```sh
-npx wrangler versions upload \
-  --name wreckright \
-  --strict \
-  --tag "git-$release_short" \
-  --message "candidate $release_sha" \
-  --preview-alias "release-$release_short8"
-```
+Workers Builds creates a preview version for a topic branch when non-production
+builds and preview URLs are enabled. Confirm the build details name the exact
+candidate SHA, record the preview's Build UUID and Version ID, and inspect Home,
+training, Move and Attack, campaign save/reload, and the console. Do not merge
+if the preview metadata, files, or behavior do not match the candidate.
 
-Record the returned version ID and preview URL. Inspect the preview in a fresh
-browser profile: Home, training, Move and Attack, campaign load/save, and the
-console. Do not continue if the version metadata, files, or behavior do not
-match the candidate.
+## Verify production
 
-## Promote the inspected version
-
-```sh
-candidate_version='<VERSION_ID_FROM_UPLOAD>'
-npx wrangler versions deploy \
-  "$candidate_version@100%" \
-  --name wreckright \
-  --message "release $release_sha" \
-  --yes
-```
-
-Record the resulting deployment ID, then verify every public file against the
-local `dist` from the same commit:
+After the exact candidate advances to `main`, wait for the production Workers
+Build. Confirm its full Git SHA, Build UUID, Version ID, and 100% active
+deployment in the Cloudflare dashboard. Then verify every public file against
+the local `dist` from the same commit:
 
 ```sh
 npm run verify:deploy -- \
@@ -90,7 +74,7 @@ curl -fsSI "$wreckright_release_url/$wreckright_js_path" | tr -d '\r' | rg -i \
   '^cache-control: public, max-age=31536000, immutable$'
 ```
 
-Run the short production smoke once more after promotion. A byte match does not
+Run the short production smoke once more after deployment. A byte match does not
 replace behavioral verification.
 
 ## Roll back
@@ -118,6 +102,10 @@ before adding server-side state.
 - Public route: `wreckright.ligand-ave.workers.dev`.
 - Asset directory: `./dist`.
 - No Worker script or bindings.
+- Production branch: `main`.
+- Build command: `npm run build`.
+- Production deploy command: `npx wrangler deploy`.
+- Non-production deploy command: `npx wrangler versions upload`.
 - Wrangler version: exactly `4.125.0` until deliberately reviewed and updated.
 - Preview URLs are public unless protected separately with Cloudflare Access.
 - Keep the previous stable version ID in every release record.

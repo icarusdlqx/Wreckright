@@ -78,9 +78,9 @@ make that safe:
    like.
 3. **CI is the shared gate.** Push the branch and let `.github/workflows/ci.yml`
    run: typecheck, lint, fast tests, both builds. Do not merge red.
-4. **Production is an explicit promotion.** Merge only green work to `main`,
-   then upload and promote the exact tested commit with the versioned Wrangler
-   procedure in `docs/RELEASING.md`. Never deploy an uncommitted tree.
+4. **Merging to `main` is deploying.** Cloudflare builds and publishes the
+   site straight from `main` — there is no separate deploy step. Merge only
+   work you would put in front of a stranger, because you are.
 5. **No model names in code or docs.** Source, comments, data, and docs
    never name the AI model that wrote them. Attribution trailers appended to
    commit messages by the agent's own tooling are the one exception. Commit

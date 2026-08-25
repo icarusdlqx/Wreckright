@@ -5,6 +5,10 @@
       {
         "context": "Production gate",
         "app_id": 15368
+      },
+      {
+        "context": "Workers Builds: wreckright",
+        "app_id": 85455
       }
     ]
   },
