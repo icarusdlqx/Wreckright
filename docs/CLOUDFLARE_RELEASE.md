@@ -1,6 +1,6 @@
 # Cloudflare release runbook
 
-IRONLINE production is a static-asset Worker deployed by Workers Builds from
+Wreckright production is a static-asset Worker deployed by Workers Builds from
 the Git repository. This runbook does not require a local Cloudflare token and
 does not use a manual `wrangler deploy`.
 
@@ -45,7 +45,7 @@ active version.
 
 Dashboard setup required for that preview:
 
-1. **Workers & Pages → IRONLINE → Settings → Build → Branch control**: enable
+1. **Workers & Pages → `ironline` → Settings → Build → Branch control**: enable
    builds for non-production branches.
 2. **Settings → Domains & Routes**: enable Preview URLs.
 3. If the branch contains anything that should not be public, protect previews
@@ -53,7 +53,7 @@ Dashboard setup required for that preview:
 
 ## Verify production
 
-After merge, open **Workers & Pages → IRONLINE → Deployments**:
+After merge, open **Workers & Pages → `ironline` → Deployments**:
 
 1. Under Version History, select the new version and then **View build**.
 2. Confirm the build succeeded from `main` and its full commit SHA is the merge
@@ -104,7 +104,7 @@ when a build is retried, so a retry can differ from the historical build.
 To restore Cloudflare traffic during an incident:
 
 1. Identify the last stable Version ID from its build details and commit SHA.
-2. Open **Workers & Pages → IRONLINE → Deployments**.
+2. Open **Workers & Pages → `ironline` → Deployments**.
 3. In Version History, use the three-dot menu for that stable version and
    select **Rollback**.
 4. Confirm the new Active Deployment sends 100% of traffic to the selected
@@ -137,14 +137,15 @@ this runbook lands:
 - the active `workers.dev` or custom-domain route is enabled;
 - the previous stable Version ID is in the release record.
 
-The Worker identifier remains `ironline` until the product title is decided.
-Changing it would create a deployment/domain migration and must not be bundled
-into an ordinary content release.
+The Worker identifier and `workers.dev` hostname remain `ironline` after the
+player-facing rename to Wreckright. The `ironline_` shell-variable prefix in
+this runbook follows that legacy deployment identity. Changing any of them
+would create a deployment/domain migration and must not be bundled into an
+ordinary product release.
 
-The current stable CLI checked for this configuration on 2026-08-24 was
-`wrangler@4.125.0`. Add that exact version to `devDependencies` and the lockfile
-before relying on the dashboard deploy commands; do not leave production on a
-floating `npx` resolution.
+The stable CLI checked for this configuration on 2026-08-24 was
+`wrangler@4.125.0`, which is pinned in `devDependencies` and the lockfile. Do
+not leave production on a floating `npx` resolution.
 
 ## Cloudflare references
 

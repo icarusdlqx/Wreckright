@@ -1,9 +1,9 @@
 {
   "id": "rules_break",
-  "name": "Sweep — Broken Rule",
+  "name": "Sweep — Broken Wreckright",
   "type": "assault",
   "mapId": "foundry_district",
-  "briefing": "A Sarn yard camera recorded a Kestrel machine following an ejection seat with its guns. Kestrel came back for the recording and shut the outer works behind it. Clear the detachment. The camera and its copy stay with Sarn.",
+  "briefing": "A Sarn yard camera recorded a Kestrel machine following an ejection seat with its guns. Kestrel came back for the recording and shut the outer works behind it. Clear the detachment. The proof that Kestrel broke wreckright stays with Sarn.",
   "maxDurationSeconds": 420,
   "startingResourcePoints": 600,
   "lances": [
@@ -92,7 +92,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Sarn control: the record is clean. Seat under canopy, Kestrel fire following it. Keep the copy."
+          "text": "Sarn control: the record is clean. Seat under canopy, Kestrel fire following it. Wreckright protects the pilot; keep the copy."
         }
       ]
     },

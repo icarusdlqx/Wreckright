@@ -5,7 +5,6 @@ import { describe, expect, it } from 'vitest';
 import { catalog } from '../../../tests/support';
 import { compatibleLocations } from './bayFit';
 import { beginDesignHistory } from './designHistory';
-import { createLinewroughtDraft } from './linewroughtBuilderModel';
 import { guidedWeaponId, Mechbay } from './Mechbay';
 
 describe('campaign cooling inventory', () => {
@@ -33,8 +32,9 @@ describe('campaign cooling inventory', () => {
     expect(html).toContain('Heat Sink');
     expect(html).toMatch(/<option[^>]+disabled=""[^>]*>Compound Heat Sink · 0 available<\/option>/);
     expect(html).toContain('Back to hangar');
-    expect(html).not.toContain('data-testid="linewrought-builder-open"');
-    expect(html).not.toContain('Build Linewrought');
+    expect(html).toContain('Commit refit');
+    expect(html).not.toContain('aria-label="Design name"');
+    expect(html).not.toContain('aria-label="Stock design"');
   });
 });
 
@@ -84,7 +84,8 @@ describe('mechbay presentation', () => {
     expect(html).toContain('Linewrought');
     expect(html).toContain('data-testid="shelf-search"');
     expect(html).toContain('data-testid="shelf-family"');
-    expect(html).toContain('data-testid="linewrought-builder-open"');
+    expect(html).toContain('aria-label="Stock design"');
+    expect(html).toContain('Save loadout');
     expect(html).toContain('weapon-card--compact');
     expect(html.match(/id="bay-shelf-inspector"/g)).toHaveLength(1);
     expect(html.match(/role="meter"/g)).toHaveLength(3);
@@ -100,7 +101,7 @@ describe('mechbay presentation', () => {
     expect(html).not.toMatch(/dead inside|Lobs over cover/);
   });
 
-  it('routes a builder draft through the full-design replacement reset', () => {
+  it('routes a stock loadout pick through the full-design replacement reset', () => {
     const source = readFileSync(new URL('./Mechbay.tsx', import.meta.url), 'utf8');
     const replaceStart = source.indexOf('const replace = (next: Design): void => {');
     const replaceEnd = source.indexOf('const navigateHistory', replaceStart);
@@ -116,13 +117,10 @@ describe('mechbay presentation', () => {
     expect(replaceBlock).toContain("setWorkspace('loadout')");
     expect(replaceBlock).toContain('setHistory(beginDesignHistory(next))');
 
-    const created = createLinewroughtDraft(catalog, {
-      chassisId: 'hornet_hnt2',
-      mode: 'bare',
-      name: 'Gantry Test',
-    });
-    const replacedHistory = beginDesignHistory(created);
-    expect(replacedHistory.present).toEqual(created);
+    const selected = catalog.designs.get('hornet_spotter');
+    if (selected === undefined) throw new Error('missing Gadfly stock loadout');
+    const replacedHistory = beginDesignHistory(selected);
+    expect(replacedHistory.present).toEqual(selected);
     expect(replacedHistory.past).toEqual([]);
     expect(replacedHistory.future).toEqual([]);
   });
@@ -155,10 +153,10 @@ describe('mechbay presentation', () => {
 
     expect(
       html.match(
-        /<span class="machine-culture__badge">Linewrought — Shopbuilt<\/span>/g,
+        /<span class="machine-culture__badge">Linewrought — Workshop<\/span>/g,
       ),
     ).toHaveLength(2);
-    expect(html).toContain('aria-label="Machine culture: Linewrought — Shopbuilt"');
+    expect(html).toContain('aria-label="Machine culture: Linewrought — Workshop"');
     expect(html).toContain('data-faction="linewrought"');
   });
 });

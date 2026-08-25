@@ -257,7 +257,6 @@ async function runOrientation({ browser, url, shots, check, viewport, label, sho
       prefix,
       shots,
       shotLabel,
-      viewport,
     });
     check(`${prefix} reports no page errors`, errors.length === 0, errors.slice(0, 3).join(' | '));
   } finally {

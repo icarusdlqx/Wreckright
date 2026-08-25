@@ -1,15 +1,15 @@
 {
   "id": "conduit_breach",
-  "name": "Hold — The Dark Towns",
+  "name": "Hold — The Cold Yards",
   "type": "defend",
   "mapId": "shale_steps",
-  "briefing": "Kestrel cutters opened the western conduit at marker 311. Six Ridgeward towns are dark. The east breaker can carry the pumps if it remains under Assembly control for ninety seconds while the load transfers. The Kestrel column is already climbing.",
+  "briefing": "Kestrel cut Sarn's western power trunk after the foundry refused a Recall Authority inventory. Six repair halls are cold, with named walkers still on their gantries. The east breaker can carry the yard load if it remains under Assembly control for ninety seconds.",
   "maxDurationSeconds": 420,
   "startingResourcePoints": 500,
   "lances": [
     {
       "team": 0,
-      "name": "Assembly Breaker Guard",
+      "name": "Assembly Yard Guard",
       "units": [
         {
           "designId": "cairn_battery",
@@ -39,7 +39,7 @@
     },
     {
       "team": 1,
-      "name": "Kestrel Cutters",
+      "name": "Kestrel Compliance Column",
       "units": [
         {
           "designId": "votive_picket",
@@ -115,7 +115,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Assembly: western conductor is open to air. Kestrel cut the Line. Pump reserves are under forty minutes."
+          "text": "Assembly: western trunk is open to air. Six gantries are on reserve power; the oldest named root has forty minutes."
         },
         {
           "type": "reveal",
@@ -133,7 +133,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Assembly: east breaker has the load. Pumps are turning again. The western towns stay dark."
+          "text": "Assembly: east breaker has the load. Gantries are live again. Sarn keeps custody of the roots in its bays."
         }
       ]
     }

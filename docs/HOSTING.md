@@ -1,4 +1,4 @@
-# Hosting IRONLINE
+# Hosting Wreckright
 
 The game is a static site — no server, no database, no API. Anything that can
 serve files can host it.
@@ -30,13 +30,13 @@ Node is pinned by `.node-version` in the repository root. Keep dependency
 installation lockfile-driven.
 
 The Wrangler `name` is a deployment identifier that must continue to match the
-existing Worker. It remains `ironline` while the player-facing title is being
-decided; renaming the Worker or its route is a separate migration.
+existing Worker. It remains the legacy identifier `ironline` after the
+player-facing rename to Wreckright; renaming the Worker or its route is a
+separate infrastructure migration.
 
-Pin Wrangler exactly as `wrangler@4.125.0` in `devDependencies` and the lockfile
-before changing these dashboard commands. That was the current stable npm
-release on 2026-08-24. Until the package change lands, `npx` can resolve a newer
-CLI than the one last reviewed by the project.
+Wrangler is pinned exactly as `wrangler@4.125.0` in `devDependencies` and the
+lockfile. That was the stable npm release reviewed for this configuration on
+2026-08-24; keep the pin in sync with any future dashboard-command review.
 
 `npm run build` runs `tsc --noEmit` before Vite, so a type error fails the
 Cloudflare build. The release gates in `.github/workflows/ci.yml` must also be
@@ -66,7 +66,7 @@ The same file applies the site's browser security policy. If a Worker script is
 later placed in front of the assets, these rules will not apply to responses
 created by that script; the script must attach equivalent headers itself.
 
-The self-contained `dist-single/ironline.html` has inline script and style by
+The self-contained `dist-single/wreckright.html` has inline script and style by
 design. Its path explicitly detaches the normal site's CSP when the complete
 `dist-single` directory is hosted, while the normal deployed app keeps the
 strict policy.
@@ -87,7 +87,7 @@ The site works in Safari on iOS and macOS. On a phone:
 - Everything else is on the buttons along the bottom.
 
 Add it to the home screen (Share → Add to Home Screen) and it installs as
-IRONLINE with its own app icon, opening full screen in landscape with no
+WRECKRIGHT with its own app icon, opening full screen in landscape with no
 browser chrome. The web app manifest (`public/manifest.webmanifest`) and the
 icons beside it are what make that work; there is deliberately no service
 worker — the single-file build is the offline story, and a stale-cache bug is
@@ -102,5 +102,5 @@ without configuration. `public/_headers` uses Cloudflare's static-header
 format; another host needs equivalent caching and security headers configured
 in its own system.
 
-`npm run build:single` writes `dist-single/ironline.html`: the entire game,
+`npm run build:single` writes `dist-single/wreckright.html`: the entire game,
 including every asset, as one file that can be emailed or opened from a disk.

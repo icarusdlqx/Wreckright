@@ -14,8 +14,8 @@ export interface MachineCulturePresentation {
 const CULTURES: Record<Faction, MachineCulturePresentation> = {
   linewrought: {
     originLabel: 'Linewrought',
-    badgeLabel: 'Linewrought — Shopbuilt',
-    explanation: 'Shop-built around exposed, serviceable systems; mixed-pattern refits are expected.',
+    badgeLabel: 'Linewrought — Workshop',
+    explanation: 'Workshop-serviced around exposed systems; mixed-pattern refits are expected.',
     className: 'culture-linewrought',
   },
   aurelian: {

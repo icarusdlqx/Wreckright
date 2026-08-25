@@ -1,13 +1,14 @@
-# The faction rebuild
+# The Wreckright faction rebuild
 
 A staged plan to give the game two distinct machine cultures, a weapon
 catalogue half its current size and twice its character, a campaign that earns
 the salvage loop, and a mechbay a newcomer can read. Work the phases in order:
 each one depends on the one before it, and each ends at a gate.
 
-**Not in scope.** The game keeps the name IRONLINE for now — no renaming of the
-title, the repo, the package, the manifest, or the `ironline.*` localStorage
-keys. Revisit once the game is further along.
+**Naming boundary.** The public game and setting are **Wreckright**. Historical
+filenames and stable internal identifiers such as `border_dispute`,
+`line_maintenance` and the `ironline.*` localStorage keys remain unchanged for
+save compatibility. They are implementation details, not player-facing lore.
 
 ## The one rule that changed
 
@@ -29,18 +30,27 @@ is not finished until both are green and you have said so in the pull request.
 
 ---
 
-## The setting problem, and its solution
+## The setting rule
 
-The existing lore says nobody on Tessell can design a mech, everyone rebuilds
-the same Compact hulls, and "nothing here is called a war." Two rival mech
-lines with distinct weapons appears to contradict all three. Read
-`src/data/lore/*.json` before writing anything — that voice is the standard to
-match, and it is dry, concrete and specific.
+Read `src/data/lore/*.json` before writing anything — that voice is the standard
+to match, and it is dry, concrete and specific.
 
-The reconciliation: **the factions are not two armies, they are two sources of
-machines.** One is welded together by people who need it back next week. The
-other has been sealed in the dark for ninety years. Everything else — the
-weapons, the economics, the way they walk — follows from that.
+Nearly a century after the **Aurelian Compact** abandoned Tessell, its successor
+has physically returned. The **Aurelian Continuance** and its civil
+**Recall Authority** declare every surviving serialized walker root inherited
+state property. The claim is narrow enough to argue: it attaches to the root,
+not Tessell, its people, or a pilot in the cockpit.
+
+The return matters because **Foundry Winter** destroyed the distributed
+industrial chain that made walker roots. The Continuance inherited service
+works and records but no complete production line; Tessell never had one.
+Service logic can attest a serial and open compatible depot equipment. It
+cannot start, stop, steer, locate or aim a live machine.
+
+The two machine cultures are not two armies. They are two conditions of the
+same finite inheritance. One has been rebuilt by people who need it back next
+week. The other stayed sealed in the dark. Everything else — weapons,
+economics, repair time and movement — follows from that.
 
 | | Faction A | Faction B |
 |---|---|---|
@@ -55,27 +65,23 @@ weapons, the economics, the way they walk — follows from that.
 
 ### Linewrought
 
-The depots gave up hulls, not machines: frames on their sides in the dark,
-spares crated under a numbering system nobody kept the key to. So the shops on
-the grade learned the only trade Tessell has — cut out what has seized,
-re-armour in Sarn plate, hang whatever guns the smelter towns can still turn
-out, and stamp it with a mark number that counts trips through the shop rather
-than anything a designer intended. A Linewrought machine is a record of its own
-repairs, and two of them on the same chassis are nothing alike. You can make a
-tube and a shell with what this continent has. You cannot make a sealed
-capacitor, which is why everything the shops build eats ammunition, and why
-every pilot on the Line has run dry at least once.
+The depots gave up old Compact roots and incomplete hulls. Tessell can make
+plate, limbs, bearings, guns, ammunition, tracked vehicles and fixed
+emplacements. It cannot make the reactor cradle, central keel, control lattice
+and gait interfaces that constitute a walker root. Shops cut out what has
+seized, rebuild around the surviving root and stamp a mark number that counts
+trips through the gantry. A Linewrought machine is a named repair history, and
+two walkers of the same class are nothing alike.
 
 ### Aurelian Stock
 
-The Compact came to strip Tessell and intended to leave nobody behind, so they
-built machines that need no technicians: sealed reactors, no ammunition, no
-access panels, designed to be returned to a facility that no longer exists.
-When the charter lapsed they were gone inside a year, and what they did not
-ship out they sealed where it stood. Ninety years later nobody has opened one
-and had it work afterwards. They do not run dry and they do not burn out. But
-when a Sealed machine breaks it stays broken, and the only source of a
-replacement part is another Sealed machine.
+The historic Compact built sealed machines to return to certified depots:
+sealed reactors, no ammunition and no field access panels. When its charter
+lapsed, it left inside a year and sealed what it did not ship. Nearly a century
+later, the Continuance can identify and service some of that stock but cannot
+replace its roots. Aurelian Stock does not run dry, yet sustained fire still
+cooks it. When a sealed component breaks, the only field spare is another
+sealed machine.
 
 ---
 
@@ -174,6 +180,11 @@ author **three new Aurelian chassis** so each faction fields a full ladder:
 two light, two medium, two heavy, two assault. Both sides must be playable as a
 complete lance, and a mixed lance has to make sense.
 
+“Author” here means add a previously unseen historical root class to the game
+catalogue. It never means Tessell or the player manufactures a new walker.
+Campaign roster growth comes from a specific existing machine changing custody
+through salvage or the yard.
+
 Give each new chassis its own body plan under `src/render/blueprint/` — plans
 are authored per machine rather than scaled from one shape, and the Sealed
 machines are the chance to make that pay off: symmetric, closed, no visible
@@ -205,16 +216,19 @@ new systems.** Keep it that simple.
 
 ### The campaign, four acts
 
-1. **Line maintenance.** Halloran contracts, Kestrel rivalry, ordinary disputes.
-   Teaches the rules of the Line and how a lance works.
-2. **Something walks that shouldn't.** Kestrel fields a machine nobody
-   recognises. The player barely survives, and takes their first Sealed salvage.
-3. **The rules break.** Kestrel stops honouring the Rules of the Line — shoots a
-   seat, or cuts the conduit. It becomes a war nobody will call a war.
-4. **The depot.** Reach it before Kestrel empties it. The ending is a choice:
-   **burn it**, so nobody inherits the Compact's machines and the Line survives
-   as it was, or **take it**, and become the power the next war is fought
-   against.
+1. **First Notice.** The General Reversion Order names the company's own four
+   roots. Kestrel provides local compliance muscle while Halloran races to copy
+   the custody books.
+2. **First Attestation.** Kestrel escorts a bone-white machine carrying a
+   Continuance seal. The player takes their first Aurelian Stock and learns
+   that a service reader proves identity without controlling the walker.
+3. **Broken wreckright.** Kestrel fires on an ejection seat and cuts power to
+   Sarn repair yards that refused an Authority inventory. Root title, shop
+   liens, necessity and possession at dusk become an open claims war.
+4. **The manifest.** Reach the depot before Kestrel and the Recall Authority.
+   **Burn it** to destroy the master evidence and certified service opportunity,
+   or **take it** and become custodian of the claim. The depot is never a walker
+   factory, and neither ending creates new roots.
 
 Fold the two backstories above into `src/data/lore/` as new articles, in the
 voice of the four that are already there.
@@ -254,6 +268,12 @@ do it as data.
 `src/ui/styles.css`.
 
 The bay shows numbers and expects the player to do arithmetic. Fix that.
+
+The bay always opens on a specific owned or recovered machine. It repairs and
+refits that machine; it never creates a generic frame, clones a saved pattern or
+turns a catalogue class into campaign inventory. Player authorship lives in the
+next shop mark — weapons, armour, ammunition, equipment and cooling — while the
+root class and fixed structural interfaces remain inherited constraints.
 
 - **A live 3D preview** built from the same `src/render/blueprint/` data the
   battlefield uses — rotating, mounted weapons visible on the hull, hardpoints

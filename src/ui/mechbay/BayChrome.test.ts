@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
@@ -76,24 +75,29 @@ describe('mechbay history controls', () => {
     expect(html).toMatch(/data-testid="bay-redo"[^>]*disabled=""|disabled=""[^>]*data-testid="bay-redo"/);
   });
 
-  it('offers Linewrought construction only in the standalone workshop', () => {
+  it('offers loadout selection and naming only in the standalone workshop', () => {
     const standalone = renderHistory();
     const commissioned = renderHistory({ commissionTitle: 'Field refit' });
 
-    expect(standalone).toContain('data-testid="linewrought-builder-open"');
     expect(standalone).toContain('aria-label="Design name"');
-    expect(standalone).toContain('Build Linewrought');
+    expect(standalone).toContain('aria-label="Stock design"');
+    expect(standalone).toContain('Save loadout');
+    expect(standalone).toContain('aria-label="Saved loadouts"');
+    expect(standalone).not.toContain('Build Linewrought');
+    expect(standalone).not.toContain('shopbuilt');
     expect(commissioned).toContain('data-testid="bay-commission"');
-    expect(commissioned).not.toContain('data-testid="linewrought-builder-open"');
-    expect(commissioned).not.toContain('Build Linewrought');
+    expect(commissioned).toContain('Commit refit');
+    expect(commissioned).not.toContain('aria-label="Design name"');
+    expect(commissioned).not.toContain('aria-label="Stock design"');
+    expect(commissioned).not.toContain('aria-label="Saved loadouts"');
   });
 
-  it('hands a created draft to the same design-pick seam and closes the builder', () => {
-    const source = readFileSync(new URL('./BayChrome.tsx', import.meta.url), 'utf8');
+  it('selects authored mech loadouts without offering vehicles or emplacements', () => {
+    const standalone = renderHistory();
 
-    expect(source).toContain('initialChassisId={design.chassisId}');
-    expect(source).toMatch(
-      /onCreate=\{\(created\) => \{\s*setBuilderOpen\(false\);\s*onDesignPick\(created\);\s*\}\}/s,
-    );
+    expect(standalone).toContain('Gadfly GAD-2 &#x27;Spotter&#x27;');
+    expect(standalone).toContain('Sentinel SNL-2 &#x27;Brawler&#x27;');
+    expect(standalone).not.toContain('Courser CRS-1 &#x27;Patrol&#x27;');
+    expect(standalone).not.toContain('Redoubt RDT-1 &#x27;Emplacement&#x27;');
   });
 });

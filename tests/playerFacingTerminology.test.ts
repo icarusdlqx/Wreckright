@@ -14,6 +14,7 @@ interface ProhibitedTerm {
 }
 
 const PROHIBITED_TERMS: readonly ProhibitedTerm[] = [
+  { label: 'retired product title', pattern: /\b(?:IRONLINE|Ironline)\b/ },
   { label: 'C-bill', pattern: /\bc[- ]?bills?\b/i },
   { label: 'BattleMech', pattern: /\bbattle\s*mechs?\b/i },
   {
@@ -41,6 +42,16 @@ const PROHIBITED_TERMS: readonly ProhibitedTerm[] = [
   {
     label: 'legacy faction or place name',
     pattern: /\b(?:Steel Legion|Wolfhound Detachment|Warden Compact|Kell Reach)\b/i,
+  },
+  {
+    label: 'legacy railway premise',
+    pattern:
+      /\b(?:railway|railroad|flatcar|sidings?|rolling stock|right-of-way|freight switch|track guard|ore train|Rules of the Line)\b/i,
+  },
+  {
+    label: 'legacy Line institution',
+    pattern:
+      /\b(?:on the Line|part of the line|standard of the line|the line's standard|grade shops?)\b/i,
   },
 ];
 

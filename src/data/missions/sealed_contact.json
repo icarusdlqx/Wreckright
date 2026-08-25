@@ -1,9 +1,9 @@
 {
   "id": "sealed_contact",
-  "name": "Contact — Ridge Pass",
+  "name": "Contact — First Attestation",
   "type": "ambush",
   "mapId": "ridge_pass",
-  "briefing": "Three ordinary Kestrel machines are escorting one white hull through the pass. The fourth has no shop stamp, hatch seam or exhaust. Break the escort, put the white machine down, and hold the ground until Halloran's recovery crews arrive.",
+  "briefing": "Three Linewrought Kestrel machines are escorting one bone-white walker carrying a Continuance seal. The fourth has no shop stamp, hatch seam or ammunition signature. Break the escort, put the sealed machine down, and hold the ground until Halloran's recovery crews arrive.",
   "maxDurationSeconds": 360,
   "startingResourcePoints": 500,
   "lances": [
@@ -39,7 +39,7 @@
     },
     {
       "team": 1,
-      "name": "Kestrel Recovery Train",
+      "name": "Kestrel Claim Detail",
       "units": [
         {
           "designId": "votive_picket",
@@ -71,7 +71,7 @@
   "objectives": [
     {
       "id": "stop_recovery_train",
-      "label": "Bring down the Kestrel recovery train",
+      "label": "Bring down the Kestrel claim detail",
       "type": "destroy_all",
       "team": 0,
       "required": true
@@ -92,7 +92,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Sensors: fourth contact is cold at the vents and carrying no ammunition signature. No registry match."
+          "text": "Halloran: the white hull answered the checkpoint reader. Aurelian root serial, Continuance attestation. The reader identified it; it did not move it."
         },
         {
           "type": "reveal",
@@ -110,7 +110,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Halloran: hold the field at dusk. Whatever that white hull leaves behind is yours."
+          "text": "Halloran: hold the field at dusk. Authority seal or not, wreckright gives the white hull to whoever is still standing around it."
         }
       ]
     }

@@ -44,7 +44,7 @@ function generate() {
   );
 
   const lines = [
-    'IRONLINE THIRD-PARTY NOTICES',
+    'WRECKRIGHT THIRD-PARTY NOTICES',
     '',
     'Generated from package-lock.json by npm run notices:write.',
     'Verify this checked-in file with npm run notices:check.',

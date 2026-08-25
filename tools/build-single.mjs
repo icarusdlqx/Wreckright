@@ -4,7 +4,7 @@
  *
  *   npm run build:single
  *
- * Writes dist-single/ironline.html.
+ * Writes dist-single/wreckright.html.
  */
 import { execFileSync } from 'node:child_process';
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
@@ -40,13 +40,13 @@ const page = [
   // mojibake. This has to sit inside the first 1024 bytes to be honoured.
   '<meta charset="utf-8">',
   '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">',
-  '<title>IRONLINE</title>',
+  '<title>WRECKRIGHT</title>',
   `<style>\n${pick('.css')}\n${fill}</style>`,
   '<div id="root"></div>',
   `<script type="application/octet-stream" id="third-party-notices" data-encoding="base64">${notices}</script>`,
   `<script type="module">\n${pick('.js')}\n</script>`,
 ].join('\n');
 
-const target = join(OUT_DIR, 'ironline.html');
+const target = join(OUT_DIR, 'wreckright.html');
 writeFileSync(target, page + '\n');
 console.log(`\n${target} — ${(page.length / 1024 / 1024).toFixed(2)} MB, no external requests`);

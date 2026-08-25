@@ -1,13 +1,30 @@
-# IRONLINE
+# WRECKRIGHT
+
+**No new machines. Only new owners.**
 
 Real-time-with-pause tactical mech combat. See [`IRONLINE_DESIGN.md`](IRONLINE_DESIGN.md)
 for the full design and build specification; [`CLAUDE.md`](CLAUDE.md) holds the
 agent working rules; [`docs/HOSTING.md`](docs/HOSTING.md) covers publishing it.
 
-**Play it:** published to Cloudflare Pages from `main` on every push, and
+**Play it:** published as a Cloudflare static-asset Worker from `main`, and
 playable in Safari on a phone as well as on a desktop. See
 [`docs/HOSTING.md`](docs/HOSTING.md) for the build settings and how to deploy
 without pushing.
+
+## Legacy internal identifiers
+
+Wreckright was previously developed under the Ironline name. The player-facing
+title has changed, but identifiers that existing saves, links, and deployment
+automation depend on deliberately have not:
+
+- browser storage and save keys retain the `ironline.*` prefix;
+- the Cloudflare Worker and its `workers.dev` hostname retain `ironline`;
+- the GitHub repository remains `icarusdlqx/Ironline`;
+- `IRONLINE_DESIGN.md` retains its historical filename; and
+- authored data ids and the `globalThis.__ironline` test hook remain stable.
+
+Treat these as compatibility and operations identifiers, not alternate product
+titles. Renaming one requires its own migration and backward-compatibility plan.
 
 ## Layout
 
@@ -18,7 +35,7 @@ src/schema    Zod schemas + the validating content loader
 src/render    shared art description — blueprints, palettes, silhouettes
 src/render3d  Three.js tactical renderer — reads sim state, never mutates it
 src/ui        React shell, Zustand store, fixed-step game loop and input
-src/ui/mechbay loadout editor, construction validation, heat calculator
+src/ui/mechbay loadout editor, refit validation, heat calculator
 src/campaign  economy, salvage, refit, repair, roster, time, save/load
 src/headless  CLI balance harness
 tests         architecture tests + the browser playthrough harness
@@ -92,11 +109,11 @@ Iteration *i* runs on seed `<seed>:<i>`, so any single battle can be replayed on
   hull. Content pass to twenty-four weapons, ten equipment items and sixteen
   chassis spanning 25 to 100 tons. `npm run sim` reports damage-per-ton-per-heat
   against each class median.
-- **Setting.** IRONLINE is set on Tessell, where a departed colonial Compact left
-  behind four thousand kilometres of self-repairing freight rail that everything
-  else on the planet now depends on. Nobody can build a mech; every machine is a
-  depot hull cut apart and rebuilt. The world, its four employers and the informal
-  code of the line are in `src/data/lore`, readable in-game under Field Manual.
+- **Setting.** WRECKRIGHT is set on Tessell, where the Aurelian Continuance has
+  returned to repossess every surviving walker root. An independent company
+  fights through the Great Recall while deciding who owns the finite machines
+  that kept this world alive. The setting is in `src/data/lore`, readable in-game
+  under Field Manual.
 - Phase 7 — Polish: in progress.
 
 ### Phase 6 acceptance

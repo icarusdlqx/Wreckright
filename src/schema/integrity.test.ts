@@ -6,6 +6,34 @@ import { CampaignSchema } from './campaign';
 import type { TerrainMapData } from './map';
 
 describe('campaign content integrity', () => {
+  it('keeps Wreckright copy on stable campaign and mission identifiers', () => {
+    const campaign = catalog.campaigns.get('border_dispute');
+    expect(campaign).toBeDefined();
+    if (campaign === undefined) return;
+
+    expect(campaign).toMatchObject({
+      id: 'border_dispute',
+      name: 'The Great Recall',
+      victoryNodeId: 'depot_burn',
+      alternateVictoryNodeIds: ['depot_take'],
+    });
+    expect(campaign.nodes.map(({ id, missionId }) => [id, missionId])).toEqual(
+      expect.arrayContaining([
+        ['militia_raid', 'line_maintenance'],
+        ['pass_skirmish', 'sealed_contact'],
+        ['foundry_sweep_node', 'rules_break'],
+        ['shale_overwatch_node', 'conduit_breach'],
+        ['ridge_hold', 'depot_road'],
+        ['depot_burn', 'depot_burn'],
+        ['depot_take', 'depot_take'],
+      ]),
+    );
+
+    const issues: ContentIssue[] = [];
+    checkIntegrity(catalog, issues);
+    expect(issues).toEqual([]);
+  });
+
   it('derives the battlefield cell ceiling from the pathfinding node budget', () => {
     const mapAt = (id: string, width: number, height: number): TerrainMapData => ({
       id,

@@ -1,9 +1,9 @@
 {
   "id": "depot_take",
-  "name": "Depot — Take",
+  "name": "Manifest — Take",
   "type": "assault",
   "mapId": "foundry_district",
-  "briefing": "Halloran's fee ends at the depot doors. Take the command key intact and clear Kestrel's guard. The key controls the storage lifts, the manifest and every sealed machine below them. Put it under your own seal.",
+  "briefing": "Halloran's fee ends at the depot doors. Take the attestation key intact and clear Kestrel's guard. The key opens the storage lifts and authenticates the master root manifest. It does not command a cockpit. Put it under your own seal.",
   "maxDurationSeconds": 480,
   "startingResourcePoints": 800,
   "lances": [
@@ -65,7 +65,7 @@
   "zones": [
     {
       "id": "depot_key",
-      "name": "Depot Command Key",
+      "name": "Manifest Attestation Key",
       "x": 492,
       "y": 492,
       "radius": 76,
@@ -77,7 +77,7 @@
   "objectives": [
     {
       "id": "take_command_key",
-      "label": "Take the depot command key",
+      "label": "Take the manifest attestation key",
       "type": "capture_zones",
       "team": 0,
       "required": true,
@@ -139,7 +139,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Command key accepted. The storage lifts answer to this lance now. Clear the remaining guard."
+          "text": "Attestation key accepted. The storage lifts recognise your seal; the walkers do not. Clear the remaining guard."
         }
       ]
     }

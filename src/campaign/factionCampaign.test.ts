@@ -14,7 +14,7 @@ import { deserialiseCampaign, serialiseCampaign } from './save';
 
 const campaign = (() => {
   const data = catalog.campaigns.get('border_dispute');
-  if (data === undefined) throw new Error('missing Border Dispute campaign');
+  if (data === undefined) throw new Error('missing Great Recall campaign');
   return data;
 })();
 
@@ -186,7 +186,67 @@ describe('faction campaign story', () => {
     expect(contact.maxSalvageShare).toBe(1);
     expect(hostileDesignIds(mission(contact.missionId))).toContain('votive_picket');
     expect(missionCopy(mission('rules_break'))).toContain('ejection seat');
-    expect(missionCopy(mission('conduit_breach'))).toContain('conduit');
+    expect(missionCopy(mission('conduit_breach'))).toContain('named walker');
+    expect(missionCopy(mission('conduit_breach'))).toContain('repair hall');
+  });
+
+  it('grounds Wreckright in finite serialized walker roots', () => {
+    const recall = catalog.lore.get('the_line');
+    const winter = catalog.lore.get('the_foundry_winter');
+    const refit = catalog.lore.get('the_refit');
+    const code = catalog.lore.get('the_code');
+    const copy = [
+      recall?.title,
+      ...(recall?.body ?? []),
+      winter?.title,
+      ...(winter?.body ?? []),
+      ...(refit?.body ?? []),
+      code?.title,
+      ...(code?.body ?? []),
+    ].join(' ');
+
+    expect(campaign.name).toBe('The Great Recall');
+    expect(copy).toContain('Aurelian Compact');
+    expect(copy).toContain('Aurelian Continuance');
+    expect(copy).toContain('Recall Authority');
+    expect(copy).toContain('Foundry Winter');
+    expect(copy).toContain('root collar exported as scrap');
+    expect(copy).toContain('archive audit recovered');
+    expect(copy).toContain('transit took years');
+    expect(copy).toContain('reserve and civil-defence walkers');
+    expect(copy).toContain('serialized root');
+    expect(copy).toContain('Crews give it a name');
+    expect(copy).toContain('wreckright');
+    expect(copy).toContain('cannot simply build another');
+    expect(copy).toContain('if its cradle survives the breach');
+  });
+
+  it('limits service logic to attestation rather than remote control', () => {
+    const recall = catalog.lore.get('the_line')?.body.join(' ') ?? '';
+    const sealed = catalog.lore.get('the_sealed')?.body.join(' ') ?? '';
+    const take = missionCopy(mission('depot_take'));
+
+    expect(recall).toContain('It cannot start the reactor, steer the legs, move a gun');
+    expect(sealed).toContain('cannot start a reactor, turn a hip, move a gun or locate a walker');
+    expect(take).toContain('does not command a cockpit');
+    expect(take).toContain('walkers do not');
+  });
+
+  it('keeps walker-root manufacture lost while local vehicles remain constructible', () => {
+    const winter = catalog.lore.get('the_foundry_winter')?.body.join(' ') ?? '';
+    const colossus = catalog.chassis.get('colossus_cls1');
+    const cairn = catalog.chassis.get('cairn_crn3');
+    const courser = catalog.chassis.get('courser_crs1');
+    const drover = catalog.chassis.get('drover_dvr2');
+
+    expect(winter).toContain('no complete line that can make another root');
+    expect(winter).toContain('make a tracked carrier by the hundred');
+    expect(colossus?.lore).toContain('eleven matched CLS roots');
+    expect(cairn?.lore).toContain('recovered CRN root');
+    expect(courser).toMatchObject({ frame: 'vehicle' });
+    expect(courser?.lore).toContain('builds the CRS-1');
+    expect(drover).toMatchObject({ frame: 'vehicle' });
+    expect(drover?.lore).toContain('builds the DVR-2 by the hundred');
   });
 
   it('offers equivalent, mutually terminal depot dispositions', () => {
@@ -254,8 +314,10 @@ describe('faction campaign story', () => {
   it('keeps the Aurelian article behind the first-contact completion', () => {
     const welded = catalog.lore.get('the_welded');
     const sealed = catalog.lore.get('the_sealed');
+    const winter = catalog.lore.get('the_foundry_winter');
     expect(welded?.unlockNodeId).toBeUndefined();
     expect(welded?.body.join(' ')).toContain('Linewrought');
+    expect(winter?.unlockNodeId).toBeUndefined();
     expect(sealed?.unlockNodeId).toBe('pass_skirmish');
     expect(sealed?.body.join(' ')).toContain('Aurelian Stock');
   });

@@ -101,7 +101,7 @@ export function Briefing({
                 aria-label={`Mech for berth ${berth.index + 1}`}
               >
                 {berth.customLabel === null ? null : (
-                  <option value="custom">{berth.customLabel} (custom)</option>
+                  <option value="custom">{berth.customLabel} (edited loadout)</option>
                 )}
                 <option value="empty">— empty berth —</option>
                 {lance.designs.map((design) => (
@@ -110,7 +110,7 @@ export function Briefing({
                   </option>
                 ))}
                 {lance.saved.length === 0 ? null : (
-                  <optgroup label="Saved builds">
+                  <optgroup label="Saved loadouts">
                     {lance.saved.map((entry) => (
                       <option key={entry.value} value={entry.value}>
                         {entry.label}
@@ -141,7 +141,7 @@ export function Briefing({
                 title="Open the bay on this machine"
                 data-testid={`berth-customise-${berth.index}`}
               >
-                Customise
+                Refit loadout
               </button>
               {berth.pilot === null ? null : (
                 <PilotStats catalog={getCatalog()} pilot={berth.pilot} compact />

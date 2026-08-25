@@ -2,7 +2,7 @@
 
 ## Supported version
 
-Ironline is pre-release software. Security fixes are made only to the current
+Wreckright is pre-release software. Security fixes are made only to the current
 revision on `main` and the currently published web build. Older checkouts,
 downloaded HTML exports, and unofficial mirrors are not supported.
 
@@ -12,6 +12,8 @@ Do not put exploit details, personal data, credentials, or other secrets in a
 public issue.
 
 Use GitHub's [private vulnerability report](https://github.com/icarusdlqx/Ironline/security/advisories/new).
+The `Ironline` segment is the repository's retained legacy identifier; the
+player-facing product is Wreckright.
 That route creates a confidential draft security advisory visible to the
 repository owner; do not use the public issue tracker for vulnerability
 details. If GitHub does not offer the private form, submit only a public

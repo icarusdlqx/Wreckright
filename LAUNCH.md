@@ -6,25 +6,16 @@ session — human or agent — can pick the list up where the last one stopped.
 ## The name
 
 "Iron Line" is already a game on Steam (app 2707410, a tower-defence title),
-so shipping under IRONLINE invites confusion and a store collision. Candidate
-names checked against Steam and found clear as of August 2026: **Ironshod**,
-**Warplate**, **Ferroline**. Before committing to one, give it a pass through
-the USPTO trademark search (tmsearch.uspto.gov) and a plain web search for
-games, bands, and companies.
+so the player-facing title is now **WRECKRIGHT**. Complete a formal trademark
+clearance and storefront search before a paid release; choosing the title does
+not replace that review.
 
-Renaming is one commit plus one dashboard change. The checklist:
-
-- `index.html` — `<title>` and the `apple-mobile-web-app-title` meta
-- `public/manifest.webmanifest` — `name` and `short_name`
-- `package.json` — `name`
-- `README.md` and `IRONLINE_DESIGN.md` — headings and prose
-- `npm run build:single` output name if it should match
-- Cloudflare dashboard — rename the project (the `*.workers.dev` /
-  `*.pages.dev` URL follows it), or attach a custom domain
-- GitHub repository name, if desired (old URLs redirect)
-- Leave the `ironline.*` localStorage keys alone: they are invisible to
-  players and renaming them silently discards every existing save and
-  settings choice.
+The rename intentionally stops at the public product boundary. The
+`ironline.*` browser-storage keys preserve existing campaigns and settings;
+the Cloudflare Worker, `workers.dev` hostname, GitHub repository, authored data
+ids, and historical design-document filename remain legacy internal
+identifiers. Each would need a separately tested migration before it could be
+renamed safely.
 
 ## The IP scrub (done, August 2026)
 
@@ -87,7 +78,8 @@ the full ladder). Nobody who bounced off their first battle plays a second.
 
 ## Remaining before a public push
 
-- [ ] Pick the name, run the rename checklist above
+- [x] Adopt WRECKRIGHT across player-facing application and release surfaces
+- [ ] Complete formal trademark and storefront clearance for WRECKRIGHT
 - [ ] Add the analytics beacon (human step, needs the dashboard)
 - [ ] One full playthrough at Green from a cleared browser profile
 - [ ] itch.io page with screenshots and a short pitch

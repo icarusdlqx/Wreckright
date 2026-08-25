@@ -1,12 +1,13 @@
 {
   "id": "the_employers",
   "title": "Who Pays",
-  "order": 2,
-  "summary": "Four powers who cannot afford armies, and can afford contracts.",
+  "order": 3,
+  "summary": "Four local powers hire the guns. A fifth arrived with warrants and its own.",
   "body": [
-    "KESTREL COMBINE owns the rolling stock and most of the eastern line. They pay best, they pay in cash, and they deduct for damage to anything they will later have to fix. Take a Kestrel contract and you will be handed a list of structures you are not to shoot.",
-    "HALLORAN FREIGHT runs the western grade on older stock and thinner margins. Cash-poor, salvage-rich: they take the contracts Kestrel will not touch, and they pay you in whatever is left standing on the field.",
+    "KESTREL COMBINE holds the largest private register of walker roots on Tessell. They pay best, pay in cash and have offered the Recall Authority clerks, yards and local escorts in exchange for licensed custody. Kestrel expects the first licence to become the last monopoly.",
+    "HALLORAN FREIGHT moves ore, food and machines on older equipment and thinner margins. Cash-poor, salvage-rich, it treats every walker as both working plant and collateral. A Continuance claim on the root beneath the plate can erase Halloran's balance sheet without firing a shot.",
     "THE RIDGEWARD ASSEMBLY is the farm towns along the central climb. They cannot match anyone's rate and they know it. What they offer instead is that they will remember, and on a continent this small that is not nothing.",
-    "SARN METALLURGICAL runs the foundries. Neutral by policy, armed by necessity, selling plate to every side at the same price, and quietly preferring that the fighting continue at roughly its present volume."
+    "SARN METALLURGICAL cannot make a walker root. It can keep one alive: plate, limbs, gun barrels, bearings and a century of yard books recording who paid for each repair. Neutral by policy and armed by necessity, Sarn says its unpaid shop liens are older than the Continuance.",
+    "THE RECALL AUTHORITY is not an employer. It is the Continuance bureau serving the General Reversion Order, offering attestation and narrow compensation before seizure. Its officials believe they are recovering unsafe public assets. Their guard makes that belief a fact wherever it holds the ground."
   ]
 }

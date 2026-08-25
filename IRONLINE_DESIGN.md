@@ -1,6 +1,7 @@
-# IRONLINE — Design & Build Specification
+# WRECKRIGHT — Design & Build Specification
 
-A real-time-with-pause tactical mech combat game with campaign progression, salvage economy, and deep loadout customisation. A spiritual successor to the classic real-time mech-commander games.
+A real-time-with-pause tactical mech combat game about disputed machines,
+salvage law and the cost of keeping an irreplaceable company alive.
 
 **Target platform:** macOS (Mac mini), browser-hosted, local dev server.
 **Intended executor:** Claude Code, working phase by phase.
@@ -11,10 +12,41 @@ A real-time-with-pause tactical mech combat game with campaign progression, salv
 
 Everything in this spec serves one of four pillars. If a proposed feature doesn't, cut it.
 
-1. **The loadout is the puzzle.** Tonnage, hardpoints, heat, and ammo form a constraint system with no dominant solution. A good build is a *situational* build.
-2. **How you kill matters.** Coring a mech destroys it. Legging it lets you tow the chassis home. Tactical decisions have economic consequences.
+1. **The refit is the puzzle.** Tonnage, hardpoints, heat, and ammo form a constraint system with no dominant solution. A good refit is a *situational* refit made to a specific machine.
+2. **How you kill matters.** Coring a mech risks its irreplaceable root and leaves only a small chance that the cradle survives recovery. Legging it usually lets you tow the named machine home. Tactical decisions have economic and legal consequences.
 3. **Attrition is the real difficulty curve.** Pilots get injured, mechs need days in the bay, contracts have deadlines. Winning badly is a form of losing.
 4. **The simulation is knowable.** Deterministic, seeded, headless-testable. No hidden fudging, no rubber-banding. Difficulty comes from enemy skill and composition, never from stat inflation.
+
+---
+
+## 0.1 Setting — ownership is the battlefield
+
+Nearly a century after the Aurelian Compact abandoned Tessell, its successor
+has returned in person. The **Aurelian Continuance** and its civil
+**Recall Authority** carry a General Reversion Order declaring every surviving
+walker root inherited state property. The Continuance claims serialized
+reactor cradles, structural keels and control lattices, not pilots or remote
+control of their machines.
+
+Walker roots are finite. The distributed industrial chain that made them was
+lost during **Foundry Winter**, and neither Tessell nor the Continuance can
+produce another. Tessell can cast armour, rebuild limbs, manufacture guns and
+ammunition, and build conventional vehicles and emplacements. It can only
+continue a walker around the root it already has. A service reader can attest a
+root's serial and open compatible depot equipment; it cannot start, steer,
+disable, locate or aim the walker.
+
+That makes every mech a physical individual with three identities: a fixed root
+class, a name kept by crews and owners, and a shop mark recording its current
+refit. **Linewrought** machines wear a century of local repairs around old
+Aurelian roots. **Aurelian Stock** remains sealed, capable and ruinously slow to
+repair. The player's company grows through custody, purchase and battlefield
+salvage, never by creating a walker from a saved design.
+
+Tessell's field custom is **wreckright**: whoever holds a disabled machine at
+dusk holds the wreck. The Recall Authority rejects that custom because state
+property cannot become lawful salvage. The campaign, **The Great Recall**, is
+the collision between those two answers to the same root serial.
 
 ---
 
@@ -82,6 +114,13 @@ Eight damage locations:
 `head, centre_torso, left_torso, right_torso, left_arm, right_arm, left_leg, right_leg`
 
 Each location has **armour** (outer, absorbs first) and **internal structure** (inner).
+
+The centre torso contains the serialized **walker root**. “Root frame” is an
+in-world property and manufacturing term, not a second simulation entity: the
+existing centre-torso destruction rule drops the walker. Limbs, plate, weapons
+and cooling can all be rebuilt around the root. A recovered centre-torso hulk
+means the cradle survived the breach; otherwise the physical machine and its
+recoverable identity end there.
 
 The three torsos also have a **rear plate**, thinner than the glacis, which is
 what fire from the rear arc meets. A design still authors one armour number per
@@ -372,18 +411,40 @@ Node-based operational map. Missions unlock in a branching sequence; some option
 **Between missions:**
 
 - Mechbay — repair, refit, strip salvage
-- Market — buy/sell chassis, weapons, ammo
+- Yard — buy and sell recovered walkers, weapons and ammunition
 - Barracks — hire pilots, assign, spend XP
 - Contracts — accept, negotiate payout vs salvage split
 - Time advances; repairs complete; contract deadlines expire
 
+The campaign never manufactures a walker or materialises one from a saved
+loadout. Every roster machine begins in the company, is bought as a specific
+yard holding, or is recovered from a battlefield. Weapons, armour, ammunition,
+cooling and equipment may change; the serialized root, its class and its fixed
+structural interfaces do not. Conventional vehicles and emplacements are local
+products, but they are opposition rather than recoverable roster hulls.
+
 **Enemy scaling** by campaign progress and player lance weight, drawn from faction-specific composition tables. Enemies get *better pilots and better designs*, never invisible stat bonuses.
 
-**Mission types:** Assault, Defend, Recon, Escort, Extraction, Base Capture, Ambush, Convoy Interdiction, Headhunt.
+**Mission types:** Assault, Defend, Recon, Escort, Extraction, Base Capture, Ambush, Recovery, Claim Enforcement.
+
+### 7.1 Authored campaign — The Great Recall
+
+1. **First Notice.** The General Reversion Order names the company's own four
+   roots. Kestrel provides local compliance muscle while Halloran pays to copy
+   custody records before the Recall Authority seals them.
+2. **First Attestation.** The company brings down its first bone-white Aurelian
+   Stock. A checkpoint reader proves the root's identity but never controls it.
+3. **Broken Wreckright.** Kestrel violates the pilot code and cuts power to
+   Sarn's occupied repair yards as local title, shop liens and Continuance
+   reversion claims become an open conflict.
+4. **The Manifest.** The final depot holds the master root register and scarce
+   certified service equipment, not a chassis factory. Burning it destroys the
+   Authority's strongest evidence and Tessell's best repair opportunity. Taking
+   it makes the company custodian of the claim it fought.
 
 ---
 
-### 7.1 The loop
+### 7.2 The loop
 
 One full turn of the campaign reads: **map → mechbay → deployment → battle → salvage → map.** Signing a contract and pressing "Prepare drop" walks a two-stage corridor — the hangar first (repairs, rebuilds, refits), then the dropship manifest (who flies what, against the tonnage allowance) — and launching fights the battle. The debrief brings home salvage, pay and experience, and the map opens the next contract. The drop itself is sized by **tonnage, not berth count**: up to six machines may drop so long as they fit the allowance, so three heavies instead of four mediums is a legitimate answer to it, and a skirmish berth can simply be left empty.
 

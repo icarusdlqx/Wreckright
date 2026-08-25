@@ -53,6 +53,6 @@ describe('briefing deployment gate', () => {
     expect(html).not.toContain('data-testid="setup-controls"');
     expect(html).not.toContain('data-testid="briefing-lance"');
     expect(html).not.toContain('Resource Points');
-    expect(html).not.toContain('Customise');
+    expect(html).not.toContain('Refit loadout');
   });
 });

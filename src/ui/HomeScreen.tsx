@@ -53,16 +53,17 @@ export function HomeScreen() {
   return (
     <main className="home-screen" data-testid="home-screen">
       <section className="home-panel" aria-labelledby="home-title">
-        <p className="home-kicker">Independent company command</p>
-        <h1 id="home-title">IRONLINE</h1>
+        <p className="home-kicker">No new machines. Only new owners.</p>
+        <h1 id="home-title">WRECKRIGHT</h1>
         <p className="home-premise">
-          The railway repairs itself. The machines that defend it do not. Command a hired
-          Linewrought company through the border works and account for what comes home.
+          The Aurelian Continuance has returned to Tessell to repossess every surviving walker
+          root. Command an independent company through the Great Recall, and decide who owns
+          the machines that kept this world alive.
         </p>
 
         <div className="home-routes" aria-label="Choose where to begin">
           <button type="button" className={`home-route${primary === 'learn' ? ' primary' : ''}`} onClick={learn} data-testid="home-learn">
-            <strong>{entry.training?.status === 'active' ? 'Resume the Range' : 'Learn the Line'}</strong>
+            <strong>{entry.training?.status === 'active' ? 'Resume the Range' : 'Learn Command'}</strong>
             <span>Take two machines through a short range walk.</span>
           </button>
           <button type="button" className={`home-route${primary === 'campaign' ? ' primary' : ''}`} onClick={campaign} data-testid="home-campaign">

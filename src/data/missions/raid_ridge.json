@@ -7,7 +7,7 @@
   "lances": [
     {
       "team": 0,
-      "name": "Ironline Lance",
+      "name": "Company Lance",
       "units": [
         {
           "designId": "hornet_spotter",

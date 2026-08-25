@@ -1,8 +1,13 @@
-# Releasing safely
+# Releasing Wreckright safely
 
 `main` is the production branch. A merge to it starts a Cloudflare Workers
 Build, so release safety begins before the merge. GitHub's `Production gate`
 is the stable status check for branch protection.
+
+The repository path `icarusdlqx/Ironline`, Worker name `ironline`,
+`Workers Builds: ironline` check, and current `workers.dev` hostname are legacy
+operations identifiers retained after the player-facing rename. Do not replace
+them in commands or required-check settings without a coordinated migration.
 
 ## What CI guarantees
 

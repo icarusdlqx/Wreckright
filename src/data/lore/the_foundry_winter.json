@@ -1,0 +1,12 @@
+{
+  "id": "the_foundry_winter",
+  "title": "Foundry Winter",
+  "order": 1,
+  "summary": "The foundries that made walker roots went cold long before the Recall Authority came to count what survived.",
+  "body": [
+    "A walker root was never one factory's product. Its reactor cradle, load-bearing keel, gait interfaces and control lattice came from a chain of Compact yards spread across several worlds. The serial was the last thing added and the first thing entered in the state ledger.",
+    "The Compact broke before the chain did. Then suppliers closed, calibration works were stripped for debt and one root line after another stopped certifying new frames. The long failure became known as Foundry Winter. The Aurelian Continuance inherited the manuals and some service works, but no complete line that can make another root.",
+    "Tessell never had one. Sarn can cast plate, turn gun barrels, rebuild limbs and make a tracked carrier by the hundred. It cannot make the central structure that lets a hundred tonnes stand, balance and answer a pilot. Neither can the Authority tender in orbit.",
+    "That is why old machines are worth crossing between worlds to recover. They are not antiques to the Continuance. They are a reserve of certified roots, scarce at home and still answering their serials on Tessell."
+  ]
+}

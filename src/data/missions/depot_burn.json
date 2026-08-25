@@ -1,9 +1,9 @@
 {
   "id": "depot_burn",
-  "name": "Depot — Burn",
+  "name": "Manifest — Burn",
   "type": "assault",
   "mapId": "foundry_district",
-  "briefing": "Halloran's fee ends at the depot doors. Take the purge station, clear Kestrel's guard, and arm the charge train under the storage floor. When the train fires, the sealed stock and every claim on it go together.",
+  "briefing": "Halloran's fee ends at the depot doors. Take the purge station, clear Kestrel's guard, and arm the thermal bank under the archive floor. When it fires, the sealed stock and master root manifest burn together. The evidence goes; so does certified service.",
   "maxDurationSeconds": 480,
   "startingResourcePoints": 800,
   "lances": [
@@ -65,7 +65,7 @@
   "zones": [
     {
       "id": "purge_station",
-      "name": "Purge Station",
+      "name": "Archive Purge Bank",
       "x": 492,
       "y": 492,
       "radius": 76,
@@ -77,7 +77,7 @@
   "objectives": [
     {
       "id": "arm_purge_train",
-      "label": "Take the purge station",
+      "label": "Take the archive purge bank",
       "type": "capture_zones",
       "team": 0,
       "required": true,
@@ -139,7 +139,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Purge train armed. Clear the guard and the storage floor burns with it."
+          "text": "Purge bank armed. Clear the guard and the root manifest burns with the storage floor."
         }
       ]
     }

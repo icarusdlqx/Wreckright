@@ -20,64 +20,79 @@ async function renderedTextIncludes(locator, expected) {
   return (await locator.innerText()).toLowerCase().includes(expected.toLowerCase());
 }
 
-async function verifyLinewroughtBuilder({ page, check }) {
+async function verifySavedLoadoutJourney({ page, check }) {
   await selectWorkspace(page, 'loadout');
-  await page.locator('[data-testid="linewrought-builder-open"]').click();
-  await page.waitForSelector('[data-testid="linewrought-builder"]');
-  const builder = page.locator('[data-testid="linewrought-builder"]');
-  const builderText = await builder.innerText();
-  const frameCards = builder.locator('[data-testid^="linewrought-frame-"]');
+  const picker = page.locator('[data-testid="design-picker"]');
+  await picker.selectOption('hornet_spotter');
+  await page.waitForFunction(() =>
+    document.querySelector('[data-testid="design-picker"]')?.value === 'hornet_spotter');
   check(
-    'the Linewrought builder states its bounded construction promise',
-    builderText.includes('Start a shopbuilt mech') &&
-      builderText.includes('frame, engine, hardpoint locations, and hardpoint sizes stay fixed') &&
-      builderText.includes('does not create new chassis geometry'),
-  );
-  check(
-    'the builder offers only the five authored Linewrought mech frames',
-    (await frameCards.count()) === 5 &&
-      (await builder.locator('[data-testid="linewrought-frame-hornet_hnt2"]').count()) === 1 &&
-      (await builder.locator('[data-testid="linewrought-frame-sentinel_snl2"]').count()) === 0,
-  );
-  check(
-    'every salvage frame exposes a strong suit and a tradeoff',
-    await frameCards.evaluateAll((cards) => cards.every((card) => {
-      const text = card.textContent ?? '';
-      return text.includes('Strong suit') && text.includes('Tradeoff');
-    })),
-  );
-  check(
-    'the builder traps initial focus inside its dialog',
-    await page.evaluate(() =>
-      document.activeElement?.closest('[data-testid="linewrought-builder"]') !== null),
+    'the standalone workshop selects an authored Linewrought loadout without a frame builder',
+    (await picker.inputValue()) === 'hornet_spotter' &&
+      (await page.locator('[data-testid="machine-culture-primary"]').getAttribute('data-faction')) === 'linewrought' &&
+      (await page.locator('[data-testid="linewrought-builder-open"]').count()) === 0,
   );
 
-  await builder.locator('[data-testid="linewrought-frame-hornet_hnt2"] input').check();
-  await builder.locator('input[name="linewrought-mode"][value="recipe"]').check();
+  const loadoutName = 'E2E Workshop Scout';
+  const loadoutId = 'e2e_workshop_scout';
+  await page.locator('[data-testid="design-name"]').fill(loadoutName);
+  await page.waitForFunction((expected) =>
+    document.querySelector('[data-testid="design-name"]')?.value === expected, loadoutName);
   check(
-    'a selected salvage frame offers only its authored workshop recipes',
-    (await builder.locator('[data-testid="linewrought-recipe"] option').count()) === 1 &&
-      (await builder.locator('[data-testid="linewrought-recipe"]').inputValue()) === 'hornet_spotter',
-  );
-  await builder.locator('[data-testid="linewrought-name"]').fill('E2E Patchwork Scout');
-  await builder.locator('[data-testid="linewrought-create"]').click();
-  await page.waitForSelector('[data-testid="linewrought-builder"]', { state: 'detached' });
-  check(
-    'creating a shopbuilt draft returns a named Linewrought design to the bay',
-    (await page.locator('[data-testid="design-name"]').inputValue()) === 'E2E Patchwork Scout' &&
-      (await page.locator('[data-testid="machine-culture-primary"]').getAttribute('data-faction')) === 'linewrought' &&
-      (await page.locator('[data-testid="design-picker"]').inputValue()) === '',
+    'renaming the stock machine creates an edited loadout without changing chassis',
+    (await picker.inputValue()) === '' &&
+      await renderedTextIncludes(picker.locator('option[value=""]'), 'edited loadout') &&
+      (await page.locator('[data-testid="machine-culture-primary"]').getAttribute('data-faction')) === 'linewrought',
   );
 
   await selectWorkspace(page, 'review');
   check(
-    'a workshop-recipe draft reaches the same legal build review',
-    await renderedTextIncludes(page.locator('[data-testid="build-review-verdict"]'), 'Legal build') &&
-      (await page.locator('[data-testid="build-review"] .build-review__gear-group').count()) === 2,
+    'the renamed stock loadout reaches the same legal review',
+    await renderedTextIncludes(page.locator('[data-testid="build-review-verdict"]'), 'Legal loadout'),
   );
-  await page.locator('[data-testid="design-picker"]').selectOption('sentinel_brawler');
+
+  await page.locator('[data-testid="bay-save"]').click();
+  check(
+    'the edited loadout keeps the existing saved-design storage contract',
+    await page.evaluate(({ id, name }) => {
+      const raw = localStorage.getItem(`ironline.design.${id}`);
+      if (raw === null) return false;
+      const stored = JSON.parse(raw);
+      return stored.id === id && stored.name === name && stored.chassisId === 'hornet_hnt2';
+    }, { id: loadoutId, name: loadoutName }),
+  );
+
+  await page.locator('[data-testid="bay-exit"]').click();
+  await page.waitForSelector('[data-testid="briefing"]');
+  const berth = page.locator('[data-testid="berth-design-0"]');
+  check(
+    'the briefing exposes the saved loadout through the existing picker',
+    (await berth.locator(`option[value="saved:${loadoutId}"]`).count()) === 1,
+  );
+
+  await berth.selectOption(`saved:${loadoutId}`);
   await page.waitForFunction(() =>
-    document.querySelector('[data-testid="design-picker"]')?.value === 'sentinel_brawler');
+    document.querySelector('[data-testid="berth-design-0"]')?.value === 'custom');
+  check(
+    'choosing the saved loadout freezes it inline in the mission lance',
+    await renderedTextIncludes(berth.locator('option[value="custom"]'), loadoutName) &&
+      await page.evaluate((name) => Object.entries(localStorage)
+        .filter(([key]) => key.startsWith('ironline.lance.'))
+        .some(([, raw]) => JSON.parse(raw).some((entry) =>
+          entry.design?.name === name && entry.design?.chassisId === 'hornet_hnt2')),
+      loadoutName),
+  );
+
+  await page.locator('[data-testid="berth-customise-0"]').click();
+  await page.waitForSelector('[data-testid="outfit-bay"]');
+  check(
+    'the saved loadout reopens as a same-chassis berth refit',
+    (await page.locator('[data-testid="bay-commission"]').innerText()).startsWith('Refit') &&
+      (await page.locator('[data-testid="machine-culture-primary"]').getAttribute('data-faction')) === 'linewrought' &&
+      (await page.locator('[data-testid="design-picker"]').count()) === 0,
+  );
+  await page.locator('[data-testid="bay-exit"]').click();
+  await page.waitForSelector('[data-testid="briefing"]');
 }
 
 export async function runSkirmishMechbayJourney({ page, check, shots }) {
@@ -196,7 +211,7 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
   await selectWorkspace(page, 'review');
   check(
     'Review groups the illegal fit into an actionable verdict',
-    await renderedTextIncludes(page.locator('[data-testid="build-review-verdict"]'), 'Build not legal') &&
+    await renderedTextIncludes(page.locator('[data-testid="build-review-verdict"]'), 'Loadout not legal') &&
       (await page.locator('[data-testid="build-review"] [data-issue-component]').count()) > 0 &&
       await renderedTextIncludes(page.locator('[data-testid="build-review-fix"]'), 'Loadout'),
   );
@@ -243,7 +258,7 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
   await selectWorkspace(page, 'review');
   check(
     'the final review confirms armour allocation and a legal build',
-    await renderedTextIncludes(page.locator('[data-testid="build-review-verdict"]'), 'Legal build') &&
+    await renderedTextIncludes(page.locator('[data-testid="build-review-verdict"]'), 'Legal loadout') &&
       await renderedTextIncludes(page.locator('[data-testid="build-review-next-action"]'), 'Ready to commit'),
   );
 
@@ -258,9 +273,7 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
   );
   await page.screenshot({ path: `${shots}/06-mechbay-legal.png` });
 
-  await verifyLinewroughtBuilder({ page, check });
-  await page.locator('[data-testid="bay-exit"]').click();
-  await page.waitForSelector('[data-testid="briefing"]');
+  await verifySavedLoadoutJourney({ page, check });
   check(
     'returning to the skirmish remounts the battle',
     (await page.locator('.viewport canvas:not(.perf-overlay)').count()) === 1,
@@ -331,7 +344,7 @@ export async function runCampaignRefitMechbayJourney({ page, check }) {
   await selectWorkspace(page, 'review');
   check(
     'a no-change company refit has a visible final review',
-    await renderedTextIncludes(page.locator('[data-testid="build-review-verdict"]'), 'Legal build') &&
+    await renderedTextIncludes(page.locator('[data-testid="build-review-verdict"]'), 'Legal loadout') &&
       !(await page.locator('[data-testid="bay-save"]').isDisabled()),
   );
   await page.locator('[data-testid="bay-save"]').click();

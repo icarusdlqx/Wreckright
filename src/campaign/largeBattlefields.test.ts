@@ -29,7 +29,7 @@ const LEGACY_REQUIRES = {
 } as const;
 
 const campaign = catalog.campaigns.get(CAMPAIGN_ID);
-if (campaign === undefined) throw new Error('missing Border Dispute campaign');
+if (campaign === undefined) throw new Error('missing Great Recall campaign');
 
 function mission(id: string): Mission {
   const data = catalog.missions.get(id);
@@ -61,10 +61,10 @@ function unitLedger(data: Mission, team: number): string[] {
 }
 
 describe('large battlefield mission contracts', () => {
-  it('authors the Cutbank register recovery exactly', () => {
+  it('authors the Cutbank root-ledger seizure exactly', () => {
     const data = mission('exchange_register');
     expect(data).toMatchObject({
-      name: 'Recovery — Cutbank Exchange',
+      name: 'Seizure — Cutbank Registry',
       type: 'base_capture',
       mapId: 'cutbank_exchange',
       maxDurationSeconds: 540,
@@ -73,11 +73,11 @@ describe('large battlefield mission contracts', () => {
       reserves: [],
     });
     expect(data.briefing).toBe(
-      'Cutbank Exchange is three route cabinets and a kilometre of sidings compressed into one yard. Kestrel locked the registers and left a guard on the raised line. Key south, sorting and north; expect relief through the east gate.',
+      'Cutbank Registry is three custody cabinets and a kilometre of storage lanes compressed into one yard. Kestrel locked the root rolls and left a guard on the raised apron. Key south, central and north; expect relief through the east gate.',
     );
     expect(data.lances.map((lance) => lance.name)).toEqual([
-      'Halloran Register Lance',
-      'Kestrel Exchange Guard',
+      'Halloran Ledger Lance',
+      'Kestrel Registry Guard',
     ]);
     expect(unitLedger(data, 0)).toEqual([
       'hornet_spotter/kessa_vale@84,1260/-45',
@@ -126,7 +126,7 @@ describe('large battlefield mission contracts', () => {
       expect.arrayContaining([
         expect.objectContaining({
           type: 'message',
-          text: 'Command: south register, sorting register, north register. Key all three and clear the exchange.',
+          text: 'Command: south register, central register, north register. Key all three and clear the registry yard.',
         }),
         expect.objectContaining({ type: 'reveal', x: 636, y: 636, radius: 260, seconds: 24 }),
       ]),
@@ -150,7 +150,7 @@ describe('large battlefield mission contracts', () => {
     );
   });
 
-  it('authors the Blackglass receipt recovery exactly', () => {
+  it('authors the Blackglass attestation recovery exactly', () => {
     const data = mission('quarry_brakes');
     expect(data).toMatchObject({
       name: 'Recovery — Blackglass Quarry',
@@ -162,7 +162,7 @@ describe('large battlefield mission contracts', () => {
       reserves: [],
     });
     expect(data.briefing).toBe(
-      'Sarn’s lift register shows Kestrel moved a bone-white wreck through Blackglass under a plate number assigned to slag. Take the west brake, lift table and east brake, then hold all three for thirty seconds while the receipt copies. The rim has the sightlines; the floor has the controls.',
+      'Sarn’s service plate shows Kestrel moved a bone-white wreck through Blackglass under a number assigned to slag. Take the west brake, lift table and east brake, then hold all three for thirty seconds while the root attestation copies. The rim has the sightlines; the floor has the controls.',
     );
     expect(data.lances.map((lance) => lance.name)).toEqual([
       'Sarn Receipt Lance',

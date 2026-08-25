@@ -1,6 +1,6 @@
 {
   "id": "border_dispute",
-  "name": "Border Dispute",
+  "name": "The Great Recall",
   "startingCbills": 3200000,
   "startingDay": 0,
   "startingDesignIds": [
@@ -58,10 +58,10 @@
   "nodes": [
     {
       "id": "militia_raid",
-      "name": "Marker Eleven",
+      "name": "First Notice",
       "missionId": "line_maintenance",
       "employerId": "halloran_freight",
-      "brief": "Halloran has a splice crew waiting below marker eleven. Kestrel locked the shed and posted a track guard. Clear the right-of-way without touching the conduit; the crew will do the work after dusk.",
+      "brief": "The General Reversion Order names Halloran's walker roots and the company's own four. Kestrel locked the Marker Eleven registry under a compliance contract. Clear its guard so Halloran can copy the title rolls before the Recall Authority seals them.",
       "requires": [],
       "basePayout": 850000,
       "maxSalvageShare": 0.75,
@@ -73,10 +73,10 @@
     },
     {
       "id": "pass_skirmish",
-      "name": "Cold Contact",
+      "name": "First Attestation",
       "missionId": "sealed_contact",
       "employerId": "halloran_freight",
-      "brief": "A Halloran plate camera caught Kestrel moving one bone-white machine with no shop stamp, hatch seam or exhaust. Bring the escort down and hold the ground. Halloran waives its claim on whatever comes off the white hull.",
+      "brief": "A Halloran camera caught Kestrel escorting one bone-white walker with a Continuance seal and no shop stamp. Bring the claim detail down and hold the ground. Halloran waives its share of the first Aurelian Stock the company can recover.",
       "requires": [
         "militia_raid"
       ],
@@ -90,10 +90,10 @@
     },
     {
       "id": "supply_line",
-      "name": "Relay Station",
+      "name": "Custody Posts",
       "missionId": "base_capture_ridge",
       "employerId": "halloran_freight",
-      "brief": "Halloran Freight wants their relay back intact. Take the compound and hold it long enough for their engineers to walk in.",
+      "brief": "Halloran wants both district custody posts back intact before Kestrel files their root rolls with the Authority. Take the compound and hold it long enough for Halloran's clerks to walk in.",
       "requires": [
         "militia_raid"
       ],
@@ -107,10 +107,10 @@
     },
     {
       "id": "ridge_hold",
-      "name": "Depot Road",
+      "name": "Manifest Key",
       "missionId": "depot_road",
       "employerId": "halloran_freight",
-      "brief": "The cut conduit exposed an Aurelian service address in the fault traffic. Kestrel has the same address and a rearguard on the ridge. Hold the survey key long enough to resolve the depot approach.",
+      "brief": "A Sarn title fragment carries an Aurelian service address. Kestrel has the same fragment and a rearguard above its reader. Hold the attestation key long enough for Halloran to resolve the depot approach.",
       "requires": [
         "shale_overwatch_node"
       ],
@@ -127,7 +127,7 @@
       "name": "The Causeway",
       "missionId": "causeway_crossing",
       "employerId": "halloran_freight",
-      "brief": "Halloran wants the drowned valley crossing open before the rains close the fords. One raised road, one garrison, and a hardstand at mid-span that decides which of you owns the other bank.",
+      "brief": "Halloran wants the drowned valley crossing before the Recall Authority reaches the far-bank root yard. One raised road, one garrison, and a hardstand at mid-span decide who holds the inventory at dusk.",
       "requires": [
         "supply_line"
       ],
@@ -141,10 +141,10 @@
     },
     {
       "id": "foundry_sweep_node",
-      "name": "Broken Rule",
+      "name": "Broken Wreckright",
       "missionId": "rules_break",
       "employerId": "sarn_foundry",
-      "brief": "A Sarn yard camera recorded a Kestrel machine following an ejection seat with its guns. Kestrel came back for the recording and locked the outer works. Sarn wants the detachment removed and the camera left standing.",
+      "brief": "A Sarn yard camera recorded a Kestrel machine following an ejection seat with its guns. Kestrel came back for the recording and locked the outer works. Sarn wants the detachment removed and the proof of broken wreckright left standing.",
       "requires": [
         "pass_skirmish"
       ],
@@ -158,10 +158,10 @@
     },
     {
       "id": "shale_overwatch_node",
-      "name": "The Dark Towns",
+      "name": "The Cold Yards",
       "missionId": "conduit_breach",
       "employerId": "ridgeward_assembly",
-      "brief": "Kestrel cutters opened the western conduit and six Ridgeward towns went dark. The east breaker can carry the pumps if it stays in Assembly hands for ninety seconds. Hold the terrace while the load transfers.",
+      "brief": "Kestrel cut Sarn's western power trunk after the foundry refused a root inventory. Six repair halls are cold. The east breaker can carry their gantries if it stays in Assembly hands for ninety seconds. Hold the terrace while the load transfers.",
       "requires": [
         "foundry_sweep_node"
       ],
@@ -175,10 +175,10 @@
     },
     {
       "id": "depot_burn",
-      "name": "Burn the Depot",
+      "name": "Burn the Manifest",
       "missionId": "depot_burn",
       "employerId": "halloran_freight",
-      "brief": "Halloran's contract gets the company through the doors. What happens behind them is your account. Arm the purge train, clear Kestrel's guard, and leave no sealed stock for the next employer to own.",
+      "brief": "Halloran's contract gets the company through the doors. What happens behind them is your account. Arm the purge bank and destroy the master root manifest with the sealed stock. The Authority loses its strongest proof; Tessell loses its best chance at certified service.",
       "requires": [
         "ridge_hold"
       ],
@@ -192,10 +192,10 @@
     },
     {
       "id": "depot_take",
-      "name": "Take the Depot",
+      "name": "Take the Manifest",
       "missionId": "depot_take",
       "employerId": "halloran_freight",
-      "brief": "Halloran's contract gets the company through the doors. What happens behind them is your account. Take the command key intact, clear Kestrel's guard, and put the depot manifest under your own seal.",
+      "brief": "Halloran's contract gets the company through the doors. What happens behind them is your account. Take the attestation key intact, clear Kestrel's guard, and put the root manifest under your own seal. The key proves custody; it commands no cockpit.",
       "requires": [
         "ridge_hold"
       ],
@@ -209,10 +209,10 @@
     },
     {
       "id": "cutbank_register",
-      "name": "Cutbank Register",
+      "name": "Cutbank Ledger",
       "missionId": "exchange_register",
       "employerId": "halloran_freight",
-      "brief": "Halloran's relay is back, but Cutbank still routes its freight against a Kestrel register. Key the south, sorting and north cabinets before the next ore train enters the exchange. Halloran wants the book intact and leaves the guard's machines to the company.",
+      "brief": "Halloran holds the district posts, but Cutbank still records its walker roots under a Kestrel custody roll. Key the south, central and north cabinets before the register closes. Halloran wants the book intact and leaves the guard's machines to the company.",
       "requires": [
         "supply_line"
       ],
@@ -226,10 +226,10 @@
     },
     {
       "id": "blackglass_receipt",
-      "name": "Blackglass Receipt",
+      "name": "Blackglass Attestation",
       "missionId": "quarry_brakes",
       "employerId": "sarn_foundry",
-      "brief": "A Sarn lift register shows Kestrel moved one white wreck through Blackglass under a plate number assigned to slag. Lock the three brake cabinets while Sarn pulls the receipt. The wreck is yours; the register is not.",
+      "brief": "A Sarn service plate shows Kestrel moved one white wreck through Blackglass under a number assigned to slag. Lock the three lift cabinets while Sarn copies the root attestation. The wreck is yours under wreckright; the register is not.",
       "requires": [
         "foundry_sweep_node"
       ],

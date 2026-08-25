@@ -127,7 +127,7 @@ describe('build review model', () => {
     expect(review.legal).toBe(false);
     expect(review.issueCount).toBeGreaterThan(blockingCount);
     expect(review.verdictDetail).toBe(
-      `${blockingCount} ${blockingCount === 1 ? 'issue blocks' : 'issues block'} this build.`,
+      `${blockingCount} ${blockingCount === 1 ? 'issue blocks' : 'issues block'} this loadout.`,
     );
   });
 });

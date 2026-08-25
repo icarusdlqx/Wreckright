@@ -1,7 +1,5 @@
-import { useState } from 'react';
 import type { Design } from '../../schema/design';
 import type { Catalog } from '../../schema/load';
-import { LinewroughtBuilder } from './LinewroughtBuilder';
 
 export interface BayStatus {
   tone: 'ok' | 'error';
@@ -52,7 +50,6 @@ export function BayChrome({
   onLoad,
 }: Props) {
   const commissioned = commissionTitle !== undefined;
-  const [builderOpen, setBuilderOpen] = useState(false);
   const undoEnabled = canUndo && onUndo !== undefined;
   const redoEnabled = canRedo && onRedo !== undefined;
   return (
@@ -81,7 +78,7 @@ export function BayChrome({
               aria-label="Stock design"
             >
               {catalog.designs.has(design.id) ? null : (
-                <option value="">{design.name} (custom)</option>
+                <option value="">{design.name} (edited loadout)</option>
               )}
               {[...catalog.designs.values()]
                 .filter((entry) => catalog.chassis.get(entry.chassisId)?.frame === 'mech')
@@ -91,13 +88,6 @@ export function BayChrome({
                   </option>
                 ))}
             </select>
-            <button
-              type="button"
-              onClick={() => setBuilderOpen(true)}
-              data-testid="linewrought-builder-open"
-            >
-              Build Linewrought
-            </button>
           </>
         )}
         <button
@@ -121,7 +111,7 @@ export function BayChrome({
         <button
           type="button"
           onClick={onReset}
-          title="Restore the factory loadout and undo every change on the gantry."
+          title="Restore the catalogued stock loadout and undo every change on the gantry."
           data-testid="bay-reset-stock"
         >
           Reset to stock
@@ -136,10 +126,10 @@ export function BayChrome({
           type="button"
           onClick={onSave}
           disabled={!saveable}
-          title={saveable ? 'Save this build' : 'Fix the build before saving'}
+          title={saveable ? 'Save this loadout' : 'Fix the loadout before saving'}
           data-testid="bay-save"
         >
-          {commissioned ? 'Commit refit' : 'Save build'}
+          {commissioned ? 'Commit refit' : 'Save loadout'}
         </button>
 
         {commissioned ? null : (
@@ -165,9 +155,9 @@ export function BayChrome({
                 if (event.target.value !== '') onLoad(event.target.value);
               }}
               data-testid="bay-stored"
-              aria-label="Saved builds"
+              aria-label="Saved loadouts"
             >
-              <option value="">Saved builds…</option>
+              <option value="">Saved loadouts…</option>
               {stored.map((id) => (
                 <option key={id} value={id}>
                   {id}
@@ -178,20 +168,9 @@ export function BayChrome({
         )}
 
         <span className={`bay-status ${status?.tone ?? ''}`} data-testid="bay-status" role="status">
-          {status?.text ?? (saveable ? 'Build is legal.' : 'Build is not legal.')}
+          {status?.text ?? (saveable ? 'Loadout is legal.' : 'Loadout is not legal.')}
         </span>
       </footer>
-      {builderOpen ? (
-        <LinewroughtBuilder
-          catalog={catalog}
-          initialChassisId={design.chassisId}
-          onCancel={() => setBuilderOpen(false)}
-          onCreate={(created) => {
-            setBuilderOpen(false);
-            onDesignPick(created);
-          }}
-        />
-      ) : null}
     </>
   );
 }

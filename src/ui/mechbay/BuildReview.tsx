@@ -92,7 +92,7 @@ export function BuildReview({
         </div>
       </header>
 
-      <dl className="build-review__metrics" aria-label="Build totals">
+      <dl className="build-review__metrics" aria-label="Loadout totals">
         {review.metrics.map((metric) => (
           <div key={metric.id} className={metric.tone === 'warn' ? 'is-warning' : undefined}>
             <dt>{metric.label}</dt>
@@ -113,14 +113,14 @@ export function BuildReview({
 
       {review.issueGroups.length === 0 ? (
         <div className="build-review__clear" role="note">
-          <strong>Construction checks clear</strong>
+          <strong>Fitting checks clear</strong>
           <span>No hardpoint, slot, tonnage, armour, cooling, or ammunition conflicts.</span>
         </div>
       ) : (
         <section className="build-review__issues" aria-labelledby="build-review-issues-title">
           <h4 id="build-review-issues-title">
             {review.legal ? 'Advisory notes' : 'Fix before commit'}
-            <span aria-label={`${review.issueCount} build ${review.issueCount === 1 ? 'issue' : 'issues'}`}>
+            <span aria-label={`${review.issueCount} loadout ${review.issueCount === 1 ? 'issue' : 'issues'}`}>
               {review.issueCount}
             </span>
           </h4>

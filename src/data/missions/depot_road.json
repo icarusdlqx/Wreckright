@@ -1,15 +1,15 @@
 {
   "id": "depot_road",
-  "name": "Hold — Depot Road",
+  "name": "Hold — Manifest Key",
   "type": "defend",
   "mapId": "ridge_pass",
-  "briefing": "The conduit fault carried an Aurelian service address before the breakers closed. Halloran can resolve the approach if the survey key stays live for two minutes. Kestrel has the same address and a rearguard above the key.",
+  "briefing": "A Sarn title fragment carries an Aurelian service address. Halloran can resolve the depot approach if the attestation reader stays in company hands for two minutes. Kestrel has the same fragment and a rearguard above the reader.",
   "maxDurationSeconds": 300,
   "startingResourcePoints": 650,
   "lances": [
     {
       "team": 0,
-      "name": "Depot Survey Lance",
+      "name": "Manifest Survey Lance",
       "units": [
         {
           "designId": "hornet_spotter",
@@ -59,7 +59,7 @@
   "zones": [
     {
       "id": "survey_key",
-      "name": "Survey Key",
+      "name": "Attestation Reader",
       "x": 492,
       "y": 492,
       "radius": 74,
@@ -71,7 +71,7 @@
   "objectives": [
     {
       "id": "resolve_approach",
-      "label": "Hold the survey key for 120 seconds",
+      "label": "Hold the attestation reader for 120 seconds",
       "type": "hold_zones",
       "team": 0,
       "required": true,
@@ -96,7 +96,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Halloran: two more sealed contacts leaving the north cutting. The key needs another minute."
+          "text": "Halloran: two more sealed contacts leaving the north approach. The reader needs another minute."
         },
         {
           "type": "spawn",
@@ -125,7 +125,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Halloran: address resolved. Depot doors are twelve kilometres east. Kestrel is already moving."
+          "text": "Halloran: address resolved. The root manifest is twelve kilometres east. Kestrel is already moving."
         }
       ]
     }

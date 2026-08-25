@@ -1,7 +1,7 @@
 {
-  "name": "IRONLINE",
-  "short_name": "IRONLINE",
-  "description": "Real-time tactical mech combat. Field a lance, manage heat, bring them home.",
+  "name": "WRECKRIGHT",
+  "short_name": "WRECKRIGHT",
+  "description": "No new machines. Only new owners. Command a mech company through the Great Recall.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

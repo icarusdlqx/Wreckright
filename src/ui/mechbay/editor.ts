@@ -12,26 +12,6 @@ function copy(design: Design): Design {
   return JSON.parse(JSON.stringify(design)) as Design;
 }
 
-export function blankDesign(catalog: Catalog, chassisId: string): Design {
-  const chassis = catalog.chassis.get(chassisId);
-  if (chassis === undefined) throw new Error(`unknown chassis "${chassisId}"`);
-
-  return {
-    id: `${chassisId}_custom`,
-    name: `${chassis.name} 'Custom'`,
-    chassisId,
-    armour: Object.fromEntries(LOCATIONS.map((location) => [location, 0])) as Record<
-      MechLocation,
-      number
-    >,
-    heatSinkId: 'heat_sink',
-    heatSinks: chassis.internalHeatSinks,
-    mounts: [],
-    ammo: [],
-    equipment: [],
-  };
-}
-
 export function addMount(design: Design, weaponId: string, location: MechLocation): Design {
   const next = copy(design);
   next.mounts.push({ weaponId, location });
@@ -214,7 +194,7 @@ export function parseDesign(text: string): ParseResult {
 
 export class InvalidBuildError extends Error {
   constructor(readonly issues: readonly string[]) {
-    super(`build is not legal:\n${issues.map((issue) => `  - ${issue}`).join('\n')}`);
+    super(`loadout is not legal:\n${issues.map((issue) => `  - ${issue}`).join('\n')}`);
     this.name = 'InvalidBuildError';
   }
 }

@@ -91,7 +91,7 @@ function main(): void {
   const summary = aggregate(results);
 
   process.stdout.write(
-    `IRONLINE headless harness — mission "${options.mission}", ` +
+    `WRECKRIGHT headless harness — mission "${options.mission}", ` +
       `${options.iterations} iteration(s), seed "${options.seed}"\n\n`,
   );
   process.stdout.write(`${formatReport(summary, catalog)}\n\n`);

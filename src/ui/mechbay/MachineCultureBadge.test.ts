@@ -23,8 +23,9 @@ function render(faction: Faction, foreignComponents = false): string {
 describe('machine culture badge', () => {
   it('names both chassis cultures in text with an accessible group label', () => {
     const linewrought = render('linewrought');
-    expect(linewrought).toContain('Linewrought — Shopbuilt');
-    expect(linewrought).toContain('aria-label="Machine culture: Linewrought — Shopbuilt"');
+    expect(linewrought).toContain('Linewrought — Workshop');
+    expect(linewrought).toContain('aria-label="Machine culture: Linewrought — Workshop"');
+    expect(linewrought).toContain('Workshop-serviced around exposed systems');
     expect(linewrought).toContain('data-faction="linewrought"');
 
     const aurelian = render('aurelian');

@@ -225,13 +225,16 @@ async function main() {
       'Home offers learn, campaign, and skirmish routes',
       (await page.locator('[data-testid="home-learn"]').count()) === 1 &&
         (await page.locator('[data-testid="home-campaign"]').count()) === 1 &&
-        (await page.locator('[data-testid="home-skirmish"]').count()) === 1,
+        (await page.locator('[data-testid="home-skirmish"]').count()) === 1 &&
+        (await page.locator('#home-title').innerText()) === 'WRECKRIGHT' &&
+        (await page.locator('.home-kicker').textContent()) === 'No new machines. Only new owners.' &&
+        (await page.locator('[data-testid="home-learn"] strong').textContent()) === 'Learn Command',
     );
     await page.locator('[data-testid="home-learn"]').click();
     await page.waitForFunction(() => globalThis.__ironline !== undefined, { timeout: 30_000 });
     await page.waitForSelector('[data-testid="briefing"]');
     check(
-      'Learn the Line opens the authored training field',
+      'Learn Command opens the authored training field',
       (await page.evaluate(() => globalThis.__ironline.world.mission.id)) === 'training_ground' &&
         (await page.evaluate(() =>
           globalThis.__ironline.world.entities.filter((entity) => entity.team === 0).length,
@@ -867,7 +870,7 @@ async function main() {
     await page.locator('[data-testid="briefing-mission-picker"]').selectOption('exchange_register');
     check(
       'Cutbank is available from the visible mission picker',
-      (await page.locator('[data-testid="briefing"] h2').innerText()).includes('Cutbank Exchange'),
+      (await page.locator('[data-testid="briefing"] h2').innerText()).includes('Cutbank Registry'),
     );
     await page.locator('[data-testid="briefing-deploy"]').click();
     await page.waitForFunction(

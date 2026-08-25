@@ -3,7 +3,7 @@
   "name": "Recovery — Blackglass Quarry",
   "type": "base_capture",
   "mapId": "blackglass_quarry",
-  "briefing": "Sarn’s lift register shows Kestrel moved a bone-white wreck through Blackglass under a plate number assigned to slag. Take the west brake, lift table and east brake, then hold all three for thirty seconds while the receipt copies. The rim has the sightlines; the floor has the controls.",
+  "briefing": "Sarn’s service plate shows Kestrel moved a bone-white wreck through Blackglass under a number assigned to slag. Take the west brake, lift table and east brake, then hold all three for thirty seconds while the root attestation copies. The rim has the sightlines; the floor has the controls.",
   "maxDurationSeconds": 600,
   "startingResourcePoints": 700,
   "dropTonnage": 240,
@@ -150,7 +150,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Kestrel relief on the north-east rim. Hold the brake cabinets while the receipt copies."
+          "text": "Kestrel relief on the north-east rim. Hold the brake cabinets while the root attestation copies."
         },
         {
           "type": "spawn",
@@ -186,7 +186,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Receipt copied. Sarn has the plate record; finish the field account."
+          "text": "Attestation copied. Sarn has the root record; finish the field account."
         }
       ]
     }

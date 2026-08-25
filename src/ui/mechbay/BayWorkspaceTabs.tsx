@@ -90,7 +90,7 @@ export function BayWorkspaceTabs({
             {entry.id === 'review' ? (
               <span
                 className={`bay-workspace-tabs__count${visibleIssueCount > 0 ? ' has-issues' : ''}`}
-                aria-label={`${visibleIssueCount} build ${visibleIssueCount === 1 ? 'issue' : 'issues'}`}
+                aria-label={`${visibleIssueCount} loadout ${visibleIssueCount === 1 ? 'issue' : 'issues'}`}
               >
                 {visibleIssueCount}
               </span>

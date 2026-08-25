@@ -23,7 +23,7 @@ describe('mechbay workspace tabs', () => {
     expect(html).toContain('Loadout');
     expect(html).toContain('Armour &amp; Cooling');
     expect(html).toContain('Review');
-    expect(html).toContain('aria-label="3 build issues"');
+    expect(html).toContain('aria-label="3 loadout issues"');
     expect(html).toContain('data-workspace-tab="armour"');
     expect(html).toContain('aria-selected="true"');
     expect(html).toContain('tabindex="0"');

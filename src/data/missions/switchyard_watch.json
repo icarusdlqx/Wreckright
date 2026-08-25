@@ -1,15 +1,15 @@
 {
   "id": "switchyard_watch",
-  "name": "Watch — Foundry Switch",
+  "name": "Watch — Foundry Registry",
   "type": "defend",
   "mapId": "foundry_district",
-  "briefing": "The freight switch has to remain under contract control for two and a half minutes. One scout is already moving and three relief elements are due from separate gates. If the switch changes hands, the contract is lost. You are not being paid to clear survivors.",
+  "briefing": "The foundry's attestation node has to remain under contract control for two and a half minutes. One scout is already moving and three relief elements are due from separate gates. If the registry changes hands, the contract is lost. You are not being paid to clear survivors.",
   "maxDurationSeconds": 150,
   "startingResourcePoints": 500,
   "lances": [
     {
       "team": 0,
-      "name": "Switch Guard",
+      "name": "Registry Guard",
       "units": [
         {
           "designId": "sentinel_brawler",
@@ -68,7 +68,7 @@
   "zones": [
     {
       "id": "freight_switch",
-      "name": "Freight Switch",
+      "name": "Foundry Attestation Node",
       "x": 492,
       "y": 492,
       "radius": 76,
@@ -80,7 +80,7 @@
   "objectives": [
     {
       "id": "keep_switch",
-      "label": "Keep the freight switch secure until pickup",
+      "label": "Keep the attestation node secure until pickup",
       "type": "protect_zones",
       "team": 0,
       "required": true,
@@ -107,7 +107,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Switch control: north-west scout moving. Three more gates just opened on the board."
+          "text": "Registry control: north-west scout moving. Three more gates just opened on the board."
         },
         {
           "type": "reveal",
@@ -173,7 +173,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "South-west gate: line machines. They are taking the road."
+          "text": "South-west gate: two Linewrought contacts. They are taking the road."
         },
         {
           "type": "spawn",

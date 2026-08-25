@@ -1,16 +1,16 @@
 {
   "id": "exchange_register",
-  "name": "Recovery — Cutbank Exchange",
+  "name": "Seizure — Cutbank Registry",
   "type": "base_capture",
   "mapId": "cutbank_exchange",
-  "briefing": "Cutbank Exchange is three route cabinets and a kilometre of sidings compressed into one yard. Kestrel locked the registers and left a guard on the raised line. Key south, sorting and north; expect relief through the east gate.",
+  "briefing": "Cutbank Registry is three custody cabinets and a kilometre of storage lanes compressed into one yard. Kestrel locked the root rolls and left a guard on the raised apron. Key south, central and north; expect relief through the east gate.",
   "maxDurationSeconds": 540,
   "startingResourcePoints": 600,
   "dropTonnage": 225,
   "lances": [
     {
       "team": 0,
-      "name": "Halloran Register Lance",
+      "name": "Halloran Ledger Lance",
       "units": [
         {
           "designId": "hornet_spotter",
@@ -40,7 +40,7 @@
     },
     {
       "team": 1,
-      "name": "Kestrel Exchange Guard",
+      "name": "Kestrel Registry Guard",
       "units": [
         {
           "designId": "redoubt_emplacement",
@@ -73,7 +73,7 @@
   "zones": [
     {
       "id": "south_register",
-      "name": "South Register",
+      "name": "South Custody Register",
       "x": 276,
       "y": 996,
       "radius": 68,
@@ -83,7 +83,7 @@
     },
     {
       "id": "sorting_register",
-      "name": "Sorting Register",
+      "name": "Central Custody Register",
       "x": 636,
       "y": 636,
       "radius": 68,
@@ -93,7 +93,7 @@
     },
     {
       "id": "north_register",
-      "name": "North Register",
+      "name": "North Custody Register",
       "x": 996,
       "y": 276,
       "radius": 68,
@@ -105,7 +105,7 @@
   "objectives": [
     {
       "id": "key_registers",
-      "label": "Key all three route registers",
+      "label": "Key all three custody registers",
       "type": "capture_zones",
       "team": 0,
       "required": true,
@@ -135,7 +135,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Command: south register, sorting register, north register. Key all three and clear the exchange."
+          "text": "Command: south register, central register, north register. Key all three and clear the registry yard."
         },
         {
           "type": "reveal",
@@ -153,7 +153,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "East gate traffic: Kestrel relief is already entering the exchange."
+          "text": "East gate traffic: Kestrel relief is already entering the registry yard."
         },
         {
           "type": "spawn",
@@ -183,7 +183,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "All three registers are keyed. Clear the remaining guard and leave the book intact."
+          "text": "All three custody registers are keyed. Clear the remaining guard and leave the root roll intact."
         }
       ]
     }

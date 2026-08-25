@@ -15,7 +15,7 @@ export function briefingLanceFor(
     berths: lance.map((berth, index) => ({
       index,
       designValue: berth.empty === true ? 'empty' : (berth.designId ?? 'custom'),
-      customLabel: berth.designId === null ? (berth.design?.name ?? 'Custom build') : null,
+      customLabel: berth.designId === null ? (berth.design?.name ?? 'Edited loadout') : null,
       pilotId: berth.pilotId,
       tonnage: catalog.chassis.get(berthDesign(catalog, berth)?.chassisId ?? '')?.tonnage ?? 0,
       pilot: catalog.pilots.get(berth.pilotId) ?? null,

@@ -71,7 +71,8 @@ describe('contract panel', () => {
     expect(html).toContain('recovery days; route reopens');
     expect(html).toContain('battle damage remains the company workshop bill');
     expect(html).not.toContain('Repair cover');
-    expect(html).toContain(node.brief);
+    expect(html).toContain('General Reversion Order');
+    expect(html).toContain('Recall Authority');
   });
 
   it('shows the stored package after signing', () => {

@@ -1,15 +1,15 @@
 {
   "id": "line_maintenance",
-  "name": "Maintenance — Marker Eleven",
+  "name": "Recovery — First Notice",
   "type": "skirmish",
   "mapId": "ridge_pass",
-  "briefing": "Halloran's splice crew is waiting below marker eleven. Kestrel locked the shed and posted three machines across the right-of-way. Clear the guard without firing into the conduit trench. The crew goes in after the guns stop.",
+  "briefing": "The General Reversion Order names every walker in the company bay. Kestrel locked the Marker Eleven registry under an early compliance contract and posted three machines outside it. Clear the guard so Halloran can copy the root rolls before the Recall Authority seals them.",
   "maxDurationSeconds": 300,
   "startingResourcePoints": 400,
   "lances": [
     {
       "team": 0,
-      "name": "Halloran Contract Lance",
+      "name": "Halloran Recovery Lance",
       "units": [
         {
           "designId": "hornet_spotter",
@@ -39,7 +39,7 @@
     },
     {
       "team": 1,
-      "name": "Kestrel Track Guard",
+      "name": "Kestrel Registry Guard",
       "units": [
         {
           "designId": "courser_patrol",
@@ -65,7 +65,7 @@
   "objectives": [
     {
       "id": "clear_right_of_way",
-      "label": "Clear Kestrel from marker eleven",
+      "label": "Clear Kestrel from the root registry",
       "type": "destroy_all",
       "team": 0,
       "required": true
@@ -86,7 +86,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Halloran: the buried conduit is marked by yellow posts. It is not part of the contract and it is not a target."
+          "text": "Halloran: the title books stay intact. Wreckright settles machines in the field; this contract is for the record of who brought them there."
         }
       ]
     }

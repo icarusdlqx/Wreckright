@@ -212,12 +212,12 @@ export function buildReviewSummary(
 
   return {
     legal,
-    verdict: legal ? 'Legal build' : 'Build not legal',
+    verdict: legal ? 'Legal loadout' : 'Loadout not legal',
     verdictDetail: legal
       ? warningCount === 0
-        ? 'Every construction check passed.'
-        : `${warningCount} advisory ${warningCount === 1 ? 'note' : 'notes'}; this build can still be saved.`
-      : `${blockingCount} ${blockingCount === 1 ? 'issue blocks' : 'issues block'} this build.`,
+        ? 'Every fitting check passed.'
+        : `${warningCount} advisory ${warningCount === 1 ? 'note' : 'notes'}; this loadout can still be saved.`
+      : `${blockingCount} ${blockingCount === 1 ? 'issue blocks' : 'issues block'} this loadout.`,
     issueCount: report.issues.length,
     metrics: [
       {
@@ -257,7 +257,7 @@ export function buildReviewSummary(
     ammunition: ammoLines(catalog, design),
     issueGroups,
     nextAction: legal
-      ? 'Ready to commit. Save this build, or return to a workspace to make another change.'
+      ? 'Ready to commit. Save this loadout, or return to a workspace to make another change.'
       : `Open ${workspaceLabel(nextTab ?? 'loadout')} and ${firstIssue?.action.toLowerCase() ?? 'fix the highlighted issue.'}`,
     nextTab,
   };

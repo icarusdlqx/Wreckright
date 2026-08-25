@@ -199,7 +199,7 @@ export function Mechbay({
       setStatus({
         tone: 'ok',
         text: replaced
-          ? `Saved "${design.name}", replacing the build already under that name.`
+          ? `Saved "${design.name}", replacing the loadout already under that name.`
           : `Saved "${design.name}".`,
       });
     } catch (error) {

@@ -3,7 +3,7 @@ import { catalog } from '../../tests/support';
 import type { Campaign } from '../schema/campaign';
 
 const campaign = catalog.campaigns.get('border_dispute');
-if (campaign === undefined) throw new Error('missing Border Dispute campaign');
+if (campaign === undefined) throw new Error('missing Great Recall campaign');
 
 const VICTORY_LINE = [
   'militia_raid',
@@ -61,7 +61,7 @@ function mapIds(data: Campaign, route: readonly string[]): string[] {
   });
 }
 
-describe('Border Dispute route', () => {
+describe('Great Recall route', () => {
   it('keeps every victory route on at least three distinct battlefields', () => {
     const routes = enumerateVictoryRoutes(campaign);
     const endings = victoryNodes(campaign);
@@ -81,7 +81,7 @@ describe('Border Dispute route', () => {
     }
   });
 
-  it('offers Causeway as optional work without closing the Kestrel line', () => {
+  it('offers Causeway as optional work without closing the Kestrel route', () => {
     const routes = enumerateVictoryRoutes(campaign);
     expect(routes.some((route) => route.includes('causeway_push'))).toBe(true);
     expect(routes.some((route) => !route.includes('causeway_push'))).toBe(true);

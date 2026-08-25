@@ -15,7 +15,13 @@ describe('home screen', () => {
     expect(html).toContain('data-testid="home-learn"');
     expect(html).toContain('data-testid="home-campaign"');
     expect(html).toContain('data-testid="home-skirmish"');
-    expect(html).toContain('Learn the Line');
+    expect(html).toContain('WRECKRIGHT');
+    expect(html).toContain('No new machines. Only new owners.');
+    expect(html).toContain('Learn Command');
+    expect(html).toContain('The Aurelian Continuance has returned to Tessell');
+    expect(html).not.toContain('IRONLINE');
+    expect(html).not.toContain('The railway repairs itself');
+    expect(html).not.toContain('Linewrought company');
     expect(html).not.toContain('data-testid="viewport"');
   });
 });

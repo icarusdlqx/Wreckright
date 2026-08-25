@@ -29,9 +29,9 @@ describe('build review presentation', () => {
 
     expect(html).toContain('aria-labelledby="build-review-title"');
     expect(html).toContain('Final inspection');
-    expect(html).toContain('Legal build');
-    expect(html).toContain('Every construction check passed.');
-    expect(html).toContain('aria-label="Build totals"');
+    expect(html).toContain('Legal loadout');
+    expect(html).toContain('Every fitting check passed.');
+    expect(html).toContain('aria-label="Loadout totals"');
     expect(html).toContain('<dt>Tonnage</dt>');
     expect(html).toContain('<dt>Slots</dt>');
     expect(html).toContain('<dt>Armour</dt>');
@@ -40,7 +40,7 @@ describe('build review presentation', () => {
     expect(html).toContain('Medium Laser ×3');
     expect(html).toContain('Ammunition');
     expect(html).toContain('rounds');
-    expect(html).toContain('Construction checks clear');
+    expect(html).toContain('Fitting checks clear');
     expect(html).toContain('Ready to commit');
     expect(html).not.toContain('Fix before commit');
   });
@@ -50,7 +50,7 @@ describe('build review presentation', () => {
     design.ammo = [{ weaponId: 'medium_laser', location: 'head', tons: 1 }];
     const html = render(design, true);
 
-    expect(html).toContain('Build not legal');
+    expect(html).toContain('Loadout not legal');
     expect(html).toContain('Fix before commit');
     expect(html).toContain('data-issue-component="weapon"');
     expect(html).toContain('data-issue-component="ammo"');
@@ -142,8 +142,8 @@ describe('build review presentation', () => {
     containment.location = 'head';
     const html = render(design, true);
 
-    expect(html).toContain('Legal build');
-    expect(html).toContain('1 advisory note; this build can still be saved.');
+    expect(html).toContain('Legal loadout');
+    expect(html).toContain('1 advisory note; this loadout can still be saved.');
     expect(html).toContain('Advisory notes');
     expect(html).toContain('data-issue-severity="warning"');
     expect(html).not.toContain('Fix before commit');

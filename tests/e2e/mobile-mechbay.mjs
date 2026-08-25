@@ -26,33 +26,12 @@ async function selectWorkspace(page, tab) {
   );
 }
 
-async function verifyPortraitBuilder({ page, check, prefix }) {
-  await page.locator('[data-testid="linewrought-builder-open"]').scrollIntoViewIfNeeded();
-  await page.locator('[data-testid="linewrought-builder-open"]').tap();
-  await page.waitForSelector('[data-testid="linewrought-builder"]');
-  const builder = await overflowOf(page, '[data-testid="linewrought-builder"]');
-  const frameColumns = await page.locator('.linewrought-builder__frame-grid').evaluate(
-    (grid) => getComputedStyle(grid).gridTemplateColumns.trim().split(/\s+/).length,
-  );
-  const touchTargets = await page.locator(
-    '[data-testid="linewrought-builder"] button, [data-testid^="linewrought-frame-"]',
-  ).evaluateAll((elements) => elements.every((element) => element.getBoundingClientRect().height >= 44));
-  check(
-    `${prefix} Linewrought builder is a one-column touch workspace`,
-    builder.scrollWidth <= builder.clientWidth + 1 && frameColumns === 1 && touchTargets,
-    `${builder.scrollWidth}/${builder.clientWidth}; ${frameColumns} frame columns`,
-  );
-  await page.getByRole('button', { name: 'Close Linewrought builder' }).tap();
-  await page.waitForSelector('[data-testid="linewrought-builder"]', { state: 'detached' });
-}
-
 export async function runMobileMechbayJourney({
   page,
   check,
   prefix,
   shots,
   shotLabel,
-  viewport,
 }) {
   const bay = await overflowOf(page, '[data-testid="mechbay"]');
   const outerColumns = await page.locator('[data-testid="mechbay"]').evaluate(
@@ -90,7 +69,6 @@ export async function runMobileMechbayJourney({
     `${panelOrder.hardpoints}/${panelOrder.shelf}`,
   );
 
-  if (viewport.width <= 420) await verifyPortraitBuilder({ page, check, prefix });
   await selectWorkspace(page, 'armour');
   const armourPanel = await overflowOf(page, '[data-workspace-panel="armour"]');
   const systemTargets = page.locator(
@@ -112,7 +90,7 @@ export async function runMobileMechbayJourney({
   check(
     `${prefix} Review presents the legal build without horizontal overflow`,
     await page.locator('[data-testid="build-review"]').isVisible() &&
-      await renderedTextIncludes(page.locator('[data-testid="build-review-verdict"]'), 'Legal build') &&
+      await renderedTextIncludes(page.locator('[data-testid="build-review-verdict"]'), 'Legal loadout') &&
       review.scrollWidth <= review.clientWidth + 1,
     `${review.scrollWidth}/${review.clientWidth}`,
   );

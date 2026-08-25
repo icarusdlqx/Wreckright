@@ -29,6 +29,6 @@
 # build:single intentionally inlines its JavaScript and CSS. If somebody serves
 # the complete dist-single directory through Workers, detach the normal CSP;
 # the downloaded/offline file has no HTTP headers at all.
-/ironline.html
+/wreckright.html
   Cache-Control: no-cache
   ! Content-Security-Policy

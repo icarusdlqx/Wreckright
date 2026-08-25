@@ -1,9 +1,9 @@
 {
   "id": "relay_chain",
-  "name": "Recon — Relay Chain",
+  "name": "Recon — Claim Relay",
   "type": "recon",
   "mapId": "ridge_pass",
-  "briefing": "Three field relays are carrying convoy schedules. Put a machine inside each fence and hold until the key turns. Once all three read ours, keep the chain intact for twenty-five seconds while the schedule copies. The patrol can take a relay back; killing it is optional.",
+  "briefing": "Three field relays are carrying the Recall Authority's seizure schedule. Put a machine inside each fence and hold until the key turns. Once all three read ours, keep the chain intact for twenty-five seconds while the root list copies. The patrol can take a relay back; killing it is optional.",
   "maxDurationSeconds": 360,
   "startingResourcePoints": 400,
   "lances": [
@@ -185,7 +185,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "South relay keyed. Convoy traffic is resolving."
+          "text": "South relay keyed. Authority claim traffic is resolving."
         }
       ]
     },
@@ -200,7 +200,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "West relay keyed. Freight identifiers are coming through."
+          "text": "West relay keyed. Root serials are coming through."
         }
       ]
     },
@@ -229,7 +229,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Chain green. Hold all three keys for twenty-five seconds while the schedule copies."
+          "text": "Chain green. Hold all three keys for twenty-five seconds while the seizure schedule copies."
         }
       ]
     }
