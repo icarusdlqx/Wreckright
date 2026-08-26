@@ -155,3 +155,16 @@
   grid-area: hire-button;
   grid-row: 1 / span 2;
 }
+
+/* The one line that stops training from being a secret. */
+.roster-ledger .train-ready {
+  margin-left: 8px;
+  color: var(--accent);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid rgba(140, 224, 255, 0.4);
+  border-radius: 2px;
+  padding: 1px 6px;
+  vertical-align: 2px;
+}

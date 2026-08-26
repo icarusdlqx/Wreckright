@@ -219,8 +219,12 @@ export const EconomyRulesSchema = z.strictObject({
     sellFraction: z.number().positive().max(1),
     refreshDays: z.number().int().positive().max(60),
     listings: z.number().int().positive().max(8),
+    /** Loose weapons and gear on the counter each week, priced per crate. */
+    partListings: z.number().int().positive().max(12),
     priceVariance: z.tuple([z.number().positive(), z.number().positive()]),
     priceRounding: z.number().int().positive(),
+    /** Crates round to workshop money, not to mech money. */
+    partPriceRounding: z.number().int().positive(),
     /** Odds a listing is somebody's tired machine rather than a refurbished one. */
     wornChance: Probability,
     wornDiscount: z.number().positive().max(1),

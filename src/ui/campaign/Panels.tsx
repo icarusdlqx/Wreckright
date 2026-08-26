@@ -3,7 +3,7 @@ import {
   rebuildHulk,
   stripToStore,
 } from '../../campaign/refit';
-import { buyMech, marketListings, saleValueOf, sellMech } from '../../campaign/market';
+import { buyMech, buyPart, marketListings, partMarketListings, saleValueOf, sellMech } from '../../campaign/market';
 import { dailyPayroll, payrollThrough } from '../../campaign/ledger';
 import {
   estimateRepair,
@@ -219,6 +219,7 @@ export function StoresPanel({ state, mutate }: PanelProps) {
  */
 export function MarketPanel({ state, mutate }: PanelProps) {
   const listings = marketListings(catalog, state);
+  const partListings = partMarketListings(catalog, state);
   const signed = state.contract !== null;
 
   return (
@@ -258,6 +259,41 @@ export function MarketPanel({ state, mutate }: PanelProps) {
                   })
                 }
                 data-testid={`market-buy-${listing.id}`}
+              >
+                Buy
+              </button>
+            </li>
+          ))
+        )}
+      </ul>
+
+      <h4>Parts counter</h4>
+      <ul className="market-stock" data-testid="market-parts">
+        {partListings.length === 0 ? (
+          <li className="empty">No crates on the counter this week.</li>
+        ) : (
+          partListings.map((listing) => (
+            <li key={listing.id} data-testid={`market-part-${listing.id}`}>
+              <span className="market-name">
+                {listing.name}
+                <small>{listing.kind === 'weapon' ? 'Weapon' : 'Gear'} · to stores</small>
+              </span>
+              <span className="market-price">{cbills(listing.price)}</span>
+              <button
+                type="button"
+                disabled={state.cbills < listing.price}
+                title={
+                  state.cbills < listing.price
+                    ? `${cbills(listing.price - state.cbills)} short`
+                    : `Buy a ${listing.name} for stores`
+                }
+                onClick={() =>
+                  mutate((draft) => {
+                    const result = buyPart(catalog, draft, listing.id);
+                    return result.ok ? `A ${listing.name} arrives in stores.` : result.reason;
+                  })
+                }
+                data-testid={`market-buy-part-${listing.id}`}
               >
                 Buy
               </button>

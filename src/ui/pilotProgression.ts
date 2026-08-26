@@ -91,3 +91,13 @@ export function nextSpecialityThreshold(catalog: Catalog, pilot: PilotRecord): n
   const total = skillTotal(pilot);
   return catalog.rules.pilotTraits.pickAtTotalSkill.find((mark) => mark > total) ?? null;
 }
+
+/** True when this pilot has banked enough XP to buy at least one skill level. */
+export function readyToTrain(catalog: Catalog, pilot: PilotRecord): boolean {
+  if (pilot.dead) return false;
+  const banked = pilot.xp - pilot.spentXp;
+  return (['gunnery', 'piloting', 'sensors'] as const).some((skill) => {
+    const training = skillTraining(catalog, pilot, skill);
+    return training.cost !== null && training.cost <= banked;
+  });
+}

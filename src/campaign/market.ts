@@ -3,7 +3,7 @@ import type { Faction } from '../schema/faction';
 import type { Catalog } from '../schema/load';
 import { createRng } from '../sim/rng';
 import { estimateRepair, pristineCondition } from './repair';
-import type { CampaignState, MechRecord, StoreItem } from './types';
+import { addToStore, type CampaignState, type MechRecord, type StoreItem, type StoreKind } from './types';
 
 function factionAvailable(catalog: Catalog, faction: Faction | undefined): boolean {
   return faction !== undefined && catalog.rules.economy.market.availableFactions.includes(faction);
@@ -240,4 +240,67 @@ export function sellMech(catalog: Catalog, state: CampaignState, mechId: string)
 export function pruneMarket(catalog: Catalog, state: CampaignState): void {
   const live = `market_${marketPeriod(catalog, state.day)}_`;
   state.marketBought = state.marketBought.filter((id) => id.startsWith(live));
+}
+
+export interface PartListing {
+  id: string;
+  kind: StoreKind;
+  itemId: string;
+  name: string;
+  price: number;
+}
+
+/**
+ * Loose crates on the counter this week. Same seeded weekly draw as the
+ * machines and for the same reason; the pool is everything the yard's
+ * suppliers make, so what a company cannot salvage it can now simply order.
+ */
+export function partMarketListings(catalog: Catalog, state: CampaignState): PartListing[] {
+  const rules = catalog.rules.economy.market;
+  const period = marketPeriod(catalog, state.day);
+  const rng = createRng(`${state.seed}:market:parts:${period}`);
+
+  const pool: { kind: StoreKind; itemId: string; name: string; cost: number }[] = [];
+  for (const weapon of catalog.weapons.values()) {
+    if (!storeItemMarketAvailable(catalog, { kind: 'weapon', itemId: weapon.id, count: 1 })) continue;
+    pool.push({ kind: 'weapon', itemId: weapon.id, name: weapon.name, cost: weapon.cost });
+  }
+  for (const equipment of catalog.equipment.values()) {
+    if (!storeItemMarketAvailable(catalog, { kind: 'equipment', itemId: equipment.id, count: 1 })) continue;
+    pool.push({ kind: 'equipment', itemId: equipment.id, name: equipment.name, cost: equipment.cost });
+  }
+
+  const sold = new Set(state.marketBought);
+  const listings: PartListing[] = [];
+  rng.shuffle(pool).slice(0, rules.partListings).forEach((item, slot) => {
+    const id = `market_${period}_part_${slot}`;
+    // Drawn per slot whether or not the crate survives the sold filter, so a
+    // purchase cannot move the price of the crate beside it.
+    const variance = rng.range(rules.priceVariance[0], rules.priceVariance[1]);
+    if (sold.has(id)) return;
+    const raw = item.cost * variance;
+    listings.push({
+      id,
+      kind: item.kind,
+      itemId: item.itemId,
+      name: item.name,
+      price: Math.max(
+        rules.partPriceRounding,
+        Math.round(raw / rules.partPriceRounding) * rules.partPriceRounding,
+      ),
+    });
+  });
+  return listings;
+}
+
+/** Buys one crate off the counter and puts it in stores, ready to fit. */
+export function buyPart(catalog: Catalog, state: CampaignState, listingId: string): MarketResult {
+  const listing = partMarketListings(catalog, state).find((entry) => entry.id === listingId);
+  if (listing === undefined) return { ok: false, reason: 'that crate is no longer on the counter' };
+  if (state.cbills < listing.price) return { ok: false, reason: 'not enough credits' };
+
+  state.cbills -= listing.price;
+  state.marketBought.push(listing.id);
+  addToStore(state, listing.kind, listing.itemId);
+  return { ok: true, reason: null };
 }

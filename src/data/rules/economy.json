@@ -51,11 +51,13 @@
     "sellFraction": 0.45,
     "refreshDays": 7,
     "listings": 4,
+    "partListings": 5,
     "priceVariance": [
       0.9,
       1.15
     ],
     "priceRounding": 25000,
+    "partPriceRounding": 500,
     "wornChance": 0.4,
     "wornDiscount": 0.72,
     "availableFactions": [

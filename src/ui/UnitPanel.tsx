@@ -2,8 +2,15 @@ import type { MechLocation } from '../schema/common';
 import type { Engine } from './engine';
 import { EventLog, HeatBar, WeaponGroups } from './Panels';
 import { PaperDoll } from './PaperDoll';
+import { getCatalog } from '../schema/load';
 import { selectedUnit, useGame } from './store';
 import { TacticalReadout } from './TacticalReadout';
+
+
+/** A trait's painted name; the id only if the rules no longer know it. */
+function traitLabel(traitId: string): string {
+  return getCatalog().rules.pilotTraits.entries[traitId]?.label ?? traitId;
+}
 
 export function UnitPanel({ engine, compact = false }: { engine: Engine | null; compact?: boolean }) {
   const state = useGame();
@@ -34,6 +41,16 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
             {unit.pilotName}
             <small>{unit.name}</small>
           </h2>
+          {playerControlled ? (
+            <p className="pilot-hand" data-testid="pilot-hand">
+              <span title="Gunnery — steadies every shot">G{unit.pilotSkills.gunnery}</span>
+              <span title="Piloting — footing and recovery">P{unit.pilotSkills.piloting}</span>
+              <span title="Sensors — how far this machine sees">S{unit.pilotSkills.sensors}</span>
+              {unit.pilotTraits.map((trait) => (
+                <em key={trait}>{traitLabel(trait)}</em>
+              ))}
+            </p>
+          ) : null}
           <PaperDoll
             locations={unit.locations}
             {...(playerControlled ? { onSelectLocation } : {})}

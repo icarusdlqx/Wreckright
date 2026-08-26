@@ -52,3 +52,30 @@
 .mobile-unit-panel .sidebar-details summary {
   min-height: 44px;
 }
+
+/* The pilot's hand: what this person brings, right where their machine is. */
+.pilot-hand {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: baseline;
+  margin: 2px 0 6px;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.pilot-hand span {
+  border: 1px solid var(--edge);
+  border-radius: 2px;
+  padding: 1px 5px;
+  color: var(--text);
+  letter-spacing: 0.06em;
+}
+
+.pilot-hand em {
+  font-style: normal;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 9px;
+}

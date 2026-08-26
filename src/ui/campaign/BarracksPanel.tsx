@@ -18,6 +18,7 @@ import { getCatalog } from '../../schema/load';
 import type { Pilot } from '../../schema/pilot';
 import {
   nextSpecialityThreshold,
+  readyToTrain,
   skillTraining,
   traitEffects,
 } from '../pilotProgression';
@@ -209,10 +210,18 @@ function HireRow({ hire, state, mutate }: { hire: Pilot; state: CampaignState; m
 export function BarracksPanel({ state, mutate }: Props) {
   const payroll = dailyPayroll(catalog, state);
   const hires = availableHires(catalog, state);
+  const trainable = state.pilots.filter((pilot) => readyToTrain(catalog, pilot)).length;
   return (
     <section className="camp-roster progression-roster" data-testid="camp-roster">
       <header className="roster-ledger">
-        <h3>Barracks</h3>
+        <h3>
+          Barracks
+          {trainable > 0 ? (
+            <span className="train-ready" data-testid="train-ready">
+              {trainable} ready to train
+            </span>
+          ) : null}
+        </h3>
         <strong>{credits(payroll)}/day</strong>
       </header>
       <p className="ledger-note">Wages leave the account whenever the calendar moves. Injured crew remain on payroll.</p>
