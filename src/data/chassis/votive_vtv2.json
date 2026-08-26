@@ -94,6 +94,7 @@
     "legLength": 1.12,
     "stance": 0.92
   },
+  "role": "Sensor picket",
   "summary": "A sealed light hunter: fast enough to choose the range, armed enough to make the choice matter.",
   "lore": "The Votives were found upright in a service vault, twelve to a row, with no racks or lifting points and a white shell that continues through every joint. Nothing on Tessell opens one without breaking it. The intact machines are quick, quiet and heavily armed for thirty-five tonnes. The damaged ones stand where they stopped, because the part that failed has never been identified twice.",
   "traits": [

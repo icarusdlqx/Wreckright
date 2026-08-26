@@ -95,6 +95,7 @@
     "legLength": 0.3,
     "stance": 1.3
   },
+  "role": "Static emplacement",
   "summary": "Bolted to a concrete pad. It cannot follow you, and head-on it does not need to.",
   "lore": "Sarn Foundry sells the RDT-1 to anyone with something worth losing. The reactor is barely large enough to run the traverse motors, which is the point: the tonnage that would have bought a way of going somewhere went into the mantlet instead. Nothing wins a shooting match with one from the front. Everything wins by walking round it, because the back of the mount is where the ammunition hoist lives, and nobody armours a wall.",
   "traits": [

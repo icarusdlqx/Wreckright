@@ -91,3 +91,12 @@
     width: auto;
   }
 }
+
+/* The gantry label: what this machine is for, before any numbers. */
+.bay-role {
+  margin: 2px 0 6px;
+  color: var(--accent);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}

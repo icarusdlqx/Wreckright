@@ -1,5 +1,6 @@
 import type { Design } from '../../schema/design';
 import type { Catalog } from '../../schema/load';
+import { designLabel } from '../designLabel';
 
 export interface BayStatus {
   tone: 'ok' | 'error';
@@ -84,7 +85,7 @@ export function BayChrome({
                 .filter((entry) => catalog.chassis.get(entry.chassisId)?.frame === 'mech')
                 .map((entry) => (
                   <option key={entry.id} value={entry.id}>
-                    {entry.name}
+                    {designLabel(catalog, entry)}
                   </option>
                 ))}
             </select>

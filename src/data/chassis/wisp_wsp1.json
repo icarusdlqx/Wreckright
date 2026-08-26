@@ -94,6 +94,7 @@
     "legLength": 1.06,
     "stance": 0.95
   },
+  "role": "Sensor scout",
   "summary": "A sealed survey frame. It sees first, runs first and survives neither mistake.",
   "lore": "The Karst Reach register calls the VES a boundary reader. Forty stood upright behind one door, each under a cover that had rotted without marking the shell beneath it. Sensor glass lies inside the hull rather than on it. The legs have no inspection plates. Of the twenty-six frames that woke, eleven still walk; the other fifteen stopped once and have not moved since. A Vesper does not fight. It finds, it counts and it leaves before the counting is noticed.",
   "traits": [

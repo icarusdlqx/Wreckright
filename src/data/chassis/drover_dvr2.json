@@ -95,6 +95,7 @@
     "legLength": 0.5,
     "stance": 1.2
   },
+  "role": "Missile carrier",
   "summary": "A missile deck on tracks. Devastating from a ridge, useless once anything reaches it.",
   "lore": "The Halloran Combine builds the DVR-2 by the hundred because it costs a fifth of a mech and puts the same weight of missiles on a hillside. Doctrine is simple and honest: park it where nothing can walk to it inside a minute, and move it before the minute is up. Crews call the track units the obituary, since losing one ends the argument about whether there is time to withdraw.",
   "traits": [

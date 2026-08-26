@@ -11,6 +11,8 @@ const common = {
     { id: 'green', label: 'Green', description: 'Enemy pilots advance cautiously.' },
   ],
   battleCode: 'copper-relay-0000002a',
+  lanceFactionId: 'linewrought' as const,
+  onLanceFaction: vi.fn(),
   onMission: vi.fn(),
   onDifficulty: vi.fn(),
   onBattleCode: vi.fn(),

@@ -94,6 +94,7 @@
     "legLength": 1.16,
     "stance": 0.92
   },
+  "role": "Mobile duellist",
   "summary": "A sealed duellist. Jets and reach buy the first answer; heat decides the second.",
   "lore": "The FAL cradles at Vasi were marked INTERCEPT and faced the door. Each frame is all arms and legs, with lift channels buried behind the same white shell as the cockpit and no separate jet housings. Local racks bolt to four shallow sockets. Nothing else comes off. A Falchion can cross a firing lane, answer a heavy and leave before the return shot. If it stays for the next exchange, the heat does what the enemy could not.",
   "traits": [

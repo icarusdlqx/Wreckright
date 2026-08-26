@@ -20,6 +20,9 @@ interface SharedSetupProps {
 interface BriefingSetupProps extends SharedSetupProps {
   battleCode: string;
   onBattleCode: (battleCode: string) => void;
+  /** Which culture's machines fill the lance; null hides the choice. */
+  lanceFactionId: 'linewrought' | 'aurelian' | 'mixed' | null;
+  onLanceFaction: (faction: 'linewrought' | 'aurelian') => void;
 }
 
 export function BriefingSetup(props: BriefingSetupProps) {
@@ -50,6 +53,28 @@ export function BriefingSetup(props: BriefingSetupProps) {
             </span>
           )}
         </label>
+        {props.campaignMissionName === null && props.lanceFactionId !== null ? (
+          <label className="setup-field">
+            <span>Company machines</span>
+            <select
+              value={props.lanceFactionId}
+              onChange={(event) => {
+                const picked = event.target.value;
+                if (picked === 'linewrought' || picked === 'aurelian') props.onLanceFaction(picked);
+              }}
+              data-testid="briefing-faction-picker"
+            >
+              {props.lanceFactionId === 'mixed' ? (
+                <option value="mixed">Mixed company</option>
+              ) : null}
+              <option value="linewrought">Linewrought</option>
+              <option value="aurelian">Aurelian</option>
+            </select>
+            <small className="setup-description">
+              Refills the berths with one culture's machines, class for class.
+            </small>
+          </label>
+        ) : null}
         <label className="setup-field">
           <span>Difficulty</span>
           <select

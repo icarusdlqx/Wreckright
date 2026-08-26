@@ -1,6 +1,7 @@
 import type { Design } from '../schema/design';
 import { DesignSchema } from '../schema/design';
 import type { Catalog } from '../schema/load';
+import type { Faction } from '../schema/faction';
 import { migrateDesignWeaponIds } from '../schema/weaponMigration';
 import type { LanceEntry } from '../sim/world';
 
@@ -109,4 +110,73 @@ export function lanceEntries(
     entries.push({ design, pilot });
   }
   return entries.length === 0 ? null : entries;
+}
+
+/** Which culture's machines fill these berths, or 'mixed' when they disagree. */
+export function lanceFaction(
+  catalog: Catalog,
+  lance: readonly SkirmishBerth[],
+): Faction | 'mixed' | null {
+  let seen: Faction | null = null;
+  for (const berth of lance) {
+    if (berth.empty === true) continue;
+    const design = berthDesign(catalog, berth);
+    const faction = design === null
+      ? null
+      : catalog.chassis.get(design.chassisId)?.faction ?? null;
+    if (faction === null) continue;
+    if (seen === null) seen = faction;
+    else if (seen !== faction) return 'mixed';
+  }
+  return seen;
+}
+
+/**
+ * The authored lance re-mounted in one culture's machines. Each berth keeps
+ * its pilot and its weight class; the machine changes. Where a class offers
+ * several designs the berths cycle through them, so a pair of lights arrives
+ * as two different machines rather than twins.
+ */
+export function factionLance(
+  catalog: Catalog,
+  missionId: string,
+  faction: Faction,
+): SkirmishBerth[] {
+  const byClass = new Map<string, Design[]>();
+  for (const design of [...catalog.designs.values()].sort((a, b) => a.id.localeCompare(b.id))) {
+    const chassis = catalog.chassis.get(design.chassisId);
+    if (chassis === undefined || chassis.faction !== faction || chassis.frame !== 'mech') continue;
+    const bucket = byClass.get(chassis.class) ?? [];
+    bucket.push(design);
+    byClass.set(chassis.class, bucket);
+  }
+  const order: readonly string[] = ['light', 'medium', 'heavy', 'assault'];
+  const nearest = (wanted: string): Design[] => {
+    const exact = byClass.get(wanted);
+    if (exact !== undefined && exact.length > 0) return exact;
+    // No machine of that weight in this culture: take the closest class down,
+    // then up, so the berth still fills rather than vanishing.
+    const at = order.indexOf(wanted);
+    for (let step = 1; step < order.length; step += 1) {
+      for (const index of [at - step, at + step]) {
+        const near = byClass.get(order[index] ?? '');
+        if (near !== undefined && near.length > 0) return near;
+      }
+    }
+    return [];
+  };
+
+  const cursor = new Map<string, number>();
+  return defaultLance(catalog, missionId).map((berth) => {
+    const current = berthDesign(catalog, berth);
+    const wanted = current === null
+      ? 'medium'
+      : catalog.chassis.get(current.chassisId)?.class ?? 'medium';
+    const pool = nearest(wanted);
+    if (pool.length === 0) return berth;
+    const index = cursor.get(wanted) ?? 0;
+    cursor.set(wanted, index + 1);
+    const pick = pool[index % pool.length];
+    return pick === undefined ? berth : { designId: pick.id, pilotId: berth.pilotId };
+  });
 }

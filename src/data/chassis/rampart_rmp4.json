@@ -94,6 +94,7 @@
     "legLength": 0.98,
     "stance": 1.04
   },
+  "role": "Siege breaker",
   "summary": "Assault-weight breaching hull. Slow, ugly, and the argument that ends arguments.",
   "lore": "Nothing about the RMP-4 is subtle: an eighty-five tonne Compact root rebuilt with its shoulders opened into weapon blocks and a mantlet slab bolted across the front, because the original cockpit glazing turned out to be the first thing anybody shot at. Halloran keeps two named survivors and rents them by the day at rates that assume you will bring them back damaged.",
   "traits": [

@@ -94,6 +94,7 @@
     "legLength": 1.04,
     "stance": 0.96
   },
+  "role": "Long-range assault",
   "summary": "A sealed long-range assault frame. Three projectors, a deep sensor set and no ammunition to count.",
   "lore": "The Karst ledger lists sixteen OBQ frames under PERIMETER, although only nine bays were opened and one was empty. An Obsequy carries three projector channels and enough coolant to fire them in sequence all day. It has no ammunition doors and no service seams. When one loses an emitter, the remaining pair work normally; when it loses cooling, the whole machine becomes a ninety-tonne room nobody can enter.",
   "traits": [

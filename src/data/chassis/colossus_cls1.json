@@ -94,6 +94,7 @@
     "legLength": 1.0,
     "stance": 1.02
   },
+  "role": "Siege platform",
   "summary": "A hundred tonnes of foundry pride. There are eleven of them and everyone knows where.",
   "lore": "Sarn found eleven matched CLS roots and raised new hulls around them from Compact plans it only partly understands. The foundry made the plate, limbs and guns; the serialized keels are relics of the lost root lines. Nine metres a second, fifty tonnes of payload, and a turning circle that has ended more Colossus careers than enemy fire. Every one of the eleven has a name, a service history and at least one town that considers it theirs.",
   "traits": [

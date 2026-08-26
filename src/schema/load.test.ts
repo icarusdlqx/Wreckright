@@ -104,6 +104,7 @@ const VALID_CHASSIS = {
   ),
   armourMax: Object.fromEntries(LOCATIONS.map((location) => [location, 20])),
   internals: Object.fromEntries(LOCATIONS.map((location) => [location, 10])),
+  role: 'Test mule',
   traits: [],
 };
 

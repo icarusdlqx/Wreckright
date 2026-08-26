@@ -94,6 +94,7 @@
     "legLength": 1.0,
     "stance": 1.0
   },
+  "role": "Line brawler",
   "summary": "The common sealed medium. Balanced outside, inaccessible within and never quite replaceable.",
   "lore": "More SNL bays have been opened than any other Aurelian store, which is why the Sentinel is mistaken for an ordinary machine. It is not. Six flat interfaces accept clamps and cable trunks without opening the hull, so shops hang local weapons around a shell they cannot service. That makes two Sentinels look different while the machine beneath remains exactly the same. When an internal part fails, a common Sentinel becomes a common source of parts.",
   "traits": []

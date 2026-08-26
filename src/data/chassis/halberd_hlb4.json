@@ -94,6 +94,7 @@
     "legLength": 1.0,
     "stance": 1.0
   },
+  "role": "Heavy striker",
   "summary": "A sealed fast heavy with two external shoulders and no accessible machinery between them.",
   "lore": "The HLB frames stood in the depot without weapons. Their shoulders end in smooth powered faces that still accept a load and still refuse every tool on Tessell. Sarn builds a cradle around each face and hangs local racks from the cradle; those are the bolts and feed chutes crews can see. Beneath them the hull remains closed. A Halberd walks at the speed of a medium and sheds heat through surfaces nobody can remove. When one of those surfaces fails, the whole shoulder goes cold.",
   "traits": [

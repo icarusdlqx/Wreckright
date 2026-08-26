@@ -78,6 +78,9 @@ export function MachinePanel({
           m/s
         </span>
       </h3>
+      <p className="bay-role" data-testid="bay-role">
+        {chassis.role}
+      </p>
       <MachineCultureBadge
         faction={chassis.faction}
         foreignComponents={designUsesForeignComponents(catalog, design, chassis.faction)}

@@ -94,6 +94,7 @@
     "legLength": 0.9,
     "stance": 1.1
   },
+  "role": "Fire support",
   "summary": "Two shoulders of cells and just enough gun to argue with whatever walks into them.",
   "lore": "The Ferrous Guild raised each Cairn around a recovered CRN root whose original hull was past saving. The launcher carriage, plate and arms are local; the serialized keel and gait beneath them are not. A Cairn allowed to set up across a road is a problem. A Cairn caught moving is a gift.",
   "traits": [

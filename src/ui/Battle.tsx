@@ -12,7 +12,9 @@ import { createEngine, type Engine } from './engine';
 import {
   berthDesign,
   defaultLance,
+  factionLance,
   lanceEntries,
+  lanceFaction,
   loadLance,
   storeLance,
   type SkirmishBerth,
@@ -307,6 +309,8 @@ export function Battle(props: BattleProps = {}) {
               missions={missions}
               difficulties={difficulties}
               campaignMissionName={state.campaignPending ? state.missionName : null}
+              lanceFactionId={activeTraining ? null : lanceFaction(catalog, lance)}
+              onLanceFaction={(faction) => setLance(factionLance(catalog, missionId, faction))}
               onMission={selectMission}
               onDifficulty={setup.selectDifficulty}
               onBattleCode={setBattleCodeDraft}

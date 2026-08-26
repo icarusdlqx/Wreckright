@@ -75,6 +75,12 @@ export const ChassisSchema = z
         stance: 1,
       }),
     /** One line for the bay list; the paragraph for the detail panel. */
+    /**
+     * The machine's battlefield job in two or three words — the label a bay
+     * chief would paint on the gantry. Weight class says how big it is; this
+     * says what it is for.
+     */
+    role: z.string().min(3).max(32),
     summary: z.string().min(1).max(160).default(''),
     lore: z.string().min(1).max(900).default(''),
     traits: z.array(IdSchema).default([]),
