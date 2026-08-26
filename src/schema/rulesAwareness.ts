@@ -94,6 +94,12 @@ export const AiRulesSchema = z.strictObject({
     losingStrengthRatio: z.number().positive().max(2),
     openRangeWeight: z.number().nonnegative(),
     concealmentBonus: z.number().nonnegative(),
+    // Late-battle concession: once this much of the mission clock has burned,
+    // a hurt machine on the clearly weaker side quits the field rather than
+    // shuffling out a timeout draw nobody enjoys watching.
+    endgameClockFraction: Probability,
+    endgameStructureFraction: Probability,
+    endgameStrengthRatio: z.number().positive().max(2),
   }),
   calledShot: z.strictObject({
     targetStructureFraction: Probability,

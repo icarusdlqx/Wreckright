@@ -323,7 +323,19 @@ export function shouldWithdraw(
   structure: number,
 ): boolean {
   const rules = world.rules.ai.withdrawal;
-  const threshold = currentlyWithdrawing ? rules.resumeStructureFraction : rules.structureFraction;
+  // Late in the clock the bar for staying drops. Early on, a hurt machine on a
+  // slightly weaker side is right to keep fighting — the battle can still turn.
+  // With the clock mostly burned it cannot: the same machine shuffling to a
+  // timeout draw serves nobody, so it concedes the field while it still can.
+  const clockFraction =
+    (world.tick * world.dt) / world.mission.maxDurationSeconds;
+  const endgame = clockFraction >= rules.endgameClockFraction;
+
+  const threshold = currentlyWithdrawing
+    ? rules.resumeStructureFraction
+    : endgame
+      ? Math.max(rules.structureFraction, rules.endgameStructureFraction)
+      : rules.structureFraction;
   if (structure >= threshold) return false;
 
   if (canOutrunPursuit(world, mech)) return true;
@@ -334,7 +346,10 @@ export function shouldWithdraw(
     if (team !== mech.team) theirs += teamStrength(world, team, mech.team);
   }
 
-  return mine < theirs * rules.losingStrengthRatio;
+  const ratio = endgame
+    ? Math.max(rules.losingStrengthRatio, rules.endgameStrengthRatio)
+    : rules.losingStrengthRatio;
+  return mine < theirs * ratio;
 }
 
 export function withdrawalPoint(world: World, mech: MechEntity): Vec2 {

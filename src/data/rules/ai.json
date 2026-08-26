@@ -44,7 +44,10 @@
     "mapEdgeDistance": 30,
     "openRangeWeight": 0.02,
     "concealmentBonus": 2,
-    "losingStrengthRatio": 0.7
+    "losingStrengthRatio": 0.7,
+    "endgameClockFraction": 0.6,
+    "endgameStructureFraction": 0.45,
+    "endgameStrengthRatio": 0.85
   },
   "calledShot": {
     "targetStructureFraction": 0.55,
