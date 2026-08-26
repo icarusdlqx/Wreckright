@@ -89,11 +89,26 @@ export function walkerLeg(parts: BlueprintPart[], b: Bones, side: number, boot: 
   );
 }
 
-/** Forward knees make speed legible before the machine moves. */
-export function birdLeg(parts: BlueprintPart[], b: Bones, side: number, boot: number): void {
+/**
+ * Forward knees make speed legible before the machine moves.
+ *
+ * `girth` thickens the limbs without touching the skeleton: segment lengths and
+ * joint positions still come from the bones, so the walk cycle is unchanged. A
+ * light frame needs it. The reverse knee opens wide enough that thin limbs stop
+ * reading as one leg and start reading as two rods and a ball, and the thinner
+ * the machine the worse it gets — so the plans that build small birds ask for
+ * more metal, and the heavies that already look right ask for none.
+ */
+export function birdLeg(
+  parts: BlueprintPart[],
+  b: Bones,
+  side: number,
+  boot: number,
+  girth = 1,
+): void {
   const z = side * b.spread;
   const location = side < 0 ? 'left_leg' : 'right_leg';
-  const t = b.thigh;
+  const t = b.thigh * girth;
   const drop = b.hip - b.kneeHeight;
   const thighTilt = Math.atan2(b.knee, Math.max(0.01, drop));
 
@@ -101,12 +116,12 @@ export function birdLeg(parts: BlueprintPart[], b: Bones, side: number, boot: nu
     jointed(part(location, 'limb', [b.knee * 0.5, (b.hip + b.kneeHeight) / 2, z],
       [t * 1.16, Math.hypot(drop, b.knee), t * 0.84], 'deep', thighTilt), 'hip'),
     jointed(part(location, 'sphere', [b.knee, b.kneeHeight, z],
-      [t * 1.1, t * 1.1, t * 1.1], 'plate'), 'knee'),
+      [t * 1.28, t * 1.28, t * 1.28], 'plate'), 'knee'),
     jointed(part(location, 'limb', [b.knee * 0.45, b.kneeHeight * 0.5, z],
       [t * 0.86, Math.hypot(b.kneeHeight, b.knee), t * 0.98], 'plate',
       -Math.atan2(b.knee, Math.max(0.01, b.kneeHeight))), 'knee'),
     jointed(part(location, 'sphere', [0, b.kneeHeight * 0.12, z],
-      [t * 0.62, t * 0.62, t * 0.62], 'deep'), 'ankle'),
+      [t * 0.82, t * 0.82, t * 0.82], 'deep'), 'ankle'),
     jointed(shaped(location, PROFILES.foot, [boot * 0.3, 0.09, z],
       [boot, 0.18, t * 1.1], 'deep'), 'ankle'),
   );

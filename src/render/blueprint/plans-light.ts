@@ -16,7 +16,7 @@ import type { BlueprintPart, Plan } from './types';
 export const birdPlan: Plan = (b, has, fit, identity) => {
   const gadfly = identity === 'hornet_hnt2';
   const parts: BlueprintPart[] = [];
-  for (const side of [-1, 1]) birdLeg(parts, b, side, gadfly ? 0.76 : 0.6);
+  for (const side of [-1, 1]) birdLeg(parts, b, side, gadfly ? 0.76 : 0.6, gadfly ? 1.4 : 1.2);
   hips(parts, b, gadfly ? 0.72 : 0.85);
 
   parts.push(
