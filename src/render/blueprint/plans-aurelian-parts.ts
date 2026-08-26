@@ -6,7 +6,14 @@ function jointed(piece: BlueprintPart, joint: LegJoint): BlueprintPart {
   return { ...piece, joint };
 }
 
-/** Three closed segments preserve the walking chain without showing its bearings. */
+/**
+ * Sealed limbs meet end to end, and two boxes that only touch at a point show
+ * daylight the moment either tilts. Each segment runs a little long instead:
+ * the spill hides inside the hip skirt above and the boot below, and the knee
+ * and ankle stay covered through the whole stride.
+ */
+const SEGMENT_OVERLAP = 1.16;
+
 export function sealedWalkerLeg(
   parts: BlueprintPart[],
   b: Bones,
@@ -22,10 +29,10 @@ export function sealedWalkerLeg(
 
   parts.push(
     jointed(part(location, 'limb', [b.knee * 0.5, (b.hip + b.kneeHeight) / 2, z],
-      [b.thigh * 1.24 * girth, Math.hypot(drop, b.knee), b.thigh * girth],
+      [b.thigh * 1.24 * girth, Math.hypot(drop, b.knee) * SEGMENT_OVERLAP, b.thigh * girth],
       'plate', thighTilt), 'hip'),
     jointed(part(location, 'limb', [b.knee * 0.5, b.kneeHeight * 0.5, z],
-      [b.thigh * girth, Math.hypot(b.kneeHeight, b.knee), b.thigh * 1.14 * girth],
+      [b.thigh * girth, Math.hypot(b.kneeHeight, b.knee) * SEGMENT_OVERLAP, b.thigh * 1.14 * girth],
       'plate', shinTilt), 'knee'),
     jointed(shaped(location, PROFILES.foot, [boot * 0.22, 0.1, z],
       [boot, 0.2, b.thigh * 1.34 * girth], 'deep'), 'ankle'),
@@ -47,10 +54,10 @@ export function sealedBirdLeg(
 
   parts.push(
     jointed(part(location, 'limb', [b.knee * 0.5, (b.hip + b.kneeHeight) / 2, z],
-      [b.thigh * 1.24 * girth, Math.hypot(drop, b.knee), b.thigh * 0.92 * girth],
+      [b.thigh * 1.24 * girth, Math.hypot(drop, b.knee) * SEGMENT_OVERLAP, b.thigh * 0.92 * girth],
       'plate', thighTilt), 'hip'),
     jointed(part(location, 'limb', [b.knee * 0.45, b.kneeHeight * 0.5, z],
-      [b.thigh * 0.98 * girth, Math.hypot(b.kneeHeight, b.knee), b.thigh * 1.08 * girth],
+      [b.thigh * 0.98 * girth, Math.hypot(b.kneeHeight, b.knee) * SEGMENT_OVERLAP, b.thigh * 1.08 * girth],
       'plate', -Math.atan2(b.knee, Math.max(0.01, b.kneeHeight))), 'knee'),
     jointed(shaped(location, PROFILES.foot, [boot * 0.32, 0.08, z],
       [boot, 0.16, b.thigh * 1.2 * girth], 'deep'), 'ankle'),
