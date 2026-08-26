@@ -52,6 +52,18 @@ describe('tactical camera', () => {
     }
   });
 
+  it('keeps a behind-camera ground bearing on the near edge', () => {
+    const view = camera();
+    view.distance = view.minDistance;
+    const direction = { x: 0, y: 0 };
+
+    view.screenDirection({ x: 480, y: 100 }, VIEWPORT, direction);
+
+    const misleadingProjection = view.worldToScreen({ x: 480, y: 100 }, VIEWPORT);
+    expect(misleadingProjection.y).toBeLessThan(0);
+    expect(direction.y).toBeGreaterThan(0);
+  });
+
   it('drags the ground the way the pointer moved', () => {
     // Pulling the map left has to move the camera's target right.
     const view = camera();
