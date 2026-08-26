@@ -3,6 +3,7 @@ import { missionTickBudget } from '../schema/missionClock';
 import type { World } from '../sim/types';
 import { createWorld, type LanceEntry } from '../sim/world';
 import { Engine } from './engineCore';
+import { IncomingFireDirections } from './incomingFireDirections';
 import { PerfOverlay } from './perf';
 import { useGame } from './store';
 
@@ -44,7 +45,14 @@ export async function createEngine(host: HTMLElement, options: EngineOptions = {
   // before anyone asks for a battlefield.
   const { Renderer } = await import('../render3d/scene');
   const renderer = new Renderer(host, world, mapData, atmosphere);
-  const engine = new Engine(world, renderer, missionTickBudget(catalog, missionId));
+  const incomingFire = new IncomingFireDirections(
+    host,
+    (entity) => renderer.screenBodyOf(entity),
+    (entity, out) => renderer.camera.screenDirection(entity.pos, renderer.viewport, out),
+    () => renderer.viewport,
+  );
+  const engine = new Engine(world, renderer, missionTickBudget(catalog, missionId), incomingFire);
+  engine.onDestroy(() => incomingFire.destroy());
   renderer.onContextLost = () => {
     engine.halt();
     useGame.getState().patch({

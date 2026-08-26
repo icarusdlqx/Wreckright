@@ -8,6 +8,7 @@ import { findEntity, isOperational, type EntityId, type World } from '../sim/typ
 import { stepWorld } from '../sim/world';
 import type { AudioDirector } from './audio';
 import { eventLogLine } from './eventLogPresentation';
+import type { IncomingFireDirections } from './incomingFireDirections';
 import { crossedMissionClockWarnings } from './missionClock';
 import { stoppedCount } from './objectiveReadout';
 import { snapshotUnits } from './snapshot';
@@ -25,6 +26,7 @@ export class EnginePresentation {
     private readonly renderer: Renderer,
     private readonly audio: AudioDirector,
     private readonly maxTicks: number,
+    private readonly incomingFire: IncomingFireDirections | null = null,
   ) {
     this.clockSeconds = maxTicks * world.dt;
   }
@@ -37,6 +39,7 @@ export class EnginePresentation {
     this.renderer.snapshot(this.world);
     const events = this.world.events.splice(0, this.world.events.length);
     this.renderer.consumeEvents(this.world, events);
+    this.incomingFire?.consume(this.world, events, useGame.getState().selection);
     this.audio.listenAt = this.renderer.camera.target;
     this.audio.consume(
       this.world,

@@ -10,6 +10,7 @@ import {
   clearControlFocus,
   openDesktopBattleMenu,
 } from './input-safety.mjs';
+import { checkIncomingFireDirection } from './incoming-fire-direction.mjs';
 import { runCampaignRecovery } from './campaign-recovery.mjs';
 import { runMobilePlaythrough } from './mobile-playthrough.mjs';
 import {
@@ -456,6 +457,9 @@ async function main() {
     const stillPaused = await sim(page);
     check('pause freezes the simulation', stillPaused.tick === pausedTick, `${pausedTick} → ${stillPaused.tick}`);
     check('pause banner is shown', (await page.locator('[data-testid="paused-banner"]').count()) === 1);
+
+    process.stdout.write('\nincoming fire direction\n');
+    await checkIncomingFireDirection({ page, check, shots: SHOTS });
 
     process.stdout.write('\norders while paused\n');
     const selectedId = (await state(page)).selection[0];
