@@ -206,6 +206,11 @@ export class Engine {
       presentationDelta,
     );
 
+    if (this.presentation.advance(deltaSeconds)) {
+      this.hudDirty = true;
+      this.hudTimer = HUD_INTERVAL_SECONDS;
+    }
+
     this.perf?.record({
       frameMs: rawMs,
       simMs,

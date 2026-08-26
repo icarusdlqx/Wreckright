@@ -6,15 +6,17 @@ import { useGame } from './store';
 
 interface RendererHarness {
   renderer: Renderer;
+  beginKillingBlow: ReturnType<typeof vi.fn>;
   draw: ReturnType<typeof vi.fn>;
   spawnSmoke: ReturnType<typeof vi.fn>;
 }
 
 function rendererHarness(reducedMotion = false): RendererHarness {
+  const beginKillingBlow = vi.fn();
   const draw = vi.fn();
   const spawnSmoke = vi.fn();
   const renderer = {
-    camera: { target: { x: 0, y: 0 }, reducedMotion },
+    camera: { target: { x: 0, y: 0 }, reducedMotion, beginKillingBlow },
     consumeEvents: vi.fn(),
     destroy: vi.fn(),
     draw,
@@ -23,7 +25,7 @@ function rendererHarness(reducedMotion = false): RendererHarness {
     snapshot: vi.fn(),
     spawnSmoke,
   } as unknown as Renderer;
-  return { renderer, draw, spawnSmoke };
+  return { renderer, beginKillingBlow, draw, spawnSmoke };
 }
 
 function tick(engine: Engine, deltaSeconds: number): void {
@@ -40,10 +42,197 @@ afterEach(() => {
     selection: [],
     orderMode: null,
     supportMode: null,
+    tick: 0,
+    finished: false,
+    outcomePending: false,
+    winner: null,
   });
 });
 
 describe('engine presentation timing', () => {
+  it.each([false, true])(
+    'holds the results for a two-second killing-blow camera push (reduced motion: %s)',
+    (reducedMotion) => {
+      const world = playerWorld(`killing-blow-results-hold-${reducedMotion}`);
+      const enemies = world.entities.filter((entity) => entity.team !== (world.playerTeam ?? 0));
+      const wreck = enemies.at(-1);
+      expect(wreck).toBeDefined();
+      if (wreck === undefined) return;
+      for (const enemy of enemies) enemy.destroyed = true;
+      world.vision?.visible.add(wreck.id);
+      world.events.push({
+        type: 'mech_destroyed',
+        tick: world.tick + 1,
+        entityId: wreck.id,
+        method: 'centre_torso',
+      });
+
+      const harness = rendererHarness(reducedMotion);
+      const engine = new Engine(world, harness.renderer, 10_000);
+      useGame.setState({ paused: false, speed: 4, finished: false, winner: null });
+
+      engine.forceStep();
+
+      expect(world.finished).toBe(true);
+      expect(harness.beginKillingBlow).toHaveBeenCalledOnce();
+      expect(harness.beginKillingBlow).toHaveBeenCalledWith(wreck.pos, 2);
+      expect(useGame.getState().outcomePending).toBe(true);
+      const terminalTick = world.tick;
+
+      tick(engine, 0.1);
+      expect(useGame.getState().finished).toBe(false);
+      expect(useGame.getState().outcomePending).toBe(true);
+      expect(useGame.getState().winner).toBeNull();
+      tick(engine, 1.79);
+      expect(useGame.getState().finished).toBe(false);
+      expect(world.tick).toBe(terminalTick);
+
+      tick(engine, 0.11);
+      expect(useGame.getState().finished).toBe(true);
+      expect(useGame.getState().outcomePending).toBe(false);
+      expect(useGame.getState().winner).toBe(world.winner);
+      expect(world.tick).toBe(terminalTick);
+      engine.destroy();
+    },
+  );
+
+  it('does not treat the player lance defeat as a killing blow', () => {
+    const world = playerWorld('player-defeat-camera');
+    const playerTeam = world.playerTeam ?? 0;
+    const friendlies = world.entities.filter((entity) => entity.team === playerTeam);
+    const wreck = friendlies.at(-1);
+    expect(wreck).toBeDefined();
+    if (wreck === undefined) return;
+    for (const friendly of friendlies) friendly.destroyed = true;
+    world.events.push({
+      type: 'mech_destroyed',
+      tick: world.tick + 1,
+      entityId: wreck.id,
+      method: 'centre_torso',
+    });
+    const harness = rendererHarness();
+    const engine = new Engine(world, harness.renderer, 10_000);
+
+    engine.forceStep();
+    tick(engine, 0.1);
+
+    expect(world.finished).toBe(true);
+    expect(world.winner).not.toBe(playerTeam);
+    expect(harness.beginKillingBlow).not.toHaveBeenCalled();
+    expect(useGame.getState().finished).toBe(true);
+    expect(useGame.getState().outcomePending).toBe(false);
+    engine.destroy();
+  });
+
+  it('does not treat a mutual destruction draw as a killing blow', () => {
+    const world = playerWorld('mutual-destruction-camera');
+    const playerTeam = world.playerTeam ?? 0;
+    const friendlyWreck = world.entities.find((entity) => entity.team === playerTeam);
+    const enemyWreck = world.entities.find((entity) => entity.team !== playerTeam);
+    expect(friendlyWreck).toBeDefined();
+    expect(enemyWreck).toBeDefined();
+    if (friendlyWreck === undefined || enemyWreck === undefined) return;
+    for (const entity of world.entities) entity.destroyed = true;
+    world.events.push(
+      {
+        type: 'mech_destroyed',
+        tick: world.tick + 1,
+        entityId: enemyWreck.id,
+        method: 'centre_torso',
+      },
+      {
+        type: 'mech_destroyed',
+        tick: world.tick + 1,
+        entityId: friendlyWreck.id,
+        method: 'centre_torso',
+      },
+    );
+    const harness = rendererHarness();
+    const engine = new Engine(world, harness.renderer, 10_000);
+
+    engine.forceStep();
+    tick(engine, 0.1);
+
+    expect(world.finished).toBe(true);
+    expect(world.winner).toBeNull();
+    expect(harness.beginKillingBlow).not.toHaveBeenCalled();
+    expect(useGame.getState().finished).toBe(true);
+    expect(useGame.getState().outcomePending).toBe(false);
+    engine.destroy();
+  });
+
+  it('does not reveal a hidden terminal wreck through the camera', () => {
+    const world = playerWorld('hidden-killing-blow-camera');
+    const playerTeam = world.playerTeam ?? 0;
+    const enemies = world.entities.filter((entity) => entity.team !== playerTeam);
+    const wreck = enemies.at(-1);
+    expect(wreck).toBeDefined();
+    if (wreck === undefined) return;
+    const width = world.terrain.width * world.terrain.tileSize;
+    const height = world.terrain.height * world.terrain.tileSize;
+    for (const friendly of world.entities.filter((entity) => entity.team === playerTeam)) {
+      friendly.pos = { x: world.terrain.tileSize, y: world.terrain.tileSize };
+    }
+    wreck.pos = { x: width - world.terrain.tileSize, y: height - world.terrain.tileSize };
+    world.vision?.visible.clear();
+    world.vision?.observedHulks.clear();
+    for (const enemy of enemies) enemy.destroyed = true;
+    world.events.push({
+      type: 'mech_destroyed',
+      tick: world.tick + 1,
+      entityId: wreck.id,
+      method: 'centre_torso',
+    });
+    const harness = rendererHarness();
+    const engine = new Engine(world, harness.renderer, 10_000);
+
+    engine.forceStep();
+    tick(engine, 0.1);
+
+    expect(world.finished).toBe(true);
+    expect(world.winner).toBe(playerTeam);
+    expect(harness.beginKillingBlow).not.toHaveBeenCalled();
+    expect(useGame.getState().finished).toBe(true);
+    expect(useGame.getState().outcomePending).toBe(false);
+    engine.destroy();
+  });
+
+  it('leaves an ordinary destruction and its camera timing untouched', () => {
+    const world = playerWorld('ordinary-kill-camera');
+    const enemy = world.entities.find((entity) => entity.team !== (world.playerTeam ?? 0));
+    expect(enemy).toBeDefined();
+    if (enemy === undefined) return;
+    enemy.destroyed = true;
+    world.events.push({
+      type: 'mech_destroyed',
+      tick: world.tick + 1,
+      entityId: enemy.id,
+      method: 'centre_torso',
+    });
+    const harness = rendererHarness();
+    const engine = new Engine(world, harness.renderer, 10_000);
+
+    engine.forceStep();
+
+    expect(world.finished).toBe(false);
+    expect(harness.beginKillingBlow).not.toHaveBeenCalled();
+    engine.destroy();
+  });
+
+  it('publishes a non-kill battle ending without a camera hold', () => {
+    const world = playerWorld('timeout-without-camera');
+    const harness = rendererHarness();
+    const engine = new Engine(world, harness.renderer, 1);
+
+    engine.forceStep();
+    tick(engine, 0.1);
+
+    expect(world.finished).toBe(true);
+    expect(harness.beginKillingBlow).not.toHaveBeenCalled();
+    expect(useGame.getState().finished).toBe(true);
+    engine.destroy();
+  });
+
   it('snaps to the final simulation pose while finished effects keep advancing', () => {
     const world = playerWorld('finished-presentation');
     world.finished = true;

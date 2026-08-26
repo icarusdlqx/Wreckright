@@ -1,3 +1,4 @@
+import { KILLING_BLOW_SECONDS } from '../render3d/camera';
 import { machineCulture } from '../render3d/machineCulture';
 import type { Renderer } from '../render3d/scene';
 import { canPresentEntity } from '../render3d/visibilityPresentation';
@@ -16,6 +17,7 @@ import { useGame, type HitPreviewView } from './store';
 /** Owns the HUD-facing view of a battle, including its contact privacy boundary. */
 export class EnginePresentation {
   private clockSeconds: number;
+  private outcomeDelaySeconds = 0;
   /** Every optical or electronic contact acquired, for the new-contact brake. */
   private readonly sighted = new Set<EntityId>();
   private contactsSeeded = false;
@@ -37,6 +39,7 @@ export class EnginePresentation {
     this.renderer.snapshot(this.world);
     const events = this.world.events.splice(0, this.world.events.length);
     this.renderer.consumeEvents(this.world, events);
+    this.beginKillingBlow(events);
     this.audio.listenAt = this.renderer.camera.target;
     this.audio.consume(
       this.world,
@@ -50,6 +53,14 @@ export class EnginePresentation {
         useGame.getState().pushLog(warning);
       }
     }
+  }
+
+  /** Advances the results hold on wall time, independent of battle speed. */
+  advance(deltaSeconds: number): boolean {
+    if (this.outcomeDelaySeconds <= 0) return false;
+    const delta = Number.isFinite(deltaSeconds) ? Math.max(0, deltaSeconds) : 0;
+    this.outcomeDelaySeconds = Math.max(0, this.outcomeDelaySeconds - delta);
+    return this.outcomeDelaySeconds === 0;
   }
 
   emitDamageSmoke(): void {
@@ -84,6 +95,8 @@ export class EnginePresentation {
     const playerTeam = this.world.playerTeam ?? 0;
     const { units, enemies, contacts } = snapshotUnits(this.world, playerTeam);
     const state = useGame.getState();
+    const finished = this.world.finished && this.outcomeDelaySeconds === 0;
+    const outcomePending = this.world.finished && !finished;
 
     this.brakeOnNewContact([...enemies, ...contacts]);
 
@@ -95,8 +108,9 @@ export class EnginePresentation {
     state.patch({
       tick: this.world.tick,
       elapsedSeconds: this.world.tick * this.world.dt,
-      finished: this.world.finished,
-      winner: this.world.winner,
+      finished,
+      winner: finished ? this.world.winner : null,
+      outcomePending,
       units,
       enemies,
       contacts,
@@ -126,6 +140,32 @@ export class EnginePresentation {
       hitPreview: this.previewFor(selection, hoveredId),
       ...(selection.length === state.selection.length ? {} : { selection }),
     });
+  }
+
+  private beginKillingBlow(events: readonly SimEvent[]): void {
+    const battleEnd = events.find((event) => event.type === 'battle_ended');
+    const playerTeam = this.world.playerTeam;
+    if (battleEnd === undefined || playerTeam === null || battleEnd.winner !== playerTeam) return;
+
+    for (let index = events.length - 1; index >= 0; index -= 1) {
+      const event = events[index];
+      if (event?.type !== 'mech_destroyed' || event.tick !== battleEnd.tick) continue;
+      const wreck = findEntity(this.world, event.entityId);
+      if (
+        wreck === null ||
+        wreck.team === playerTeam ||
+        !wreck.destroyed ||
+        !canPresentEntity(this.world, wreck.id)
+      ) continue;
+      if (this.world.entities.some((entity) => entity.team === wreck.team && isOperational(entity))) {
+        continue;
+      }
+
+      this.renderer.camera.beginKillingBlow(wreck.pos, KILLING_BLOW_SECONDS);
+      this.outcomeDelaySeconds = KILLING_BLOW_SECONDS;
+      useGame.getState().patch({ outcomePending: true });
+      return;
+    }
   }
 
   private logEvents(events: readonly SimEvent[]): void {
