@@ -44,6 +44,32 @@ export function stableRemovalFocusTarget(removeControl: HTMLElement): HTMLButton
     ?? null;
 }
 
+/**
+ * A run of rack cells, one per slot. The cell is the same size everywhere, so
+ * a three-cell laser reads as the same object in an arm or a torso, and the
+ * hollow cells left over say at a glance what still fits.
+ */
+function RackCells({ count, incoming = 0 }: { count: number; incoming?: number }) {
+  return (
+    <span className="rack-cells" aria-hidden="true">
+      {Array.from({ length: count }, (_, index) => (
+        <i
+          key={index}
+          className={`rack-cell${index < incoming ? ' rack-cell--incoming' : ''}`}
+        />
+      ))}
+    </span>
+  );
+}
+
+function armedFootprint(catalog: Catalog, armed: DropPayload | null): number {
+  if (armed === null) return 0;
+  if (armed.kind === 'weapon') return catalog.weapons.get(armed.id)?.slots ?? 1;
+  if (armed.kind === 'equipment') return catalog.equipment.get(armed.id)?.slots ?? 1;
+  // A bin is always one slot per ton, placed a ton at a time.
+  return 1;
+}
+
 /** One thing bolted into this location, and how much room it takes. */
 interface Occupant {
   key: string;
@@ -321,6 +347,7 @@ export function LocationCard({
               onFocus={() => onInspect?.({ kind: item.kind, id: item.id })}
             >
               <span>{item.label}</span>
+              <RackCells count={item.slots} />
               <small>{item.kind === 'ammo' ? 'Ammo' : item.kind === 'equipment' ? 'Gear' : 'Weapon'} · {item.slots} slot{item.slots === 1 ? '' : 's'}</small>
             </button>
             <button
@@ -338,10 +365,28 @@ export function LocationCard({
             </button>
           </li>
         ))}
-        <li className="slot-block empty" data-testid={`free-slots-${location}`}>
-          {usage.slotsAvailable === 0
-            ? 'No fitting space'
-            : `${empty} slot${empty === 1 ? '' : 's'} free`}
+        <li
+          className="slot-block empty"
+          data-testid={`free-slots-${location}`}
+          aria-label={
+            usage.slotsAvailable === 0
+              ? 'No fitting space'
+              : `${empty} slot${empty === 1 ? '' : 's'} free`
+          }
+        >
+          {usage.slotsAvailable === 0 ? (
+            'No fitting space'
+          ) : (
+            <>
+              <RackCells
+                count={empty}
+                incoming={armedFits && armed !== null ? Math.min(empty, armedFootprint(catalog, armed)) : 0}
+              />
+              <small className="rack-free-count">
+                {empty} slot{empty === 1 ? '' : 's'} free
+              </small>
+            </>
+          )}
         </li>
       </ul>
 

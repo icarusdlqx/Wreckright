@@ -350,3 +350,19 @@
     font-size: 12px;
   }
 }
+
+/* The workbench view gives the free row the same shape as a fitted part:
+   cells first, the count as the caption. */
+.location-overview .slot-block.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 5px 6px;
+  height: auto;
+  min-height: 0;
+}
+
+.location-overview .rack-cells {
+  padding: 1px 0;
+}

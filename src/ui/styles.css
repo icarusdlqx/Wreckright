@@ -2685,27 +2685,72 @@ button {
   color: inherit;
 }
 
-/* Coloured by what it is, matching the hardpoint pips above it. */
+/* Coloured by what it is, matching the hardpoint pips above it. The --cell
+   custom property feeds the rack cells inside, so a part's row of cells is
+   painted in the same voice as its border. */
 .slot-block.tone-energy {
+  --cell: rgba(140, 224, 255, 0.55);
   border-color: rgba(140, 224, 255, 0.55);
   background: rgba(140, 224, 255, 0.12);
 }
 .slot-block.tone-ballistic {
+  --cell: rgba(255, 212, 137, 0.55);
   border-color: rgba(255, 212, 137, 0.55);
   background: rgba(255, 212, 137, 0.12);
 }
 .slot-block.tone-missile {
+  --cell: rgba(255, 157, 92, 0.55);
   border-color: rgba(255, 157, 92, 0.55);
   background: rgba(255, 157, 92, 0.12);
 }
 .slot-block.tone-ammo {
+  --cell: rgba(255, 157, 92, 0.35);
   border-color: rgba(255, 157, 92, 0.35);
   background: rgba(255, 157, 92, 0.06);
   font-style: italic;
 }
 .slot-block.tone-gear {
+  --cell: rgba(255, 255, 255, 0.28);
   border-color: rgba(255, 255, 255, 0.28);
   background: rgba(255, 255, 255, 0.07);
+}
+
+/* ------------------------------------------------------------- rack cells */
+/* One cell per slot, the same size in every location, so part sizes compare
+   across the whole machine the way crates compare across a hold. */
+.rack-cells {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rack-cell {
+  width: 16px;
+  height: 9px;
+  border-radius: 1px;
+  border: 1px solid var(--cell, rgba(255, 255, 255, 0.22));
+  background: var(--cell, rgba(255, 255, 255, 0.05));
+  flex: none;
+}
+
+/* Hollow cells are room; they only outline. */
+.slot-block.empty .rack-cell {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: transparent;
+  border-style: dashed;
+}
+
+/* The held part's footprint, previewed in the room it would take. */
+.slot-block.empty .rack-cell--incoming {
+  border-style: solid;
+  border-color: var(--accent);
+  background: rgba(140, 224, 255, 0.22);
+}
+
+.rack-free-count {
+  color: var(--muted);
+  font-size: 9px;
 }
 
 .slot-block.too-big {
