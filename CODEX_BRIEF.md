@@ -1,71 +1,77 @@
-# Work board: presentation layer
+# Work board: the fun pass
 
-This is the standing brief for graphics, environment, sound, and content work.
-`FACTION_PLAN.md` holds the staged faction rebuild — the larger piece of work,
-and the one to follow first when it is live.
-**Read `AGENTS.md` first** — it holds the architecture rules, the commands, and
-the branch/deploy workflow, and none of it is optional. This file says *what*
-to work on and *how to know it worked*.
+This is the standing brief for the next phase: combat feel, mechbay depth,
+graphics, sound, navigation, and — new for this board — **gameplay mechanics
+inside the simulation**. The previous board (atmospheres, damage floaters, the
+colour rework, terrain-aware footfalls, prop snags) has largely shipped; check
+the current state of anything before starting it.
 
-Take **one task per branch, one branch per pull request.** Tasks here are
-deliberately independent so that several can be in flight without collisions.
-Do not batch three tasks into one branch; a reviewer needs to be able to look
-at a change and see one intention.
+**Read `AGENTS.md` first** — architecture rules, commands, branch/deploy
+workflow, none of it optional. This file says *what* to work on and *how to
+know it worked*.
+
+Take **one task per branch, one branch per pull request.** Tasks are
+deliberately independent so several can be in flight without collisions.
 
 ## How to see your own work
 
-This matters more than anything else in this file. The browser harness drives a
-real playthrough and drops ten screenshots:
+The browser harness drives a real playthrough — desktop, campaign, mobile
+portrait, landscape, and tablet — and drops ~47 screenshots:
 
 ```
-node tests/e2e/playthrough.mjs        # ~100 checks, writes reports/e2e/*.png
+node tests/e2e/playthrough.mjs        # ~404 checks, writes reports/e2e/*.png
 SHOT_DIR=./reports/before node tests/e2e/playthrough.mjs
 ```
 
-`reports/e2e/01-boot.png` … `10-objectives.png` cover boot, selection, a paused
-order, a battle outcome, both mechbay states, the campaign map, a campaign
-battle, the support palette, and objectives. **Capture a before set, make your
-change, capture an after set, and look at both.** A visual change that you have
-not looked at is not finished. Attach the pair to the pull request.
+**Capture a before set, make your change, capture an after set, and look at
+both.** A visual change you have not looked at is not finished. Attach the pair
+to the pull request.
 
 For anything the harness does not reach, `npm run dev` serves the game and
-`window.__wreckright = { engine, world, useGame }` is live in the console.
+`globalThis.__wreckright = { engine, world, useGame }` is live in the dev
+console (dev builds only — production strips it).
 
-## Hard boundaries
+## The simulation: rules of engagement
 
-Breaking one of these wastes a review cycle, so they are worth reading twice.
+Earlier boards banned `src/sim` outright. **This board charters specific tasks
+into it** — the ones tagged `[sim]` below — under the full discipline:
 
-- **Never edit `src/sim/**`.** It is pure and deterministic, and nothing on
-  either board requires changing it. If a task appears to, stop and say so in
-  the pull request instead of reaching in. Rendering and audio read the world;
-  they never write it.
-- **Changing statistics means running the balance gate.** Weapon, chassis,
-  equipment and mission-tuning data feed the simulation, so editing any of it
-  puts the 200-battle suite on you:
-  `npx vitest run src/sim/balance.test.ts` (~13 min) and
-  `npx vitest run src/campaign/acceptance.test.ts`. Run them **after your last
-  edit**, never alongside further editing — a gate run against a state you then
-  changed has told you nothing. Say the result in the pull request.
+- All randomness through `ctx.rng` / `world.rng`. `Math.random`, `Date.now`,
+  `performance.now` are lint errors in `/sim` and will fail CI.
+- Every sim change ships with a Vitest, and the determinism suite must stay
+  green: identical seed → identical outcome.
+- **The balance gate.** Any change under `src/sim` or to sim-feeding data
+  (weapons, chassis, equipment, rules, mission tuning) requires
+  `npx vitest run src/sim/balance.test.ts` (~90s, 200 mirror seeds) **and**
+  `npx vitest run src/campaign/acceptance.test.ts`, run **after your final
+  edit**. State both results in the pull request.
 - **Never edit `src/data/missions/mirror_ridge.json`.** It is the balance
-  fixture. Its `startingResourcePoints` stays `0`.
-- **No new npm dependencies.** The single-file build inlines everything and
-  runs under a strict CSP. A tempting library is a hard no; write the twenty
-  lines instead.
-- **No external URLs for assets** — no CDN fonts, no remote images. The game
-  has to run from a single file with no network.
-- **`public/` does not exist in the itch.io build.** `tools/build-single.mjs`
-  folds only `assets/*.js` and `*.css` into the one-file output, so anything
-  dropped in `public/` and referenced by URL will 404 there. Art that must
-  appear in-game has to be `import`ed from `src/` (which inlines it as a data
-  URI, so mind the file size) or drawn procedurally.
-- **Do not rename the legacy `ironline.*` localStorage keys.** They are
-  non-visible compatibility identifiers retained by Wreckright; changing them
-  silently loses existing saves and breaks rollback.
-- Files stay under ~400 lines. `src/ui/mechbay/Mechbay.tsx` is at 700 and wants
-  splitting, not growing.
-- Comments explain **why**, never what. Match the prose voice already in the
-  files — it is dry and concrete, not chatty.
+  fixture; `startingResourcePoints` stays `0`.
+- No stat hardcoded in TypeScript. New tunables go in `src/data/rules/*.json`
+  with a matching Zod field in `src/schema/` — see how
+  `withdrawal.endgameClockFraction` was added to `rulesAwareness.ts` and
+  `ai.json` for the pattern.
+- **Run `[sim]` tasks one at a time.** Two open branches that both move
+  sim-feeding data will invalidate each other's gate runs. Presentation
+  branches can proceed in parallel with anything.
+- Measure before you tune. `runBattle` from `src/sim/world.ts` plus
+  `factionLance`/`lanceEntries` from `src/ui/lance.ts` make a 40-seed arena a
+  ten-line script; a balance claim without a win-rate number is an opinion.
+
+## Hard boundaries (unchanged)
+
+- **No new npm dependencies.** The single-file build inlines everything under a
+  strict CSP. Write the twenty lines instead.
+- **No external URLs for assets** — no CDN fonts, no remote images, ever.
+- **`public/` does not ship in the itch build.** In-game art is `import`ed from
+  `src/` (inlined as data URIs — mind the size) or drawn procedurally.
+- **Do not rename the legacy `ironline.*` localStorage keys.** They are the
+  only handle on players' existing saves.
+- Files stay under ~400 lines; split before exceeding. (`Mechbay.tsx` sits at
+  443 and wants splitting, not growing.)
+- Comments explain **why**, never what. Match the dry, concrete prose voice.
 - Never name an AI model in code, comments, data, or docs.
+- Rendering and audio read the world; they never write it.
 
 ## Definition of done, every task
 
@@ -76,224 +82,387 @@ npx vitest run --exclude "**/balance.test.ts" --exclude "**/e2e/**"
 node tests/e2e/playthrough.mjs
 ```
 
-All four green, plus before/after screenshots for anything visual. Then push
-`codex/<short-name>` and open a pull request. **Do not merge to `main`
-yourself** — `main` deploys straight to the live site, so a human presses that
-button.
+All four green — plus the balance gate pair for `[sim]` tasks, plus
+before/after screenshots for anything visual. Push `codex/<short-name>`, open a
+pull request. **Do not merge to `main` yourself** — `main` deploys straight to
+the live site.
+
+Sizes below are honest estimates: **S** under a day, **M** a day or two,
+**L** several days, **XL** a flagship worth breaking into stages (still one
+branch per stage).
 
 ---
 
-# The board, in priority order
+# Tier 1 — Combat feel `[render/ui]`
 
-**Much of this board is already done** — atmospheres, ground clutter, the sound
-pass, the team-colour rework and the training flow all landed. Check the current
-state of a task before starting it, and skip what is finished. `FACTION_PLAN.md`
-is the live work.
+## 1.1 The killing blow deserves a camera (M)
 
-## 1. Weather and light: four new atmospheres
+**Files:** `src/render3d/camera.ts` (`TacticalCamera`), `src/ui/engineCore.ts`
+presentation hooks, `src/ui/enginePresentation.ts`.
 
-**Files:** `src/data/atmospheres/*.json` (new files only), plus a matching
-entry in `AMBIENT_PROFILES` in `src/ui/audio.ts` (~line 759).
+When the battle-deciding kill lands — the shot that drops the last enemy — the
+camera does nothing special. Wanted: on `mech_destroyed` that ends the battle,
+a two-second slow push toward the wreck before the results screen, honouring
+`prefers-reduced-motion` (the camera already carries a `reducedMotion` flag —
+use it, don't re-detect). The sim must not wait for the camera: the world is
+already finished; this is presentation borrowing time from the results screen.
 
-Atmospheres are pure data and auto-register — `src/schema/load.ts` globs the
-directory, so a new JSON file needs no code change. The shape, validated by
-`src/schema/atmosphere.ts`:
+**Done when:** the last kill reads as an event, an ordinary kill is untouched,
+and with reduced motion the push is a cut.
 
-```json
-{ "id": "...", "name": "...", "sky": "#hex", "exposure": 1.18,
-  "fog":  { "kind": "linear", "colour": "#hex", "near": 800, "far": 2600 },
-  "sun":  { "colour": "#hex", "intensity": 2.1,
-            "direction": { "azimuthDegrees": 200, "elevationDegrees": 16, "distance": 1300 } },
-  "fill": { "colour": "#hex", "intensity": 0.7, "direction": { ... } },
-  "hemisphere": { "sky": "#hex", "ground": "#hex", "intensity": 1.35 },
-  "terrainTint": { "colour": "#hex", "strength": 0.16 } }
-```
+## 1.2 Incoming-fire direction (S)
 
-Read all five existing files before writing one. Wanted: **dust storm** (short
-fog, high ground bounce, sun barely present), **rain** (flat grey light, cool
-tint, low exposure), **dawn** (long low sun, cold shadows, warm rim), and
-**industrial smog** (sodium-lit, sickly, a real drone in the audio profile).
+**Files:** `src/ui/BattleHud.tsx` or a small new component, `src/ui/styles.css`.
 
-Each one needs an `AMBIENT_PROFILES` entry keyed by the same id, or it silently
-falls back to `overcast_day` — that fallback is the bug most likely to slip
-through here. Point a map at each new atmosphere via `atmosphereId` in
-`src/data/maps/*.json` to shoot it, but revert the map before the pull request
-unless the change genuinely suits that map.
+Damage arrives with no directional read: a player whose selected mech is being
+shot from off-screen learns it from the paper doll. Wanted: a brief directional
+tick at the screen edge when a *selected or player-team* mech takes a hit from
+an off-screen shooter, derived from `projectile_hit` events plus the shooter's
+position — both already in the event stream. Pool the ticks; no per-hit
+allocation. Respect the fog boundary: `canPresentEntity` decides whether the
+shooter's bearing may be shown at all.
 
-**Done when:** each atmosphere is legible and distinct in a screenshot, and
-none of them makes enemy mechs hard to pick out against the ground. That last
-clause is a gameplay constraint, not a style note — atmosphere never wins over
-readability.
+**Done when:** being flanked is legible without moving the camera, and the perf
+overlay's `other` line does not move under sustained fire.
 
-## 2. Environment density: more things on the ground
+## 1.3 Wrecks that stay wrecked (M)
 
-**Files:** `src/render3d/props.ts` (279 lines — keep it under 400 or split).
+**Files:** `src/render3d/battleEffects.ts`, `src/render3d/effects.ts`
+(`ScarLayer` pattern), `src/render3d/unitViews.ts`.
 
-Five prop kinds exist: `canopy`, `trunk`, `boulder`, `crag`, `block`. Every
-forest is the same conifer and every ruin is the same box. Add kinds — dead
-snags, rubble piles, pylons, fence lines, burnt-out hulks — placed off the same
-deterministic `hash(column, row, salt)` so a map looks identical every load.
+Destroyed machines already persist as hulks. The *ground* forgets: scorch marks
+fade, craters don't exist, and a late-battle field looks like an early one.
+Wanted: artillery and ammo-explosion craters as decals that persist for the
+battle, smoke columns off fresh wrecks that thin over a minute, and scars that
+accumulate rather than recycle too eagerly. Fixed-capacity pools throughout —
+follow `ScarLayer`; the pooling discipline in this codebase was hard-won.
 
-Respect the existing machinery rather than working around it: instanced meshes,
-per-kind caps (`CAPS`), incremental reveal through `tileInstances` with
-`addUpdateRange`. That reveal path was written to fix a real stutter when mechs
-walked into forest; a full buffer re-upload brings it straight back.
+**Done when:** a screenshot at minute six looks like a place where a battle has
+been happening, and draw calls have not climbed (P toggles the perf overlay).
 
-**Done when:** the four maps look meaningfully different from each other, draw
-calls have not climbed (P toggles the perf overlay — check the `dc` figure),
-and walking a lance into dense cover produces no spike in the overlay's third
-caption line.
+# Tier 2 — Gameplay mechanics `[sim]` — run these one at a time
 
-## 3. Sound: cover the events that are currently silent
+## 2.1 The enemy learns to use its wallet (L) — the flagship of this tier
 
-**Files:** `src/ui/audio.ts` (778 lines — split if you approach 400 more).
+**Files:** `src/sim/ai/tactical.ts`, new `src/sim/ai/support.ts`, tunables in
+`src/data/rules/ai.json` + schema in `src/schema/rulesAwareness.ts`.
 
-`consume()` handles `weapon_fired`, `projectile_hit`, `critical_hit`,
-`ammo_explosion`, `mech_destroyed`, `shutdown`, `restart`, `jump_started`,
-`jump_landed`, `zone_captured`, `objective_settled`. Silent today, and each one
-is a moment the player should hear:
+`callSupport` has **zero call sites in `src/sim/ai/`** — the enemy sits on its
+resource points all battle, every battle. Support is a player-only system, so
+veteran and elite difficulty never once threaten the player with the tools the
+game itself owns. Wanted: a doctrine layer the tactical AI consults each
+decision tick —
 
-- `ability_used` — a pilot's one active ability firing (see `src/sim/events.ts`)
-- `alpha_strike` — the whole loadout at once; this should sound like a mistake
-  you chose to make
-- knockdowns and falls — a hundred tonnes hitting the ground
-- heat: a rising note as a mech approaches capacity, so the player feels the
-  shutdown coming instead of reading it
-- `mission_message` — a quiet radio blip, easy to ignore, never a klaxon
+- **artillery** on a zone where two-plus player mechs have held position;
+- **air strike** along a clustered advance;
+- **sensor probe** into fog the lance is about to push through;
+- **repair truck** behind its own line when a heavy is hurt but safe.
 
-Everything is procedural through the Web Audio graph — no samples, no files.
-Read how the existing weapon voices are built before adding more; the vocabulary
-is already there.
+Gate everything by difficulty via the existing tier flags in
+`difficulty.json` (add `usesSupport` per tier — green/regular never call).
+All thresholds (cluster radius, hold seconds, minimum RP reserve) are data in
+`ai.json`. The mirror match runs both sides through this doctrine, so it stays
+symmetric — but expect the gate's *durations* to shift, and say so in the PR.
 
-Also: `footfall()` ignores terrain, so a mech sounds identical on road, in
-water, and through forest. The terrain is right there in `world.terrain`.
+**Done when:** on elite, a player who parks a lance in a capture zone eats a
+fair, telegraphed artillery call (the pending-call marker already renders);
+green plays exactly as before; balance gate and acceptance both green.
 
-**Done when:** a battle is legible with the screen turned away, and nothing
-clips or accumulates nodes across a campaign's worth of battles. `destroy()`
-exists because browsers cap live AudioContexts — do not leak sources.
+## 2.2 The probe earns its 200 RP (M)
 
-## 4. Combat feedback: damage floaters and hit reads
+**Files:** `src/sim/support.ts`, `src/sim/sensors.ts`, `src/ui/`
+(`eventLogPresentation.ts`), tunables in `src/data/rules/support.json`.
 
-**Files:** `src/render3d/effects.ts`, `src/ui/Battle.tsx`, `src/ui/styles.css`.
-**Do not touch `src/sim`.**
+The sensor probe works — it was e2e-verified — but it cannot pay for itself:
+the log says "sensor probe on target" whether it found a lance or empty ground,
+and the sweep ring draws at 0.3 opacity (`markerLayer.ts:79`). Wanted, in
+order of value: the resolution event carries a contact count and the log says
+"Sensor sweep — 3 contacts" or "— nothing in range"; the ring gets a legible
+presentation with a remaining-duration read; and (the sim half) **indirect
+fire**: missiles may target a *detected-but-unseen* contact at an accuracy
+penalty authored in `support.json` — which finally gives the probe a payoff
+chain worth its cost.
 
-Half of an old task, deliberately left: when you shoot something, too little
-comes back. Wanted — a damage number rising off the hit location and fading; a
-distinct read for armour hit versus internal structure versus a critical; a
-clear visual for a shot that missed, so a whiffed volley does not look like a
-volley that never fired.
+**Done when:** probing empty ground and probing a lance read differently within
+one second, indirect fire works and is visibly worse than sighted fire, gates
+green.
 
-The events are already emitted and already carry what you need. `ScarLayer` and
-`SmokeLayer` in `effects.ts` show the pooling pattern to follow — fixed
-capacity, no per-frame allocation. Steady-state allocation was hunted down
-deliberately in this codebase; floaters that allocate per hit will undo it.
+## 2.3 Weather that reaches the instruments (L)
 
-**Done when:** a firefight reads at a glance, and the perf overlay's `other`
-figure has not moved during heavy fire.
+**Files:** `src/schema/atmosphere.ts` (new optional `mechanics` block),
+`src/sim/world.ts` + `src/sim/sensors.ts`, atmosphere JSONs.
 
-## 5. Colour and accessibility
+Nine atmospheres exist and all of them are pure theatre — rain, dust and
+moonlight change nothing a sensor or a gun can feel. Wanted: an optional
+`mechanics` block per atmosphere — `sightFactor`, `sensorFactor`,
+`heatDissipationFactor` — validated in the schema, defaulted to 1, applied in
+the sim (the mission already names its atmosphere; thread it through
+`createWorld`). Tune gently: rain that halves sensors is a different game;
+0.85–0.9 factors are felt without being the whole battle. Night favours the
+sensor-heavy Aurelian roster; dust favours knife-range brawlers — say which
+missions exploit this in the PR.
 
-**Files:** `src/render/palette.ts` (50 lines), `src/ui/styles.css`.
+**Done when:** the same skirmish at `hard_noon` and `moonlit_night` plays
+measurably differently (state the arena numbers), no atmosphere makes the
+balance gate fail, and every existing atmosphere still loads (the block is
+optional).
 
-`TEAM_COLOURS` is `[blue, red, gold, green]` — red/green side by side is the
-single most common colourblind failure, and this game asks the player to tell
-friend from enemy at a glance under fog and dusk lighting. Rework the ramp so
-teams stay separable for deuteranopia and protanopia, using lightness and
-shape-adjacent cues rather than hue alone.
+## 2.4 Fire modes (XL — stage it)
 
-While in here: honour `prefers-reduced-motion` for screen shake and camera
-drop-in, and check the HUD's contrast against the panel colours.
+**Files:** `src/schema/weapon.ts`, `src/sim/combat.ts` + `src/sim/loadout.ts`,
+`src/ui/` weapon-group controls, weapon JSONs.
 
-**Done when:** a simulated deuteranope view of `02-selected.png` and
-`07-campaign-battle.png` still tells the sides apart.
+The catalogue's most interesting weapons are flattened by having one trigger.
+Wanted: an optional `modes` array on a weapon — each mode a named override of
+`damage`/`projectiles`/`accuracy`/`heat`/`cooldown` — with the LB-X cannon
+(slug ↔ cluster) as the proving piece and the Longshots' minimum range as the
+second candidate (`direct` ↔ `arc`: arc ignores min-range, pays accuracy).
+Stage 1: schema + sim + one weapon + tests. Stage 2: the mode toggle in the
+weapon-group UI and the mechbay dossier. Stage 3: AI mode selection (simple
+range-band rule, in `ai.json`).
 
-## 6. Two new maps
+**Done when (stage 1):** a mode switch is deterministic, saved battles replay
+identically, and the balance suite scores each mode as its own efficiency row.
 
-**Files:** `src/data/maps/*.json`, then a mission in `src/data/missions/` to
-play them, then a campaign node in `src/data/campaigns/border_dispute.json`.
+## 2.5 Fire on the field (XL — the showpiece)
 
-Maps are 40×40 grids: `tiles` (rows of legend characters) and `elevation` (rows
-of numbers), `tileSize: 24`, legend `. open · r rough · f forest · w water ·
-= road · b building`. Read `ridge_pass.json` and `the_causeway.json` first —
-they are shaped around a tactical idea, not decorated.
+**Files:** `src/sim/terrain.ts` + a new `src/sim/fire.ts`, rules in
+`src/data/rules/terrain.json`, presentation in `src/render3d/`.
 
-Give each new map one idea a player can name: a river crossing where the fords
-are the whole battle; a hillside where the high ground is real but exposed.
-Elevation and forest both fight — cover blocks sightlines, height grants
-advantage — so terrain is a tactical argument, not scenery.
+Forests are concealment that nothing can remove. Wanted: flamers, ammo
+explosions and artillery can **ignite forest tiles**; fire spreads tile-to-tile
+through `world.rng` with a wind vector from the atmosphere (2.3's block can carry a
+wind vector), burns for an authored duration, then leaves a burnt tile — less
+concealment, no fire risk. Standing in fire adds heat per second. Everything
+deterministic, everything data-authored, and the vision system already
+re-reads terrain factors per tile so a burnt tile's lower `visionFactor` costs
+nothing extra. Presentation: instanced flame billboards + smoke on burning
+tiles, scorched material on burnt ones.
 
-Missions and campaign nodes are cross-validated by `src/schema/integrity.ts`,
-so a dangling id fails loudly at load rather than at runtime. Keep new missions'
-`startingResourcePoints` in the band the others use (200 for training, 400–700
-mid-campaign, 900 for a base assault).
+This is the task most likely to tempt a shortcut around determinism. Resist:
+fire state lives in the world, advances in `stepWorld`, and replays exactly.
 
-**Done when:** both maps are playable start to finish, the AI navigates them
-without wedging, and the fast suite is green.
+**Done when:** torching a treeline to smoke out a scout is a real tactic, the
+determinism suite is green, and a 200-seed gate run shows fire has not
+destabilised the mirror (durations may move; win rate must hold).
 
-## 7. Weapon prose pass
+# Tier 3 — Mechbay depth `[ui]`
 
-**Files:** `src/data/weapons/*.json` (`summary` fields only),
-`src/data/equipment/*.json`, `src/data/chassis/*.json` (`lore`).
+## 3.1 Armour as a paper doll, not eight numbers (L)
 
-Every weapon was renamed off another franchise's designations — PPC became Arc
-Projector, LRM became Longshot, Streak became Seeker, CASE became Blowout Cell,
-and so on. The `summary` lines were written for the old names and now sit
-slightly wrong: some describe a designation that no longer exists, and none of
-the new names has earned its flavour yet.
+**Files:** `src/ui/mechbay/ArmourWorkbench.tsx` (237 lines),
+`src/ui/mechbay/ChassisSilhouette.tsx`.
 
-Rewrite the summaries so each weapon reads like a thing soldiers actually carry
-and complain about. Constraints: dry, specific, one or two sentences, no
-marketing voice, and **never** reference another game's terminology. Keep every
-`id` untouched — ids are load-bearing and appear in save files.
+Armour allocation is the bay's last prose-heavy surface. Wanted: the silhouette
+becomes the editor — click a location, drag or scroll to pour points in or out,
+front/rear split on the torsos via the existing presets, red wash where a
+location is under its class median, live tonnage cost as you drag. The
+`design.armour` model and validation stay exactly as they are; this is
+presentation over the same numbers, the way the rack was.
 
-**Done when:** the mechbay dossier reads well end to end, and `LAUNCH.md`'s
-scrub list still holds true (no franchise term has crept back in).
+**Done when:** a player can re-armour a machine without reading a number they
+didn't choose to read, and keyboard editing still works (the audit's dialog
+standards apply — this bay has real accessibility to protect).
 
-## 8. Store and icon art
+## 3.2 The build compared to something (M)
 
-**Files:** `public/icons/*`, plus new marketing art outside the build.
+**Files:** new `src/ui/mechbay/BuildCompare.tsx`, data from
+`computeLoadout` + `computeHeatProfile` + `weaponEfficiency`.
 
-The PWA icons are placeholders. The itch.io page needs a capsule (630×500),
-a cover, and a handful of clean screenshots. Two notes that matter:
+Every edit changes the machine and nothing says *from what*. Wanted: a compact
+delta strip against the stock design (or the last saved build): speed, armour
+total, sustained heat margin, alpha damage, dps at short/medium/long — each as
+`before → after` with a coloured direction. All the maths exists in
+`src/sim/loadout.ts`, `src/sim/loadoutHeat.ts` and
+`src/sim/balance.ts`; this task is arrangement, not computation.
 
-- Keep art for the **page** out of the bundle entirely — it is upload material,
-  not game content, so it belongs in a `marketing/` directory that Vite never
-  touches.
-- Anything that must render **in-game** has to be imported from `src/`, which
-  inlines it into the 1.27 MB single file. Check the size delta before and
-  after; do not let cosmetics double the download.
+**Done when:** swapping a Gauss for two Longshots tells you in one glance what
+you traded away.
 
-Prefer the in-engine look over illustration that the game cannot match — a
-capsule promising fidelity the game does not have costs more in refunds and bad
-reviews than it earns in clicks.
+## 3.3 Range-band damage chart (S)
 
-## 9. First ten minutes
+**Files:** new small component beside the dossier, pure SVG, no dependencies.
 
-**Files:** `src/data/missions/training_ground.json`,
-`src/ui/campaign/*.tsx`, briefing copy.
+The dossier states reach as numbers. A weapon's real shape is damage-by-range.
+Wanted: a tiny inline chart (procedural SVG) of expected dps across 0–600m for
+the inspected weapon, and — the good part — a stacked one for the *whole
+current loadout*, so a player sees their build's envelope and its dead zones.
+Accuracy falloff and min-range come from the weapon schema's range block.
 
-First launches now default to Green difficulty because a stranger's opening
-battle decides whether there is a second one. The rest of the funnel has not
-had the same attention: the training mission, the first briefing, and the
-mechbay's first impression all assume someone who already knows the genre.
+**Done when:** the Longshot's minimum-range hole is visible as a hole.
 
-Play it as a stranger — cleared browser profile, no context — and fix what
-confuses. Copy changes, ordering, and what is on screen first are all in scope.
-Mechanics changes are not.
+# Tier 4 — Graphics `[render]`
 
-**Done when:** someone who has never played a mech game can finish the training
-mission without asking a question.
+## 4.1 Night operations (M)
+
+**Files:** `src/render3d/atmosphere.ts`, `src/render3d/battleEffects.ts`,
+`moonlit_night.json`, `ash_dusk.json`.
+
+Night exists as dim light. It should exist as *dark*: weapon fire that actually
+illuminates — muzzle flashes throwing brief light pools, beams glowing, tracer
+trails reading hot against black ground — and mechs carrying small running
+lights (the startup-light system in `src/render3d/startupLights.ts` already
+knows where lights live on a hull). Point lights are budgeted: pool four,
+recycle by age, never one per shot.
+
+**Done when:** a night screenshot is unmistakable at a glance, enemy mechs
+remain pickable (readability beats atmosphere — standing rule), and the perf
+overlay holds its frame time during an alpha strike.
+
+## 4.2 Cultures that read at fifty metres (L)
+
+**Files:** `src/render/blueprint/details-line.ts`, `details-aurelian.ts`,
+within the existing detail budgets in `details.ts`.
+
+The two cultures are distinct up close and identical at combat camera range.
+Wanted: silhouette-level tells — Linewrought machines carry visible patch
+plates, weld seams, stowage and asymmetry (they are rebuilt, owned things);
+Aurelian machines stay sealed, symmetric, and carry their faint powered seams
+(`sealedPowerLights.ts`). Work within the structural-digest system: detail
+parts only (`surface`/`hero` tiers), digests untouched — the digest test will
+tell you instantly if you moved structure.
+
+**Done when:** a mixed battle screenshot lets you sort the field by culture
+without team colour, and the per-chassis detail budgets in `details.test.ts`
+still pass.
+
+## 4.3 The ground has never heard of roads (M)
+
+**Files:** `src/render3d/terrain.ts`, map JSONs' road tiles.
+
+Roads are a flat colour. Wanted: procedural wear — centre-line fading, edge
+crumble into the neighbouring tile's material, occasional cracks — done in the
+terrain mesh's vertex colours / procedural texture, no image assets. While
+there: water tiles deserve a cheap animated shimmer (time-based UV or vertex
+wobble in the existing material, `lowFx` turns it off).
+
+**Done when:** a road reads as used, water reads as wet, and `lowFx` mode is
+exactly as cheap as before.
+
+# Tier 5 — Sound and music `[ui/audio]`
+
+## 5.1 A score with no audio files (XL — the other showpiece)
+
+**Files:** new `src/ui/audioScore.ts` + hooks in `src/ui/audio.ts`,
+`src/ui/audioAmbient.ts` as the foundation to study.
+
+The game has no music, and the no-assets constraint makes the obvious solution
+illegal — so build the interesting one: a **procedural adaptive score** on the
+Web Audio graph. Three intensity layers — a low drone bed (campaign map and
+quiet approach), a pulse layer (contact, movement), a full layer (sustained
+fire, a friendly critical) — driven by a battle-intensity scalar computed from
+the recent event stream, crossfaded over seconds, never cutting. Give each
+culture its own harmonic character (the ambient system already keys off
+atmosphere; the score keys off *who is on the field*). Keep every oscillator
+accounted for — `destroy()` discipline is absolute, browsers cap AudioContexts.
+
+Stage 1: the intensity scalar + drone/pulse layers in battle. Stage 2: the full
+layer and per-culture voicing. Stage 3: campaign-map and mechbay treatments.
+
+**Done when:** a battle has a dynamic arc you can hear with your eyes closed,
+the mute toggle silences it completely, and ten consecutive battles leak zero
+audio nodes (count them in the PR).
+
+## 5.2 The last silent moments (S)
+
+**Files:** `src/ui/audio.ts` (365 lines — headroom exists).
+
+Still silent: `ability_used`, the alpha strike (it should sound like a decision
+with consequences), `stood_up`, `pilot_ejected`, `unit_withdrew`, the rising
+heat note as a mech approaches capacity, and `mission_message` (a quiet radio
+blip, never a klaxon). The procedural vocabulary is all there — read the
+existing voices first.
+
+**Done when:** a battle is legible with the screen off, nothing clips, nothing
+accumulates nodes.
+
+# Tier 6 — Navigation and command `[ui]`
+
+## 6.1 Commander view (L)
+
+**Files:** new `src/ui/CommanderView.tsx`, `src/render3d/camera.ts`,
+`src/ui/inputKeyboard.ts`.
+
+The camera lives at shoulder height and the minimap is four pixels of context.
+Missing: the middle altitude. Wanted: one key (default `Tab`-adjacent, config
+in `inputKeyboard.ts`) toggles a top-down tactical view of the whole map —
+simplified unit chits with facing wedges, zone shading, order lines, contact
+markers — rendered as a 2D overlay from world state (not a second 3D camera).
+Orders issue from it exactly as from the field: click-select, right-click move,
+the whole `engineOrders` surface. Pausing + commander view is the planning
+loop this game's real-time-with-pause design has been missing.
+
+**Done when:** a full battle is playable without leaving commander view, and
+switching costs under a frame.
+
+## 6.2 Minimap that takes orders (M)
+
+**Files:** `src/ui/Minimap.tsx`.
+
+The minimap displays and does nothing else. Wanted: click to jump the camera,
+drag to pan it live, a viewport rectangle showing the camera footprint,
+contact pings that pulse on new-contact events, zone ownership tinting.
+
+**Done when:** the minimap is a control, keyboard focus can reach it, and its
+render cost is unchanged (it already draws to a small canvas — keep it there).
+
+## 6.3 Routes you can read (M)
+
+**Files:** `src/ui/enginePresentation.ts`, `src/render3d/markerLayer.ts`.
+
+Move orders draw a line. Wanted: the line carries meaning — chevrons animate
+along the path in the unit's team colour, a queued path renders dimmer than the
+active leg, the destination shows the unit's *facing on arrival* as a wedge,
+and estimated time-to-arrive sits at the endpoint (walk speed × path length is
+already computable from `pathProgress`). Pooled geometry, as ever.
+
+**Done when:** four queued waypoints across a ridge read as a plan, not a
+scribble.
+
+# Tier 7 — Content `[data]`
+
+## 7.1 The Aurelian campaign (XL — stage it)
+
+**Files:** new `src/data/campaigns/*.json`, new missions, new lore entries;
+the campaign schema and machinery need **no changes**.
+
+The Great Recall is told once, from the Linewrought side. The second campaign
+is the same war from inside the sealed machines: an Aurelian custodian company
+executing the Recall — which means the *player* fields the sealed roster and
+fights foundry rebuilds, inverting every economic instinct the first campaign
+taught (your machines are better; every repair costs 2.5×; salvage is beneath
+you and money is short). Reuse maps freely; missions and framing are the work.
+Stage 1: campaign JSON + three nodes reusing existing missions with new
+briefings. Stage 2: four new missions along the arc. Stage 3: the branch
+endings, mirroring `victoryNodeId`/`alternateVictoryNodeIds`.
+
+**Done when (stage 1):** the campaign is selectable, winnable, and the
+acceptance suite covers it the way it covers `border_dispute`.
+
+## 7.2 Days with weather in them (M) `[data+campaign]`
+
+**Files:** `src/campaign/`, new `src/data/rules/events.json` + schema.
+
+Campaign days pass identically. Wanted: a small deterministic event deck drawn
+per rest day from the campaign's seeded stream — a supplier discount week, a
+pilot rumour that grants XP, a yard mishap that queues a free repair day, a
+contract-payment dispute. Small numbers, no negative spirals (the solvency
+planner's no-dead-end rule is a design law here), every event a line in the
+campaign log. Data-authored deck, weights and all.
+
+**Done when:** two campaign runs with different seeds feel different between
+battles, and the acceptance suite still finishes both.
 
 ---
 
-## If you finish the board
+## Sequencing advice
 
-Good candidates, roughly descending: split `src/render3d/scene.ts` along its
-seams (marker pooling, picking, vision gating) without changing behaviour; a
-responsive pass so the game is playable on a tablet; per-chassis silhouette
-refinement in `src/render/blueprint.ts` (1206 lines, authored per body plan, and
-the mechbay screenshots make it verifiable); more pilots in `src/data/pilots/`.
+Presentation tasks (tiers 1, 3, 4, 5, 6) parallelise freely. `[sim]` tasks
+(tier 2) go **one at a time**, cheapest first: 2.2 → 2.1 → 2.3 → 2.4 → 2.5.
+The two showpieces (2.5 fire, 5.1 score) are worth doing after a few smaller
+wins in their areas — they lean on pooling and audio-graph discipline that the
+smaller tasks teach.
 
-If a task feels like it needs to touch `src/sim`, say so in the pull request and
-stop there. That boundary is the whole reason two agents can work in this
-repository without breaking each other's work.
+If a task feels like it needs something this file says not to do, stop and say
+so in the pull request. That is cheaper than a review cycle, and the boundary
+has usually earned its place.
