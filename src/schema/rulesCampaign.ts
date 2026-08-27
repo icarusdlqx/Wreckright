@@ -98,6 +98,7 @@ export const DifficultyTierSchema = z.strictObject({
   flanking: z.boolean(),
   coverSeeking: z.boolean(),
   calledShots: z.boolean(),
+  usesSupport: z.boolean(),
 });
 
 export const DifficultyRulesSchema = z.strictObject({

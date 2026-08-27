@@ -11,7 +11,7 @@ import {
 import { teamColour, UI } from '../render/palette';
 import type { PendingCall } from '../sim/support';
 import { isOperational, type EntityId, type MechEntity, type Vec2, type World } from '../sim/types';
-import { canPresentEntity } from './visibilityPresentation';
+import { canPresentEntity, canPresentSupportCall } from './visibilityPresentation';
 
 export interface MarkerViewState {
   selection: ReadonlySet<EntityId>;
@@ -82,7 +82,7 @@ export class MarkerLayer {
     }
 
     for (const pending of world.support.pending) {
-      if (world.playerTeam !== null && pending.team !== world.playerTeam) continue;
+      if (!canPresentSupportCall(world, pending)) continue;
       this.pendingCall(world, pending);
     }
 
@@ -135,7 +135,7 @@ export class MarkerLayer {
       : pending.call === 'repair_truck'
         ? world.rules.support.repair_truck.radius
         : pending.call === 'artillery_strike'
-          ? world.rules.support.artillery_strike.radius
+          ? world.rules.support.artillery_strike.radius + world.rules.support.artillery_strike.scatter
           : pending.call === 'minelayer'
             ? world.rules.support.minelayer.radius
             : 26;

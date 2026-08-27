@@ -18,6 +18,7 @@ import {
   type PendingVisual,
   type TruckVisual,
 } from './supportEffectModels';
+import { canPresentSupportCall } from './visibilityPresentation';
 
 const PENDING_CAPACITY = 4;
 const CALL_MEMORY_CAPACITY = 8;
@@ -77,14 +78,15 @@ export class SupportEffects {
   consume(world: World, events: readonly SimEvent[]): void {
     if (this.disposed) return;
     for (const event of events) {
-      if (event.type === 'support_called' && event.call === 'air_strike' && this.visibleTeam(world, event.team)) {
+      if (event.type === 'support_called' && event.call === 'air_strike') {
         const pending = world.support.pending.find((entry) =>
           entry.call === 'air_strike' && entry.team === event.team &&
           entry.target.x === event.x && entry.target.y === event.y);
-        if (pending !== undefined) this.remember(pending);
+        if (pending !== undefined && canPresentSupportCall(world, pending)) this.remember(pending);
       }
-      if (event.type !== 'support_resolved' || event.call !== 'air_strike' || !this.visibleTeam(world, event.team)) continue;
-      this.startAir(world, event.team, event.x, event.y, this.takeHeading(event.team, event.x, event.y));
+      if (event.type !== 'support_resolved' || event.call !== 'air_strike') continue;
+      const heading = this.takeHeading(event.team, event.x, event.y);
+      if (heading !== null) this.startAir(world, event.team, event.x, event.y, heading);
     }
   }
 
@@ -114,13 +116,17 @@ export class SupportEffects {
   private drawPending(world: World): void {
     let used = 0;
     for (const call of world.support.pending) {
-      if (call.call !== 'air_strike' || !this.visibleTeam(world, call.team)) continue;
+      if (call.call !== 'air_strike' || !canPresentSupportCall(world, call)) continue;
       this.remember(call);
       const visual = this.pending[used];
       if (visual === undefined) break;
       used += 1;
       const rules = world.rules.support.air_strike;
-      const halfAlong = rules.length / 2;
+      const spacing = rules.length / rules.shots;
+      // The first and last bursts sit half a spacing inside the authored run,
+      // then each damages half a width beyond its centre.
+      const halfAlong = rules.length / 2 - spacing / 2 + rules.width / 2;
+      const damageLength = halfAlong * 2;
       const halfAcross = rules.width / 2;
       const ax = Math.cos(call.heading); const az = Math.sin(call.heading);
       const cx = -az; const cz = ax;
@@ -134,7 +140,7 @@ export class SupportEffects {
       }
       const delayTicks = Math.max(1, Math.round(rules.delaySeconds / world.dt));
       const progress = 1 - Math.max(0, call.resolveTick - world.tick) / delayTicks;
-      const sweep = -halfAlong + Math.max(0, Math.min(1, progress)) * rules.length;
+      const sweep = -halfAlong + Math.max(0, Math.min(1, progress)) * damageLength;
       for (let edge = 0; edge < 2; edge += 1) {
         const across = edge === 0 ? -halfAcross : halfAcross;
         const x = call.target.x + ax * sweep + cx * across;
@@ -172,9 +178,9 @@ export class SupportEffects {
     memory.resolveTick = call.resolveTick;
   }
 
-  private takeHeading(team: number, x: number, y: number): number {
+  private takeHeading(team: number, x: number, y: number): number | null {
     const memory = this.calls.find((entry) => entry.active && entry.team === team && entry.x === x && entry.y === y);
-    if (memory === undefined) return 0;
+    if (memory === undefined) return null;
     memory.active = false;
     return memory.heading;
   }

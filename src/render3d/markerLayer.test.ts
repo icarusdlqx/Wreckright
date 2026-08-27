@@ -94,19 +94,47 @@ describe('support placement markers', () => {
     layer.dispose();
   });
 
-  it('does not disclose an enemy support call through the marker layer', () => {
+  it('telegraphs visible hostile artillery without disclosing hidden or private calls', () => {
+    const world = playerWorld('hostile-support-marker');
+    const vision = world.vision;
+    if (vision === null) throw new Error('player world has no vision');
+    const player = world.entities.find((entity) => entity.team === vision.team);
+    if (player === undefined) throw new Error('mission has no player unit');
+    world.zones.length = 0;
+    world.reveals.length = 0;
+    const target = { ...player.pos };
+    const tile = world.terrain.toTile(target);
+    const cell = tile.row * world.terrain.width + tile.column;
+    vision.tiles.fill(0);
+    vision.tiles[cell] = 1;
+    world.support.pending = [{
+      call: 'artillery_strike', team: 1, target, heading: 0, resolveTick: 80,
+    }];
     const layer = new MarkerLayer(() => 0, () => null);
-    layer.draw({
-      ...emptyWorld,
-      support: {
-        pending: [{
-          call: 'air_strike', team: 1, target: { x: 400, y: 400 }, heading: 0, resolveTick: 80,
-        }],
-        trucks: [],
-        minefields: [],
-      },
-    }, baseView);
+    layer.draw(world, baseView);
+    const warning = layer.group.children.find(
+      (child) => child instanceof Mesh && child.visible,
+    ) as Mesh | undefined;
+    expect((warning?.geometry as RingGeometry | undefined)?.parameters.outerRadius).toBe(
+      world.rules.support.artillery_strike.radius + world.rules.support.artillery_strike.scatter,
+    );
 
+    vision.tiles[cell] = 0;
+    world.support.pending[0] = {
+      call: 'artillery_strike',
+      team: 1,
+      target: { x: world.terrain.width * world.terrain.tileSize - 10, y: 10 },
+      heading: 0,
+      resolveTick: 80,
+    };
+    layer.draw(world, baseView);
+    expect(layer.group.children.some((child) => child instanceof Mesh && child.visible)).toBe(false);
+
+    vision.tiles[cell] = 1;
+    world.support.pending[0] = {
+      call: 'repair_truck', team: 1, target, heading: 0, resolveTick: 80,
+    };
+    layer.draw(world, baseView);
     expect(layer.group.children.some((child) => child instanceof Mesh && child.visible)).toBe(false);
     layer.dispose();
   });

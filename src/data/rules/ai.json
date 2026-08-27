@@ -53,6 +53,31 @@
     "targetStructureFraction": 0.55,
     "chance": 0.45
   },
+  "support": {
+    "minimumResourceReserve": 150,
+    "cooldownSeconds": 12,
+    "artillery": {
+      "minimumContacts": 2,
+      "clusterRadius": 100,
+      "holdSeconds": 4
+    },
+    "airStrike": {
+      "minimumContacts": 2,
+      "clusterRadius": 110,
+      "minimumAdvanceDistance": 2,
+      "advanceAlignment": 0.5
+    },
+    "sensorProbe": {
+      "aheadDistance": 220
+    },
+    "repairTruck": {
+      "minimumTonnage": 60,
+      "maximumArmourFraction": 0.6,
+      "safeEnemyRange": 180,
+      "behindLineMargin": 36,
+      "holdSeconds": 8
+    }
+  },
   "roles": {
     "shortRangeMetres": 200,
     "longRangeMetres": 330,
