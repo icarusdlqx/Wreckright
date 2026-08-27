@@ -89,3 +89,10 @@ make that safe:
    state in the last commit message rather than leaving work only on disk —
    the next session (yours or the other agent's) starts from the repo, not
    from your memory.
+7. **Codex may merge completed work.** Codex may merge or enable auto-merge on
+   its own `codex/...` pull requests only after every applicable local
+   definition-of-done gate and every required CI check is already green, all
+   required visual evidence and balance results are present, the pull request
+   is mergeable, and no blocker remains. Pending, missing, skipped, cancelled,
+   or failing gates are not green. Codex must never bypass branch protection
+   or merge a red pull request.
