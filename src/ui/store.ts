@@ -219,6 +219,7 @@ export interface GameState {
   elapsedSeconds: number;
   missionDurationSeconds: number;
   finished: boolean;
+  outcomePending: boolean;
   winner: number | null;
   playerTeam: number;
   heatTiers: number[];
@@ -281,6 +282,7 @@ export function battleRemountState() {
     elapsedSeconds: 0,
     missionDurationSeconds: 0,
     finished: false,
+    outcomePending: false,
     winner: null,
     playerTeam: 0,
     heatTiers: [],
@@ -320,6 +322,7 @@ export const useGame = create<GameState & GameActions>((set) => ({
   elapsedSeconds: 0,
   missionDurationSeconds: 0,
   finished: false,
+  outcomePending: false,
   winner: null,
   playerTeam: 0,
   heatTiers: [],

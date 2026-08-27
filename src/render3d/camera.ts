@@ -16,6 +16,17 @@ export interface Viewport {
 }
 
 const DEGREES_TO_RADIANS = Math.PI / 180;
+const KILLING_BLOW_DISTANCE = 280;
+export const KILLING_BLOW_SECONDS = 2;
+
+interface CameraPush {
+  elapsed: number;
+  seconds: number;
+  fromTarget: Vec2;
+  toTarget: Vec2;
+  fromDistance: number;
+  toDistance: number;
+}
 
 export function prefersReducedMotion(): boolean {
   return (
@@ -69,7 +80,7 @@ export class TacticalCamera {
   /** How much of the drop-in is left: 1 at the top of it, 0 once settled. */
   private intro = 0;
   private introSeconds = 1;
-
+  private killingBlow: CameraPush | null = null;
 
   private boundsWidth = 0;
   private boundsHeight = 0;
@@ -106,10 +117,47 @@ export class TacticalCamera {
     this.intro = 0;
   }
 
-  /** Runs the drop-in down. Called once a frame by the renderer. */
+  /** Gives a terminal wreck the field for a moment before the report arrives. */
+  beginKillingBlow(point: Vec2, seconds = KILLING_BLOW_SECONDS): void {
+    this.skipDropIn();
+    const toDistance = Math.min(this.distance, KILLING_BLOW_DISTANCE);
+    if (this.reducedMotion) {
+      this.target = { x: point.x, y: point.y };
+      this.distance = toDistance;
+      this.killingBlow = null;
+      this.clamp();
+      return;
+    }
+
+    this.killingBlow = {
+      elapsed: 0,
+      seconds: Math.max(0.1, seconds),
+      fromTarget: { ...this.target },
+      toTarget: { x: point.x, y: point.y },
+      fromDistance: this.distance,
+      toDistance,
+    };
+  }
+
+  /** Runs presentation camera moves down. Called once a frame by the renderer. */
   advance(deltaSeconds: number): void {
-    if (this.intro <= 0) return;
-    this.intro = Math.max(0, this.intro - deltaSeconds / this.introSeconds);
+    const delta = Number.isFinite(deltaSeconds) ? Math.max(0, deltaSeconds) : 0;
+    if (this.intro > 0) {
+      this.intro = Math.max(0, this.intro - delta / this.introSeconds);
+    }
+
+    const push = this.killingBlow;
+    if (push === null) return;
+    push.elapsed = Math.min(push.seconds, push.elapsed + delta);
+    const progress = push.elapsed / push.seconds;
+    const eased = progress * progress * (3 - 2 * progress);
+    this.target = {
+      x: push.fromTarget.x + (push.toTarget.x - push.fromTarget.x) * eased,
+      y: push.fromTarget.y + (push.toTarget.y - push.fromTarget.y) * eased,
+    };
+    this.distance = push.fromDistance + (push.toDistance - push.fromDistance) * eased;
+    this.clamp();
+    if (progress === 1) this.killingBlow = null;
   }
 
   /** Screen-space drag, converted to a pan across the ground the player sees. */

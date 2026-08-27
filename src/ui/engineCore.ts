@@ -56,12 +56,7 @@ export class Engine {
   private smokeTimer = 0;
   private detachInput: (() => void) | null = null;
 
-  constructor(
-    world: World,
-    renderer: Renderer,
-    maxTicks: number,
-    incomingFire: IncomingFireDirections | null = null,
-  ) {
+  constructor(world: World, renderer: Renderer, maxTicks: number, incomingFire: IncomingFireDirections | null = null) {
     this.world = world;
     this.renderer = renderer;
     this.maxTicks = maxTicks;
@@ -211,6 +206,11 @@ export class Engine {
       },
       presentationDelta,
     );
+
+    if (this.presentation.advance(deltaSeconds)) {
+      this.hudDirty = true;
+      this.hudTimer = HUD_INTERVAL_SECONDS;
+    }
 
     this.perf?.record({
       frameMs: rawMs,

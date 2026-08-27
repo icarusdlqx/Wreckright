@@ -261,7 +261,7 @@ export function Battle(props: BattleProps = {}) {
       : null;
 
   return (
-    <div className="app">
+    <div className="app" inert={state.outcomePending}>
       <div className="viewport" ref={hostRef} data-testid="viewport" />
 
       {state.marquee === null ? null : (

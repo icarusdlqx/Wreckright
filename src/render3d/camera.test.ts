@@ -7,7 +7,7 @@ import { buildTerrain } from './terrain';
 const VIEWPORT = { width: 1280, height: 720 };
 
 function camera(): TacticalCamera {
-  const built = new TacticalCamera();
+  const built = new TacticalCamera(false);
   built.setBounds(960, 960);
   built.centreOn({ x: 480, y: 480 });
   return built;
@@ -24,6 +24,55 @@ describe('tactical camera', () => {
     const baseline = camera();
     baseline.update(VIEWPORT);
     expect(settled.camera.position.distanceTo(baseline.camera.position)).toBeCloseTo(0, 6);
+  });
+
+  it('pushes toward a terminal wreck for two seconds and then holds', () => {
+    const view = camera();
+    const wreck = { x: 640, y: 600 };
+    view.beginKillingBlow(wreck);
+
+    view.advance(1);
+    expect(view.target.x).toBeGreaterThan(480);
+    expect(view.target.x).toBeLessThan(wreck.x);
+    expect(view.target.y).toBeGreaterThan(480);
+    expect(view.target.y).toBeLessThan(wreck.y);
+    expect(view.distance).toBeGreaterThan(280);
+    expect(view.distance).toBeLessThan(470);
+
+    const midpoint = { ...view.target };
+    view.advance(0.99);
+    expect(view.target.x).toBeGreaterThan(midpoint.x);
+    expect(view.target.x).toBeLessThan(wreck.x);
+
+    view.advance(0.01);
+    expect(view.target).toEqual(wreck);
+    expect(view.distance).toBe(280);
+    const finished = { target: { ...view.target }, distance: view.distance };
+
+    view.advance(1);
+    expect({ target: view.target, distance: view.distance }).toEqual(finished);
+  });
+
+  it('cuts to the killing blow framing when reduced motion is requested', () => {
+    const view = new TacticalCamera(true);
+    view.setBounds(960, 960);
+    view.centreOn({ x: 480, y: 480 });
+    const wreck = { x: 640, y: 600 };
+
+    view.beginKillingBlow(wreck);
+
+    expect(view.target).toEqual(wreck);
+    expect(view.distance).toBe(280);
+  });
+
+  it('never pulls back from an already close view for a killing blow', () => {
+    const view = camera();
+    view.distance = 220;
+
+    view.beginKillingBlow({ x: 640, y: 600 });
+    view.advance(2);
+
+    expect(view.distance).toBe(220);
   });
 
   it('round-trips a ground point through the screen', () => {
