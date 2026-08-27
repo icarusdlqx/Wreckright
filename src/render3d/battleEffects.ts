@@ -4,8 +4,9 @@ import type { MechLocation } from '../schema/common';
 import type { SimEvent } from '../sim/events';
 import { findEntity, type EntityId, type Vec2, type World } from '../sim/types';
 import type { TacticalCamera, Viewport } from './camera';
+import { BattlefieldWear } from './battlefieldWear';
 import { CombatReadouts } from './combatReadouts';
-import { JetLayer, ScarLayer, SmokeLayer } from './effects';
+import { JetLayer } from './effects';
 import { measureReadoutLayout } from './readoutSafeArea';
 import { TracerLayer, type ShotBurstKind } from './tracers';
 import { MechanicalDischargeLayer } from './mechanicalEffects';
@@ -57,8 +58,7 @@ const FLASH_CAPACITY = 10;
 export class BattleEffects {
   private readonly tracers = new TracerLayer();
   private readonly jets = new JetLayer();
-  private readonly smoke: SmokeLayer;
-  private readonly scars = new ScarLayer();
+  private readonly wear: BattlefieldWear;
   private readonly mechanical = new MechanicalDischargeLayer();
   private readonly flashes: MuzzleFlashPool;
   private shakeAmplitude = 0;
@@ -88,7 +88,7 @@ export class BattleEffects {
     ) => boolean,
     feedback: BattleFeedbackBindings | null = null,
   ) {
-    this.smoke = new SmokeLayer(fogColour);
+    this.wear = new BattlefieldWear(fogColour, heightAt);
     this.flashes = new MuzzleFlashPool(scene, FLASH_CAPACITY);
     this.anchorOf = feedback?.anchorOf ?? null;
     this.canLocate = feedback?.canLocate;
@@ -112,8 +112,7 @@ export class BattleEffects {
     scene.add(
       this.tracers.group,
       this.jets.group,
-      this.smoke.mesh,
-      this.scars.mesh,
+      ...this.wear.objects,
       this.mechanical.casings,
       this.mechanical.vents,
     );
@@ -156,12 +155,13 @@ export class BattleEffects {
     this.flashes.advance(deltaSeconds);
     this.tracers.update(deltaSeconds, this.resolveLiveEndpoint);
     this.mechanical.update(deltaSeconds);
-    this.smoke.update(deltaSeconds);
+    this.wear.update(deltaSeconds);
   }
   consume(world: World, events: readonly SimEvent[]): void {
     if (this.destroyed) return;
     this.readouts?.consume(world, events);
     for (const event of events) {
+      this.wear.consumeSupport(world, event);
       if (event.type === 'mech_destroyed' || event.type === 'ammo_explosion') {
         if (!canPresentEntity(world, event.entityId)) continue;
         const location = destructiveLocation(event);
@@ -178,8 +178,7 @@ export class BattleEffects {
               TERMINAL_COLOUR,
               scale,
             );
-            this.smoke.start(this.effectAt, this.effectPoint.y - 6);
-            this.scars.mark(this.effectAt, this.heightAt(this.effectAt.x, this.effectAt.y), 22, 0.55);
+            this.wear.wreck(event.entityId, this.effectAt, this.effectPoint.y - 6);
           } else {
             this.tracers.burst(
               this.effectAt,
@@ -189,6 +188,7 @@ export class BattleEffects {
               0.8 + Math.min(1, event.damage / 60),
             );
             this.tracers.spawnSmoke(this.effectAt, this.effectPoint.y - 14);
+            this.wear.ammo(this.effectAt, event.damage);
           }
         }
         continue;
@@ -246,7 +246,7 @@ export class BattleEffects {
           this.toGroundPoint(this.effectPoint);
           this.emitBurst('hit', colour, 0.75 + Math.min(1.25, event.damage / 18));
           const damage = weapon?.damage ?? 5;
-          this.scars.mark(
+          this.wear.scars.mark(
             this.effectAt,
             this.heightAt(this.effectAt.x, this.effectAt.y),
             3 + Math.min(9, damage * 0.35),
@@ -345,15 +345,13 @@ export class BattleEffects {
     this.scene.remove(
       this.tracers.group,
       this.jets.group,
-      this.smoke.mesh,
-      this.scars.mesh,
+      ...this.wear.objects,
       this.mechanical.casings,
       this.mechanical.vents,
     );
     this.tracers.dispose();
     this.jets.dispose();
-    this.smoke.dispose();
-    this.scars.dispose();
+    this.wear.dispose();
     this.mechanical.dispose();
     this.flashes.destroy();
     this.camera.shake.set(0, 0, 0);
