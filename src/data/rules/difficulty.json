@@ -9,7 +9,8 @@
       "focusFire": false,
       "flanking": false,
       "coverSeeking": false,
-      "calledShots": false
+      "calledShots": false,
+      "usesSupport": false
     },
     "regular": {
       "skillDelta": 0,
@@ -18,7 +19,8 @@
       "focusFire": true,
       "flanking": false,
       "coverSeeking": true,
-      "calledShots": false
+      "calledShots": false,
+      "usesSupport": false
     },
     "veteran": {
       "skillDelta": 1,
@@ -27,7 +29,8 @@
       "focusFire": true,
       "flanking": true,
       "coverSeeking": true,
-      "calledShots": true
+      "calledShots": true,
+      "usesSupport": true
     },
     "elite": {
       "skillDelta": 2,
@@ -36,7 +39,8 @@
       "focusFire": true,
       "flanking": true,
       "coverSeeking": true,
-      "calledShots": true
+      "calledShots": true,
+      "usesSupport": true
     }
   }
 }

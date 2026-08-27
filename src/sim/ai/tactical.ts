@@ -24,6 +24,7 @@ import { lanceFocus } from './focus';
 import { reconDestination } from './recon';
 import { observationDirective } from './observer';
 import { hasUsableFiringSolution } from '../weaponEngagement';
+import { holdingForRepair } from './support';
 
 export { lanceFocus } from './focus';
 
@@ -159,6 +160,10 @@ export function decideTactical(
   // problem: none. Keep their guns useful without manufacturing routes their
   // movement system can never consume.
   if (isImmobile(mech)) {
+    holdAndShoot(world, mech, focusTargetId, tier);
+    return;
+  }
+  if (holdingForRepair(world, mech)) {
     holdAndShoot(world, mech, focusTargetId, tier);
     return;
   }

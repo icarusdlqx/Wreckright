@@ -3,6 +3,7 @@ import type { Design } from '../schema/design';
 import type { Catalog } from '../schema/load';
 import type { Pilot } from '../schema/pilot';
 import { decideBaseline } from './ai/baseline';
+import { createSupportDoctrineState, runSupportDoctrine } from './ai/support';
 import { buildFrameArcTables } from './arcs';
 import { difficultyTier, resolveDisengagement, runTeamAi } from './ai/tactical';
 import { toResult, type BattleResult } from './battleResult';
@@ -156,6 +157,7 @@ export function createWorld(catalog: Catalog, options: WorldOptions): World {
     objectives: createObjectives(mission.objectives),
     triggers: createTriggers(mission.triggers),
     support: createSupportState(),
+    aiSupport: createSupportDoctrineState(),
     reveals: [],
     reserves: mission.reserves.map((unit) => ({
       designId: unit.designId,
@@ -298,10 +300,12 @@ export function stepWorld(world: World, maxTicks: number): void {
 
   if ((world.tick - 1) % world.rules.simulation.aiDecisionIntervalTicks === 0) {
     const tier = difficultyTier(world, world.difficulty);
+    const teams = [...new Set(world.entities.map((entity) => entity.team))];
 
-    for (const team of new Set(world.entities.map((entity) => entity.team))) {
-      runTeamAi(world, team, tier);
-    }
+    // Decide support for every side from the same pre-manoeuvre frame. Otherwise
+    // the later team can read routes the earlier team only chose this instant.
+    for (const team of teams) runSupportDoctrine(world, team, tier);
+    for (const team of teams) runTeamAi(world, team, tier);
 
     for (const entity of world.entities) {
       if (entity.controller === 'baseline') decideBaseline(world, entity);

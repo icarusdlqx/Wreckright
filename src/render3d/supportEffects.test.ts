@@ -38,9 +38,9 @@ describe('support-call presentation', () => {
     expect(eta.visible).toBe(true);
     const outlinePoints = outline.geometry.getAttribute('position') as BufferAttribute;
     const etaPoints = eta.geometry.getAttribute('position') as BufferAttribute;
-    expect(outlinePoints.getX(0)).toBe(360);
-    expect(outlinePoints.getX(2)).toBe(640);
-    expect(etaPoints.getX(0)).toBe(430);
+    expect(outlinePoints.getX(0)).toBe(357);
+    expect(outlinePoints.getX(2)).toBe(643);
+    expect(etaPoints.getX(0)).toBe(428.5);
     expect(etaPoints.getZ(0)).toBe(377);
     expect(etaPoints.getZ(1)).toBe(423);
     effects.dispose();
@@ -147,8 +147,43 @@ describe('support-call presentation', () => {
     effects.dispose();
   });
 
-  it('does not reveal enemy support calls and tears down idempotently', () => {
+  it('telegraphs a visible enemy air strike and remembers its heading through resolution', () => {
+    const world = playerWorld('support-visible-hostile-air');
+    const vision = world.vision;
+    if (vision === null) throw new Error('player world has no vision');
+    const player = world.entities.find((entity) => entity.team === vision.team);
+    if (player === undefined) throw new Error('mission has no player unit');
+    const at = { ...player.pos };
+    const enemyTeam = vision.team + 1;
+    const tile = world.terrain.toTile(at);
+    vision.tiles.fill(0);
+    vision.tiles[tile.row * world.terrain.width + tile.column] = 1;
+    world.support.pending.push({
+      call: 'air_strike', team: enemyTeam, target: at, heading: Math.PI / 2, resolveTick: 80,
+    });
+    const effects = presentation(world);
+    effects.draw(world, 0.1);
+    expect(effects.group.getObjectByName('support-air-pending-0')?.visible).toBe(true);
+
+    effects.consume(world, [{
+      type: 'support_called', tick: world.tick, team: enemyTeam,
+      call: 'air_strike', x: at.x, y: at.y, cost: 700,
+    }]);
+    world.support.pending.length = 0;
+    effects.consume(world, [{
+      type: 'support_resolved', tick: world.tick + 80, team: enemyTeam,
+      call: 'air_strike', x: at.x, y: at.y,
+    }]);
+    effects.draw(world, 0.1);
+    const craft = effects.group.getObjectByName('support-aircraft-0');
+    expect(craft?.visible).toBe(true);
+    expect(craft?.rotation.y).toBeCloseTo(-Math.PI / 2);
+    effects.dispose();
+  });
+
+  it('does not reveal hidden enemy support calls and tears down idempotently', () => {
     const world = playerWorld('support-fog-privacy');
+    world.vision?.tiles.fill(0);
     world.support.pending.push({
       call: 'air_strike', team: 1, target: { x: 500, y: 400 }, heading: 0, resolveTick: 80,
     });
@@ -160,6 +195,17 @@ describe('support-call presentation', () => {
 
     expect(effects.group.getObjectByName('support-air-pending-0')?.visible).toBe(false);
     expect(effects.group.getObjectByName('support-repair-truck-0')?.visible).toBe(false);
+    effects.consume(world, [{
+      type: 'support_called', tick: world.tick, team: 1,
+      call: 'air_strike', x: 500, y: 400, cost: 700,
+    }]);
+    world.support.pending.length = 0;
+    effects.consume(world, [{
+      type: 'support_resolved', tick: world.tick + 80, team: 1,
+      call: 'air_strike', x: 500, y: 400,
+    }]);
+    effects.draw(world, 0.1);
+    expect(effects.group.getObjectByName('support-aircraft-0')?.visible).toBe(false);
     effects.dispose();
     effects.dispose();
     expect(effects.group.children).toHaveLength(0);

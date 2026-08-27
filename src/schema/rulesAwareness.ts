@@ -105,6 +105,31 @@ export const AiRulesSchema = z.strictObject({
     targetStructureFraction: Probability,
     chance: Probability,
   }),
+  support: z.strictObject({
+    minimumResourceReserve: z.number().int().nonnegative(),
+    cooldownSeconds: z.number().positive().max(120),
+    artillery: z.strictObject({
+      minimumContacts: z.number().int().min(2).max(12),
+      clusterRadius: z.number().positive(),
+      holdSeconds: z.number().positive().max(120),
+    }),
+    airStrike: z.strictObject({
+      minimumContacts: z.number().int().min(2).max(12),
+      clusterRadius: z.number().positive(),
+      minimumAdvanceDistance: z.number().positive(),
+      advanceAlignment: Probability,
+    }),
+    sensorProbe: z.strictObject({
+      aheadDistance: z.number().positive(),
+    }),
+    repairTruck: z.strictObject({
+      minimumTonnage: z.number().positive(),
+      maximumArmourFraction: Probability,
+      safeEnemyRange: z.number().positive(),
+      behindLineMargin: z.number().nonnegative(),
+      holdSeconds: z.number().positive().max(60),
+    }),
+  }),
   roles: z.strictObject({
     /** A weapon whose long bracket ends here or sooner counts as short-ranged. */
     shortRangeMetres: z.number().positive(),

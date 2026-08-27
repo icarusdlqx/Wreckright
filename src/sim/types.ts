@@ -4,6 +4,7 @@ import type { FrameArcTables } from './arcs';
 import type { Catalog } from '../schema/load';
 import type { Mission } from '../schema/mission';
 import type { Frame, Rules } from '../schema/rules';
+import type { SupportDoctrineState } from './ai/support';
 import type { SimEvent } from './events';
 import type { ObjectiveState } from './objectives';
 import type { OrderState } from './orders';
@@ -315,6 +316,7 @@ export interface World {
   objectives: ObjectiveState[];
   triggers: TriggerState[];
   support: SupportState;
+  aiSupport: SupportDoctrineState;
   reveals: Reveal[];
   reserves: { designId: string; pilotId: string; facingDegrees: number }[];
   missionStatus: 'active' | 'success' | 'failure';
