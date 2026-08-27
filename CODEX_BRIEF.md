@@ -84,8 +84,8 @@ node tests/e2e/playthrough.mjs
 
 All four green — plus the balance gate pair for `[sim]` tasks, plus
 before/after screenshots for anything visual. Push `codex/<short-name>`, open a
-pull request. **Do not merge to `main` yourself** — `main` deploys straight to
-the live site.
+pull request, then follow the green-only Codex merge/auto-merge rule in
+`AGENTS.md`. `main` deploys straight to the live site.
 
 Sizes below are honest estimates: **S** under a day, **M** a day or two,
 **L** several days, **XL** a flagship worth breaking into stages (still one
