@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { playerWorld } from '../../tests/support';
 import type { Renderer } from '../render3d/scene';
 import { Engine } from './engine';
+import type { IncomingFireDirections } from './incomingFireDirections';
 import { useGame } from './store';
 
 interface RendererHarness {
@@ -261,6 +262,24 @@ describe('engine presentation timing', () => {
 
     expect(consume).toHaveBeenCalledOnce();
     expect(consume.mock.calls[0]?.[2]).toBe(4);
+    engine.destroy();
+  });
+
+  it('routes each simulation event batch to the incoming-fire pool', () => {
+    const world = playerWorld('incoming-event-route');
+    const harness = rendererHarness();
+    const consume = vi.fn();
+    const incoming = { consume } as unknown as IncomingFireDirections;
+    const selected = world.entities.find((entity) => entity.team === (world.playerTeam ?? 0));
+    if (selected === undefined) throw new Error('missing player mech');
+    const engine = new Engine(world, harness.renderer, 10_000, incoming);
+    useGame.setState({ selection: [selected.id] });
+
+    engine.forceStep();
+
+    expect(consume).toHaveBeenCalledOnce();
+    expect(consume.mock.calls[0]?.[0]).toBe(world);
+    expect(consume.mock.calls[0]?.[2]).toEqual([selected.id]);
     engine.destroy();
   });
 

@@ -53,7 +53,13 @@ export function BattleResults({
   const report = viewBattleResult(result, playerTeam);
   const [nextMissionId, setNextMissionId] = useState(selectedMissionId);
   const dialogRef = useRef<HTMLElement>(null);
-  useDialogFocus(dialogRef, dialogRef);
+  useDialogFocus(dialogRef, dialogRef, undefined, () =>
+    [
+      document.querySelector<HTMLElement>('[data-testid="feedback-link"]'),
+      document.querySelector<HTMLElement>('[data-testid="desktop-menu-toggle"]'),
+      document.querySelector<HTMLElement>('[data-testid="mobile-menu-toggle"]'),
+    ].find((element) => element !== null && element.getClientRects().length > 0) ?? null,
+  );
 
   return (
     <div className="battle-results-backdrop" data-testid="outcome">

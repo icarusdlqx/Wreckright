@@ -86,6 +86,7 @@ export class TacticalCamera {
   private boundsHeight = 0;
   private readonly raycaster = new Raycaster();
   private readonly ground = new Plane(new Vector3(0, 1, 0), 0);
+  private readonly screenDirectionPoint = new Vector3();
 
   setBounds(width: number, height: number): void {
     this.boundsWidth = width;
@@ -296,6 +297,17 @@ export class TacticalCamera {
       x: ((projected.x + 1) / 2) * viewport.width,
       y: ((1 - projected.y) / 2) * viewport.height,
     };
+  }
+
+  /** Perspective flips points behind the eye; edge arrows still need the physical direction. */
+  screenDirection(point: Vec2, viewport: Viewport, out: Vec2, height = 0): void {
+    this.update(viewport);
+    const local = this.screenDirectionPoint
+      .set(point.x, height, point.y)
+      .applyMatrix4(this.camera.matrixWorldInverse);
+    const focal = 1 / Math.tan((this.camera.fov / 2) * DEGREES_TO_RADIANS);
+    out.x = (local.x * focal) / this.camera.aspect;
+    out.y = -local.y * focal;
   }
 
   /**

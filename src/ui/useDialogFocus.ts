@@ -14,6 +14,7 @@ export function useDialogFocus(
   dialogRef: RefObject<HTMLElement | null>,
   initialFocusRef: RefObject<HTMLElement | null>,
   onEscape?: () => void,
+  fallbackFocus?: () => HTMLElement | null,
 ): void {
   // Latched rather than depended upon. A caller that passes an inline arrow
   // would otherwise re-run the whole effect on every parent render, and the
@@ -21,9 +22,12 @@ export function useDialogFocus(
   // so a re-render would walk the keyboard user back to the start each time.
   const escapeRef = useRef(onEscape);
   escapeRef.current = onEscape;
+  const fallbackFocusRef = useRef(fallbackFocus);
+  fallbackFocusRef.current = fallbackFocus;
 
   useEffect(() => {
-    const priorFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const activeFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const priorFocus = activeFocus !== document.body ? activeFocus : null;
     const initialFocus = initialFocusRef.current ?? focusableWithin(dialogRef.current ?? document.body)[0];
 
     initialFocus?.focus();
@@ -59,7 +63,9 @@ export function useDialogFocus(
     document.addEventListener('keydown', onKeyDown);
     return () => {
       document.removeEventListener('keydown', onKeyDown);
-      priorFocus?.focus();
+      const priorStillVisible =
+        priorFocus?.isConnected === true && priorFocus.getClientRects().length > 0;
+      (priorStillVisible ? priorFocus : fallbackFocusRef.current?.())?.focus();
     };
   }, [dialogRef, initialFocusRef]);
 }

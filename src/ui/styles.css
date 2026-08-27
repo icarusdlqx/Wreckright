@@ -3326,6 +3326,47 @@ button {
   border-radius: 4px;
 }
 
+.incoming-fire-directions {
+  position: absolute;
+  inset: 0;
+  z-index: 54;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+
+.incoming-fire-tick {
+  position: absolute;
+  box-sizing: border-box;
+  width: 17px;
+  height: 17px;
+  border-top: 3px solid #ffc06f;
+  border-right: 3px solid #ffc06f;
+  opacity: 0;
+  filter: drop-shadow(0 0 3px rgba(245, 83, 50, 0.95));
+  will-change: opacity;
+}
+
+.incoming-fire-tick.pulse-a {
+  animation: incoming-fire-pulse-a 850ms ease-out both;
+}
+
+.incoming-fire-tick.pulse-b {
+  animation: incoming-fire-pulse-b 850ms ease-out both;
+}
+
+@keyframes incoming-fire-pulse-a {
+  0% { opacity: 0; }
+  14%, 58% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes incoming-fire-pulse-b {
+  0% { opacity: 0; }
+  14%, 58% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 /* ------------------------------------------------------- Phase 6 mech bay */
 
 .mech-preview {

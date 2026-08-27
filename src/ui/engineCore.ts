@@ -28,6 +28,7 @@ import {
 } from './engineOrders';
 import { EnginePresentation } from './enginePresentation';
 import { FramePacer } from './framePacer';
+import type { IncomingFireDirections } from './incomingFireDirections';
 import { attachInput } from './input';
 import { PerfOverlay } from './perf';
 import { useGame, type OrderMode } from './store';
@@ -55,11 +56,11 @@ export class Engine {
   private smokeTimer = 0;
   private detachInput: (() => void) | null = null;
 
-  constructor(world: World, renderer: Renderer, maxTicks: number) {
+  constructor(world: World, renderer: Renderer, maxTicks: number, incomingFire: IncomingFireDirections | null = null) {
     this.world = world;
     this.renderer = renderer;
     this.maxTicks = maxTicks;
-    this.presentation = new EnginePresentation(world, renderer, this.audio, maxTicks);
+    this.presentation = new EnginePresentation(world, renderer, this.audio, maxTicks, incomingFire);
   }
 
   get paused(): boolean {
