@@ -55,6 +55,18 @@ export function sightRangeFor(rules: SensorRules, sensorSkill: number): number {
   return rules.sightBaseRange + rules.sightRangePerSkill * sensorSkill;
 }
 
+export function effectiveSensorRange(world: World, observer: MechEntity): number {
+  return (
+    observer.sensorRange *
+    world.atmosphere.mechanics.sensorFactor *
+    abilityFactor(world, observer, 'sensor')
+  );
+}
+
+export function effectiveSightRange(world: World, observer: MechEntity): number {
+  return observer.sightRange * world.atmosphere.mechanics.sightFactor;
+}
+
 /**
  * Mass is the baseline return; frame, hull and equipment apply at spawn.
  */
@@ -130,14 +142,15 @@ function footprintFor(world: World, vision: TeamVision, observer: MechEntity): U
   const { terrain } = world;
   const tile = terrain.toTile(observer.pos);
   const vantage = vantageOf(world, observer);
-  const key = `${tile.column}:${tile.row}:${observer.sightRange}:${vantage}`;
+  const sightRange = effectiveSightRange(world, observer);
+  const key = `${tile.column}:${tile.row}:${sightRange}:${vantage}`;
   const cached = vision.opticalFootprints.get(observer.id);
   if (cached?.key === key) return cached.cells;
 
   const origin = terrain.tileCentre(tile.column, tile.row);
   const targetFactors = Object.values(world.rules.terrain.types).map((type) => type.visionFactor);
   const maximumTargetFactor = Math.max(1, ...targetFactors);
-  const maximumReach = observer.sightRange * vantage * maximumTargetFactor;
+  const maximumReach = sightRange * vantage * maximumTargetFactor;
   const radius = Math.ceil(maximumReach / terrain.tileSize);
   const cells: number[] = [];
 
@@ -145,7 +158,7 @@ function footprintFor(world: World, vision: TeamVision, observer: MechEntity): U
     for (let column = tile.column - radius; column <= tile.column + radius; column += 1) {
       if (!terrain.inBounds(column, row)) continue;
       const target = terrain.tileCentre(column, row);
-      const reach = observer.sightRange * vantage * terrain.typeAt(column, row).visionFactor;
+      const reach = sightRange * vantage * terrain.typeAt(column, row).visionFactor;
       if (distance(origin, target) > reach) continue;
       if (!lineOfSight(terrain, origin, target).clear) continue;
       cells.push(row * terrain.width + column);
@@ -173,16 +186,15 @@ function withinSweep(candidate: MechEntity, sweeps: World['reveals']): boolean {
 function sensorDetects(world: World, observer: MechEntity, candidate: MechEntity): boolean {
   const concealment = world.terrain.typeAtPoint(candidate.pos).signatureFactor;
   const reach =
-    observer.sensorRange *
+    effectiveSensorRange(world, observer) *
     candidate.signature *
-    concealment *
-    abilityFactor(world, observer, 'sensor');
+    concealment;
   return distance(observer.pos, candidate.pos) <= reach;
 }
 
 function opticallySights(world: World, observer: MechEntity, candidate: MechEntity): boolean {
   const targetTerrain = world.terrain.typeAtPoint(candidate.pos).visionFactor;
-  const reach = observer.sightRange * vantageOf(world, observer) * targetTerrain;
+  const reach = effectiveSightRange(world, observer) * vantageOf(world, observer) * targetTerrain;
   if (distance(observer.pos, candidate.pos) > reach) return false;
   return lineOfSight(world.terrain, observer.pos, candidate.pos).clear;
 }

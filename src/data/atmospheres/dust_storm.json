@@ -1,6 +1,12 @@
 {
   "id": "dust_storm",
   "name": "Dust Storm",
+  "mechanics": {
+    "sightFactor": 0.86,
+    "sensorFactor": 0.9,
+    "heatDissipationFactor": 0.96,
+    "wind": { "x": 0.55, "y": 0.25 }
+  },
   "sky": "#2c2116",
   "exposure": 1.08,
   "fog": { "kind": "linear", "colour": "#6f5a3a", "near": 480, "far": 1350 },

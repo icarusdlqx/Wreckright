@@ -29,22 +29,15 @@ export async function createEngine(host: HTMLElement, options: EngineOptions = {
     ...(options.difficulty === undefined ? {} : { difficulty: options.difficulty }),
   });
 
-  const mission = catalog.missions.get(missionId);
-  if (mission === undefined) throw new Error(`unknown mission "${missionId}"`);
+  const mission = world.mission;
   const mapData = catalog.maps.get(mission.mapId);
   if (mapData === undefined) throw new Error(`mission "${missionId}" has no map`);
-
-  // The mission's own choice first, then the map's, then the default rig — so a
-  // night raid overrides the ground it borrows without touching the map file.
-  const atmosphereId = mission.atmosphereId ?? mapData.atmosphereId;
-  const atmosphere = catalog.atmospheres.get(atmosphereId);
-  if (atmosphere === undefined) throw new Error(`unknown atmosphere "${atmosphereId}"`);
 
   // three.js and every model that depends on it arrive here rather than in the
   // entry chunk: the home screen, the briefing and the campaign map all paint
   // before anyone asks for a battlefield.
   const { Renderer } = await import('../render3d/scene');
-  const renderer = new Renderer(host, world, mapData, atmosphere);
+  const renderer = new Renderer(host, world, mapData, world.atmosphere);
   const incomingFire = new IncomingFireDirections(
     host,
     (entity) => renderer.screenBodyOf(entity),
@@ -63,7 +56,7 @@ export async function createEngine(host: HTMLElement, options: EngineOptions = {
   };
   renderer.onFootfall = (at, tonnage, faction) => engine.audio.footfall(at, tonnage, faction);
   engine.audio.setTerrain(mapData);
-  engine.audio.setAmbient(atmosphereId);
+  engine.audio.setAmbient(world.atmosphere.id);
   engine.perf = new PerfOverlay(host);
   engine.onDestroy(() => engine.perf?.destroy());
   engine.attach(renderer.canvas);

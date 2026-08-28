@@ -1,6 +1,12 @@
 {
   "id": "industrial_smog",
   "name": "Industrial Smog",
+  "mechanics": {
+    "sightFactor": 0.88,
+    "sensorFactor": 0.9,
+    "heatDissipationFactor": 0.97,
+    "wind": { "x": 0.1, "y": 0.04 }
+  },
   "sky": "#18180f",
   "exposure": 1.02,
   "fog": { "kind": "exponential", "colour": "#45472c", "density": 0.00072 },

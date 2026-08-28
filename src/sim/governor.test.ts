@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { playerWorld, unitOf } from '../../tests/support';
 import { applyHeatGovernor, restoreIntent } from './governor';
+import { effectiveDissipationPerSecond } from './heat';
 import { isHoldingFire, setGroupEnabled, setHoldFire } from './orders';
 import type { MechEntity, World } from './types';
 
@@ -88,5 +89,45 @@ describe('pilot intent versus the reactor governor', () => {
     configureHeadroom(replayWorld, replay);
     applyHeatGovernor(replayWorld, replay, true);
     expect(replay.groupEnabled).toEqual(mech.groupEnabled);
+  });
+
+  it('plans around weather without treating temporary terrain as permanent cooling', () => {
+    const dryWorld = playerWorld('weather-governor');
+    const dryMech = unitOf(dryWorld, 'sentinel_brawler');
+    dryMech.pos = { x: 12, y: 12 };
+    dryMech.heat = dryMech.heatCapacity * 0.95;
+    for (const mount of dryMech.weapons) mount.cooldown = 10;
+
+    const harshWorld = playerWorld('weather-governor');
+    const harshMech = unitOf(harshWorld, 'sentinel_brawler');
+    harshMech.pos = { x: 12, y: 12 };
+    harshMech.heat = harshMech.heatCapacity * 0.95;
+    for (const mount of harshMech.weapons) mount.cooldown = 10;
+    harshWorld.atmosphere = {
+      ...harshWorld.atmosphere,
+      mechanics: { ...harshWorld.atmosphere.mechanics, heatDissipationFactor: 0.5 },
+    };
+
+    const wetWorld = playerWorld('weather-governor');
+    const wetMech = unitOf(wetWorld, 'sentinel_brawler');
+    wetMech.pos = { x: 18 * 24 + 12, y: 33 * 24 + 12 };
+    wetMech.heat = wetMech.heatCapacity * 0.95;
+    for (const mount of wetMech.weapons) mount.cooldown = 10;
+    wetWorld.atmosphere = {
+      ...wetWorld.atmosphere,
+      mechanics: { ...wetWorld.atmosphere.mechanics, heatDissipationFactor: 0.5 },
+    };
+
+    expect(effectiveDissipationPerSecond(wetWorld, wetMech)).toBeCloseTo(
+      effectiveDissipationPerSecond(dryWorld, dryMech),
+    );
+    expect(effectiveDissipationPerSecond(harshWorld, harshMech)).toBeCloseTo(
+      effectiveDissipationPerSecond(dryWorld, dryMech) * 0.5,
+    );
+    applyHeatGovernor(dryWorld, dryMech, false);
+    applyHeatGovernor(harshWorld, harshMech, false);
+    applyHeatGovernor(wetWorld, wetMech, false);
+    expect(harshMech.groupEnabled).not.toEqual(dryMech.groupEnabled);
+    expect(wetMech.groupEnabled).toEqual(harshMech.groupEnabled);
   });
 });

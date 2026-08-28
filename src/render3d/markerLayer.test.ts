@@ -148,6 +148,30 @@ describe('support placement markers', () => {
     layer.dispose();
   });
 
+  it('draws the selected sensor instrument at its current-weather reach', () => {
+    const world = playerWorld('weather-sensor-marker');
+    const friendly = world.entities.find((entity) => entity.team === world.playerTeam);
+    const moonlit = world.catalog.atmospheres.get('moonlit_night');
+    if (friendly === undefined || moonlit === undefined) throw new Error('missing marker fixture');
+    world.atmosphere = moonlit;
+    world.zones.length = 0;
+    world.reveals.length = 0;
+    world.support.pending.length = 0;
+    friendly.path.length = 0;
+
+    const layer = new MarkerLayer(() => 0, () => null);
+    layer.draw(world, { ...baseView, selection: new Set([friendly.id]) });
+
+    const rings = layer.group.children.filter(
+      (child): child is Mesh => child instanceof Mesh && child.visible,
+    );
+    expect(rings).toHaveLength(1);
+    const radius = (rings[0]?.geometry as RingGeometry | undefined)?.parameters.outerRadius;
+    expect(radius).toBeCloseTo(friendly.sensorRange * 0.95);
+    expect(radius).not.toBeCloseTo(friendly.sensorRange);
+    layer.dispose();
+  });
+
   it('lays the air-strike outline along the supplied heading', () => {
     const layer = new MarkerLayer(() => 0, () => null);
     layer.draw(emptyWorld, {

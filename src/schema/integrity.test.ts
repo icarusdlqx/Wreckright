@@ -73,6 +73,35 @@ describe('campaign content integrity', () => {
     });
   });
 
+  it('rejects unknown map and mission atmospheres before a battle starts', () => {
+    const map = structuredClone(catalog.maps.get('causeway'));
+    const mission = structuredClone(catalog.missions.get('causeway_night'));
+    expect(map).toBeDefined();
+    expect(mission).toBeDefined();
+    if (map === undefined || mission === undefined) return;
+
+    map.atmosphereId = 'missing_map_air';
+    mission.atmosphereId = 'missing_mission_air';
+    const maps = new Map(catalog.maps).set(map.id, map);
+    const missions = new Map(catalog.missions).set(mission.id, mission);
+    const issues: ContentIssue[] = [];
+
+    checkIntegrity({ ...catalog, maps, missions } satisfies Catalog, issues);
+
+    expect(issues).toEqual(expect.arrayContaining([
+      {
+        file: 'maps/causeway.json',
+        path: 'atmosphereId',
+        message: 'unknown atmosphere "missing_map_air"',
+      },
+      {
+        file: 'missions/causeway_night.json',
+        path: 'atmosphereId',
+        message: 'unknown atmosphere "missing_mission_air"',
+      },
+    ]));
+  });
+
   it('rejects employer references that are not in the campaign ledger', () => {
     const campaign = catalog.campaigns.get('border_dispute');
     expect(campaign).toBeDefined();

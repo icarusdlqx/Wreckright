@@ -1,7 +1,7 @@
 import { coverFactorAt, lineOfSight } from '../los';
 import { angleDifference, bearing, distance } from '../math';
 import { nearestPassable } from '../pathfind';
-import { visionFor } from '../sensors';
+import { effectiveSightRange, visionFor } from '../sensors';
 import {
   isOperational,
   type EntityId,
@@ -20,7 +20,7 @@ function hasFireSupport(
   factor: number,
   contact?: Vec2,
 ): boolean {
-  const usefulReach = observer.sightRange * factor;
+  const usefulReach = effectiveSightRange(world, observer) * factor;
   return world.entities.some((mate) => {
     if (
       mate.id === observer.id ||
@@ -60,7 +60,7 @@ function opticalReachAt(world: World, mech: MechEntity, perch: Vec2, contact: Ve
   const vantage =
     observerTerrain * world.rules.combat.elevation.visionPerLevel ** elevation;
   const targetTerrain = world.terrain.typeAtPoint(contact).visionFactor;
-  return mech.sightRange * vantage * targetTerrain;
+  return effectiveSightRange(world, mech) * vantage * targetTerrain;
 }
 
 function observationBandAt(
@@ -96,7 +96,7 @@ function observationPerches(
   const arrival = world.rules.movement.arrivalRadius;
   const snapRadius = Math.max(1, Math.ceil(arrival / world.terrain.tileSize));
   const targetTerrain = world.terrain.typeAtPoint(contact).visionFactor;
-  const openBand = mech.sightRange * targetTerrain * factor;
+  const openBand = effectiveSightRange(world, mech) * targetTerrain * factor;
   const perches: Vec2[] = [];
   const occupied = new Set<string>();
 

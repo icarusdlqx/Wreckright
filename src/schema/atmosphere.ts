@@ -3,6 +3,27 @@ import { IdSchema } from './common';
 
 const ColourSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 
+const MechanicsFactorSchema = z.number().min(0.5).max(1.5).default(1);
+
+const WindVectorSchema = z
+  .strictObject({
+    x: z.number().min(-1).max(1).default(0),
+    y: z.number().min(-1).max(1).default(0),
+  })
+  .prefault({});
+
+export const AtmosphereMechanicsSchema = z
+  .strictObject({
+    sightFactor: MechanicsFactorSchema,
+    sensorFactor: MechanicsFactorSchema,
+    heatDissipationFactor: MechanicsFactorSchema,
+    /** Unitless prevailing wind; calm is the stable default for old content. */
+    wind: WindVectorSchema,
+  })
+  .prefault({});
+
+export type AtmosphereMechanics = z.infer<typeof AtmosphereMechanicsSchema>;
+
 /**
  * Where a light stands, relative to the middle of the map. Angles rather than
  * an offset triple because the point of this file is authoring a sun that sits
@@ -27,6 +48,7 @@ export type Direction = z.infer<typeof DirectionSchema>;
 export const AtmosphereSchema = z.strictObject({
   id: IdSchema,
   name: z.string().min(1).max(60),
+  mechanics: AtmosphereMechanicsSchema,
   /** Flat colour behind everything. Not fogged — it is the void, not the air. */
   sky: ColourSchema.default('#0d1013'),
   exposure: z.number().positive().max(4).default(1.05),

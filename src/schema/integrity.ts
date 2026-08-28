@@ -23,6 +23,13 @@ function checkMissions(catalog: Catalog, push: Push): void {
     const file = `missions/${mission.id}.json`;
     const map = catalog.maps.get(mission.mapId);
 
+    if (
+      mission.atmosphereId !== undefined &&
+      !catalog.atmospheres.has(mission.atmosphereId)
+    ) {
+      push(file, 'atmosphereId', `unknown atmosphere "${mission.atmosphereId}"`);
+    }
+
     if (map === undefined) {
       push(file, 'mapId', `unknown map "${mission.mapId}"`);
       continue;
@@ -111,6 +118,9 @@ function checkMaps(catalog: Catalog, push: Push): void {
     const file = `maps/${map.id}.json`;
     const cells = map.width * map.height;
     const pathfindingBudget = catalog.rules.simulation.pathfindMaxNodes;
+    if (!catalog.atmospheres.has(map.atmosphereId)) {
+      push(file, 'atmosphereId', `unknown atmosphere "${map.atmosphereId}"`);
+    }
     if (cells > pathfindingBudget) {
       push(
         file,

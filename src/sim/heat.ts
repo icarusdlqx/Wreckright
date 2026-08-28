@@ -22,12 +22,19 @@ export function addHeat(entity: MechEntity, amount: number): void {
   if (entity.heat > entity.stats.heatPeak) entity.stats.heatPeak = entity.heat;
 }
 
+export function effectiveDissipationPerSecond(world: World, entity: MechEntity): number {
+  const terrain = world.terrain.typeAtPoint(entity.pos);
+  return (
+    entity.dissipationPerSecond *
+    terrain.heatDissipationMultiplier *
+    world.atmosphere.mechanics.heatDissipationFactor
+  );
+}
+
 export function updateHeat(world: World, entity: MechEntity): void {
   if (!isOperational(entity)) return;
 
-  const terrain = world.terrain.typeAtPoint(entity.pos);
-  const dissipated =
-    entity.dissipationPerSecond * terrain.heatDissipationMultiplier * world.dt;
+  const dissipated = effectiveDissipationPerSecond(world, entity) * world.dt;
   entity.heat = Math.max(0, entity.heat - dissipated);
 
   if (entity.shutdownRemaining > 0) {

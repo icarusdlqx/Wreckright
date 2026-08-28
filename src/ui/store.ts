@@ -135,9 +135,9 @@ export interface UnitSnapshot {
    * return on a scope is not the same as knowing what is walking at you.
    */
   identified: boolean;
-  /** How far this machine's own sensors reach, for the range overlay. */
+  /** Current electronic reach after weather and active pilot effects. */
   sensorRange: number;
-  /** Base optical reach before terrain and elevation modify the sight line. */
+  /** Current optical base after weather, before terrain and elevation. */
   sightRange: number;
   /** How readily electronic sensors can acquire this machine. */
   signature: number;

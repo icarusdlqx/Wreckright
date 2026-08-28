@@ -1,4 +1,5 @@
 import type { MechLocation } from '../schema/common';
+import type { Atmosphere } from '../schema/atmosphere';
 import type { Chassis } from '../schema/chassis';
 import type { FrameArcTables } from './arcs';
 import type { Catalog } from '../schema/load';
@@ -296,6 +297,8 @@ export interface World {
   catalog: Catalog;
   rules: Rules;
   terrain: TerrainGrid;
+  /** Mission override resolved over the map's authored air and light. */
+  atmosphere: Atmosphere;
   mission: Mission;
   entities: MechEntity[];
   projectiles: Projectile[];

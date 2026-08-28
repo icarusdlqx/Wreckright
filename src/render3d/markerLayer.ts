@@ -9,6 +9,7 @@ import {
   RingGeometry,
 } from 'three';
 import { teamColour, UI } from '../render/palette';
+import { effectiveSensorRange } from '../sim/sensors';
 import type { PendingCall } from '../sim/support';
 import { isOperational, type EntityId, type MechEntity, type Vec2, type World } from '../sim/types';
 import { canPresentEntity, canPresentSupportCall } from './visibilityPresentation';
@@ -113,7 +114,7 @@ export class MarkerLayer {
       if (view.orderMode === 'jump' && entity.jumpRange > 0 && entity.jumpCooldown <= 0) {
         this.groundRing(entity.pos, entity.jumpRange, UI.moveMarker, 0.5);
       }
-      this.groundRing(entity.pos, entity.sensorRange, UI.selection, 0.14);
+      this.groundRing(entity.pos, effectiveSensorRange(world, entity), UI.selection, 0.14);
 
       if (
         view.orderMode === 'attack' ||
