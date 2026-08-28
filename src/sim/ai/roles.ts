@@ -2,6 +2,7 @@ import type { AiRules } from '../../schema/rules';
 import { distance } from '../math';
 import { isOperational, type MechEntity, type World } from '../types';
 import { isIndirectFireWeapon } from '../weaponEngagement';
+import { weaponFireProfile } from '../weaponModes';
 
 export { COMBAT_ROLES, type CombatRole } from '../../schema/rules';
 import type { CombatRole } from '../../schema/rules';
@@ -50,7 +51,8 @@ function batteryOf(world: World, mech: MechEntity): Battery {
     const weapon = world.catalog.weapons.get(mount.weaponId);
     if (weapon === undefined) continue;
 
-    const output = (weapon.damage * weapon.projectiles) / weapon.cooldown;
+    const profile = weaponFireProfile(weapon, mount.modeId);
+    const output = (profile.damage * profile.projectiles) / profile.cooldown;
     const indirect = isIndirectFireWeapon(weapon);
 
     battery.total += output;

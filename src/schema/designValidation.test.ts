@@ -120,6 +120,23 @@ describe('shared design legality', () => {
     }));
   });
 
+  it('locates an unknown fire mode on the exact mount field', () => {
+    const design = clone('redoubt_emplacement');
+    const mount = design.mounts.find((entry) => entry.weaponId === 'lbx_ac10');
+    if (mount === undefined) throw new Error('missing Canister Cannon mount');
+    mount.modeId = 'field_improvisation';
+    const index = design.mounts.indexOf(mount);
+
+    expect(validateDesign(catalog, design).issues).toContainEqual(expect.objectContaining({
+      code: 'unknown_weapon_mode',
+      severity: 'error',
+      source: 'schema',
+      component: 'weapon',
+      location: 'centre_torso',
+      path: ['mounts', index, 'modeId'],
+    }));
+  });
+
   it('retains loadout and schema failures in one report', () => {
     const design = clone('sentinel_brawler');
     design.name = '';

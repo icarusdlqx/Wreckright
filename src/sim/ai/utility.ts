@@ -4,6 +4,7 @@ import { distance } from '../math';
 import { isSightedBy, visionFor } from '../sensors';
 import { findAmmoBin, isOperational, type MechEntity, type Vec2, type World } from '../types';
 import { weaponHasFiringSolution } from '../weaponEngagement';
+import { weaponFireProfile } from '../weaponModes';
 import { weaponMaximumReach } from '../weaponRange';
 import { roleOf } from './roles';
 
@@ -57,11 +58,22 @@ export function expectedDps(
     if (mount.destroyed) continue;
     const weapon = world.catalog.weapons.get(mount.weaponId);
     if (weapon === undefined) continue;
+    const profile = weaponFireProfile(weapon, mount.modeId);
     if (range > weaponMaximumReach(world, weapon, shooter.pos, target.pos)) continue;
     if (weapon.ammoPerTon !== null && findAmmoBin(shooter, weapon.id) === null) continue;
 
-    const chance = hitChance(world, shooter, target, weapon, range);
-    total += (weapon.damage * weapon.projectiles * chance) / weapon.cooldown;
+    const chance = hitChance(
+      world,
+      shooter,
+      target,
+      weapon,
+      range,
+      undefined,
+      shooter.pos,
+      target.pos,
+      profile,
+    );
+    total += (profile.damage * profile.projectiles * chance) / profile.cooldown;
   }
 
   return total;
@@ -81,12 +93,23 @@ export function availableDps(
     if (mount.destroyed) continue;
     const weapon = world.catalog.weapons.get(mount.weaponId);
     if (weapon === undefined) continue;
+    const profile = weaponFireProfile(weapon, mount.modeId);
     if (range > weaponMaximumReach(world, weapon, from, target.pos)) continue;
     if (weapon.ammoPerTon !== null && findAmmoBin(shooter, weapon.id) === null) continue;
     if (!weaponHasFiringSolution(world, shooter, target, weapon, from)) continue;
 
-    const chance = hitChance(world, shooter, target, weapon, range, undefined, from);
-    total += (weapon.damage * weapon.projectiles * chance) / weapon.cooldown;
+    const chance = hitChance(
+      world,
+      shooter,
+      target,
+      weapon,
+      range,
+      undefined,
+      from,
+      target.pos,
+      profile,
+    );
+    total += (profile.damage * profile.projectiles * chance) / profile.cooldown;
   }
 
   return total;

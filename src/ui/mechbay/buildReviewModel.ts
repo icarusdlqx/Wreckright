@@ -88,6 +88,8 @@ function issueAction(code: DesignIssueCode): string {
       return 'Choose a chassis that is present in the catalog.';
     case 'unknown_weapon':
       return 'Replace the missing weapon reference with a catalogued weapon.';
+    case 'unknown_weapon_mode':
+      return 'Choose a firing mode authored for this weapon.';
     case 'unknown_equipment':
       return 'Replace the missing equipment reference with catalogued gear.';
     case 'unknown_heat_sink':

@@ -5,12 +5,34 @@ import { balanceByClass, balanceOutliers, dominatedWeapons, weaponEfficiency } f
 import { runBattle } from './world';
 
 describe('weapon balance', () => {
-  it('scores every weapon in the catalogue', () => {
+  it('scores ordinary weapons once and mode weapons once per mode', () => {
     const counted = balanceByClass(catalog).reduce(
       (total, group) => total + group.entries.length,
       0,
     );
-    expect(counted).toBe(catalog.weapons.size);
+    const expected = [...catalog.weapons.values()].reduce(
+      (total, weapon) => total + Math.max(1, weapon.modes.length),
+      0,
+    );
+    expect(counted).toBe(expected);
+    expect(counted).toBe(25);
+  });
+
+  it('scores each LB-X profile from its active values', () => {
+    const entries = balanceByClass(catalog)
+      .flatMap((group) => group.entries)
+      .filter((entry) => entry.weaponId === 'lbx_ac10');
+
+    expect(entries.map((entry) => entry.modeId)).toEqual(['cluster', 'slug']);
+    for (const entry of entries) expect(entry.dps).toBeCloseTo(4.4, 8);
+    expect(entries.every((entry) => entry.withinBand)).toBe(true);
+  });
+
+  it('orders each class by weapon and mode id', () => {
+    for (const group of balanceByClass(catalog)) {
+      const keys = group.entries.map((entry) => `${entry.weaponId}:${entry.modeId ?? ''}`);
+      expect(keys).toEqual([...keys].sort((a, b) => a.localeCompare(b)));
+    }
   });
 
   it('charges a weapon for the heat sinks it demands', () => {

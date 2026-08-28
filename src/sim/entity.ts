@@ -7,6 +7,7 @@ import { armourFacesForDesign } from './designArmour';
 import { emptyOrders } from './orders';
 import { abilityIdFor } from './abilities';
 import { sensorRangeFor, sightRangeFor, signatureFor } from './sensors';
+import { resolveWeaponModeId, weaponFireProfile } from './weaponModes';
 import {
   WEAPON_GROUPS,
   type AmmoBin,
@@ -103,14 +104,20 @@ export function createMech(catalog: Catalog, rules: Rules, params: SpawnParams):
       .map((fit) => fit.location),
   );
 
-  const weapons: WeaponMount[] = design.mounts.map((mount, index) => ({
-    index,
-    weaponId: mount.weaponId,
-    location: mount.location,
-    group: GROUP_BY_WEAPON_TYPE[catalog.weapons.get(mount.weaponId)?.type ?? 'energy'],
-    cooldown: 0,
-    destroyed: false,
-  }));
+  const weapons: WeaponMount[] = design.mounts.map((mount, index) => {
+    const weapon = catalog.weapons.get(mount.weaponId);
+    const modeId = weapon === undefined ? null : resolveWeaponModeId(weapon, mount.modeId);
+    return {
+      index,
+      weaponId: mount.weaponId,
+      location: mount.location,
+      group: GROUP_BY_WEAPON_TYPE[weapon?.type ?? 'energy'],
+      modeId,
+      cooldown: 0,
+      cycleDuration: weapon === undefined ? 0 : weaponFireProfile(weapon, modeId).cooldown,
+      destroyed: false,
+    };
+  });
 
   const ammoBins: AmmoBin[] = design.ammo.map((load, index) => {
     const weapon = catalog.weapons.get(load.weaponId);

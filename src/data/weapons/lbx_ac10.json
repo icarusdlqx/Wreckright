@@ -21,6 +21,24 @@
   "recoil": 0.18,
   "accuracy": 1.1,
   "criticalChance": 0.05,
+  "modes": [
+    {
+      "id": "cluster",
+      "name": "Cluster",
+      "damage": 1.2,
+      "projectiles": 10,
+      "accuracy": 1.1,
+      "heat": 2,
+      "cooldown": 3.0
+    },
+    {
+      "id": "slug",
+      "name": "Slug",
+      "damage": 13.2,
+      "projectiles": 1,
+      "accuracy": 1.0
+    }
+  ],
   "visual": {
     "style": "tracer",
     "colour": "#ffd08a",

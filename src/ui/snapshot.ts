@@ -10,6 +10,7 @@ import {
   type ContactTrack,
 } from '../sim/sensors';
 import { findEntity, isOperational, isStaggered, type MechEntity, type World } from '../sim/types';
+import { weaponFireProfile } from '../sim/weaponModes';
 import type { ContactSnapshot, LocationSnapshot, UnitSnapshot, WeaponSnapshot } from './store';
 import {
   abilityReadout,
@@ -41,13 +42,14 @@ function locationsOf(entity: MechEntity): Record<MechLocation, LocationSnapshot>
 function weaponsOf(world: World, entity: MechEntity): WeaponSnapshot[] {
   return entity.weapons.map((mount) => {
     const weapon = world.catalog.weapons.get(mount.weaponId);
+    const profile = weapon === undefined ? null : weaponFireProfile(weapon, mount.modeId);
     const bin = entity.ammoBins.find((entry) => entry.weaponId === mount.weaponId && !entry.destroyed);
     return {
       index: mount.index,
       name: weapon?.name ?? mount.weaponId,
       group: mount.group,
       cooldown: mount.cooldown,
-      cooldownMax: weapon?.cooldown ?? 1,
+      cooldownMax: mount.cooldown > 0 ? mount.cycleDuration : (profile?.cooldown ?? 1),
       destroyed: mount.destroyed,
       rounds: weapon?.ammoPerTon === null ? null : (bin?.rounds ?? 0),
       shortRange: weapon?.range.short ?? 0,

@@ -129,6 +129,20 @@ describe('saving to storage', () => {
     globalThis.localStorage.setItem(`ironline.design.${legacy.id}`, JSON.stringify(legacy));
     expect(loadFromStorage(legacy.id).design).toEqual(imported);
   });
+
+  it('preserves the selected fire mode in a stored build', () => {
+    const design = stock('redoubt_emplacement');
+    const mount = design.mounts.find((entry) => entry.weaponId === 'lbx_ac10');
+    if (mount === undefined) throw new Error('missing LB-X fixture');
+    mount.modeId = 'slug';
+
+    saveToStorage(catalog, design);
+
+    const restored = loadFromStorage(design.id).design?.mounts.find(
+      (entry) => entry.weaponId === 'lbx_ac10',
+    );
+    expect(restored?.modeId).toBe('slug');
+  });
 });
 
 describe('mounting and ammunition', () => {

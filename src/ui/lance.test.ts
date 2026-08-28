@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { catalog } from '../../tests/support';
 import type { Design } from '../schema/design';
 import { computeLoadout } from '../sim/loadout';
-import { defaultLance, loadLance, type SkirmishBerth } from './lance';
+import { defaultLance, loadLance, storeLance, type SkirmishBerth } from './lance';
 
 describe('stored skirmish lance migration', () => {
   const real = globalThis.localStorage;
@@ -48,5 +48,27 @@ describe('stored skirmish lance migration', () => {
     expect(migrated?.mounts.some((entry) => entry.weaponId === 'ac5')).toBe(true);
     expect(migrated?.ammo.some((entry) => entry.weaponId === 'ac5')).toBe(true);
     expect(migrated === undefined ? null : computeLoadout(catalog, migrated).valid).toBe(true);
+  });
+
+  it('preserves a selected fire mode on an inline design', () => {
+    const missionId = 'training_ground';
+    const lance = defaultLance(catalog, missionId);
+    const first = lance[0];
+    const stock = catalog.designs.get('redoubt_emplacement');
+    if (first === undefined || stock === undefined) throw new Error('missing mode fixture');
+
+    const custom = structuredClone(stock);
+    const mount = custom.mounts.find((entry) => entry.weaponId === 'lbx_ac10');
+    if (mount === undefined) throw new Error('missing LB-X fixture');
+    mount.modeId = 'slug';
+
+    storeLance(missionId, [
+      { designId: null, design: custom, pilotId: first.pilotId },
+      ...lance.slice(1),
+    ]);
+
+    const loaded = loadLance(catalog, missionId);
+    const restored = loaded[0]?.design?.mounts.find((entry) => entry.weaponId === 'lbx_ac10');
+    expect(restored?.modeId).toBe('slug');
   });
 });

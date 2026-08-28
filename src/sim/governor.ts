@@ -1,5 +1,6 @@
 import { type MechEntity, type World } from './types';
 import { currentHeatTier } from './heat';
+import { weaponFireProfile } from './weaponModes';
 
 interface GroupLoad {
   group: number;
@@ -17,13 +18,14 @@ function groupLoads(world: World, mech: MechEntity): GroupLoad[] {
     if (mount.destroyed) continue;
     const weapon = world.catalog.weapons.get(mount.weaponId);
     if (weapon === undefined) continue;
+    const profile = weaponFireProfile(weapon, mount.modeId);
     const entry = totals.get(mount.group) ?? { heat: 0, damage: 0, readyHeat: 0 };
-    entry.heat += weapon.heat / weapon.cooldown;
-    entry.damage += (weapon.damage * weapon.projectiles) / weapon.cooldown;
+    entry.heat += profile.heat / profile.cooldown;
+    entry.damage += (profile.damage * profile.projectiles) / profile.cooldown;
     // The governor next runs on the following decision tick. Reserve the
     // entire spike of anything that can fire before then; average heat/second
     // alone lets slow, hot guns jump straight across the shutdown threshold.
-    if (mount.cooldown <= decisionHorizon) entry.readyHeat += weapon.heat;
+    if (mount.cooldown <= decisionHorizon) entry.readyHeat += profile.heat;
     totals.set(mount.group, entry);
   }
 

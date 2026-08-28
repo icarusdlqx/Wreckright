@@ -66,7 +66,9 @@ beforeEach(() => {
     weaponId: 'medium_laser',
     location: 'centre_torso',
     group: 1,
+    modeId: null,
     cooldown: 0,
+    cycleDuration: 0,
     destroyed: false,
   }];
   shooter.ammoBins = [];
