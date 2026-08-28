@@ -1,6 +1,12 @@
 {
   "id": "ash_dusk",
   "name": "Ash Dusk",
+  "mechanics": {
+    "sightFactor": 0.92,
+    "sensorFactor": 0.96,
+    "heatDissipationFactor": 1,
+    "wind": { "x": 0.15, "y": 0.05 }
+  },
   "sky": "#1c110c",
   "exposure": 1.18,
   "fog": { "kind": "linear", "colour": "#3a2418", "near": 800, "far": 2600 },

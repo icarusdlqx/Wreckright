@@ -1,6 +1,12 @@
 {
   "id": "moonlit_night",
   "name": "Moonlit Night",
+  "mechanics": {
+    "sightFactor": 0.85,
+    "sensorFactor": 0.95,
+    "heatDissipationFactor": 1.05,
+    "wind": { "x": 0.05, "y": -0.02 }
+  },
   "sky": "#070b12",
   "exposure": 1.42,
   "fog": { "kind": "linear", "colour": "#101927", "near": 520, "far": 1900 },

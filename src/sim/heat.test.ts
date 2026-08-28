@@ -2,7 +2,13 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { catalog, testWorld, unitOf } from '../../tests/support';
 import { resolveProjectiles } from './combat';
 import { eventsOfType } from './events';
-import { addHeat, currentHeatTier, heatTierFor, updateHeat } from './heat';
+import {
+  addHeat,
+  currentHeatTier,
+  effectiveDissipationPerSecond,
+  heatTierFor,
+  updateHeat,
+} from './heat';
 import type { MechEntity, World } from './types';
 
 let world: World;
@@ -49,23 +55,33 @@ describe('updateHeat', () => {
     expect(mech.stats.heatPeak).toBe(25);
   });
 
-  it('doubles dissipation in water', () => {
+  it('composes weather cooling with terrain cooling', () => {
     const dry = { x: 12, y: 12 };
     const wet = { x: 18 * 24 + 12, y: 33 * 24 + 12 };
     expect(world.terrain.typeAtPoint(dry).heatDissipationMultiplier).toBe(1);
     expect(world.terrain.typeAtPoint(wet).heatDissipationMultiplier).toBe(2);
+    world.atmosphere = {
+      ...world.atmosphere,
+      mechanics: { ...world.atmosphere.mechanics, heatDissipationFactor: 0.8 },
+    };
 
     mech.pos = dry;
+    expect(effectiveDissipationPerSecond(world, mech)).toBeCloseTo(
+      mech.dissipationPerSecond * 0.8,
+    );
     mech.heat = 20;
     updateHeat(world, mech);
     const dryLoss = 20 - mech.heat;
+    expect(dryLoss).toBeCloseTo(mech.dissipationPerSecond * 0.8 * world.dt, 6);
 
     mech.pos = wet;
+    expect(effectiveDissipationPerSecond(world, mech)).toBeCloseTo(
+      mech.dissipationPerSecond * 0.8 * 2,
+    );
     mech.heat = 20;
     updateHeat(world, mech);
     const wetLoss = 20 - mech.heat;
 
-    expect(dryLoss).toBeGreaterThan(0);
     expect(wetLoss).toBeCloseTo(dryLoss * 2, 6);
   });
 

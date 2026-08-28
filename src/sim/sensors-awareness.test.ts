@@ -5,6 +5,8 @@ import { createMech } from './entity';
 import { lineOfSight } from './los';
 import {
   createVision,
+  effectiveSensorRange,
+  effectiveSightRange,
   isDetectedBy,
   isSightedBy,
   quantizeTrackPosition,
@@ -44,6 +46,33 @@ beforeEach(() => {
 });
 
 describe('electronic contacts', () => {
+  it('applies weather at the exact optical and electronic boundaries', () => {
+    useGrid(['............']);
+    observer.pos = { x: 5, y: 5 };
+    target.pos = { x: 95, y: 5 };
+    observer.sightRange = 100;
+    observer.sensorRange = 100;
+    world.atmosphere = {
+      ...world.atmosphere,
+      mechanics: {
+        ...world.atmosphere.mechanics,
+        sightFactor: 0.9,
+        sensorFactor: 0.9,
+      },
+    };
+
+    expect(effectiveSightRange(world, observer)).toBe(90);
+    expect(effectiveSensorRange(world, observer)).toBe(90);
+    updateVision(world, world.vision!);
+    expect(isSightedBy(world.vision, target)).toBe(true);
+    expect(isDetectedBy(world.vision, target)).toBe(true);
+
+    target.pos.x += 0.01;
+    updateVision(world, world.vision!);
+    expect(isSightedBy(world.vision, target)).toBe(false);
+    expect(isDetectedBy(world.vision, target)).toBe(false);
+  });
+
   it('detects through blocking terrain without granting optical sight', () => {
     useGrid(['.bb....']);
     observer.pos = { x: 5, y: 5 };
@@ -192,7 +221,7 @@ describe('optical sight', () => {
     expect(isSightedBy(world.vision, target)).toBe(false);
   });
 
-  it('reuses a footprint inside a tile and invalidates it across a boundary', () => {
+  it('reuses a footprint inside a tile and invalidates it across geometry or weather', () => {
     useGrid(['..........']);
     observer.pos = { x: 5, y: 5 };
     target.destroyed = true;
@@ -206,6 +235,14 @@ describe('optical sight', () => {
     observer.pos = { x: 15, y: 5 };
     updateVision(world, world.vision!);
     expect(world.vision!.opticalFootprints.get(observer.id)?.cells).not.toBe(first);
+
+    const second = world.vision!.opticalFootprints.get(observer.id)?.cells;
+    world.atmosphere = {
+      ...world.atmosphere,
+      mechanics: { ...world.atmosphere.mechanics, sightFactor: 0.9 },
+    };
+    updateVision(world, world.vision!);
+    expect(world.vision!.opticalFootprints.get(observer.id)?.cells).not.toBe(second);
   });
 });
 

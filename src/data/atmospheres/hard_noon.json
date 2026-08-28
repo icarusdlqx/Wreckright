@@ -1,6 +1,12 @@
 {
   "id": "hard_noon",
   "name": "Hard Noon",
+  "mechanics": {
+    "sightFactor": 1,
+    "sensorFactor": 1,
+    "heatDissipationFactor": 0.95,
+    "wind": { "x": 0.06, "y": 0.02 }
+  },
   "sky": "#141a1d",
   "exposure": 1.12,
   "fog": { "kind": "linear", "colour": "#20282c", "near": 1400, "far": 3600 },

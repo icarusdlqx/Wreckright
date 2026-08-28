@@ -4,7 +4,7 @@ import { updateWeapons } from '../combat';
 import { eventsOfType } from '../events';
 import { lineOfSight } from '../los';
 import { angleDifference, bearing, distance } from '../math';
-import { updateTeamVisions, visionFor } from '../sensors';
+import { effectiveSightRange, updateTeamVisions, visionFor } from '../sensors';
 import type { MechEntity, World } from '../types';
 import {
   observationDirective,
@@ -120,16 +120,22 @@ function exposureChoice(seed: string, shieldOpposite: boolean): ExposureChoice {
 describe('forward observer behaviour', () => {
   it('investigates a contact on its authored optical band instead of at gun range', () => {
     const { world, scout, target } = fixture('observer-band');
+    world.atmosphere = {
+      ...world.atmosphere,
+      mechanics: { ...world.atmosphere.mechanics, sightFactor: 0.8 },
+    };
+    updateTeamVisions(world);
     const track = visionFor(world, scout.team)?.tracks.get(target.id);
     if (track === undefined) throw new Error('need a contact track');
 
     const destination = reconDestination(world, scout);
     if (destination === null) throw new Error('need an observation destination');
     const factor = roleOf(world, scout).observationRangeFactor;
-    const band = scout.sightRange * factor;
+    const sightRange = effectiveSightRange(world, scout);
+    const band = sightRange * factor;
 
     expect(distance(destination, track.pos)).toBeGreaterThan(band - world.terrain.tileSize * 2);
-    expect(distance(destination, track.pos)).toBeLessThan(scout.sightRange);
+    expect(distance(destination, track.pos)).toBeLessThan(sightRange);
     expect(distance(destination, track.pos)).toBeGreaterThan(scoutWeaponReach(world, scout));
 
     decideTactical(world, scout, null, difficultyTier(world, 'regular'));
@@ -269,7 +275,7 @@ describe('forward observer behaviour', () => {
 
     expect(safer).not.toEqual(first);
     expect(distance(safer, first)).toBeGreaterThanOrEqual(
-      scout.sightRange * roleOf(world, scout).observationRangeFactor,
+      effectiveSightRange(world, scout) * roleOf(world, scout).observationRangeFactor,
     );
   });
 
@@ -290,7 +296,7 @@ describe('forward observer behaviour', () => {
     const { world, scout, target } = fixture('observer-fight');
     const factor = roleOf(world, scout).observationRangeFactor;
     scout.pos = {
-      x: target.pos.x - scout.sightRange * factor,
+      x: target.pos.x - effectiveSightRange(world, scout) * factor,
       y: target.pos.y,
     };
 

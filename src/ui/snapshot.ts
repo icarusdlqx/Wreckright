@@ -1,7 +1,14 @@
 import { LOCATIONS, type MechLocation } from '../schema/common';
 import { roleOf } from '../sim/ai/roles';
 import { canJump, isHoldingFire } from '../sim/orders';
-import { currentSensorTrack, isIdentifiedBy, isSightedBy, type ContactTrack } from '../sim/sensors';
+import {
+  currentSensorTrack,
+  effectiveSensorRange,
+  effectiveSightRange,
+  isIdentifiedBy,
+  isSightedBy,
+  type ContactTrack,
+} from '../sim/sensors';
 import { findEntity, isOperational, isStaggered, type MechEntity, type World } from '../sim/types';
 import type { ContactSnapshot, LocationSnapshot, UnitSnapshot, WeaponSnapshot } from './store';
 import {
@@ -125,8 +132,8 @@ export function snapshotUnit(world: World, entity: MechEntity): UnitSnapshot {
     canJump: canJump(entity),
     posture: entity.posture,
     identified: isIdentifiedBy(world.vision, entity),
-    sensorRange: entity.sensorRange,
-    sightRange: entity.sightRange,
+    sensorRange: effectiveSensorRange(world, entity),
+    sightRange: effectiveSightRange(world, entity),
     signature: entity.signature,
     chassisTraits: (chassis?.traits ?? []).flatMap((id) => {
       const trait = world.rules.traits.entries[id];

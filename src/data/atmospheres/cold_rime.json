@@ -1,6 +1,12 @@
 {
   "id": "cold_rime",
   "name": "Cold Rime",
+  "mechanics": {
+    "sightFactor": 0.9,
+    "sensorFactor": 0.95,
+    "heatDissipationFactor": 1.08,
+    "wind": { "x": 0.3, "y": -0.2 }
+  },
   "sky": "#0f1418",
   "exposure": 1.08,
   "fog": { "kind": "linear", "colour": "#1e2830", "near": 600, "far": 2200 },

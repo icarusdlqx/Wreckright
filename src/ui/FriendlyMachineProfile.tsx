@@ -13,11 +13,11 @@ export function FriendlyMachineProfile({ unit }: { unit: UnitSnapshot }) {
       <dl>
         <div>
           <dt>Optics</dt>
-          <dd>{Math.round(unit.sightRange)}m base</dd>
+          <dd>{Math.round(unit.sightRange)}m current</dd>
         </div>
         <div>
           <dt>Sensors</dt>
-          <dd>{Math.round(unit.sensorRange)}m reach</dd>
+          <dd>{Math.round(unit.sensorRange)}m current reach</dd>
         </div>
         <div>
           <dt>Signature</dt>
@@ -37,7 +37,8 @@ export function FriendlyMachineProfile({ unit }: { unit: UnitSnapshot }) {
         </ul>
       )}
       <p className="machine-profile-caveat">
-        Terrain and elevation alter optical reach. Sensor returns do not provide line of sight.
+        Current weather is included. Terrain and elevation further alter optical reach. Sensor
+        returns do not provide line of sight.
       </p>
     </section>
   );

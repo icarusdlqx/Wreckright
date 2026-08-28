@@ -1,6 +1,12 @@
 {
   "id": "dawn",
   "name": "Dawn",
+  "mechanics": {
+    "sightFactor": 0.95,
+    "sensorFactor": 0.98,
+    "heatDissipationFactor": 1.02,
+    "wind": { "x": 0.08, "y": 0.04 }
+  },
   "sky": "#0d1726",
   "exposure": 1.18,
   "fog": { "kind": "linear", "colour": "#253143", "near": 900, "far": 2900 },

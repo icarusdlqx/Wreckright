@@ -65,6 +65,10 @@ export function createWorld(catalog: Catalog, options: WorldOptions): World {
   const mapData = catalog.maps.get(mission.mapId);
   if (mapData === undefined) throw new Error(`unknown map "${mission.mapId}"`);
 
+  const atmosphereId = mission.atmosphereId ?? mapData.atmosphereId;
+  const atmosphere = catalog.atmospheres.get(atmosphereId);
+  if (atmosphere === undefined) throw new Error(`unknown atmosphere "${atmosphereId}"`);
+
   const playerTeam = options.playerTeam ?? null;
   const playerController = options.playerController ?? 'orders';
   const enemyController = options.enemyController ?? 'tactical';
@@ -140,6 +144,7 @@ export function createWorld(catalog: Catalog, options: WorldOptions): World {
     catalog,
     rules: catalog.rules,
     terrain: createTerrainGrid(mapData, catalog.rules.terrain, catalog.rules.movement),
+    atmosphere,
     mission,
     entities,
     projectiles: [],

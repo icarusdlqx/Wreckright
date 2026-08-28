@@ -1,6 +1,12 @@
 {
   "id": "rain",
   "name": "Rain",
+  "mechanics": {
+    "sightFactor": 0.88,
+    "sensorFactor": 0.9,
+    "heatDissipationFactor": 1.08,
+    "wind": { "x": 0.2, "y": 0.1 }
+  },
   "sky": "#10171c",
   "exposure": 0.88,
   "fog": { "kind": "linear", "colour": "#2b363c", "near": 700, "far": 2100 },

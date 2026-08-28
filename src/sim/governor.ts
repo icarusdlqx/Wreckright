@@ -1,5 +1,5 @@
 import { type MechEntity, type World } from './types';
-import { currentHeatTier } from './heat';
+import { currentHeatTier, effectiveDissipationPerSecond } from './heat';
 
 interface GroupLoad {
   group: number;
@@ -86,7 +86,7 @@ export function applyHeatGovernor(world: World, mech: MechEntity, targetNearlyDe
 
   mech.ai.coolingDown = true;
 
-  const budget = mech.dissipationPerSecond * rules.sustainFactor;
+  const budget = effectiveDissipationPerSecond(world, mech) * rules.sustainFactor;
   let spent = 0;
   let reserved = 0;
 
