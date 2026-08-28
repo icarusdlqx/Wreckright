@@ -8,7 +8,11 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
     useGame.getState().patch({ paused: true });
     const playerTeam = useGame.getState().playerTeam;
     const friendly = world.entities.find((entity) => (
-      entity.team === playerTeam && !entity.destroyed && !entity.withdrawn
+      entity.team === playerTeam && !entity.destroyed && !entity.withdrawn &&
+      entity.weapons.some((mount) => (
+        !mount.destroyed &&
+        world.catalog.weapons.get(mount.weaponId)?.tags.includes('indirect_fire') === true
+      ))
     ));
     const enemy = world.entities.find((entity) => (
       entity.team !== playerTeam && !entity.destroyed && !entity.withdrawn
@@ -19,9 +23,40 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
     for (const entity of world.entities) {
       if (entity.team !== playerTeam) continue;
       entity.sightRange = 1;
+      entity.sensorRange = 0;
       entity.orders.move = null;
       entity.orders.queue.length = 0;
       entity.path.length = 0;
+    }
+    const extentX = world.terrain.width * world.terrain.tileSize;
+    const east = enemy.pos.x + 360 < extentX;
+    friendly.pos = { x: enemy.pos.x + (east ? 360 : -360), y: enemy.pos.y };
+    friendly.facing = east ? Math.PI : 0;
+    friendly.torsoOffset = 0;
+    friendly.heat = 0;
+    friendly.shutdownRemaining = 0;
+    friendly.downRemaining = 0;
+    friendly.jump = null;
+    friendly.targetId = null;
+    friendly.calledShot = null;
+    friendly.orders.attack = null;
+    for (const mount of friendly.weapons) mount.cooldown = 0;
+    for (const bin of friendly.ammoBins) {
+      bin.destroyed = false;
+      bin.rounds = Math.max(10, bin.rounds);
+    }
+    for (let group = 0; group < friendly.groupEnabled.length; group += 1) {
+      friendly.groupEnabled[group] = true;
+      friendly.groupIntent[group] = true;
+    }
+    enemy.controller = 'orders';
+    enemy.orders.move = null;
+    enemy.path.length = 0;
+    for (const other of world.entities) {
+      if (other.team === playerTeam || other.id === enemy.id) continue;
+      other.pos = { x: 24, y: 24 + other.id * 2 };
+      other.orders.move = null;
+      other.path.length = 0;
     }
     useGame.getState().setSelection([friendly.id]);
     engine.renderer.camera.centreOn(enemy.pos);
@@ -86,6 +121,9 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
         chassisClass: track.chassisClass,
         position: track.pos,
       },
+      log: globalThis.__wreckright.useGame.getState().log.find(
+        (line) => line.startsWith('Sensor sweep —'),
+      ) ?? null,
       // An empty window would make every() pass on nothing at all.
       watchedTiles: before === undefined ? 0 : before.watched.length,
       fogUnchanged:
@@ -104,6 +142,7 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
       sensorOutcome.detected &&
       !sensorOutcome.visible &&
       sensorOutcome.track?.id === probeSetup.enemyId &&
+      sensorOutcome.log?.includes('contact') &&
       sensorOutcome.fogUnchanged,
     JSON.stringify(sensorOutcome),
   );
@@ -119,26 +158,74 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
     text: await sensorCard.innerText(),
     disabled: await sensorCard.isDisabled(),
   };
+  const sweepReadout = await page.locator('[data-testid="sensor-sweep-readout"]').innerText();
   check(
-    'the coarse sensor card offers an accessible Investigate order rather than targeting',
-    sensorCardState.label?.startsWith('Investigate sensor contact:') &&
-      sensorCardState.text.toLowerCase().includes('investigate track') &&
+    'the coarse sensor card exposes the authored indirect penalty and sweep countdown',
+    sensorCardState.label?.startsWith('Sensor contact:') &&
+      sensorCardState.text.includes(`${mission.sensorAccuracyPercent}%`) &&
+      /\d+s remaining/.test(sweepReadout) &&
       !sensorCardState.disabled,
-    JSON.stringify(sensorCardState),
+    JSON.stringify({ sensorCardState, sweepReadout }),
   );
   await sensorCard.click();
-  const investigation = await page.evaluate((wasPaused) => {
-    const { useGame, world } = globalThis.__wreckright;
-    const selected = world.entities.find((entity) => useGame.getState().selection.includes(entity.id));
-    useGame.getState().patch({ paused: wasPaused });
-    return {
-      engage: selected?.orders.move?.engage === true,
-      attack: selected?.orders.attack ?? null,
+  const indirect = await page.evaluate(({ friendlyId, wasPaused }) => {
+    const { engine, useGame, world } = globalThis.__wreckright;
+    const selected = world.entities.find((entity) => entity.id === friendlyId);
+    if (selected === undefined) throw new Error('selected indirect carrier disappeared');
+    const indirectIds = new Set(selected.weapons.flatMap((mount) => (
+      world.catalog.weapons.get(mount.weaponId)?.tags.includes('indirect_fire') === true
+        ? [mount.weaponId]
+        : []
+    )));
+    const ammoBefore = selected.ammoBins
+      .filter((bin) => indirectIds.has(bin.weaponId))
+      .reduce((total, bin) => total + bin.rounds, 0);
+    const recorded = [];
+    const renderer = engine.renderer;
+    const hadOwn = Object.hasOwn(renderer, 'consumeEvents');
+    const original = renderer.consumeEvents;
+    renderer.consumeEvents = function capture(resolvedWorld, events) {
+      recorded.push(...events);
+      return original.call(this, resolvedWorld, events);
     };
-  }, probeSetup.wasPaused);
+    try {
+      for (let step = 0; step < 60; step += 1) {
+        engine.forceStep();
+        if (recorded.some((event) => (
+          event.type === 'weapon_fired' && event.shooterId === selected.id
+        ))) break;
+      }
+    } finally {
+      if (hadOwn) renderer.consumeEvents = original;
+      else delete renderer.consumeEvents;
+      useGame.getState().patch({ paused: wasPaused });
+    }
+    const fired = recorded.filter((event) => (
+      event.type === 'weapon_fired' && event.shooterId === selected.id
+    ));
+    const ammoAfter = selected.ammoBins
+      .filter((bin) => indirectIds.has(bin.weaponId))
+      .reduce((total, bin) => total + bin.rounds, 0);
+    return {
+      attack: selected.orders.attack,
+      targetId: selected.targetId,
+      move: selected.orders.move,
+      ammoBefore,
+      ammoAfter,
+      fired: fired.map((event) => ({
+        weaponId: event.weaponId,
+        indirect: world.catalog.weapons.get(event.weaponId)?.tags.includes('indirect_fire') === true,
+      })),
+    };
+  }, { friendlyId: probeSetup.friendlyId, wasPaused: probeSetup.wasPaused });
   check(
-    'Investigate attack-moves to the coarse area without retaining a hidden target',
-    investigation.engage && investigation.attack === null,
-    JSON.stringify(investigation),
+    'a current coarse return fires supplied indirect mounts while direct weapons stay blind',
+    indirect.attack?.targetId === probeSetup.enemyId &&
+      indirect.targetId === probeSetup.enemyId &&
+      indirect.move === null &&
+      indirect.ammoAfter < indirect.ammoBefore &&
+      indirect.fired.length > 0 &&
+      indirect.fired.every((event) => event.indirect),
+    JSON.stringify(indirect),
   );
 }

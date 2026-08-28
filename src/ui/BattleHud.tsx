@@ -8,6 +8,7 @@ import { MobileBattleHud } from './MobileBattleHud';
 import { HostileBar, LanceBar, SupportPalette } from './Panels';
 import { selectedUnit, useGame } from './store';
 import type { SupportOption } from './supportOptions';
+import { SensorSweepReadout } from './SensorSweepReadout';
 import { TrainingHeatReadout } from './TrainingHeatReadout';
 import {
   trainingCommandIds,
@@ -67,17 +68,21 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
 
   if (compact) {
     return (
-      <MobileBattleHud
-        engine={engine}
-        supportOptions={supportOptions}
-        trainingStep={trainingStep}
-        onCommand={onCommand}
-      />
+      <>
+        <SensorSweepReadout world={engine?.world ?? null} />
+        <MobileBattleHud
+          engine={engine}
+          supportOptions={supportOptions}
+          trainingStep={trainingStep}
+          onCommand={onCommand}
+        />
+      </>
     );
   }
 
   return (
     <>
+      <SensorSweepReadout world={engine?.world ?? null} />
       {fullHud ? <UnitPanel engine={engine} /> : null}
       {showsContacts ? (
         <HostileBar
@@ -88,7 +93,7 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
             (entry) => state.selection.includes(entry.id) && entry.alive,
           )}
           onTarget={(id) => engine?.orderAttack(id, null)}
-          onInvestigate={(at) => engine?.investigateContact(at)}
+          onContact={(contact) => engine?.engageContact(contact.id, contact.position)}
         />
       ) : null}
       {fullHud ? <Minimap engine={engine} /> : null}

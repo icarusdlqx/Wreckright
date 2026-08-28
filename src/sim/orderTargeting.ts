@@ -1,7 +1,7 @@
 import { distance } from './math';
 import { replacePath } from './pathProgress';
 import { findPath, nearestPassable } from './pathfind';
-import { isSightedBy, trackFor, visionFor } from './sensors';
+import { currentSensorTrack, isSightedBy, trackFor, visionFor } from './sensors';
 import { findEntity, isOperational, type MechEntity, type Vec2, type World } from './types';
 import {
   hasUsableFiringSolution,
@@ -22,6 +22,8 @@ function trackSearchRadius(world: World): number {
 export interface OrderedContact {
   /** Exact entity state is exposed only while the team has optical sight. */
   target: MechEntity | null;
+  /** A detected contact addressable now, without exposing its hidden entity state. */
+  indirectTargetId: number | null;
   /** A privacy-safe point the standing order may continue to investigate. */
   lastKnown: Vec2 | null;
   /** The team has actually observed that this contact is no longer fighting. */
@@ -35,6 +37,14 @@ export function orderedContact(world: World, entity: MechEntity): OrderedContact
   const found = findEntity(world, id);
   const target =
     found !== null && isSightedBy(vision, found) && isOperational(found) ? found : null;
+  const indirectTargetId =
+    target === null &&
+    found !== null &&
+    currentSensorTrack(vision, found) !== null &&
+    isOperational(found) &&
+    hasUsableFiringSolution(world, entity, found, 'intent')
+      ? found.id
+      : null;
   const track = id === null ? null : trackFor(vision, id);
   const gone =
     found !== null &&
@@ -42,6 +52,7 @@ export function orderedContact(world: World, entity: MechEntity): OrderedContact
     !isOperational(found);
   return {
     target,
+    indirectTargetId,
     lastKnown: track === null ? null : { x: track.pos.x, y: track.pos.y },
     gone,
   };
@@ -155,16 +166,17 @@ export function applyPlayerTargeting(
   holdingFire: boolean,
 ): void {
   const attackMoving = entity.orders.move?.engage === true;
+  const orderedTargetId = contact.target?.id ?? contact.indirectTargetId;
   const orderedTargetActionable =
     contact.target !== null &&
     hasUsableFiringSolution(world, entity, contact.target, 'intent');
-  if (contact.target !== null && (!attackMoving || orderedTargetActionable)) {
-    entity.targetId = contact.target.id;
-    entity.calledShot = entity.orders.attack?.calledShot ?? null;
+  if (orderedTargetId !== null && (!attackMoving || orderedTargetActionable)) {
+    entity.targetId = orderedTargetId;
+    entity.calledShot = contact.target === null ? null : (entity.orders.attack?.calledShot ?? null);
     return;
   }
 
-  if (contact.target === null && (contact.gone || contact.lastKnown === null)) {
+  if (orderedTargetId === null && (contact.gone || contact.lastKnown === null)) {
     // Once both optical contact and its bounded report have elapsed, the
     // standing id carries no player-visible information. Retire it so normal
     // target selection can resume without asking what the hidden entity did.
@@ -183,9 +195,9 @@ export function applyPlayerTargeting(
     }
   }
 
-  if (contact.target !== null) {
-    entity.targetId = contact.target.id;
-    entity.calledShot = entity.orders.attack?.calledShot ?? null;
+  if (orderedTargetId !== null) {
+    entity.targetId = orderedTargetId;
+    entity.calledShot = contact.target === null ? null : (entity.orders.attack?.calledShot ?? null);
     return;
   }
 

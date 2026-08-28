@@ -1,3 +1,4 @@
+import { getCatalog } from '../schema/load';
 import type { ContactSnapshot, UnitSnapshot } from './store';
 import './contacts.css';
 
@@ -35,24 +36,27 @@ export function selectedTargetIds(
   );
 }
 
-/** Optical contacts target; electronic returns can only send the lance to a coarse point. */
+/** Optical contacts target directly; electronic returns guide indirect fire or investigation. */
 export function HostileBar({
   enemies,
   contacts,
   targetIds,
   hasSelection,
   onTarget,
-  onInvestigate,
+  onContact,
 }: {
   enemies: readonly UnitSnapshot[];
   contacts: readonly ContactSnapshot[];
   targetIds: ReadonlySet<number>;
   hasSelection: boolean;
   onTarget: (id: number) => void;
-  onInvestigate: (at: ContactSnapshot['position']) => void;
+  onContact: (contact: ContactSnapshot) => void;
 }) {
   const standing = enemies.filter((enemy) => enemy.alive);
   const count = standing.length + contacts.length;
+  const indirectAccuracy = Math.round(
+    getCatalog().rules.support.sensor_probe.indirectAccuracyFactor * 100,
+  );
 
   return (
     <section className="hostiles" aria-label="Battlefield contacts" data-testid="hostile-bar">
@@ -85,6 +89,9 @@ export function HostileBar({
       })}
       {contacts.map((contact) => {
         const range = approximateRange(contact);
+        const guidance = contact.current
+          ? `Current returns guide indirect missiles at ${indirectAccuracy}% of sighted accuracy; other mechs investigate.`
+          : 'Frozen last-known returns cannot guide fire; investigate the coarse area.';
         return (
           <button
             key={`sensor-${contact.id}`}
@@ -92,17 +99,17 @@ export function HostileBar({
             className="hostile sensor-contact"
             disabled={!hasSelection}
             title={hasSelection
-              ? 'Attack-move to the reported area; the return itself cannot be targeted'
+              ? guidance
               : 'Select a friendly mech before investigating this return'}
-            aria-label={`Investigate sensor contact: ${contact.label}, ${range}. This is not a firing solution.`}
-            onClick={() => onInvestigate(investigationPoint(contact))}
+            aria-label={`Sensor contact: ${contact.label}, ${range}. ${guidance}`}
+            onClick={() => onContact(contact)}
             data-testid={`sensor-contact-${contact.id}`}
           >
             <span className="sensor-contact-glyph" aria-hidden="true">◇</span>
             <span className="hostile-name">{contact.label}</span>
             <span className="hostile-range">{range}</span>
             <span className="sensor-contact-note">
-              {contact.current ? 'Sensor return' : 'Frozen last known'} · investigate track
+              {contact.current ? `Sensor return · indirect ${indirectAccuracy}% of sighted / investigate` : 'Frozen last known · investigate track'}
             </span>
           </button>
         );

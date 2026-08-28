@@ -11,8 +11,7 @@ import { coverFactorAt } from './los';
 import { angleDifference, bearing, clamp, distance as distanceBetween } from './math';
 import { weaponBearing } from './movement';
 import { addStabilityImpulse, impulseOf } from './stability';
-import { isSightedBy, visionFor } from './sensors';
-import { weaponHasFiringSolution } from './weaponEngagement';
+import { contactFiringSolution, isIndirectSensorShot } from './weaponEngagement';
 import { weaponMaximumReach } from './weaponRange';
 import {
   findAmmoBin,
@@ -47,10 +46,11 @@ export function heightFactor(
   shooter: MechEntity,
   target: MechEntity,
   from: Vec2 = shooter.pos,
+  to: Vec2 = target.pos,
 ): number {
   const rules = world.rules.combat.elevation;
   const above =
-    world.terrain.elevationAtPoint(from) - world.terrain.elevationAtPoint(target.pos);
+    world.terrain.elevationAtPoint(from) - world.terrain.elevationAtPoint(to);
   if (above <= 0) return 1;
   return rules.accuracyPerLevel ** Math.min(above, rules.maxLevels);
 }
@@ -65,6 +65,8 @@ export function hitChance(
   heatAccuracy?: number,
   /** A candidate firing point used by deterministic tactical previews. */
   from: Vec2 = shooter.pos,
+  /** The privacy-safe point the weapon is actually ranged against. */
+  to: Vec2 = target.pos,
 ): number {
   const rules = world.rules.combat;
   const gunnery = rules.gunneryBase[shooter.pilot.gunnery - 1] ?? rules.gunneryBase[0] ?? 0.5;
@@ -77,8 +79,8 @@ export function hitChance(
     ? motionPenalty
     : Math.min(1, motionPenalty * shooter.movingAccuracyFactor);
   chance *= rules.targetMotion[target.motion];
-  chance *= coverFactorAt(world.terrain, target.pos);
-  chance *= heightFactor(world, shooter, target, from);
+  chance *= coverFactorAt(world.terrain, to);
+  chance *= heightFactor(world, shooter, target, from, to);
   chance *= target.incomingAccuracyFactor * abilityFactor(world, target, 'incoming');
   // A mech on the ground is a stationary target the size of a barn. This is the
   // whole reward for knocking one down, and because hit chance feeds the AI's
@@ -91,6 +93,9 @@ export function hitChance(
   }
   chance *= lanceGunnery(world, shooter);
   if (weapon.type === 'missile') chance *= target.amsMissileFactor;
+  if (isIndirectSensorShot(world, shooter, target, weapon)) {
+    chance *= world.rules.support.sensor_probe.indirectAccuracyFactor;
+  }
   if (world.tick <= target.designatedUntilTick) chance *= rules.tagFactor;
   chance *= weapon.accuracy;
   chance *= heatAccuracy ?? currentHeatTier(world, shooter).accuracyFactor;
@@ -143,6 +148,7 @@ function fireWeapon(
   mount: WeaponMount,
   weapon: Weapon,
   range: number,
+  aimAt: Vec2,
   bin: AmmoBin | null,
   heatAccuracy: number,
 ): void {
@@ -172,7 +178,9 @@ function fireWeapon(
   const from = { x: shooter.pos.x, y: shooter.pos.y };
 
   for (let shot = 0; shot < weapon.projectiles; shot += 1) {
-    const hit = world.rng.chance(hitChance(world, shooter, target, weapon, range, heatAccuracy));
+    const hit = world.rng.chance(
+      hitChance(world, shooter, target, weapon, range, heatAccuracy, shooter.pos, aimAt),
+    );
     shooter.stats.shotsFired += 1;
     if (hit) shooter.stats.shotsHit += 1;
     recordShot(world, weapon, hit);
@@ -204,16 +212,12 @@ export function updateWeapons(world: World, shooter: MechEntity): void {
   if (
     target === null ||
     target.team === shooter.team ||
-    !isSightedBy(visionFor(world, shooter.team), target) ||
     !isOperational(target)
   ) {
     return;
   }
 
-  const range = distanceBetween(shooter.pos, target.pos);
   const halfArc = (world.rules.combat.firingArcDegrees / 2) * (Math.PI / 180);
-  const aim = angleDifference(weaponBearing(shooter), bearing(shooter.pos, target.pos));
-  if (Math.abs(aim) > halfArc) return;
 
   // The whole volley leaves at once, so every weapon rolls against the heat the
   // mech was carrying when the trigger came in. Applying each weapon's own heat
@@ -237,8 +241,12 @@ export function updateWeapons(world: World, shooter: MechEntity): void {
 
     const weapon = world.catalog.weapons.get(mount.weaponId);
     if (weapon === undefined) continue;
-    if (!weaponHasFiringSolution(world, shooter, target, weapon)) continue;
-    if (range > weaponMaximumReach(world, weapon, shooter.pos, target.pos)) continue;
+    const solution = contactFiringSolution(world, shooter, target, weapon);
+    if (solution === null) continue;
+    const range = distanceBetween(shooter.pos, solution.point);
+    if (range > weaponMaximumReach(world, weapon, shooter.pos, solution.point)) continue;
+    const aim = angleDifference(weaponBearing(shooter), bearing(shooter.pos, solution.point));
+    if (Math.abs(aim) > halfArc) continue;
     if (!alpha && shooter.heat + weapon.heat >= shooter.heatCapacity) continue;
 
     let bin: AmmoBin | null = null;
@@ -247,7 +255,7 @@ export function updateWeapons(world: World, shooter: MechEntity): void {
       if (bin === null) continue;
     }
 
-    fireWeapon(world, shooter, target, mount, weapon, range, bin, heatAccuracy);
+    fireWeapon(world, shooter, target, mount, weapon, range, solution.point, bin, heatAccuracy);
   }
 }
 

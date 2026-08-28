@@ -1,6 +1,7 @@
-import { BufferAttribute, Line, Mesh, RingGeometry } from 'three';
+import { BufferAttribute, Line, Mesh, MeshBasicMaterial, RingGeometry } from 'three';
 import { describe, expect, it } from 'vitest';
 import { playerWorld } from '../../tests/support';
+import { updateSupport } from '../sim/support';
 import type { World } from '../sim/types';
 import { MarkerLayer, type MarkerViewState } from './markerLayer';
 
@@ -31,6 +32,85 @@ describe('support placement markers', () => {
     expect(ring).toBeDefined();
     expect(ring?.position.x).toBe(300);
     expect(ring?.position.z).toBe(420);
+    layer.dispose();
+  });
+
+  it('gives a live sensor sweep a legible ring without disclosing enemy coverage', () => {
+    const world = playerWorld('sensor-sweep-marker');
+    const player = world.playerTeam ?? 0;
+    world.zones.length = 0;
+    world.support.pending.length = 0;
+    world.reveals = [
+      { team: player, kind: 'sensor', x: 300, y: 420, radius: 260, expiresTick: 100 },
+      { team: player + 1, kind: 'sensor', x: 500, y: 420, radius: 260, expiresTick: 100 },
+    ];
+    const layer = new MarkerLayer(() => 0, () => null);
+    layer.draw(world, baseView);
+
+    const rings = layer.group.children.filter(
+      (child): child is Mesh => child instanceof Mesh && child.visible,
+    );
+    expect(rings).toHaveLength(1);
+    expect(rings[0]?.position.x).toBe(300);
+    const material = rings[0]?.material as MeshBasicMaterial | undefined;
+    expect(material?.opacity).toBe(0.68);
+    expect(material?.depthTest).toBe(false);
+    expect(rings[0]?.renderOrder).toBe(10);
+    const geometry = rings[0]?.geometry as RingGeometry | undefined;
+    expect(geometry?.parameters.outerRadius).toBe(260);
+    expect(geometry?.parameters.innerRadius).toBeCloseTo(255.2);
+
+    const identities = {
+      child: rings[0],
+      geometry: rings[0]?.geometry,
+      material: rings[0]?.material,
+      children: layer.group.children.length,
+    };
+    world.tick = 100;
+    updateSupport(world);
+    layer.draw(world, baseView);
+    expect(layer.group.children.filter(
+      (child): child is Mesh => child instanceof Mesh && child.visible,
+    )).toHaveLength(0);
+    expect(layer.group.children).toHaveLength(identities.children);
+
+    world.reveals = [
+      { team: player, kind: 'sensor', x: 300, y: 420, radius: 260, expiresTick: 1_000 },
+    ];
+    layer.draw(world, baseView);
+    const restored = layer.group.children.filter(
+      (child): child is Mesh => child instanceof Mesh && child.visible,
+    );
+    expect(restored[0]).toBe(identities.child);
+    expect(restored[0]?.geometry).toBe(identities.geometry);
+    expect(restored[0]?.material).toBe(identities.material);
+
+    world.reveals.push(
+      { team: player, kind: 'sensor', x: 700, y: 420, radius: 260, expiresTick: 1_000 },
+    );
+    layer.draw(world, baseView);
+    const atHighWater = layer.group.children.filter(
+      (child): child is Mesh => child instanceof Mesh && child.visible,
+    );
+    expect(atHighWater).toHaveLength(2);
+    expect(layer.group.children).toHaveLength(identities.children + 1);
+    const secondRing = atHighWater[1];
+
+    world.reveals.length = 0;
+    layer.draw(world, baseView);
+    world.reveals = [
+      { team: player, kind: 'sensor', x: 700, y: 420, radius: 260, expiresTick: 1_000 },
+      { team: player, kind: 'sensor', x: 300, y: 420, radius: 260, expiresTick: 1_000 },
+    ];
+    for (let frame = 0; frame < 1_000; frame += 1) layer.draw(world, baseView);
+    const afterReuse = layer.group.children.filter(
+      (child): child is Mesh => child instanceof Mesh && child.visible,
+    );
+    expect(afterReuse[0]).toBe(identities.child);
+    expect(afterReuse[1]).toBe(secondRing);
+    expect(afterReuse.every((ring) => ring.geometry === identities.geometry)).toBe(true);
+    expect(afterReuse.every((ring) => ring.material === identities.material)).toBe(true);
+    expect(layer.group.children).toHaveLength(identities.children + 1);
     layer.dispose();
   });
 

@@ -67,10 +67,18 @@ export function eventLogLine(world: World, event: SimEvent): string | null {
     }
     case 'unit_spawned':
       return namedEntity(world, event.entityId) === null ? null : `${event.name} arrives on the field`;
-    case 'support_resolved':
+    case 'support_resolved': {
+      if (event.call === 'sensor_probe') {
+        if (world.vision !== null && event.team !== world.vision.team) return null;
+        const count = event.contactCount ?? 0;
+        return count === 0
+        ? 'Sensor sweep — nothing in range'
+          : `Sensor sweep — ${count} contact${count === 1 ? '' : 's'}`;
+      }
       return supportWasObserved(world, event.team, event.x, event.y)
         ? `${event.call.replace(/_/g, ' ')} on target`
         : null;
+    }
     case 'mission_ended':
       return `Mission ${event.status} — ${event.reason}`;
     case 'battle_ended':

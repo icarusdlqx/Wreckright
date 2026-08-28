@@ -3,6 +3,7 @@ import { catalog, testWorld, unitOf } from '../../tests/support';
 import { hitChance } from './combat';
 import { angleDifference, bearing } from './math';
 import { updateTorso, weaponBearing } from './movement';
+import { visionFor } from './sensors';
 import type { MechEntity, World } from './types';
 
 const DEGREES = Math.PI / 180;
@@ -24,6 +25,7 @@ beforeEach(() => {
   shooter.facing = 0;
   shooter.torsoOffset = 0;
   shooter.targetId = target.id;
+  visionFor(world, shooter.team)?.visible.add(target.id);
 });
 
 describe('torso twist', () => {

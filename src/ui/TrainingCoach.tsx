@@ -31,8 +31,8 @@ export const TRAINING_LESSONS: Record<
   },
   2: {
     title: '3 · Engage',
-    instruction: 'Hollow ◇ contacts are sensor tracks: investigate to close in, but you cannot target them. Once a named optical contact appears, click it to engage.',
-    touch: 'Hollow ◇ contacts are sensor tracks. Tap one to investigate; tap a named optical contact to engage.',
+    instruction: 'Hollow ◇ contacts are sensor tracks: indirect missiles can use a live return; other mechs investigate to close in. Once a named optical contact appears, click it to engage.',
+    touch: 'Hollow ◇ contacts are sensor tracks: they guide indirect missiles; other mechs investigate. Tap a named optical contact to engage directly.',
   },
   3: {
     title: '4 · Read heat',

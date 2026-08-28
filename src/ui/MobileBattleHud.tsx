@@ -216,7 +216,7 @@ export function MobileBattleHud({
                 targetIds={targetIds}
                 hasSelection={selectedAlive}
                 onTarget={(id) => engine?.orderAttack(id, null)}
-                onInvestigate={(at) => engine?.investigateContact(at)}
+                onContact={(contact) => engine?.engageContact(contact.id, contact.position)}
               />
             ) : showsHeat ? (
               <TrainingHeatReadout unit={playerControlled ? unit : null} />

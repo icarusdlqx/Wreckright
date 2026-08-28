@@ -3,6 +3,7 @@ import { emit } from './events';
 import { addHeat, currentHeatTier } from './heat';
 import { angleDifference, bearing, distance, normaliseAngle } from './math';
 import { replacePath } from './pathProgress';
+import { currentContactPoint, visionFor } from './sensors';
 import {
   findEntity,
   isDown,
@@ -174,13 +175,16 @@ export function updateTorso(world: World, entity: MechEntity): void {
   const limit = entity.twistLimit;
   const rate = world.rules.movement.torsoTurnRateDegreesPerSecond * DEGREES_TO_RADIANS * world.dt;
 
-  if (target === null) {
+  const targetPoint = target === null
+    ? null
+    : currentContactPoint(visionFor(world, entity.team), target);
+  if (targetPoint === null) {
     const settle = Math.min(Math.abs(entity.torsoOffset), rate);
     entity.torsoOffset -= settle * Math.sign(entity.torsoOffset);
     return;
   }
 
-  const desired = angleDifference(entity.facing, bearing(entity.pos, target.pos));
+  const desired = angleDifference(entity.facing, bearing(entity.pos, targetPoint));
   const wanted = Math.max(-limit, Math.min(limit, desired));
   const step = Math.min(Math.abs(wanted - entity.torsoOffset), rate);
   entity.torsoOffset += step * Math.sign(wanted - entity.torsoOffset);
@@ -231,12 +235,15 @@ export function updateMovement(world: World, entity: MechEntity): void {
   }
 
   const target = findEntity(world, entity.targetId);
+  const targetPoint = target === null
+    ? null
+    : currentContactPoint(visionFor(world, entity.team), target);
 
   // Under keep-facing orders the hull tracks the target and the legs do the
   // walking, so the mech crabs to its destination rather than turning its
   // back. With nothing to face it is an ordinary march.
-  const crabbing = entity.posture === 'keep_facing' && target !== null;
-  const focus = crabbing ? target.pos : (waypoint ?? target?.pos ?? null);
+  const crabbing = entity.posture === 'keep_facing' && targetPoint !== null;
+  const focus = crabbing ? targetPoint : (waypoint ?? targetPoint);
 
   if (focus === null) {
     entity.motion = 'stationary';

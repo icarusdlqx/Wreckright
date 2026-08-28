@@ -1,7 +1,7 @@
 import type { Weapon } from '../schema/weapon';
 import { lineOfSight } from './los';
 import { distance } from './math';
-import { isSightedBy, visionFor } from './sensors';
+import { currentSensorTrack, isSightedBy, visionFor } from './sensors';
 import { weaponLongReach, weaponMaximumReach, weaponReach } from './weaponRange';
 import {
   findAmmoBin,
@@ -12,6 +12,12 @@ import {
 } from './types';
 
 export type WeaponGroupState = 'enabled' | 'intent';
+
+export interface ContactFiringSolution {
+  targetId: number;
+  point: Vec2;
+  source: 'optical' | 'sensor';
+}
 
 /** Authored capability: this weapon can turn a teammate's optical sight into a shot. */
 export function isIndirectFireWeapon(weapon: Weapon): boolean {
@@ -31,7 +37,38 @@ export function weaponHasLineOfFire(
   return isIndirectFireWeapon(weapon) || lineOfSight(world.terrain, from, target).clear;
 }
 
-/** A mount may use shared optical sight, but never an electronic-only contact. */
+/** Whether this shot is using a current electronic return instead of optical sight. */
+export function contactFiringSolution(
+  world: World,
+  shooter: MechEntity,
+  target: MechEntity,
+  weapon: Weapon,
+  from: Vec2 = shooter.pos,
+): ContactFiringSolution | null {
+  const vision = visionFor(world, shooter.team);
+  if (isSightedBy(vision, target)) {
+    return weaponHasLineOfFire(world, from, target.pos, weapon)
+      ? { targetId: target.id, point: { ...target.pos }, source: 'optical' }
+      : null;
+  }
+  if (!isIndirectFireWeapon(weapon)) return null;
+  const track = currentSensorTrack(vision, target);
+  return track === null
+    ? null
+    : { targetId: target.id, point: { ...track.pos }, source: 'sensor' };
+}
+
+/** Whether this shot is using a current electronic return instead of optical sight. */
+export function isIndirectSensorShot(
+  world: World,
+  shooter: MechEntity,
+  target: MechEntity,
+  weapon: Weapon,
+): boolean {
+  return contactFiringSolution(world, shooter, target, weapon)?.source === 'sensor';
+}
+
+/** Indirect mounts can turn a live electronic return into a penalised firing solution. */
 export function weaponHasFiringSolution(
   world: World,
   shooter: MechEntity,
@@ -39,10 +76,7 @@ export function weaponHasFiringSolution(
   weapon: Weapon,
   from: Vec2 = shooter.pos,
 ): boolean {
-  return (
-    isSightedBy(visionFor(world, shooter.team), target) &&
-    weaponHasLineOfFire(world, from, target.pos, weapon)
-  );
+  return contactFiringSolution(world, shooter, target, weapon, from) !== null;
 }
 
 /** Resolves a working, supplied mount the pilot currently permits. */
@@ -99,14 +133,13 @@ export function hasUsableFiringSolution(
   from: Vec2 = shooter.pos,
   rangeMultiplier: number = world.rules.combat.maxRangeMultiplier,
 ): boolean {
-  const range = distance(from, target.pos);
   return shooter.weapons.some((mount) => {
     const weapon = usableWeapon(world, shooter, mount, state);
-    return (
-      weapon !== null &&
-      range <= weaponReach(world, weapon, from, target.pos, rangeMultiplier) &&
-      weaponHasFiringSolution(world, shooter, target, weapon, from)
-    );
+    if (weapon === null) return false;
+    const solution = contactFiringSolution(world, shooter, target, weapon, from);
+    return solution !== null &&
+      distance(from, solution.point) <=
+        weaponReach(world, weapon, from, solution.point, rangeMultiplier);
   });
 }
 
@@ -120,6 +153,6 @@ export function hasUsableLineOfFire(
 ): boolean {
   return shooter.weapons.some((mount) => {
     const weapon = usableWeapon(world, shooter, mount, state);
-    return weapon !== null && weaponHasFiringSolution(world, shooter, target, weapon, from);
+    return weapon !== null && contactFiringSolution(world, shooter, target, weapon, from) !== null;
   });
 }

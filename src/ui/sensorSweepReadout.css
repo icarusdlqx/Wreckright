@@ -1,0 +1,37 @@
+.sensor-sweep-readout {
+  position: absolute;
+  z-index: 29;
+  top: 106px;
+  left: 50%;
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  transform: translateX(-50%);
+  padding: 6px 10px;
+  border: 1px solid rgba(120, 201, 255, 0.82);
+  border-radius: 4px;
+  background: rgba(7, 18, 25, 0.9);
+  box-shadow: 0 0 18px rgba(120, 201, 255, 0.14);
+  color: var(--text);
+  font-size: 11px;
+  pointer-events: none;
+}
+
+.sensor-sweep-readout strong {
+  color: #a5dcff;
+  letter-spacing: 0.04em;
+}
+
+.sensor-sweep-kicker {
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+}
+
+@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+  .sensor-sweep-readout {
+    top: calc(var(--mobile-top) + 42px);
+    max-width: calc(100vw - var(--safe-left) - var(--safe-right) - 24px);
+    white-space: nowrap;
+  }
+}

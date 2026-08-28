@@ -3,6 +3,24 @@ import { playerWorld } from '../../tests/support';
 import { eventLogLine } from './eventLogPresentation';
 
 describe('combat log visibility', () => {
+  it('distinguishes an empty sensor sweep from contacts found', () => {
+    const world = playerWorld('sensor-sweep-log');
+    const event = {
+      type: 'support_resolved' as const,
+      tick: world.tick,
+      team: world.playerTeam ?? 0,
+      call: 'sensor_probe',
+      x: 200,
+      y: 200,
+      contactCount: 0,
+    };
+
+    expect(eventLogLine(world, event)).toBe('Sensor sweep — nothing in range');
+    expect(eventLogLine(world, { ...event, contactCount: 1 })).toBe('Sensor sweep — 1 contact');
+    expect(eventLogLine(world, { ...event, contactCount: 3 })).toBe('Sensor sweep — 3 contacts');
+    expect(eventLogLine(world, { ...event, team: event.team + 1 })).toBeNull();
+  });
+
   it('omits hidden damage and death until an observed hulk justifies the exact name', () => {
     const world = playerWorld('private-combat-log');
     const vision = world.vision;

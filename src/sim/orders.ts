@@ -14,6 +14,7 @@ import {
 import { replacePath } from './pathProgress';
 import { findPath } from './pathfind';
 import { isSightedBy, visionFor } from './sensors';
+import { hasUsableLineOfFire } from './weaponEngagement';
 import {
   findEntity,
   isImmobile,
@@ -124,17 +125,23 @@ export function issueAttack(
 ): boolean {
   if (!isOperational(entity)) return false;
   const target = findEntity(world, targetId);
+  const vision = visionFor(world, entity.team);
+  const sighted = target !== null && isSightedBy(vision, target);
+  const indirect =
+    target !== null &&
+    !sighted &&
+    hasUsableLineOfFire(world, entity, target, 'intent');
   if (
     target === null ||
     target.team === entity.team ||
-    !isSightedBy(visionFor(world, entity.team), target) ||
+    (!sighted && !indirect) ||
     !isOperational(target)
   ) {
     return false;
   }
-  entity.orders.attack = { targetId, calledShot };
+  entity.orders.attack = { targetId, calledShot: sighted ? calledShot : null };
   entity.targetId = targetId;
-  entity.calledShot = calledShot;
+  entity.calledShot = sighted ? calledShot : null;
   return true;
 }
 
@@ -266,6 +273,7 @@ export function updatePlayerControl(world: World, entity: MechEntity): void {
 
   const contact = orderedContact(world, entity);
   if (contact.gone) entity.orders.attack = null;
+  const indirectReady = contact.indirectTargetId !== null;
 
   // Airborne: the arc is committed. Keep picking visible targets, leave the feet alone.
   if (entity.jump !== null) {
@@ -293,6 +301,7 @@ export function updatePlayerControl(world: World, entity: MechEntity): void {
     const investigating =
       !isRooted(entity) &&
       contact.target === null &&
+      !indirectReady &&
       entity.orders.attack !== null &&
       contact.lastKnown !== null &&
       approachToLastKnown(world, entity, contact.lastKnown);

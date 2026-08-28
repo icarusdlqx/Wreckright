@@ -107,7 +107,7 @@ export const TOUCH_BINDINGS: readonly Binding[] = [
 const SUPPORT_NOTES: readonly Binding[] = [
   {
     input: 'Sensor Probe',
-    action: 'Detects and classifies coarse contacts; it does not reveal terrain or grant optical line of sight.',
+    action: 'Detects and classifies coarse contacts; indirect missiles may use live returns at reduced accuracy, without optical sight.',
   },
   {
     input: 'Air Strike',

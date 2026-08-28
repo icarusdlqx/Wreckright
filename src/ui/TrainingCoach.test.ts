@@ -12,8 +12,8 @@ describe('training coach contact lesson', () => {
       expect(copy).toContain('sensor tracks');
       expect(copy).toContain('named optical contact');
     }
-    expect(lesson.instruction).toContain('cannot target them');
-    expect(lesson.touch).toContain('Tap one to investigate');
+    expect(lesson.instruction).toContain('indirect missiles can use a live return');
+    expect(lesson.touch).toContain('guide indirect missiles');
   });
 
   it('distinguishes a standing attack order from automatic target acquisition', () => {

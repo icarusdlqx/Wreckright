@@ -195,17 +195,34 @@ describe('updateWeapons', () => {
     ).toBe(true);
   });
 
-  it('does not turn a sensor-only track into a firing solution', () => {
+  it('lets only indirect mounts fire on a sensor track at the authored penalty', () => {
     const vision = visionFor(world, shooter.team);
     if (vision === null) throw new Error('need a team vision');
+    const lrm = weapon('lrm10');
+    const sighted = hitChance(world, shooter, target, lrm, 120);
     vision.visible.delete(target.id);
     vision.detected.add(target.id);
+    vision.tracks.set(target.id, {
+      id: target.id,
+      team: target.team,
+      frame: target.frame,
+      chassisClass: target.chassisClass,
+      pos: { x: 560, y: 500 },
+      tick: world.tick,
+      source: 'sensor',
+    });
     shooter.targetId = target.id;
-    shooter.calledShot = 'left_arm';
 
     updateWeapons(world, shooter);
 
-    expect(eventsOfType(world.events, 'weapon_fired')).toHaveLength(0);
+    const fired = eventsOfType(world.events, 'weapon_fired');
+    expect(fired.length).toBeGreaterThan(0);
+    expect(fired.every((event) =>
+      world.catalog.weapons.get(event.weaponId)?.tags.includes('indirect_fire') === true,
+    )).toBe(true);
+    expect(hitChance(world, shooter, target, lrm, 120)).toBeCloseTo(
+      sighted * world.rules.support.sensor_probe.indirectAccuracyFactor,
+    );
   });
 });
 
