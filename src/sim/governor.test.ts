@@ -91,7 +91,7 @@ describe('pilot intent versus the reactor governor', () => {
     expect(replay.groupEnabled).toEqual(mech.groupEnabled);
   });
 
-  it('uses the reactor effective cooling rate as its sustainable budget', () => {
+  it('plans around weather without treating temporary terrain as permanent cooling', () => {
     const dryWorld = playerWorld('weather-governor');
     const dryMech = unitOf(dryWorld, 'sentinel_brawler');
     dryMech.pos = { x: 12, y: 12 };
@@ -128,6 +128,6 @@ describe('pilot intent versus the reactor governor', () => {
     applyHeatGovernor(harshWorld, harshMech, false);
     applyHeatGovernor(wetWorld, wetMech, false);
     expect(harshMech.groupEnabled).not.toEqual(dryMech.groupEnabled);
-    expect(wetMech.groupEnabled).toEqual(dryMech.groupEnabled);
+    expect(wetMech.groupEnabled).toEqual(harshMech.groupEnabled);
   });
 });

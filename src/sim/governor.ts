@@ -1,5 +1,5 @@
 import { type MechEntity, type World } from './types';
-import { currentHeatTier, effectiveDissipationPerSecond } from './heat';
+import { currentHeatTier } from './heat';
 
 interface GroupLoad {
   group: number;
@@ -86,7 +86,13 @@ export function applyHeatGovernor(world: World, mech: MechEntity, targetNearlyDe
 
   mech.ai.coolingDown = true;
 
-  const budget = effectiveDissipationPerSecond(world, mech) * rules.sustainFactor;
+  // Weather is a stable battlefield condition the governor can plan around.
+  // Terrain cooling is momentary; preserving the authored base budget also
+  // keeps neutral/default atmospheres behaviour-compatible with old battles.
+  const budget =
+    mech.dissipationPerSecond *
+    world.atmosphere.mechanics.heatDissipationFactor *
+    rules.sustainFactor;
   let spent = 0;
   let reserved = 0;
 
