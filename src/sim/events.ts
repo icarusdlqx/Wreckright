@@ -3,7 +3,14 @@ import type { AttackArc } from '../schema/rules';
 import type { EntityId, KillMethod } from './types';
 
 export type SimEvent =
-  | { type: 'weapon_fired'; tick: number; shooterId: EntityId; targetId: EntityId; weaponId: string }
+  | {
+      type: 'weapon_fired';
+      tick: number;
+      shooterId: EntityId;
+      targetId: EntityId;
+      weaponId: string;
+      modeId?: string;
+    }
   | {
       type: 'projectile_hit';
       tick: number;

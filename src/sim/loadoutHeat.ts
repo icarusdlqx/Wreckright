@@ -1,5 +1,6 @@
 import type { Design } from '../schema/design';
 import type { Catalog } from '../schema/load';
+import { weaponFireProfile } from './weaponModes';
 
 export interface HeatProfile {
   alphaStrikeHeat: number;
@@ -26,8 +27,9 @@ export function computeHeatProfile(catalog: Catalog, design: Design): HeatProfil
   for (const mount of design.mounts) {
     const weapon = catalog.weapons.get(mount.weaponId);
     if (weapon === undefined) continue;
-    alphaStrikeHeat += weapon.heat;
-    heatPerSecond += weapon.heat / weapon.cooldown;
+    const profile = weaponFireProfile(weapon, mount.modeId);
+    alphaStrikeHeat += profile.heat;
+    heatPerSecond += profile.heat / profile.cooldown;
   }
 
   const dissipationPerSecond =

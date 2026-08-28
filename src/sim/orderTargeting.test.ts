@@ -25,7 +25,9 @@ function shortGunFixture(seed: string, lrmRounds: number): {
       weaponId: 'lrm10',
       location: 'left_torso',
       group: 1,
+      modeId: null,
       cooldown: 0,
+      cycleDuration: 0,
       destroyed: false,
     },
     {
@@ -33,7 +35,9 @@ function shortGunFixture(seed: string, lrmRounds: number): {
       weaponId: 'small_laser',
       location: 'centre_torso',
       group: 2,
+      modeId: null,
       cooldown: 0,
+      cycleDuration: 0,
       destroyed: false,
     },
   ];

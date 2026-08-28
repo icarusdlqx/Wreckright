@@ -1,5 +1,6 @@
 import type { HeatRules } from '../schema/rules';
 import { isDown, isOperational, type MechEntity, type World } from '../sim/types';
+import { weaponFireProfile } from '../sim/weaponModes';
 import type {
   HeatBandTone,
   ReactorSnapshot,
@@ -63,17 +64,18 @@ function chargedAlphaHeat(world: World, entity: MechEntity): number {
     if (mount.destroyed) continue;
     const weapon = world.catalog.weapons.get(mount.weaponId);
     if (weapon === undefined) continue;
+    const profile = weaponFireProfile(weapon, mount.modeId);
     const cooldownTicks = Math.ceil(mount.cooldown / world.dt - Number.EPSILON);
     const firstShotTick = Math.max(1, cooldownTicks - waitTicks);
     if (firstShotTick > windowTicks) continue;
-    const cycleTicks = Math.max(1, Math.ceil(weapon.cooldown / world.dt - Number.EPSILON));
+    const cycleTicks = Math.max(1, Math.ceil(profile.cooldown / world.dt - Number.EPSILON));
     let shots = 1 + Math.floor((windowTicks - firstShotTick) / cycleTicks);
     if (weapon.ammoPerTon !== null) {
       const available = rounds.get(weapon.id) ?? 0;
       shots = Math.min(shots, available);
       rounds.set(weapon.id, available - shots);
     }
-    heat += weapon.heat * shots;
+    heat += profile.heat * shots;
   }
 
   return heat;

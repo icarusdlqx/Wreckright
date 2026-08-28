@@ -5,6 +5,34 @@ import { FactionSchema } from './faction';
 export const WeaponTypeSchema = z.enum(['energy', 'ballistic', 'missile']);
 export type WeaponType = z.infer<typeof WeaponTypeSchema>;
 
+const MODE_OVERRIDE_FIELDS = [
+  'damage',
+  'projectiles',
+  'accuracy',
+  'heat',
+  'cooldown',
+] as const;
+
+export const WeaponModeSchema = z
+  .strictObject({
+    id: IdSchema,
+    name: NameSchema,
+    damage: z.number().positive().optional(),
+    projectiles: z.number().int().positive().optional(),
+    accuracy: z.number().positive().max(2).optional(),
+    heat: z.number().nonnegative().optional(),
+    cooldown: z.number().positive().optional(),
+  })
+  .superRefine((mode, ctx) => {
+    if (MODE_OVERRIDE_FIELDS.some((field) => mode[field] !== undefined)) return;
+    ctx.addIssue({
+      code: 'custom',
+      message: 'a weapon mode must override at least one firing stat',
+    });
+  });
+
+export type WeaponMode = z.infer<typeof WeaponModeSchema>;
+
 export const RangeBandsSchema = z
   .strictObject({
     min: z.number().nonnegative(),
@@ -53,6 +81,7 @@ export const WeaponSchema = z
     criticalChance: z.number().min(0).max(1).default(0.08),
     /** Heat dumped into the target on a hit — the flamer's whole purpose. */
     targetHeat: z.number().nonnegative().default(0),
+    modes: z.array(WeaponModeSchema).max(8).default([]),
     /**
      * How large a hardpoint this needs, 1 to 4. Left null it is read off the
      * weapon's tonnage against the construction rules, which is right for
@@ -75,6 +104,40 @@ export const WeaponSchema = z
     tags: z.array(IdSchema).default([]),
   })
   .superRefine((weapon, ctx) => {
+    if (weapon.modes.length === 1) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['modes'],
+        message: 'a modal weapon must author at least two modes',
+      });
+    }
+
+    const modeIds = new Set<string>();
+    for (const [index, mode] of weapon.modes.entries()) {
+      if (!modeIds.has(mode.id)) {
+        modeIds.add(mode.id);
+        continue;
+      }
+      ctx.addIssue({
+        code: 'custom',
+        path: ['modes', index, 'id'],
+        message: `duplicate weapon mode id "${mode.id}"`,
+      });
+    }
+
+    const firstMode = weapon.modes[0];
+    if (firstMode !== undefined) {
+      for (const field of MODE_OVERRIDE_FIELDS) {
+        const resolved = firstMode[field] ?? weapon[field];
+        if (resolved === weapon[field]) continue;
+        ctx.addIssue({
+          code: 'custom',
+          path: ['modes', 0, field],
+          message: `first weapon mode must resolve to the base ${field} value`,
+        });
+      }
+    }
+
     if (weapon.type === 'energy') {
       if (weapon.ammoPerTon !== null) {
         ctx.addIssue({

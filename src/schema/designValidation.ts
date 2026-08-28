@@ -17,6 +17,7 @@ export type DesignIssueComponent =
 export type DesignIssueCode =
   | LoadoutIssue['code']
   | 'invalid_schema'
+  | 'unknown_weapon_mode'
   | 'rear_armour'
   | 'ineffective_equipment';
 
@@ -161,6 +162,21 @@ export function validateDesign(catalog: Catalog, design: Design): DesignReport {
       });
     }
   }
+
+  design.mounts.forEach((mount, index) => {
+    if (mount.modeId === undefined) return;
+    const weapon = catalog.weapons.get(mount.weaponId);
+    if (weapon === undefined || weapon.modes.some((mode) => mode.id === mount.modeId)) return;
+    issues.push({
+      code: 'unknown_weapon_mode',
+      severity: 'error',
+      source: 'schema',
+      component: 'weapon',
+      location: mount.location,
+      path: ['mounts', index, 'modeId'],
+      message: `mounts.${index}.modeId: unknown mode "${mount.modeId}" for ${weapon.name}`,
+    });
+  });
 
   design.equipment.forEach((fit, index) => {
     const equipment = catalog.equipment.get(fit.equipmentId);

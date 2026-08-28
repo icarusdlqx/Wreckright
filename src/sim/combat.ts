@@ -12,6 +12,11 @@ import { angleDifference, bearing, clamp, distance as distanceBetween } from './
 import { weaponBearing } from './movement';
 import { addStabilityImpulse, impulseOf } from './stability';
 import { contactFiringSolution, isIndirectSensorShot } from './weaponEngagement';
+import {
+  resolveWeaponModeId,
+  weaponFireProfile,
+  type WeaponFireProfile,
+} from './weaponModes';
 import { weaponMaximumReach } from './weaponRange';
 import {
   findAmmoBin,
@@ -67,6 +72,8 @@ export function hitChance(
   from: Vec2 = shooter.pos,
   /** The privacy-safe point the weapon is actually ranged against. */
   to: Vec2 = target.pos,
+  /** The mount's active overrides; range, type and ammunition stay on the base weapon. */
+  fireProfile?: WeaponFireProfile,
 ): number {
   const rules = world.rules.combat;
   const gunnery = rules.gunneryBase[shooter.pilot.gunnery - 1] ?? rules.gunneryBase[0] ?? 0.5;
@@ -97,7 +104,7 @@ export function hitChance(
     chance *= world.rules.support.sensor_probe.indirectAccuracyFactor;
   }
   if (world.tick <= target.designatedUntilTick) chance *= rules.tagFactor;
-  chance *= weapon.accuracy;
+  chance *= fireProfile?.accuracy ?? weapon.accuracy;
   chance *= heatAccuracy ?? currentHeatTier(world, shooter).accuracyFactor;
   if (shooter.calledShot !== null) chance *= rules.calledShot.accuracyFactor;
 
@@ -147,13 +154,15 @@ function fireWeapon(
   target: MechEntity,
   mount: WeaponMount,
   weapon: Weapon,
+  profile: WeaponFireProfile,
   range: number,
   aimAt: Vec2,
   bin: AmmoBin | null,
   heatAccuracy: number,
 ): void {
-  addHeat(shooter, weapon.heat);
-  mount.cooldown = weapon.cooldown;
+  addHeat(shooter, profile.heat);
+  mount.cooldown = profile.cooldown;
+  mount.cycleDuration = profile.cooldown;
 
   if (bin !== null) {
     bin.rounds -= 1;
@@ -161,15 +170,17 @@ function fireWeapon(
   }
 
   const stat = world.weaponStats.get(weapon.id) ?? { shots: 0, hits: 0, damage: 0, heat: 0 };
-  stat.heat += weapon.heat;
+  stat.heat += profile.heat;
   world.weaponStats.set(weapon.id, stat);
 
+  const modeId = resolveWeaponModeId(weapon, mount.modeId);
   emit(world.events, {
     type: 'weapon_fired',
     tick: world.tick,
     shooterId: shooter.id,
     targetId: target.id,
     weaponId: weapon.id,
+    ...(modeId === null ? {} : { modeId }),
   });
 
   const travelTicks =
@@ -177,9 +188,19 @@ function fireWeapon(
 
   const from = { x: shooter.pos.x, y: shooter.pos.y };
 
-  for (let shot = 0; shot < weapon.projectiles; shot += 1) {
+  for (let shot = 0; shot < profile.projectiles; shot += 1) {
     const hit = world.rng.chance(
-      hitChance(world, shooter, target, weapon, range, heatAccuracy, shooter.pos, aimAt),
+      hitChance(
+        world,
+        shooter,
+        target,
+        weapon,
+        range,
+        heatAccuracy,
+        shooter.pos,
+        aimAt,
+        profile,
+      ),
     );
     shooter.stats.shotsFired += 1;
     if (hit) shooter.stats.shotsHit += 1;
@@ -192,7 +213,7 @@ function fireWeapon(
       hit,
       from,
       calledShot: shooter.calledShot,
-      damage: weapon.damage,
+      damage: profile.damage,
       impactTick: world.tick + travelTicks,
     });
   }
@@ -241,13 +262,14 @@ export function updateWeapons(world: World, shooter: MechEntity): void {
 
     const weapon = world.catalog.weapons.get(mount.weaponId);
     if (weapon === undefined) continue;
+    const profile = weaponFireProfile(weapon, mount.modeId);
     const solution = contactFiringSolution(world, shooter, target, weapon);
     if (solution === null) continue;
     const range = distanceBetween(shooter.pos, solution.point);
     if (range > weaponMaximumReach(world, weapon, shooter.pos, solution.point)) continue;
     const aim = angleDifference(weaponBearing(shooter), bearing(shooter.pos, solution.point));
     if (Math.abs(aim) > halfArc) continue;
-    if (!alpha && shooter.heat + weapon.heat >= shooter.heatCapacity) continue;
+    if (!alpha && shooter.heat + profile.heat >= shooter.heatCapacity) continue;
 
     let bin: AmmoBin | null = null;
     if (weapon.ammoPerTon !== null) {
@@ -255,7 +277,18 @@ export function updateWeapons(world: World, shooter: MechEntity): void {
       if (bin === null) continue;
     }
 
-    fireWeapon(world, shooter, target, mount, weapon, range, solution.point, bin, heatAccuracy);
+    fireWeapon(
+      world,
+      shooter,
+      target,
+      mount,
+      weapon,
+      profile,
+      range,
+      solution.point,
+      bin,
+      heatAccuracy,
+    );
   }
 }
 

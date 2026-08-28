@@ -5,6 +5,7 @@ import { validateDesign } from '../../schema/designValidation';
 import type { Catalog } from '../../schema/load';
 import { migrateDesignWeaponIds } from '../../schema/weaponMigration';
 import { maximiseArmour as fitArmour } from '../../sim/loadout';
+import { weaponFireProfile } from '../../sim/weaponModes';
 
 const STORAGE_PREFIX = 'ironline.design.';
 
@@ -148,7 +149,9 @@ export function fitCooling(catalog: Catalog, design: Design): Design {
   let heatPerSecond = 0;
   for (const mount of design.mounts) {
     const weapon = catalog.weapons.get(mount.weaponId);
-    if (weapon !== undefined) heatPerSecond += weapon.heat / weapon.cooldown;
+    if (weapon === undefined) continue;
+    const profile = weaponFireProfile(weapon, mount.modeId);
+    heatPerSecond += profile.heat / profile.cooldown;
   }
 
   const sink = catalog.equipment.get(design.heatSinkId);

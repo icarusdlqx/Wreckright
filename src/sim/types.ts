@@ -89,7 +89,10 @@ export interface WeaponMount {
   weaponId: string;
   location: MechLocation;
   group: number;
+  modeId: string | null;
   cooldown: number;
+  /** Duration of the shot currently cycling, even if its next mode differs. */
+  cycleDuration: number;
   destroyed: boolean;
 }
 

@@ -11,6 +11,7 @@ import {
   type World,
 } from './types';
 import { weaponHasFiringSolution } from './weaponEngagement';
+import { weaponFireProfile } from './weaponModes';
 import { weaponMaximumReach } from './weaponRange';
 
 /**
@@ -155,10 +156,21 @@ export function hitPreview(world: World, shooter: MechEntity, target: MechEntity
       return { ...base, chance: null, blocked: 'sight' as const };
     }
     if (!bears) return { ...base, chance: null, blocked: 'arc' as const };
+    const profile = weaponFireProfile(weapon, mount.modeId);
 
     return {
       ...base,
-      chance: hitChance(world, shooter, target, weapon, range),
+      chance: hitChance(
+        world,
+        shooter,
+        target,
+        weapon,
+        range,
+        undefined,
+        shooter.pos,
+        target.pos,
+        profile,
+      ),
       blocked: null,
     };
   });

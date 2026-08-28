@@ -1,8 +1,10 @@
 import type { Catalog } from '../schema/load';
 import type { Weapon, WeaponType } from '../schema/weapon';
+import { weaponFireProfile } from './weaponModes';
 
 export interface WeaponEfficiency {
   weaponId: string;
+  modeId: string | null;
   name: string;
   type: WeaponType;
   dps: number;
@@ -34,15 +36,21 @@ export interface ClassBalance {
  * shots delivers 15% more damage, so pulse and Streak launchers have to pay
  * for their aim in raw damage rather than getting it free.
  */
-export function weaponEfficiency(catalog: Catalog, weapon: Weapon): WeaponEfficiency {
+export function weaponEfficiency(
+  catalog: Catalog,
+  weapon: Weapon,
+  modeId: string | null = null,
+): WeaponEfficiency {
+  const profile = weaponFireProfile(weapon, modeId);
   const perSink = catalog.rules.heat.dissipationPerSinkPerSecond;
-  const dps = (weapon.damage * weapon.projectiles * weapon.accuracy) / weapon.cooldown;
-  const heatPerSecond = weapon.heat / weapon.cooldown;
+  const dps = (profile.damage * profile.projectiles * profile.accuracy) / profile.cooldown;
+  const heatPerSecond = profile.heat / profile.cooldown;
   const effectiveTons = weapon.tonnage + heatPerSecond / perSink;
 
   return {
     weaponId: weapon.id,
-    name: weapon.name,
+    modeId: profile.modeId,
+    name: profile.name === null ? weapon.name : `${weapon.name} — ${profile.name}`,
     type: weapon.type,
     dps,
     heatPerSecond,
@@ -65,10 +73,13 @@ export function balanceByClass(catalog: Catalog): ClassBalance[] {
   const byType = new Map<WeaponType, WeaponEfficiency[]>();
 
   for (const weapon of catalog.weapons.values()) {
-    const entry = weaponEfficiency(catalog, weapon);
-    const bucket = byType.get(entry.type) ?? [];
-    bucket.push(entry);
-    byType.set(entry.type, bucket);
+    const modes = weapon.modes.length === 0 ? [null] : weapon.modes.map((mode) => mode.id);
+    for (const modeId of modes) {
+      const entry = weaponEfficiency(catalog, weapon, modeId);
+      const bucket = byType.get(entry.type) ?? [];
+      bucket.push(entry);
+      byType.set(entry.type, bucket);
+    }
   }
 
   return [...byType.entries()]
@@ -85,7 +96,10 @@ export function balanceByClass(catalog: Catalog): ClassBalance[] {
               centre === 0 ? 0 : (entry.damagePerTonPerHeat - centre) / centre;
             return { ...entry, deviation, withinBand: Math.abs(deviation) <= band };
           })
-          .sort((a, b) => a.weaponId.localeCompare(b.weaponId)),
+          .sort((a, b) =>
+            a.weaponId.localeCompare(b.weaponId) ||
+            (a.modeId ?? '').localeCompare(b.modeId ?? ''),
+          ),
       };
     });
 }

@@ -189,10 +189,48 @@ describe('faction schema', () => {
 });
 
 describe('weapon schema', () => {
-  it('defaults accuracy and tags', () => {
+  it('defaults accuracy, tags and modes', () => {
     const parsed = WeaponSchema.parse(VALID_WEAPON);
     expect(parsed.accuracy).toBe(1);
     expect(parsed.tags).toEqual([]);
+    expect(parsed.modes).toEqual([]);
+    // The legacy empty-summary default is not idempotent; isolate the new
+    // modes default so reparsing [] cannot trip the modal minimum.
+    expect(WeaponSchema.safeParse({ ...parsed, summary: 'Test weapon.' }).success).toBe(true);
+  });
+
+  it('accepts strict partial mode overrides when the first mode is the base profile', () => {
+    const modes = [
+      { id: 'standard', name: 'Standard', damage: VALID_WEAPON.damage },
+      { id: 'rapid', name: 'Rapid', cooldown: 1.5 },
+    ];
+    const parsed = WeaponSchema.parse({ ...VALID_WEAPON, modes });
+
+    expect(parsed.modes).toEqual(modes);
+    expect(WeaponSchema.safeParse({
+      ...VALID_WEAPON,
+      modes: [modes[0], { ...modes[1], typo: 1 }],
+    }).success).toBe(false);
+  });
+
+  it('requires two unique modes with an override and a base-equivalent first profile', () => {
+    const standard = { id: 'standard', name: 'Standard', damage: VALID_WEAPON.damage };
+    expect(WeaponSchema.safeParse({ ...VALID_WEAPON, modes: [standard] }).success).toBe(false);
+    expect(WeaponSchema.safeParse({
+      ...VALID_WEAPON,
+      modes: [standard, { ...standard, name: 'Duplicate' }],
+    }).success).toBe(false);
+    expect(WeaponSchema.safeParse({
+      ...VALID_WEAPON,
+      modes: [standard, { id: 'empty', name: 'Empty' }],
+    }).success).toBe(false);
+    expect(WeaponSchema.safeParse({
+      ...VALID_WEAPON,
+      modes: [
+        { ...standard, damage: VALID_WEAPON.damage + 1 },
+        { id: 'rapid', name: 'Rapid', cooldown: 1.5 },
+      ],
+    }).success).toBe(false);
   });
 
   it('requires ammo and velocity on ballistic and missile weapons', () => {

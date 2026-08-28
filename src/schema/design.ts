@@ -17,6 +17,7 @@ export const TorsoRearArmourSchema = z.strictObject({
 export const WeaponMountSchema = z.strictObject({
   weaponId: IdSchema,
   location: MechLocationSchema,
+  modeId: IdSchema.optional(),
 });
 
 export const AmmoLoadSchema = z.strictObject({
