@@ -6,6 +6,9 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
     // optical fog buffers. forceStep still advances the two deterministic
     // support/vision ticks below, but the browser clock cannot add extra ones.
     useGame.getState().patch({ paused: true });
+    for (const menu of document.querySelectorAll('.battle-menu[open]')) {
+      menu.removeAttribute('open');
+    }
     const playerTeam = useGame.getState().playerTeam;
     const friendly = world.entities.find((entity) => (
       entity.team === playerTeam && !entity.destroyed && !entity.withdrawn &&
@@ -20,13 +23,31 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
     if (friendly === undefined || enemy === undefined || world.vision === null) {
       throw new Error('probe regression needs two operational sides and player vision');
     }
+    // The support checks that precede this fixture advance a live battle. Do
+    // not let an old target or an in-flight volley erase the chosen contact
+    // between placement and the delayed probe resolution.
+    world.projectiles.length = 0;
+    world.reveals.length = 0;
     for (const entity of world.entities) {
-      if (entity.team !== playerTeam) continue;
-      entity.sightRange = 1;
-      entity.sensorRange = 0;
+      entity.controller = 'orders';
+      entity.targetId = null;
+      entity.calledShot = null;
+      entity.orders.attack = null;
       entity.orders.move = null;
       entity.orders.queue.length = 0;
       entity.path.length = 0;
+      entity.jump = null;
+      entity.motion = 'stationary';
+      entity.intendedMotion = 'stationary';
+      entity.ai.destination = null;
+      entity.ai.withdrawing = false;
+      for (let group = 0; group < entity.groupEnabled.length; group += 1) {
+        entity.groupEnabled[group] = false;
+        entity.groupIntent[group] = false;
+      }
+      if (entity.team !== playerTeam) continue;
+      entity.sightRange = 1;
+      entity.sensorRange = 0;
     }
     const extentX = world.terrain.width * world.terrain.tileSize;
     const east = enemy.pos.x + 360 < extentX;
@@ -49,14 +70,9 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
       friendly.groupEnabled[group] = true;
       friendly.groupIntent[group] = true;
     }
-    enemy.controller = 'orders';
-    enemy.orders.move = null;
-    enemy.path.length = 0;
     for (const other of world.entities) {
       if (other.team === playerTeam || other.id === enemy.id) continue;
       other.pos = { x: 24, y: 24 + other.id * 2 };
-      other.orders.move = null;
-      other.path.length = 0;
     }
     useGame.getState().setSelection([friendly.id]);
     engine.renderer.camera.centreOn(enemy.pos);
