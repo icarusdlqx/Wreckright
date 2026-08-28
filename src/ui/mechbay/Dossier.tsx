@@ -7,6 +7,7 @@ import {
   foreignComponentPresentation,
   machineCulturePresentation,
 } from './machineCulturePresentation';
+import { FireModeComparison } from './FireModeComparison';
 import { RangeBandStrip } from './RangeBandStrip';
 import { WeaponGlyph } from './WeaponGlyph';
 import { WeaponMeters } from './WeaponMeters';
@@ -224,6 +225,7 @@ export function Dossier({
         </div>
       </dl>
 
+      <FireModeComparison weapon={weapon} />
       <RangeBandStrip catalog={catalog} weapon={weapon} mountedWeapons={mountedWeapons} />
       {traits.length === 0 ? null : (
         <ul className="dossier-traits">

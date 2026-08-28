@@ -1,0 +1,43 @@
+.weapon-mode,
+.weapon-mode-readout {
+  display: inline-grid;
+  place-items: center;
+  min-width: 54px;
+  border: 1px solid rgba(140, 224, 255, 0.24);
+  border-radius: 3px;
+  color: var(--accent);
+  font-size: 9px;
+  line-height: 18px;
+  text-align: center;
+}
+
+.weapon-mode {
+  min-height: 20px;
+  padding: 0 6px;
+  background: rgba(140, 224, 255, 0.08);
+  cursor: pointer;
+}
+
+.weapon-mode:hover:not(:disabled),
+.weapon-mode:focus-visible {
+  border-color: var(--accent);
+  background: rgba(140, 224, 255, 0.14);
+}
+
+.weapon-mode:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  text-decoration: none;
+}
+
+.weapon-mode-readout {
+  padding: 0 6px;
+  color: var(--muted);
+}
+
+@media (pointer: coarse) {
+  .weapon-mode {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

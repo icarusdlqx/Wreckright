@@ -31,6 +31,10 @@ export interface ZoneView {
 export interface WeaponSnapshot {
   index: number;
   name: string;
+  modeId: string | null;
+  modeName: string | null;
+  nextModeId: string | null;
+  nextModeName: string | null;
   group: number;
   cooldown: number;
   cooldownMax: number;

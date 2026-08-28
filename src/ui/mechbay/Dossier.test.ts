@@ -56,4 +56,14 @@ describe('mechbay catalog inspector', () => {
     expect(html).not.toContain('5 tons');
     expect(html).not.toContain('role="meter"');
   });
+
+  it('includes fire mode comparisons only for modal weapons', () => {
+    const modal = render({ kind: 'weapon', id: 'lbx_ac10' });
+    const fixed = render({ kind: 'weapon', id: 'medium_laser' });
+
+    expect(modal).toContain('Fire modes');
+    expect(modal).toContain('Canister Cannon firing profiles');
+    expect(modal).not.toContain('Current');
+    expect(fixed).not.toContain('Fire modes');
+  });
 });

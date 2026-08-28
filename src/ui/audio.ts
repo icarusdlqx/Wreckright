@@ -2,6 +2,7 @@ import type { TerrainMapData } from '../schema/map';
 import type { Faction } from '../schema/faction';
 import type { SimEvent } from '../sim/events';
 import type { MechEntity, Vec2, World } from '../sim/types';
+import { weaponFireProfile } from '../sim/weaponModes';
 import { canPresentEntity } from '../render3d/visibilityPresentation';
 import { machineCulture } from '../render3d/machineCulture';
 import { startAmbient, type AmbientHandle } from './audioAmbient';
@@ -147,11 +148,12 @@ export class AudioDirector {
           const weapon = world.catalog.weapons.get(event.weaponId);
           const at = positionOf(world, event.shooterId);
           if (weapon !== undefined && at !== null) {
+            const profile = weaponFireProfile(weapon, event.modeId);
             playWeapon(
               graph,
               weapon.faction,
               weapon.visual.style,
-              weapon.projectiles,
+              profile.projectiles,
               this.placementAt(at),
             );
           }

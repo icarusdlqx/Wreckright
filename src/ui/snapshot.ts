@@ -43,10 +43,19 @@ function weaponsOf(world: World, entity: MechEntity): WeaponSnapshot[] {
   return entity.weapons.map((mount) => {
     const weapon = world.catalog.weapons.get(mount.weaponId);
     const profile = weapon === undefined ? null : weaponFireProfile(weapon, mount.modeId);
+    const modeIndex = weapon?.modes.findIndex((mode) => mode.id === profile?.modeId) ?? -1;
+    const nextMode =
+      weapon === undefined || weapon.modes.length === 0
+        ? null
+        : weapon.modes[(modeIndex + 1) % weapon.modes.length] ?? null;
     const bin = entity.ammoBins.find((entry) => entry.weaponId === mount.weaponId && !entry.destroyed);
     return {
       index: mount.index,
       name: weapon?.name ?? mount.weaponId,
+      modeId: profile?.modeId ?? null,
+      modeName: profile?.name ?? null,
+      nextModeId: nextMode?.id ?? null,
+      nextModeName: nextMode?.name ?? null,
       group: mount.group,
       cooldown: mount.cooldown,
       cooldownMax: mount.cooldown > 0 ? mount.cycleDuration : (profile?.cooldown ?? 1),

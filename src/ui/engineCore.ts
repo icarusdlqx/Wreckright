@@ -17,6 +17,7 @@ import {
   engageContactSelection,
   jumpSelection,
   moveSelection,
+  setSelectedWeaponMode,
   setSelectionPosture,
   stopSelection,
   targetNearestSelection,
@@ -308,9 +309,7 @@ export class Engine {
 
   selectedEntities(): EntityId[] {
     const team = this.world.playerTeam ?? 0;
-    return useGame
-      .getState()
-      .selection.filter((id) => findEntity(this.world, id)?.team === team);
+    return useGame.getState().selection.filter((id) => findEntity(this.world, id)?.team === team);
   }
 
   orderMove(to: Vec2, run: boolean, options: MoveOrderOptions = {}): void {
@@ -372,6 +371,12 @@ export class Engine {
     toggleSelectionGroup(this, group);
   }
 
+  setWeaponMode(entityId: EntityId, mountIndex: number, modeId: string): boolean {
+    const switched = setSelectedWeaponMode(this, entityId, mountIndex, modeId);
+    this.hudDirty ||= switched;
+    return switched;
+  }
+
   setOrderMode(mode: OrderMode): void {
     useGame.getState().setOrderMode(mode);
   }
@@ -380,11 +385,7 @@ export class Engine {
     return isDirectional(this.world, call);
   }
 
-  callSupport(
-    call: SupportCallId,
-    target: Vec2,
-    runTo: Vec2 = target,
-  ): { ok: boolean; reason: string | null } {
+  callSupport(call: SupportCallId, target: Vec2, runTo: Vec2 = target): { ok: boolean; reason: string | null } {
     this.hudDirty = true;
     const team = this.world.playerTeam ?? 0;
     const result = callSupport(this.world, team, call, target, this.headingFor(target, runTo));

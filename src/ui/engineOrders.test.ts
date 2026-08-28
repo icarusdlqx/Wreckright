@@ -1,8 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { playerWorld, unitOf } from '../../tests/support';
+import { playerWorld, spawnDesign, unitOf } from '../../tests/support';
 import { visionFor } from '../sim/sensors';
 import type { AudioDirector } from './audio';
-import { attackSelection, engageContactSelection, type EngineOrderContext } from './engineOrders';
+import { Engine } from './engineCore';
+import {
+  attackSelection,
+  engageContactSelection,
+  setSelectedWeaponMode,
+  type EngineOrderContext,
+} from './engineOrders';
 import { useGame } from './store';
 
 beforeEach(() => useGame.setState({ log: [] }));
@@ -129,5 +135,74 @@ describe('sensor contact orders', () => {
     expect(useGame.getState().log[0]).toBe('1 mech targeting sensor contact.');
     expect(useGame.getState().log.join(' ')).not.toContain('SECRET SENSOR CHASSIS');
     expect(shooter.calledShot).toBeNull();
+  });
+});
+
+describe('weapon mode orders', () => {
+  function modeFixture(seed: string) {
+    const world = playerWorld(seed);
+    const entity = spawnDesign(world, 'redoubt_emplacement', 0);
+    entity.autopilot = false;
+    const mount = entity.weapons.find((entry) => entry.weaponId === 'lbx_ac10');
+    if (mount === undefined) throw new Error('missing Canister Cannon mount');
+    const context: EngineOrderContext = {
+      world,
+      audio: { order: vi.fn() } as unknown as AudioDirector,
+      selectedEntities: () => [entity.id],
+    };
+    return { world, entity, mount, context };
+  }
+
+  it('switches only the requested mount mode without touching its firing state', () => {
+    const { entity, mount, context } = modeFixture('selected-mode-order');
+    mount.group = 3;
+    mount.cooldown = 1.75;
+    mount.cycleDuration = 3;
+
+    expect(setSelectedWeaponMode(context, entity.id, mount.index, 'slug')).toBe(true);
+    expect(mount).toMatchObject({
+      modeId: 'slug',
+      group: 3,
+      cooldown: 1.75,
+      cycleDuration: 3,
+    });
+  });
+
+  it('rejects unknown modes and entities outside player control without mutation', () => {
+    const { world, entity, mount, context } = modeFixture('invalid-mode-order');
+    const original = structuredClone(mount);
+
+    expect(setSelectedWeaponMode(context, entity.id, mount.index, 'unknown')).toBe(false);
+    expect(mount).toEqual(original);
+
+    const unselected = { ...context, selectedEntities: () => [] };
+    expect(setSelectedWeaponMode(unselected, entity.id, mount.index, 'slug')).toBe(false);
+    world.playerTeam = null;
+    expect(setSelectedWeaponMode(context, entity.id, mount.index, 'slug')).toBe(false);
+    world.playerTeam = 0;
+    entity.autopilot = true;
+    expect(setSelectedWeaponMode(context, entity.id, mount.index, 'slug')).toBe(false);
+    entity.autopilot = false;
+    entity.destroyed = true;
+    expect(setSelectedWeaponMode(context, entity.id, mount.index, 'slug')).toBe(false);
+    entity.destroyed = false;
+    mount.destroyed = true;
+    expect(setSelectedWeaponMode(context, entity.id, mount.index, 'slug')).toBe(false);
+    mount.destroyed = false;
+    expect(mount).toEqual(original);
+  });
+
+  it('marks the engine HUD dirty only after an accepted switch', () => {
+    const { world, entity, mount } = modeFixture('mode-order-hud');
+    useGame.setState({ selection: [entity.id] });
+    const engine = Object.create(Engine.prototype) as Engine;
+    const internals = engine as unknown as { world: typeof world; hudDirty: boolean };
+    internals.world = world;
+    internals.hudDirty = false;
+
+    expect(engine.setWeaponMode(entity.id, mount.index, 'unknown')).toBe(false);
+    expect(internals.hudDirty).toBe(false);
+    expect(engine.setWeaponMode(entity.id, mount.index, 'slug')).toBe(true);
+    expect(internals.hudDirty).toBe(true);
   });
 });
