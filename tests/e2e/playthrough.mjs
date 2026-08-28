@@ -11,6 +11,7 @@ import {
   openDesktopBattleMenu,
 } from './input-safety.mjs';
 import { checkIncomingFireDirection } from './incoming-fire-direction.mjs';
+import { runFireModeStage2Checks } from './fire-modes.mjs';
 import { runCampaignRecovery } from './campaign-recovery.mjs';
 import { runMobilePlaythrough } from './mobile-playthrough.mjs';
 import {
@@ -817,6 +818,10 @@ async function main() {
         globalThis.__wreckright.engine !== globalThis.__setupEngine &&
         globalThis.__wreckright.engine.world.mission.id === 'base_capture_ridge',
     );
+    await page.waitForFunction(() => {
+      const state = globalThis.__wreckright.useGame.getState();
+      return state.objectives.length >= 3 && state.zones.length === 2;
+    });
     const restarted = await page.evaluate(() => {
       delete globalThis.__setupEngine;
       const state = globalThis.__wreckright.useGame.getState();
@@ -1284,6 +1289,7 @@ async function main() {
     );
 
     check('no page errors across the whole run', pageErrors.length === 0, pageErrors.slice(0, 3).join(' | '));
+    await runFireModeStage2Checks({ browser, url: URL, check });
     await runMobilePlaythrough({ browser, url: URL, shots: SHOTS, check });
   } finally {
     await browser.close();

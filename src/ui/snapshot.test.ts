@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { playerWorld } from '../../tests/support';
+import { playerWorld, spawnDesign } from '../../tests/support';
 import type { ContactTrack } from '../sim/sensors';
 import { snapshotUnit, snapshotUnits } from './snapshot';
 
@@ -13,6 +13,43 @@ function hideAll(world: ReturnType<typeof playerWorld>): void {
 }
 
 describe('privacy-safe battle snapshots', () => {
+  it('resolves the current and next fire mode cyclically from the live mount', () => {
+    const world = playerWorld('fire-mode-snapshot');
+    const unit = spawnDesign(world, 'redoubt_emplacement', 0);
+    const mount = unit.weapons.find((entry) => entry.weaponId === 'lbx_ac10');
+    if (mount === undefined) throw new Error('missing Canister Cannon mount');
+
+    mount.modeId = 'cluster';
+    expect(snapshotUnit(world, unit).weapons[mount.index]).toMatchObject({
+      modeId: 'cluster',
+      modeName: 'Cluster',
+      nextModeId: 'slug',
+      nextModeName: 'Slug',
+    });
+
+    mount.modeId = 'slug';
+    expect(snapshotUnit(world, unit).weapons[mount.index]).toMatchObject({
+      modeId: 'slug',
+      modeName: 'Slug',
+      nextModeId: 'cluster',
+      nextModeName: 'Cluster',
+    });
+
+    const weapon = structuredClone(world.catalog.weapons.get('lbx_ac10'));
+    const slug = weapon?.modes.find((mode) => mode.id === 'slug');
+    if (weapon === undefined || slug === undefined) throw new Error('missing Slug profile');
+    slug.cooldown = 5;
+    world.catalog = {
+      ...world.catalog,
+      weapons: new Map(world.catalog.weapons).set(weapon.id, weapon),
+    };
+    mount.cooldown = 1;
+    mount.cycleDuration = 3;
+    expect(snapshotUnit(world, unit).weapons[mount.index]?.cooldownMax).toBe(3);
+    mount.cooldown = 0;
+    expect(snapshotUnit(world, unit).weapons[mount.index]?.cooldownMax).toBe(5);
+  });
+
   it('serializes sensor-only returns from coarse tracks without hidden unit state', () => {
     const world = playerWorld('coarse-contact-snapshot');
     hideAll(world);

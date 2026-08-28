@@ -22,6 +22,7 @@ import {
   type Vec2,
   type World,
 } from '../sim/types';
+import { setWeaponMode, weaponMode } from '../sim/weaponModes';
 import type { AudioDirector } from './audio';
 import { formationDestinations } from './formation';
 import { prepareInvestigation } from './investigationOrder';
@@ -254,4 +255,28 @@ export function toggleSelectionGroup(context: EngineOrderContext, group: number)
     if (entity === null || entity.autopilot) continue;
     setGroupEnabled(entity, group, entity.groupIntent[group - 1] !== true);
   }
+}
+
+export function setSelectedWeaponMode(
+  context: EngineOrderContext,
+  entityId: EntityId,
+  mountIndex: number,
+  modeId: string,
+): boolean {
+  if (!context.selectedEntities().includes(entityId)) return false;
+  const entity = findEntity(context.world, entityId);
+  const playerTeam = context.world.playerTeam;
+  if (
+    playerTeam === null ||
+    entity === null ||
+    entity.team !== playerTeam ||
+    entity.autopilot ||
+    !isOperational(entity)
+  ) return false;
+
+  const mount = entity.weapons.find((candidate) => candidate.index === mountIndex);
+  if (mount === undefined || mount.destroyed) return false;
+  const weapon = context.world.catalog.weapons.get(mount.weaponId);
+  if (weapon === undefined || weaponMode(weapon, modeId) === null) return false;
+  return setWeaponMode(weapon, mount, modeId);
 }

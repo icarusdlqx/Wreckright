@@ -1,5 +1,4 @@
 import { Color, Scene, Vector3 } from 'three';
-import type { Weapon } from '../schema/weapon';
 import type { MechLocation } from '../schema/common';
 import type { SimEvent } from '../sim/events';
 import { findEntity, type EntityId, type Vec2, type World } from '../sim/types';
@@ -22,6 +21,7 @@ import {
   weaponEventColour,
 } from './battleEventPresentation';
 import { canPresentEntity } from './visibilityPresentation';
+import { weaponFiringPresentation } from './weaponFiringPresentation';
 
 type DestructiveEvent = Extract<SimEvent, { type: 'mech_destroyed' | 'ammo_explosion' }>;
 
@@ -41,13 +41,6 @@ export interface BattleFeedbackBindings {
     viewport: () => Viewport;
   };
 }
-
-const DEFAULT_SHOT: Weapon['visual'] = {
-  style: 'beam',
-  colour: '#ffffff',
-  width: 2,
-  arc: 0,
-};
 
 const CRITICAL_COLOUR = 0xffd07a;
 const AMMO_COLOUR = 0xffa34f;
@@ -237,10 +230,10 @@ export class BattleEffects {
       if (event.type !== 'weapon_fired' && event.type !== 'projectile_hit') continue;
 
       const weapon = world.catalog.weapons.get(event.weaponId);
-      const colour = weaponEventColour(weapon);
 
       if (event.type === 'projectile_hit') {
         if (!canPresentEntity(world, event.targetId)) continue;
+        const colour = weaponEventColour(weapon);
         if (this.locationOf(event.targetId, event.location, this.effectPoint)) {
           this.tracers.resolveProjectile(event, this.effectPoint);
           this.toGroundPoint(this.effectPoint);
@@ -259,11 +252,12 @@ export class BattleEffects {
 
       const target = this.positionOf(event.targetId);
       if (target === null) continue;
+      const firing = weaponFiringPresentation(weapon, event.modeId);
       if (canPresentIncomingCue(world, event)) {
         incomingCueOrigin(event, target, this.heightAt, this.muzzle);
         this.tracers.fire(
-          this.muzzle, target, weapon?.visual ?? DEFAULT_SHOT,
-          weapon?.projectiles ?? 1, weapon?.velocity ?? null, colour, this.heightAt,
+          this.muzzle, target, firing.visual,
+          firing.projectiles, firing.velocity, firing.colour, this.heightAt,
           event,
           projectileFlightSeconds(world, event, weapon),
           incomingCueFlightSeconds(weapon),
@@ -283,10 +277,10 @@ export class BattleEffects {
       this.tracers.fire(
         this.muzzle,
         target,
-        weapon?.visual ?? DEFAULT_SHOT,
-        weapon?.projectiles ?? 1,
-        weapon?.velocity ?? null,
-        colour,
+        firing.visual,
+        firing.projectiles,
+        firing.velocity,
+        firing.colour,
         this.heightAt,
         event,
         projectileFlightSeconds(world, event, weapon),
@@ -302,7 +296,7 @@ export class BattleEffects {
           this.heightAt(this.breech.x, this.breech.z),
         );
       }
-      if (!this.lowFx) this.muzzleLight(this.muzzle, colour, weapon?.damage ?? 5);
+      if (!this.lowFx) this.muzzleLight(this.muzzle, firing.colour, firing.damage);
     }
 
     // Impact events get first claim; retired rounds then land at a render-safe endpoint.

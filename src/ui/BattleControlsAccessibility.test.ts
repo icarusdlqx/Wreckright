@@ -46,6 +46,10 @@ const UNIT: UnitSnapshot = {
     {
       index: 0,
       name: 'Medium Laser',
+      modeId: null,
+      modeName: null,
+      nextModeId: null,
+      nextModeName: null,
       group: 1,
       cooldown: 0,
       cooldownMax: 2,
@@ -58,6 +62,10 @@ const UNIT: UnitSnapshot = {
     {
       index: 1,
       name: 'Autocannon',
+      modeId: null,
+      modeName: null,
+      nextModeId: null,
+      nextModeName: null,
       group: 2,
       cooldown: 0,
       cooldownMax: 3,
@@ -249,5 +257,65 @@ describe('battle control state semantics', () => {
     expect(buttonTag(weapons, 'group-2')).toContain('aria-pressed="false"');
     expect(buttonTag(lance, 'lance-card-7')).toContain('aria-pressed="true"');
     expect(buttonTag(lance, 'lance-card-8')).toContain('aria-pressed="false"');
+  });
+
+  it('presents a friendly fire mode as an action and a hostile mode as read-only', () => {
+    const modalWeapon = {
+      ...UNIT.weapons[0]!,
+      name: 'Canister Cannon',
+      modeId: 'cluster',
+      modeName: 'Cluster',
+      nextModeId: 'slug',
+      nextModeName: 'Slug',
+    };
+    const modalUnit = { ...UNIT, weapons: [modalWeapon] };
+    const friendly = renderToStaticMarkup(
+      createElement(WeaponGroups, {
+        unit: modalUnit,
+        playerTeam: 0,
+        onToggleGroup: () => undefined,
+        onSetWeaponMode: () => undefined,
+      }),
+    );
+    const hostile = renderToStaticMarkup(
+      createElement(WeaponGroups, {
+        unit: { ...modalUnit, team: 1 },
+        playerTeam: 0,
+        onToggleGroup: () => undefined,
+        onSetWeaponMode: () => undefined,
+      }),
+    );
+
+    const action = buttonTag(friendly, 'weapon-mode-0');
+    expect(action).toContain(
+      'aria-label="Canister Cannon mode Cluster. Switch to Slug"',
+    );
+    expect(action).not.toContain('aria-pressed');
+    expect(friendly).toContain('>Cluster</button>');
+    expect(buttonTag(hostile, 'weapon-mode-0')).toBe('');
+    expect(hostile).toContain('class="weapon-mode-readout"');
+    expect(hostile).toContain('>Cluster</span>');
+  });
+
+  it('disables the fire-mode action when its mount is destroyed', () => {
+    const weapon = {
+      ...UNIT.weapons[0]!,
+      name: 'Canister Cannon',
+      modeId: 'cluster',
+      modeName: 'Cluster',
+      nextModeId: 'slug',
+      nextModeName: 'Slug',
+      destroyed: true,
+    };
+    const markup = renderToStaticMarkup(
+      createElement(WeaponGroups, {
+        unit: { ...UNIT, weapons: [weapon] },
+        playerTeam: 0,
+        onToggleGroup: () => undefined,
+        onSetWeaponMode: () => undefined,
+      }),
+    );
+
+    expect(buttonTag(markup, 'weapon-mode-0')).toContain('disabled=""');
   });
 });

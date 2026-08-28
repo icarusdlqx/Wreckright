@@ -44,6 +44,41 @@ function CooldownRing({ weapon }: { weapon: WeaponSnapshot }) {
   );
 }
 
+function WeaponModeControl({
+  weapon,
+  onSetMode,
+}: {
+  weapon: WeaponSnapshot;
+  onSetMode?: (mountIndex: number, modeId: string) => void;
+}) {
+  const { modeName, nextModeId, nextModeName } = weapon;
+  if (modeName === null || nextModeId === null || nextModeName === null) return null;
+  if (onSetMode === undefined) {
+    return (
+      <span
+        className="weapon-mode-readout"
+        data-testid={`weapon-mode-${weapon.index}`}
+        title={`${weapon.name} mode`}
+      >
+        {modeName}
+      </span>
+    );
+  }
+  return (
+    <button
+      type="button"
+      className="weapon-mode"
+      data-testid={`weapon-mode-${weapon.index}`}
+      aria-label={`${weapon.name} mode ${modeName}. Switch to ${nextModeName}`}
+      title={`Switch to ${nextModeName}`}
+      disabled={weapon.destroyed}
+      onClick={() => onSetMode(weapon.index, nextModeId)}
+    >
+      {modeName}
+    </button>
+  );
+}
+
 /** What a gun that cannot fire says instead of a number. */
 const BLOCK_LABELS: Record<string, string> = {
   destroyed: '',
@@ -55,14 +90,19 @@ const BLOCK_LABELS: Record<string, string> = {
 
 export function WeaponGroups({
   unit,
+  playerTeam,
   onToggleGroup,
+  onSetWeaponMode,
   preview,
 }: {
   unit: UnitSnapshot;
+  playerTeam?: number;
   onToggleGroup: (group: number) => void;
+  onSetWeaponMode?: (mountIndex: number, modeId: string) => void;
   preview?: HitPreviewView;
 }) {
   const groups = [1, 2, 3, 4];
+  const canSetModes = unit.team === playerTeam && unit.alive ? onSetWeaponMode : undefined;
   const previewByIndex = new Map(
     (preview?.weapons ?? []).map((entry) => [entry.index, entry]),
   );
@@ -109,6 +149,10 @@ export function WeaponGroups({
                   >
                     <CooldownRing weapon={weapon} />
                     <span className="weapon-name">{weapon.name}</span>
+                    <WeaponModeControl
+                      weapon={weapon}
+                      {...(canSetModes === undefined ? {} : { onSetMode: canSetModes })}
+                    />
                     <span className={`weapon-range ${reach ?? ''}`}>
                       {Math.round(weapon.longRange)}m
                     </span>

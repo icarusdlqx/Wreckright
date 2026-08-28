@@ -85,7 +85,10 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
           )}
           <WeaponGroups
             unit={unit}
+            playerTeam={state.playerTeam}
             onToggleGroup={(group) => engine?.toggleGroup(group)}
+            onSetWeaponMode={(mountIndex, modeId) =>
+              engine?.setWeaponMode(unit.id, mountIndex, modeId)}
             {...(preview === null ? {} : { preview })}
           />
           <details className="sidebar-details" open={compact} data-testid="tactical-details">

@@ -1,0 +1,115 @@
+.fire-mode-comparison {
+  margin: 9px 0;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.fire-mode-comparison h5 {
+  margin: 0 0 5px;
+  color: var(--text);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.fire-mode-comparison__scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.fire-mode-comparison__scroll:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.fire-mode-comparison table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+  border-collapse: collapse;
+  color: var(--text);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+.fire-mode-comparison thead th:first-child {
+  width: 19%;
+}
+
+.fire-mode-comparison thead th:nth-child(2) {
+  width: 23%;
+}
+
+.fire-mode-comparison thead th:nth-child(4) {
+  width: 16%;
+}
+
+.fire-mode-comparison caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.fire-mode-comparison th,
+.fire-mode-comparison td {
+  padding: 4px 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.fire-mode-comparison thead th {
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.fire-mode-comparison th:first-child {
+  padding-left: 0;
+  text-align: left;
+}
+
+.fire-mode-comparison td:last-child,
+.fire-mode-comparison th:last-child {
+  padding-right: 0;
+}
+
+.fire-mode-comparison tbody th {
+  font-weight: 600;
+}
+
+.fire-mode-comparison tbody th small {
+  display: block;
+  margin-top: 1px;
+  color: var(--accent);
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.fire-mode-comparison td small {
+  color: var(--muted);
+  font-size: 8px;
+}
+
+@media (max-width: 420px) {
+  .fire-mode-comparison table {
+    min-width: 350px;
+    table-layout: auto;
+  }
+
+  .fire-mode-comparison th,
+  .fire-mode-comparison td {
+    padding-inline: 4px;
+  }
+}
