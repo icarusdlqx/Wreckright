@@ -29,6 +29,7 @@ import {
   updateTeamVisions,
   visionFor,
 } from './sensors';
+import { hasUsableFiringSolution } from './weaponEngagement';
 import { createTerrainGrid } from './terrain';
 import { findEntity, isOperational, type EntityId, type MechEntity, type World } from './types';
 
@@ -268,14 +269,18 @@ function clearUnseenTargets(world: World): void {
       return (
         target !== null &&
         target.team !== entity.team &&
-        isSightedBy(vision, target) &&
-        isOperational(target)
+        isOperational(target) &&
+        (isSightedBy(vision, target) ||
+          hasUsableFiringSolution(world, entity, target, 'intent'))
       );
     };
 
     if (entity.targetId !== null && !isLiveEnemy(entity.targetId)) {
       entity.targetId = null;
       entity.calledShot = null;
+    } else {
+      const target = findEntity(world, entity.targetId);
+      if (target !== null && !isSightedBy(vision, target)) entity.calledShot = null;
     }
     if (entity.ai.focusTargetId !== null && !isLiveEnemy(entity.ai.focusTargetId)) {
       entity.ai.focusTargetId = null;

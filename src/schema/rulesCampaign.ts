@@ -118,6 +118,7 @@ export const SupportRulesSchema = z.strictObject({
     ...SupportCallBase,
     radius: z.number().positive(),
     durationSeconds: z.number().positive(),
+    indirectAccuracyFactor: z.number().positive().max(1),
   }),
   artillery_strike: z.strictObject({
     ...SupportCallBase,

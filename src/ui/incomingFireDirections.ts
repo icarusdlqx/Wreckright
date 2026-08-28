@@ -82,8 +82,8 @@ export class IncomingFireDirections {
       if (event.type !== 'projectile_hit') continue;
       const target = findEntity(world, event.targetId);
       if (target === null || (target.team !== playerTeam && !selection.includes(target.id))) continue;
-      // A sensor return is not a firing solution. Do not project an exact
-      // bearing until the shared presentation boundary admits the shooter.
+      // An indirect solution still does not disclose the shooter's exact body.
+      // Project no bearing until the shared presentation boundary admits it.
       if (!canPresentEntity(world, event.shooterId)) continue;
       if (this.shownThisTick(event.shooterId, event.tick)) continue;
       const shooter = findEntity(world, event.shooterId);

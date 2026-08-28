@@ -87,6 +87,8 @@ export type SimEvent =
       call: string;
       x: number;
       y: number;
+      /** Contacts found by a sensor sweep; absent for calls that do not scan. */
+      contactCount?: number;
     }
   | {
       type: 'mission_ended';

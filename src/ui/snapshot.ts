@@ -1,7 +1,7 @@
 import { LOCATIONS, type MechLocation } from '../schema/common';
 import { roleOf } from '../sim/ai/roles';
 import { canJump, isHoldingFire } from '../sim/orders';
-import { isIdentifiedBy, isSightedBy, type ContactTrack } from '../sim/sensors';
+import { currentSensorTrack, isIdentifiedBy, isSightedBy, type ContactTrack } from '../sim/sensors';
 import { findEntity, isOperational, isStaggered, type MechEntity, type World } from '../sim/types';
 import type { ContactSnapshot, LocationSnapshot, UnitSnapshot, WeaponSnapshot } from './store';
 import {
@@ -74,6 +74,11 @@ export function snapshotUnit(world: World, entity: MechEntity): UnitSnapshot {
   const target = findEntity(world, entity.targetId);
   const presentedTarget = target !== null && isSightedBy(world.vision, target) ? target : null;
   const playerTeam = world.playerTeam ?? 0;
+  const presentedTargetId =
+    presentedTarget?.id ??
+    (entity.team === playerTeam && target !== null && currentSensorTrack(world.vision, target) !== null
+      ? target.id
+      : null);
   const chassis = world.catalog.chassis.get(entity.chassisId);
   return {
     id: entity.id,
@@ -96,7 +101,7 @@ export function snapshotUnit(world: World, entity: MechEntity): UnitSnapshot {
     downRemaining: entity.downRemaining,
     staggered: isStaggered(entity, world.rules.stability.staggerThreshold),
     motion: entity.motion,
-    targetId: presentedTarget?.id ?? null,
+    targetId: presentedTargetId,
     targetName: presentedTarget === null ? null : presentedTarget.name,
     targetRange:
       presentedTarget === null

@@ -171,7 +171,7 @@ async function investigateSensorIfPresent({ page, check, prefix, touch, sensorId
   const ariaLabel = (await sensor.getAttribute('aria-label'))?.toLowerCase() ?? '';
   const sensorText = (await sensor.innerText()).toLowerCase();
   const accessible =
-    ariaLabel.includes('not a firing solution') && sensorText.includes('investigate track');
+    ariaLabel.includes('indirect missiles') && sensorText.includes('investigate');
   await activate(sensor, touch);
   await page.waitForFunction(() => {
     const { useGame, world } = globalThis.__wreckright;
@@ -186,7 +186,7 @@ async function investigateSensorIfPresent({ page, check, prefix, touch, sensorId
     );
   });
   check(
-    labelled(prefix, 'treats a hollow sensor contact as investigate-only, never as a target'),
+    labelled(prefix, 'offers indirect guidance while the direct-fire trainer investigates'),
     accessible,
   );
   if (touch) await page.locator('[data-testid="mobile-tab-orders"]').tap();

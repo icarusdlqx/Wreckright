@@ -214,9 +214,16 @@ function resolveReinforcement(world: World, pending: PendingCall): void {
 
 function resolvePending(world: World, pending: PendingCall): void {
   const config = world.rules.support;
+  let contactCount: number | undefined;
 
   switch (pending.call) {
     case 'sensor_probe':
+      contactCount = world.entities.filter(
+        (entity) =>
+          entity.team !== pending.team &&
+          isOperational(entity) &&
+          distance(entity.pos, pending.target) <= config.sensor_probe.radius,
+      ).length;
       world.reveals.push({
         team: pending.team,
         kind: 'sensor',
@@ -269,6 +276,7 @@ function resolvePending(world: World, pending: PendingCall): void {
     call: pending.call,
     x: pending.target.x,
     y: pending.target.y,
+    ...(contactCount === undefined ? {} : { contactCount }),
   });
 }
 

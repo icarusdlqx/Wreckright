@@ -25,6 +25,7 @@ import { reconDestination } from './recon';
 import { observationDirective } from './observer';
 import { hasUsableFiringSolution } from '../weaponEngagement';
 import { holdingForRepair } from './support';
+import { assignIndirectTrackTarget } from './indirect';
 
 export { lanceFocus } from './focus';
 
@@ -125,14 +126,19 @@ function holdAndShoot(
   mech.ai.stance = 'hold';
   mech.ai.focusTargetId = focusTargetId;
 
-  const chosen = scoreTargets(world, mech, {
+  const ranked = scoreTargets(world, mech, {
     focusTargetId,
     currentTargetId: mech.targetId,
-  }).find(({ target }) => hasUsableFiringSolution(world, mech, target, 'intent'));
+  });
+  const chosen = ranked.find(({ target }) => hasUsableFiringSolution(world, mech, target, 'intent'));
 
   if (chosen === undefined) {
-    mech.targetId = null;
-    mech.calledShot = null;
+    if (ranked.length > 0 || !assignIndirectTrackTarget(world, mech)) {
+      mech.targetId = null;
+      mech.calledShot = null;
+    } else {
+      applyHeatGovernor(world, mech, false);
+    }
     return;
   }
 
@@ -190,6 +196,12 @@ export function decideTactical(
     mech.calledShot = null;
     if (mech.ai.withdrawing) {
       moveTo(world, mech, withdrawalPoint(world, mech), true);
+      return;
+    }
+    if (assignIndirectTrackTarget(world, mech)) {
+      halt(mech);
+      mech.ai.stance = 'hold';
+      applyHeatGovernor(world, mech, false);
       return;
     }
     // Nothing to shoot: take the ground the mission is scored on, if any.

@@ -1,6 +1,7 @@
 import type { MechLocation } from '../schema/common';
 import { useAbility } from '../sim/abilities';
 import { restoreIntent } from '../sim/governor';
+import { isSightedBy } from '../sim/sensors';
 import {
   isHoldingFire,
   issueAlphaStrike,
@@ -63,17 +64,47 @@ export function moveSelection(
   else useGame.getState().pushLog('No mech selected to give that order to.');
 }
 
-export function investigateSelection(
+export function engageContactSelection(
   context: EngineOrderContext,
+  targetId: EntityId,
   to: Vec2,
-  move: (to: Vec2) => void,
 ): void {
-  for (const id of context.selectedEntities()) {
-    const entity = findEntity(context.world, id);
-    if (entity === null || entity.autopilot) continue;
-    prepareInvestigation(entity);
+  let ordered = 0;
+  let investigating = 0;
+  const entities = context
+    .selectedEntities()
+    .map((id) => findEntity(context.world, id))
+    .filter((entity): entity is MechEntity => entity !== null && !entity.autopilot);
+  const scouts: MechEntity[] = [];
+  for (const entity of entities) {
+    if (issueAttack(context.world, entity, targetId, null)) ordered += 1;
+    else scouts.push(entity);
   }
-  move(to);
+  const destinations = formationDestinations(context.world, scouts, to);
+  for (const entity of scouts) {
+    prepareInvestigation(entity);
+    if (issueMove(
+      context.world,
+      entity,
+      destinations.get(entity.id) ?? to,
+      false,
+      { engage: true },
+    )) investigating += 1;
+  }
+  if (ordered + investigating === 0) {
+    useGame.getState().pushLog(
+      entities.length === 0 ? 'No mech selected to give that order to.' : 'No route to that point.',
+    );
+    return;
+  }
+  context.audio.order();
+  const firing = ordered === 0
+    ? ''
+    : `${ordered} mech${ordered === 1 ? '' : 's'} firing indirectly on sensor contact`;
+  const moving = investigating === 0
+    ? ''
+    : `${investigating} mech${investigating === 1 ? '' : 's'} investigating sensor contact`;
+  useGame.getState().pushLog(`${[firing, moving].filter(Boolean).join('; ')}.`);
 }
 
 export function jumpSelection(context: EngineOrderContext, to: Vec2): void {
@@ -111,7 +142,8 @@ export function attackSelection(
   else if (ordered === 0) push('Optical contact is required before that target can be engaged.');
   else if (target !== null) {
     context.audio.order();
-    push(`${ordered} mech${ordered === 1 ? '' : 's'} targeting ${target.name}.`);
+    const label = isSightedBy(context.world.vision, target) ? target.name : 'sensor contact';
+    push(`${ordered} mech${ordered === 1 ? '' : 's'} targeting ${label}.`);
   }
 }
 

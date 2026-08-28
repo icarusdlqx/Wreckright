@@ -27,7 +27,7 @@ const PATH_POINTS = 128;
 export class MarkerLayer {
   readonly group = new Group();
 
-  private readonly ringGeometries = new Map<number, RingGeometry>();
+  private readonly ringGeometries = new Map<string, RingGeometry>();
   private readonly markerMaterials = new Map<string, MeshBasicMaterial>();
   private readonly ringPool: Mesh[] = [];
   private ringsUsed = 0;
@@ -78,7 +78,15 @@ export class MarkerLayer {
 
     for (const reveal of world.reveals) {
       if (world.playerTeam !== null && reveal.team !== world.playerTeam) continue;
-      this.groundRing({ x: reveal.x, y: reveal.y }, reveal.radius, UI.selection, 0.3);
+      const sensor = reveal.kind === 'sensor';
+      this.groundRing(
+        { x: reveal.x, y: reveal.y },
+        reveal.radius,
+        UI.selection,
+        sensor ? 0.68 : 0.3,
+        sensor ? 4.8 : 1.6,
+        sensor,
+      );
     }
 
     for (const pending of world.support.pending) {
@@ -157,7 +165,14 @@ export class MarkerLayer {
     }
   }
 
-  private groundRing(at: Vec2, radius: number, colour: number, opacity: number): void {
+  private groundRing(
+    at: Vec2,
+    radius: number,
+    colour: number,
+    opacity: number,
+    width = 1.6,
+    aboveFog = false,
+  ): void {
     let ring = this.ringPool[this.ringsUsed];
     if (ring === undefined) {
       ring = new Mesh();
@@ -167,9 +182,10 @@ export class MarkerLayer {
     }
     this.ringsUsed += 1;
 
-    ring.geometry = this.ringGeometry(radius);
-    ring.material = this.markerMaterial(colour, opacity);
+    ring.geometry = this.ringGeometry(radius, width);
+    ring.material = this.markerMaterial(colour, opacity, !aboveFog);
     ring.position.set(at.x, this.heightAt(at.x, at.y) + 1, at.y);
+    ring.renderOrder = aboveFog ? 10 : 0;
     ring.visible = true;
   }
 
@@ -199,22 +215,24 @@ export class MarkerLayer {
     positions.setXYZ(index, x, this.heightAt(x, y) + 1.4, y);
   }
 
-  private ringGeometry(radius: number): RingGeometry {
-    const existing = this.ringGeometries.get(radius);
+  private ringGeometry(radius: number, width: number): RingGeometry {
+    const key = `${radius}:${width}`;
+    const existing = this.ringGeometries.get(key);
     if (existing !== undefined) return existing;
-    const fresh = new RingGeometry(Math.max(1, radius - 1.6), radius, 40);
-    this.ringGeometries.set(radius, fresh);
+    const fresh = new RingGeometry(Math.max(1, radius - width), radius, 40);
+    this.ringGeometries.set(key, fresh);
     return fresh;
   }
 
-  private markerMaterial(colour: number, opacity: number): MeshBasicMaterial {
-    const key = `${colour}:${opacity}`;
+  private markerMaterial(colour: number, opacity: number, depthTest: boolean): MeshBasicMaterial {
+    const key = `${colour}:${opacity}:${depthTest}`;
     const existing = this.markerMaterials.get(key);
     if (existing !== undefined) return existing;
     const fresh = new MeshBasicMaterial({
       color: colour,
       transparent: true,
       opacity,
+      depthTest,
       depthWrite: false,
     });
     this.markerMaterials.set(key, fresh);

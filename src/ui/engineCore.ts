@@ -14,7 +14,7 @@ import { AudioDirector } from './audio';
 import {
   alphaStrikeSelection,
   attackSelection,
-  investigateSelection,
+  engageContactSelection,
   jumpSelection,
   moveSelection,
   setSelectionPosture,
@@ -318,8 +318,9 @@ export class Engine {
     moveSelection(this, to, run, options);
   }
 
-  investigateContact(to: Vec2): void {
-    investigateSelection(this, to, (target) => this.orderMove(target, false, { engage: true }));
+  engageContact(targetId: EntityId, to: Vec2): void {
+    this.hudDirty = true;
+    engageContactSelection(this, targetId, to);
   }
 
   orderJump(to: Vec2): void {

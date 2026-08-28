@@ -34,7 +34,7 @@ export interface TeamVision {
   visible: Set<EntityId>;
   /** Compatibility name: optical sight always identifies in this first pass. */
   identified: Set<EntityId>;
-  /** Current electronic returns. These are not firing solutions. */
+  /** Current electronic returns. Weapon capability decides whether one is actionable. */
   detected: Set<EntityId>;
   /** Current or remembered privacy-safe contact reports. */
   tracks: Map<EntityId, ContactTrack>;
@@ -319,6 +319,28 @@ export function trackFor(
   if (vision === null) return null;
   const id = typeof entityOrId === 'number' ? entityOrId : entityOrId.id;
   return vision.tracks.get(id) ?? null;
+}
+
+/** A live, coarse electronic report; remembered or optical tracks do not qualify. */
+export function currentSensorTrack(
+  vision: TeamVision | null,
+  entityOrId: MechEntity | EntityId,
+): ContactTrack | null {
+  if (vision === null) return null;
+  const id = typeof entityOrId === 'number' ? entityOrId : entityOrId.id;
+  if (vision.visible.has(id) || !vision.detected.has(id)) return null;
+  const track = vision.tracks.get(id);
+  return track?.source === 'sensor' ? track : null;
+}
+
+/** The most precise point this team may currently act on without leaking hidden motion. */
+export function currentContactPoint(
+  vision: TeamVision | null,
+  entity: MechEntity,
+): Vec2 | null {
+  if (isSightedBy(vision, entity)) return { x: entity.pos.x, y: entity.pos.y };
+  const track = currentSensorTrack(vision, entity);
+  return track === null ? null : { x: track.pos.x, y: track.pos.y };
 }
 
 /** Temporary compatibility alias while callers migrate to intent-specific language. */

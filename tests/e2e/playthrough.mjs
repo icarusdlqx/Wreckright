@@ -795,6 +795,9 @@ async function main() {
         truckCost: world.rules.support.repair_truck.cost,
         truckDelay: world.rules.support.repair_truck.delaySeconds,
         sensorCost: world.rules.support.sensor_probe.cost,
+        sensorAccuracyPercent: Math.round(
+          world.rules.support.sensor_probe.indirectAccuracyFactor * 100,
+        ),
       };
     });
     check('the base capture mission is loaded', mission.id === 'base_capture_ridge', mission.id);

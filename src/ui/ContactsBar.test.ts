@@ -21,7 +21,7 @@ function markup(hasSelection: boolean, mobile = false): string {
     targetIds: new Set<number>(),
     hasSelection,
     onTarget: () => undefined,
-    onInvestigate: () => undefined,
+    onContact: () => undefined,
   });
   return renderToStaticMarkup(
     mobile ? createElement('div', { className: 'mobile-tray' }, contacts) : contacts,
@@ -33,13 +33,13 @@ function contactButton(html: string): string {
 }
 
 describe('sensor contact controls', () => {
-  it('offers a desktop investigation order without presenting a direct target', () => {
+  it('offers indirect guidance or investigation without presenting an optical target', () => {
     const html = markup(true);
     const button = contactButton(html);
     expect(html).toContain('aria-label="Battlefield contacts"');
-    expect(button).toContain('aria-label="Investigate sensor contact: Heavy mech, ~350m. This is not a firing solution."');
+    expect(button).toContain('aria-label="Sensor contact: Heavy mech, ~350m. Current returns guide indirect missiles at 40% of sighted accuracy; other mechs investigate."');
     expect(button).not.toContain('disabled');
-    expect(html).toContain('Sensor return · investigate track');
+    expect(html).toContain('Sensor return · indirect 40% of sighted / investigate');
     expect(html).not.toContain('hostile-health');
   });
 
@@ -48,7 +48,7 @@ describe('sensor contact controls', () => {
     const button = contactButton(html);
     expect(html).toContain('class="mobile-tray"');
     expect(button).toContain('disabled');
-    expect(button).toContain('This is not a firing solution');
+    expect(button).toContain('Current returns guide indirect missiles at 40% of sighted accuracy');
   });
 
   it('passes only the quantized point into an investigation order', () => {
@@ -78,10 +78,12 @@ describe('sensor contact controls', () => {
       targetIds: new Set<number>(),
       hasSelection: true,
       onTarget: () => undefined,
-      onInvestigate: () => undefined,
+      onContact: () => undefined,
     }));
 
     expect(html).toContain('last known ~350m');
     expect(html).toContain('Frozen last known · investigate track');
+    expect(contactButton(html)).toContain('Frozen last-known returns cannot guide fire');
+    expect(contactButton(html)).not.toContain('Current returns guide indirect missiles');
   });
 });
