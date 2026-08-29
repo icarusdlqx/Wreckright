@@ -7,14 +7,14 @@ export function presentMachinePowerEvent(
   event: 'shutdown' | 'restart',
   reducedMotion: boolean,
 ): void {
-  if (model?.faction === 'aurelian') {
-    setStartupPowered(model, event === 'restart');
-  } else if (model?.faction === 'linewrought' && !reducedMotion) {
+  if (model === undefined) return;
+  if (model.startup !== null) setStartupPowered(model, event === 'restart');
+  if (model.faction === 'linewrought' && !reducedMotion) {
     triggerPowerShudder(model.hullRecoil, model.culture, event);
   }
 }
 
 /** Hidden machines retain only their current steady state, never event history. */
 export function synchronizeMachinePower(model: MechModel, powered: boolean): void {
-  if (model.faction === 'aurelian') synchronizeStartupPowered(model, powered);
+  if (model.startup !== null) synchronizeStartupPowered(model, powered);
 }

@@ -9,7 +9,7 @@ import { collectLocationAnchors, type LocationAnchors } from './locationAnchors'
 import { buildMechModel, disposeModel, type MechModel } from './mechModel';
 import { setMachineMotionLowFx } from './machineMotion';
 import { applyModelDetail } from './modelDetail';
-import type { ModelDetail } from './renderQuality';
+import { TACTICAL_MECH_RENDER, type ModelDetail } from './renderQuality';
 import { setStartupPowered } from './startupLights';
 import { fallbackFallAxis, modelDamageSignature, type TerminalFallAxis } from './unitVisualState';
 
@@ -84,10 +84,12 @@ export function createEntityView(
     chassis?.id ?? null,
     wear,
     faction,
+    TACTICAL_MECH_RENDER,
+    entity.frame === 'mech' && world.atmosphere.night,
   );
   applyModelDetail(model.root, detail);
   setMachineMotionLowFx(model.machineMotion, lowFx);
-  if (faction === 'aurelian') setStartupPowered(model, entity.shutdownRemaining <= 0);
+  if (model.startup !== null) setStartupPowered(model, entity.shutdownRemaining <= 0);
   model.terminalFallAxis = fallAxis ?? fallbackFallAxis(entity.id);
 
   const radius = radiusFor(entity.tonnage);

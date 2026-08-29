@@ -36,7 +36,7 @@ import { castsMechShadow, geometryForBlueprintPart } from './mechGeometry';
 import { applyModelDetail, markBlueprintDetail } from './modelDetail';
 import { TACTICAL_MECH_RENDER, type MechRenderOptions } from './renderQuality';
 import { createMachineMotion, type MachineMotionRig } from './machineMotion';
-import { createSealedPowerLights } from './sealedPowerLights';
+import { createMachinePowerLights } from './runningLights';
 import type { TerminalFallAxis } from './unitVisualState';
 import { markDamagedLimbMesh, settleDamagedLegRig } from './limbDamagePresentation';
 
@@ -119,6 +119,7 @@ export function buildMechModel(
   wear: Readonly<Partial<Record<MechLocation, DamageWearTier>>> = {},
   faction: Faction = 'linewrought',
   options: Readonly<MechRenderOptions> = TACTICAL_MECH_RENDER,
+  nightRunningLights = false,
 ): MechModel {
   const scale = radiusFor(tonnage);
   const plan = chassisBlueprint(shape, traits, fit, identity);
@@ -285,9 +286,8 @@ export function buildMechModel(
     settleDamagedLegRig(rig, tier, scale, lost.has(rig.location));
   }
 
-  const startup = faction === 'aurelian' && !destroyed
-    ? createSealedPowerLights(plan, scale, sealedFailures, ownedMaterials)
-    : null;
+  const startup = destroyed ? null : createMachinePowerLights(
+    faction, nightRunningLights, plan, scale, sealedFailures, lost, ownedMaterials);
   if (startup !== null) torso.add(...startup.lights);
 
   // --------------------------------------------------------------- weapons

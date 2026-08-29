@@ -45,7 +45,6 @@ export interface BattleFeedbackBindings {
 const CRITICAL_COLOUR = 0xffd07a;
 const AMMO_COLOUR = 0xffa34f;
 const TERMINAL_COLOUR = 0xff6b38;
-const FLASH_CAPACITY = 10;
 
 /** Combat effects and camera recoil share one clock and one fixed budget. */
 export class BattleEffects {
@@ -82,7 +81,7 @@ export class BattleEffects {
     feedback: BattleFeedbackBindings | null = null,
   ) {
     this.wear = new BattlefieldWear(fogColour, heightAt);
-    this.flashes = new MuzzleFlashPool(scene, FLASH_CAPACITY);
+    this.flashes = new MuzzleFlashPool(scene);
     this.anchorOf = feedback?.anchorOf ?? null;
     this.canLocate = feedback?.canLocate;
     this.currentPositionOf = feedback?.currentPositionOf ?? positionOf;
@@ -115,6 +114,7 @@ export class BattleEffects {
   setPresentationMode(lowFx: boolean): void {
     if (this.destroyed) return;
     this.lowFx = lowFx;
+    this.flashes.setEnabled(!lowFx);
     this.tracers.setPresentationMode(lowFx, this.camera.reducedMotion);
     this.jets.setPresentationMode(lowFx, this.camera.reducedMotion);
   }

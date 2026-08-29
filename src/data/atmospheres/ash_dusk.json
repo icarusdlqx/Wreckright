@@ -1,25 +1,26 @@
 {
   "id": "ash_dusk",
   "name": "Ash Dusk",
+  "night": true,
   "mechanics": {
     "sightFactor": 0.92,
     "sensorFactor": 0.96,
     "heatDissipationFactor": 1,
     "wind": { "x": 0.15, "y": 0.05 }
   },
-  "sky": "#1c110c",
-  "exposure": 1.18,
-  "fog": { "kind": "linear", "colour": "#3a2418", "near": 800, "far": 2600 },
+  "sky": "#0c0705",
+  "exposure": 0.96,
+  "fog": { "kind": "linear", "colour": "#20120c", "near": 800, "far": 2600 },
   "sun": {
     "colour": "#ff9a52",
-    "intensity": 2.1,
+    "intensity": 0.85,
     "direction": { "azimuthDegrees": 200, "elevationDegrees": 16, "distance": 1300 }
   },
   "fill": {
     "colour": "#6a7ea0",
-    "intensity": 0.7,
+    "intensity": 0.24,
     "direction": { "azimuthDegrees": 20, "elevationDegrees": 30, "distance": 1000 }
   },
-  "hemisphere": { "sky": "#c08a66", "ground": "#4a3a2c", "intensity": 1.35 },
-  "terrainTint": { "colour": "#6a4428", "strength": 0.16 }
+  "hemisphere": { "sky": "#c08a66", "ground": "#2d1f18", "intensity": 0.52 },
+  "terrainTint": { "colour": "#5b311d", "strength": 0.24 }
 }

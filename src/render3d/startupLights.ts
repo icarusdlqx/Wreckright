@@ -3,7 +3,7 @@ import { activeStartupLights, type MachineCultureProfile } from './machineCultur
 
 export interface StartupLightRig {
   lights: Mesh[];
-  /** Destroyed sealed systems leave corresponding channels permanently dark. */
+  /** Destroyed systems leave corresponding channels permanently dark. */
   enabled: boolean[];
   elapsed: number;
   running: boolean;
