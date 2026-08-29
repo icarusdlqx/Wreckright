@@ -132,56 +132,6 @@ export async function runMobileMechbayJourney({
       (await dollSlider.getAttribute('aria-label')) === 'Left torso armour',
   );
 
-  const touchStartValue = Number(await dollSlider.inputValue());
-  const touchStartScroll = await page.evaluate(() => window.scrollY);
-  const touchTarget = await leftTorso.boundingBox();
-  if (touchTarget === null) throw new Error(`${prefix} left torso has no touch target`);
-  const touchX = touchTarget.x + touchTarget.width / 2;
-  const touchY = touchTarget.y + touchTarget.height / 2;
-  const cdp = await page.context().newCDPSession(page);
-  try {
-    await cdp.send('Input.dispatchTouchEvent', {
-      type: 'touchStart',
-      touchPoints: [{ x: touchX, y: touchY, id: 1 }],
-    });
-    await cdp.send('Input.dispatchTouchEvent', {
-      type: 'touchMove',
-      touchPoints: [{ x: touchX - 32, y: touchY, id: 1 }],
-    });
-    await cdp.send('Input.dispatchTouchEvent', {
-      type: 'touchEnd',
-      touchPoints: [],
-    });
-  } finally {
-    await cdp.detach();
-  }
-  const touchValue = Number(await dollSlider.inputValue());
-  check(
-    `${prefix} horizontal touch drag edits armour without stealing vertical scroll`,
-    touchValue < touchStartValue &&
-      (await page.evaluate(() => window.scrollY)) === touchStartScroll,
-    `${touchStartValue} → ${touchValue}`,
-  );
-  const undo = page.locator('[data-testid="bay-undo"]');
-  check(
-    `${prefix} touch drag creates an undoable armour transaction`,
-    await undo.isEnabled(),
-  );
-  await undo.evaluate((button) => button.click());
-  const undoSettled = await page.waitForFunction(
-    (expected) => Number(
-      document.querySelector('[data-testid="armour-doll-slider"]')?.value,
-    ) === expected,
-    touchStartValue,
-    { timeout: 2_000 },
-  ).then(() => true, () => false);
-  const undoValue = Number(await dollSlider.inputValue());
-  check(
-    `${prefix} one Undo restores the complete touch drag`,
-    undoSettled && undoValue === touchStartValue,
-    `${touchValue} → ${undoValue}; expected ${touchStartValue}`,
-  );
-
   const armourLayout = await page.evaluate(() => {
     const selectors = {
       root: document.documentElement,
@@ -292,7 +242,65 @@ export async function runMobileMechbayJourney({
     await fullyInViewport(page, '[data-testid="bay-save"]'),
   );
   await page.screenshot({ path: `${shots}/14-mobile-${shotLabel}-mechbay.png` });
-  await page.locator('[data-testid="bay-exit"]').tap();
+
+  // Raw CDP touch injection can poison Playwright's later synthetic tap
+  // channel in Chromium, so the gesture transaction is deliberately last.
+  await selectWorkspace(page, 'armour');
+  await leftTorso.tap();
+  const touchStartValue = Number(await dollSlider.inputValue());
+  // The selected slider can sit below the short landscape viewport. Bring the
+  // actual gesture target back on screen before sending viewport coordinates.
+  await leftTorso.scrollIntoViewIfNeeded();
+  const touchStartScroll = await page.evaluate(() => window.scrollY);
+  const touchTarget = await leftTorso.boundingBox();
+  if (touchTarget === null) throw new Error(`${prefix} left torso has no touch target`);
+  const touchX = touchTarget.x + touchTarget.width / 2;
+  const touchY = touchTarget.y + touchTarget.height / 2;
+  const cdp = await page.context().newCDPSession(page);
+  try {
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchStart',
+      touchPoints: [{ x: touchX, y: touchY, id: 1 }],
+    });
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [{ x: touchX - 32, y: touchY, id: 1 }],
+    });
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchEnd',
+      touchPoints: [],
+    });
+  } finally {
+    await cdp.detach();
+  }
+  const touchValue = Number(await dollSlider.inputValue());
+  check(
+    `${prefix} horizontal touch drag edits armour without stealing vertical scroll`,
+    touchValue < touchStartValue &&
+      (await page.evaluate(() => window.scrollY)) === touchStartScroll,
+    `${touchStartValue} → ${touchValue}`,
+  );
+  const undo = page.locator('[data-testid="bay-undo"]');
+  check(
+    `${prefix} touch drag creates an undoable armour transaction`,
+    await undo.isEnabled(),
+  );
+  await undo.click();
+  const undoSettled = await page.waitForFunction(
+    (expected) => Number(
+      document.querySelector('[data-testid="armour-doll-slider"]')?.value,
+    ) === expected,
+    touchStartValue,
+    { timeout: 2_000 },
+  ).then(() => true, () => false);
+  const undoValue = Number(await dollSlider.inputValue());
+  check(
+    `${prefix} one Undo restores the complete touch drag`,
+    undoSettled && undoValue === touchStartValue,
+    `${touchValue} → ${undoValue}; expected ${touchStartValue}`,
+  );
+
+  await page.locator('[data-testid="bay-exit"]').click();
   await page.waitForSelector('[data-testid="briefing"]');
   check(`${prefix} mechbay exit remains reachable`, true);
 }
