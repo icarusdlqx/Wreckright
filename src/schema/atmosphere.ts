@@ -49,6 +49,8 @@ export const AtmosphereSchema = z.strictObject({
   id: IdSchema,
   name: z.string().min(1).max(60),
   mechanics: AtmosphereMechanicsSchema,
+  /** Render-only cue for hull lamps and other darkness-safe presentation. */
+  night: z.boolean().default(false),
   /** Flat colour behind everything. Not fogged — it is the void, not the air. */
   sky: ColourSchema.default('#0d1013'),
   exposure: z.number().positive().max(4).default(1.05),

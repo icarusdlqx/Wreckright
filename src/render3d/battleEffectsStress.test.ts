@@ -150,6 +150,8 @@ describe('integrated combat presentation', () => {
     expect(fire).toHaveBeenCalledTimes(2);
     expect(mechanical).toHaveBeenCalledTimes(1);
     expect(scene.children.some((child) => child instanceof PointLight && child.visible)).toBe(true);
+    active.setPresentationMode(true);
+    expect(scene.children.some((child) => child instanceof PointLight && child.visible)).toBe(false);
     active.destroy();
   });
 
@@ -166,8 +168,9 @@ describe('integrated combat presentation', () => {
 
     active.consume(world, Array.from({ length: 1_000 }, () => event));
     expect(scene.children).toEqual(initialChildren);
-    expect(lights).toHaveLength(10);
-    expect(lights.filter((light) => light.visible)).toHaveLength(10);
+    expect(lights).toHaveLength(4);
+    expect(lights.every((light) => !light.castShadow)).toBe(true);
+    expect(lights.filter((light) => light.visible)).toHaveLength(4);
     expect(add).not.toHaveBeenCalled();
 
     active.destroy();
@@ -179,7 +182,7 @@ describe('integrated combat presentation', () => {
     expect(add).not.toHaveBeenCalled();
   });
 
-  it('shows ten distinct simultaneous muzzle lights without growing the pool', () => {
+  it('recycles four simultaneous muzzle lights without growing the pool', () => {
     const scene = new Scene();
     let muzzleIndex = 0;
     const active = new BattleEffects(
@@ -210,8 +213,10 @@ describe('integrated combat presentation', () => {
     const visible = scene.children.filter((child): child is PointLight => (
       child instanceof PointLight && child.visible
     ));
-    expect(visible).toHaveLength(10);
-    expect(new Set(visible.map((light) => light.position.x)).size).toBe(10);
+    expect(visible).toHaveLength(4);
+    expect(visible.map((light) => light.position.x).sort((a, b) => a - b)).toEqual([
+      70, 80, 90, 100,
+    ]);
     active.destroy();
   });
 });

@@ -6,39 +6,44 @@ interface MuzzleFlash {
   readonly light: PointLight;
   ttl: number;
   intensity: number;
+  generation: number;
 }
 
 const FLASH_LIFE = 0.09;
+const FLASH_CAPACITY = 4;
 
-/** A fixed light budget keeps a full lance volley readable without scene churn. */
+/** Four reusable lights keep volleys readable without multiplying GPU light work. */
 export class MuzzleFlashPool {
   private readonly flashes: MuzzleFlash[];
-  private cursor = 0;
+  private generation = 0;
+  private enabled = true;
   private destroyed = false;
 
-  constructor(private readonly scene: Scene, capacity: number) {
-    this.flashes = Array.from({ length: capacity }, () => {
+  constructor(private readonly scene: Scene) {
+    this.flashes = Array.from({ length: FLASH_CAPACITY }, () => {
       const light = new PointLight(0xffffff, 0, 120, 2);
+      light.castShadow = false;
       light.visible = false;
       scene.add(light);
-      return { light, ttl: 0, intensity: 0 };
+      return { light, ttl: 0, intensity: 0, generation: 0 };
     });
   }
 
   trigger(at: Vector3, colour: number, damage: number): void {
-    if (this.destroyed || this.flashes.length === 0) return;
-    let selected = -1;
-    for (let offset = 0; offset < this.flashes.length; offset += 1) {
-      const index = (this.cursor + offset) % this.flashes.length;
-      if ((this.flashes[index]?.ttl ?? 1) <= 0) {
-        selected = index;
+    if (this.destroyed || !this.enabled) return;
+    let flash = this.flashes[0];
+    if (flash === undefined) return;
+    for (let index = 0; index < this.flashes.length; index += 1) {
+      const candidate = this.flashes[index];
+      if (candidate === undefined) continue;
+      if (candidate.ttl <= 0) {
+        flash = candidate;
         break;
       }
+      if (candidate.generation < flash.generation) flash = candidate;
     }
-    if (selected < 0) selected = this.cursor;
-    const flash = this.flashes[selected];
-    if (flash === undefined) return;
-    this.cursor = (selected + 1) % this.flashes.length;
+    this.generation += 1;
+    flash.generation = this.generation;
     flash.ttl = FLASH_LIFE;
     flash.intensity = 300 + damage * 40;
     flash.light.color.setHex(colour);
@@ -54,11 +59,24 @@ export class MuzzleFlashPool {
       if (flash.ttl <= 0) continue;
       flash.ttl -= delta;
       if (flash.ttl <= 0) {
+        flash.ttl = 0;
         flash.light.visible = false;
         flash.light.intensity = 0;
       } else {
         flash.light.intensity = flash.intensity * flash.ttl / FLASH_LIFE;
       }
+    }
+  }
+
+  setEnabled(enabled: boolean): void {
+    if (this.destroyed || this.enabled === enabled) return;
+    this.enabled = enabled;
+    if (enabled) return;
+    for (const flash of this.flashes) {
+      flash.ttl = 0;
+      flash.intensity = 0;
+      flash.light.intensity = 0;
+      flash.light.visible = false;
     }
   }
 

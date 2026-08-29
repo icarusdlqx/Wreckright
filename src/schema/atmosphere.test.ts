@@ -12,6 +12,7 @@ describe('AtmosphereSchema mechanics', () => {
       heatDissipationFactor: 1,
       wind: { x: 0, y: 0 },
     });
+    expect(atmosphere.night).toBe(false);
   });
 
   it('defaults individual mechanics without discarding authored values', () => {
@@ -59,5 +60,7 @@ describe('AtmosphereSchema mechanics', () => {
       heatDissipationFactor: 1,
       wind: { x: 0, y: 0 },
     });
+    expect(catalog.atmospheres.get('moonlit_night')?.night).toBe(true);
+    expect(catalog.atmospheres.get('ash_dusk')?.night).toBe(true);
   });
 });
