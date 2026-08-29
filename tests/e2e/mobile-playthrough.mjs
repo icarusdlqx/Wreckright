@@ -312,6 +312,15 @@ export async function runMobilePlaythrough({ browser, url, shots, check }) {
       !(await desktopPage.evaluate((query) => matchMedia(query).matches, COMPACT_QUERY)) &&
         (await desktopPage.locator('.mobile-topbar').count()) === 0,
     );
+    await desktopPage.evaluate(() => {
+      globalThis.__wreckright.useGame.getState().patch({ screen: 'mechbay' });
+    });
+    await desktopPage.waitForSelector('[data-testid="mechbay"]');
+    check(
+      '1024px fine-pointer location cards contain their fitted contents',
+      await desktopPage.locator('.bay-location').evaluateAll((cards) =>
+        cards.length === 8 && cards.every((card) => card.clientHeight + 1 >= card.scrollHeight)),
+    );
   } finally {
     await desktopContext.close();
   }

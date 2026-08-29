@@ -1,6 +1,7 @@
 import type { Design } from '../../schema/design';
 import type { Catalog } from '../../schema/load';
 import { designLabel } from '../designLabel';
+import { BuildCompare } from './BuildCompare';
 
 export interface BayStatus {
   tone: 'ok' | 'error';
@@ -121,6 +122,8 @@ export function BayChrome({
           {commissioned ? commissionCancelLabel ?? 'Back to manifest' : 'Back to skirmish'}
         </button>
       </header>
+
+      <BuildCompare catalog={catalog} design={design} />
 
       <footer className="bay-actions">
         <button
