@@ -26,17 +26,12 @@ import { observationDirective } from './observer';
 import { hasUsableFiringSolution } from '../weaponEngagement';
 import { holdingForRepair } from './support';
 import { assignIndirectTrackTarget } from './indirect';
+import { selectFireModesForRange } from './fireModes';
 
 export { lanceFocus } from './focus';
+export { difficultyTier } from './difficulty';
 
 const LEG_LOCATIONS = ['left_leg', 'right_leg'] as const;
-
-export function difficultyTier(world: World, tierId: string | null): DifficultyTier {
-  const rules = world.rules.difficulty;
-  const chosen = rules.tiers[tierId ?? rules.default] ?? rules.tiers[rules.default];
-  if (chosen === undefined) throw new Error(`difficulty tier "${rules.default}" is missing`);
-  return chosen;
-}
 
 function chooseCalledShot(world: World, mech: MechEntity, target: MechEntity, tier: DifficultyTier): void {
   if (!tier.calledShots) {
@@ -143,6 +138,7 @@ function holdAndShoot(
   }
 
   mech.targetId = chosen.target.id;
+  selectFireModesForRange(world, mech, chosen.range);
   const nearlyDead =
     structureFraction(chosen.target) <= world.rules.ai.heat.finisherOverrideFraction;
   applyHeatGovernor(world, mech, nearlyDead);
@@ -233,6 +229,7 @@ export function decideTactical(
 
   const previousTargetId = mech.targetId;
   mech.targetId = chosen.target.id;
+  selectFireModesForRange(world, mech, chosen.range);
 
   const nearlyDead =
     structureFraction(chosen.target) <= world.rules.ai.heat.finisherOverrideFraction;
