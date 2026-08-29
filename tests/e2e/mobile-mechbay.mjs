@@ -138,6 +138,17 @@ export async function runMobileMechbayJourney({
   if (touchTarget === null) throw new Error(`${prefix} left torso has no touch target`);
   const touchX = touchTarget.x + touchTarget.width / 2;
   const touchY = touchTarget.y + touchTarget.height / 2;
+  await leftTorso.evaluate((target) => {
+    target.dataset.testTouchGestureFinished = 'false';
+    const finish = (event) => {
+      if (event.pointerType !== 'touch') return;
+      target.dataset.testTouchGestureFinished = 'true';
+      target.removeEventListener('pointerup', finish);
+      target.removeEventListener('pointercancel', finish);
+    };
+    target.addEventListener('pointerup', finish);
+    target.addEventListener('pointercancel', finish);
+  });
   const cdp = await page.context().newCDPSession(page);
   try {
     await cdp.send('Input.dispatchTouchEvent', {
@@ -152,7 +163,16 @@ export async function runMobileMechbayJourney({
       type: 'touchEnd',
       touchPoints: [],
     });
+    await page.waitForFunction(
+      () => document.querySelector('[data-testid="armour-doll-left_torso"]')
+        ?.getAttribute('data-test-touch-gesture-finished') === 'true',
+      undefined,
+      { timeout: 2_000 },
+    );
   } finally {
+    await leftTorso.evaluate((target) => {
+      delete target.dataset.testTouchGestureFinished;
+    }).catch(() => undefined);
     await cdp.detach();
   }
   const touchValue = Number(await dollSlider.inputValue());
