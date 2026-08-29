@@ -136,6 +136,26 @@ function checkMaps(catalog: Catalog, push: Push): void {
   }
 }
 
+function checkAiFireModes(catalog: Catalog, push: Push): void {
+  for (const [weaponId, policy] of Object.entries(catalog.rules.ai.fireModes)) {
+    const weapon = catalog.weapons.get(weaponId);
+    if (weapon === undefined) {
+      push('rules/ai.json', `fireModes.${weaponId}`, `unknown weapon "${weaponId}"`);
+      continue;
+    }
+
+    const modeIds = new Set(weapon.modes.map((mode) => mode.id));
+    for (const [band, modeId] of Object.entries(policy)) {
+      if (modeIds.has(modeId)) continue;
+      push(
+        'rules/ai.json',
+        `fireModes.${weaponId}.${band}`,
+        `unknown mode "${modeId}" for weapon "${weaponId}"`,
+      );
+    }
+  }
+}
+
 function checkCampaigns(catalog: Catalog, push: Push): void {
   for (const campaign of catalog.campaigns.values()) {
     const file = `campaigns/${campaign.id}.json`;
@@ -171,5 +191,6 @@ export function checkIntegrity(catalog: Catalog, issues: ContentIssue[]): void {
   checkMaps(catalog, push);
   checkDesigns(catalog, push);
   checkMissions(catalog, push);
+  checkAiFireModes(catalog, push);
   checkCampaigns(catalog, push);
 }

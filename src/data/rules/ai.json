@@ -53,6 +53,13 @@
     "targetStructureFraction": 0.55,
     "chance": 0.45
   },
+  "fireModes": {
+    "lbx_ac10": {
+      "short": "cluster",
+      "medium": "slug",
+      "long": "slug"
+    }
+  },
   "support": {
     "minimumResourceReserve": 150,
     "cooldownSeconds": 12,

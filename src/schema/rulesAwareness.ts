@@ -46,6 +46,12 @@ const RoleProfileSchema = z.strictObject({
   observationFlankDegrees: z.number().min(0).max(180),
 });
 
+const FireModePolicySchema = z.strictObject({
+  short: IdSchema,
+  medium: IdSchema,
+  long: IdSchema,
+});
+
 export const AiRulesSchema = z.strictObject({
   id: z.literal('ai'),
   target: z.strictObject({
@@ -105,6 +111,7 @@ export const AiRulesSchema = z.strictObject({
     targetStructureFraction: Probability,
     chance: Probability,
   }),
+  fireModes: z.record(IdSchema, FireModePolicySchema),
   support: z.strictObject({
     minimumResourceReserve: z.number().int().nonnegative(),
     cooldownSeconds: z.number().positive().max(120),
