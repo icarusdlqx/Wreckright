@@ -58,13 +58,14 @@ interface Placement {
   tile: number;
   matrix: Matrix4;
   colour: Color;
+  burntMatrix: Matrix4 | null;
+  burntColour: Color | null;
 }
-
 interface Batch {
   mesh: InstancedMesh;
   placements: Placement[];
+  dirty: boolean;
 }
-
 const HIDDEN = new Matrix4().makeScale(0, 0, 0);
 
 /**
@@ -76,7 +77,6 @@ const HIDDEN = new Matrix4().makeScale(0, 0, 0);
  */
 export class PropLayer {
   readonly group = new Group();
-
   private readonly batches: Batch[] = [];
   private exploredCount = -1;
   /**
@@ -89,15 +89,18 @@ export class PropLayer {
   private revealed: Uint8Array | null = null;
   /** Instances on each tile, as [batch index, instance index] pairs. */
   private readonly tileInstances = new Map<number, [number, number][]>();
-
+  /** Burnt ground is remembered only after an optical look at the changed tile. */
+  private readonly observedBurnt: Uint8Array;
+  private observedBurntCount = 0;
   constructor(
-    grid: TerrainGrid,
+    private readonly grid: TerrainGrid,
     data: TerrainMapData,
     heightAt: (x: number, y: number) => number,
     /** The same tint the ground took, so the scenery matches the ground it is on. */
     tint: { colour: Color; strength: number } | null = null,
   ) {
     this.group.name = 'props';
+    this.observedBurnt = new Uint8Array(grid.width * grid.height);
     const size = grid.tileSize;
     const theme = data.propTheme ?? 'alpine';
     const pending: Record<PropKind, Placement[]> = {
@@ -128,18 +131,32 @@ export class PropLayer {
       colour: number,
       spin: number,
       tilt = 0,
+      charredNoise: number | null = null,
     ): void => {
       position.set(x, heightAt(x, y) - 0.4, y);
       rotation.setFromAxisAngle(up, spin * Math.PI * 2);
       if (tilt !== 0) rotation.multiply(new Quaternion().setFromAxisAngle(lean, tilt));
       scale.set(sx, sy, sz);
+      const matrix = new Matrix4().compose(position, rotation, scale);
+      let burntMatrix: Matrix4 | null = null;
+      let burntColour: Color | null = null;
+      if (charredNoise !== null) {
+        if (charredNoise < 0.4) burntMatrix = HIDDEN;
+        else {
+          scale.set(sx * 0.38, sy * (0.42 + charredNoise * 0.22), sz * 0.38);
+          burntMatrix = new Matrix4().compose(position, rotation, scale);
+        }
+        burntColour = new Color(0x292721);
+      }
       pending[kind].push({
         tile,
-        matrix: new Matrix4().compose(position, rotation, scale),
+        matrix,
         colour:
           tint === null
             ? new Color(colour)
             : new Color(colour).lerp(tint.colour, tint.strength),
+        burntMatrix,
+        burntColour,
       });
     };
 
@@ -166,6 +183,7 @@ export class PropLayer {
               dead ? radius * 0.46 : radius,
               tone, h(29 + i),
               theme === 'causeway' ? (h(109 + i * 7) - 0.5) * 0.12 : 0,
+              h(211 + i * 7),
             );
           }
         } else if (id === 'rough') {
@@ -257,6 +275,7 @@ export class PropLayer {
         mesh.setMatrixAt(i, entry.matrix);
         mesh.setColorAt(i, entry.colour);
       }
+      mesh.instanceColor?.setUsage(DynamicDrawUsage);
       mesh.castShadow = kind !== 'snag' && kind !== 'causeway';
       mesh.receiveShadow = kind === 'block' || kind === 'wreckage';
       // The base geometry's bounding sphere says nothing about where the
@@ -276,7 +295,7 @@ export class PropLayer {
         else on.push([batchIndex, i]);
       }
 
-      this.batches.push({ mesh, placements });
+      this.batches.push({ mesh, placements, dirty: false });
       this.group.add(mesh);
     }
   }
@@ -284,7 +303,8 @@ export class PropLayer {
   /** Hides props on unexplored tiles; exploration only ever grows, so this is
    *  a cheap count-compare almost every frame and a per-tile touch-up when it
    *  changes — never a rewrite of the whole map's scenery. */
-  update(vision: TeamVision | null): void {
+  update(vision: TeamVision | null, terrain: TerrainGrid = this.grid): void {
+    this.observeBurnt(vision, terrain);
     let count = Number.MAX_SAFE_INTEGER;
     if (vision !== null) {
       count = 0;
@@ -301,7 +321,10 @@ export class PropLayer {
           const entry = batch.placements[i];
           if (entry === undefined) continue;
           const shown = vision === null || vision.explored[entry.tile] === 1;
-          batch.mesh.setMatrixAt(i, shown ? entry.matrix : HIDDEN);
+          const presented = this.observedBurnt[entry.tile] === 1 && entry.burntMatrix !== null
+            ? entry.burntMatrix
+            : entry.matrix;
+          batch.mesh.setMatrixAt(i, shown ? presented : HIDDEN);
         }
         batch.mesh.instanceMatrix.needsUpdate = true;
       }
@@ -322,10 +345,45 @@ export class PropLayer {
         const batch = this.batches[batchIndex];
         const entry = batch?.placements[instanceIndex];
         if (batch === undefined || entry === undefined) continue;
-        batch.mesh.setMatrixAt(instanceIndex, entry.matrix);
+        const presented = this.observedBurnt[tile] === 1 && entry.burntMatrix !== null
+          ? entry.burntMatrix
+          : entry.matrix;
+        batch.mesh.setMatrixAt(instanceIndex, presented);
         batch.mesh.instanceMatrix.addUpdateRange(instanceIndex * 16, 16);
         batch.mesh.instanceMatrix.needsUpdate = true;
       }
+    }
+  }
+
+  stats(): { observedBurnt: number } { return { observedBurnt: this.observedBurntCount }; }
+
+  private observeBurnt(vision: TeamVision | null, terrain: TerrainGrid): void {
+    for (let tile = 0; tile < this.observedBurnt.length; tile += 1) {
+      if (this.observedBurnt[tile] === 1) continue;
+      if (vision !== null && vision.tiles[tile] !== 1) continue;
+      const column = tile % terrain.width;
+      const row = Math.floor(tile / terrain.width);
+      if (terrain.idAt(column, row) !== 'burnt_forest') continue;
+      this.observedBurnt[tile] = 1;
+      this.observedBurntCount += 1;
+      for (const [batchIndex, instanceIndex] of this.tileInstances.get(tile) ?? []) {
+        const batch = this.batches[batchIndex];
+        const entry = batch?.placements[instanceIndex];
+        if (batch === undefined || entry === undefined || entry.burntMatrix === null) continue;
+        batch.mesh.setMatrixAt(instanceIndex, entry.burntMatrix);
+        if (entry.burntColour !== null) batch.mesh.setColorAt(instanceIndex, entry.burntColour);
+        batch.mesh.instanceMatrix.addUpdateRange(instanceIndex * 16, 16);
+        if (batch.mesh.instanceColor !== null) {
+          batch.mesh.instanceColor.addUpdateRange(instanceIndex * 3, 3);
+        }
+        batch.dirty = true;
+      }
+    }
+    for (const batch of this.batches) {
+      if (!batch.dirty) continue;
+      batch.dirty = false;
+      batch.mesh.instanceMatrix.needsUpdate = true;
+      if (batch.mesh.instanceColor !== null) batch.mesh.instanceColor.needsUpdate = true;
     }
   }
 
@@ -335,5 +393,7 @@ export class PropLayer {
     this.batches.length = 0;
     this.tileInstances.clear();
     this.revealed = null;
+    this.observedBurnt.fill(0);
+    this.observedBurntCount = 0;
   }
 }

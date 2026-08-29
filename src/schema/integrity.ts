@@ -156,6 +156,32 @@ function checkAiFireModes(catalog: Catalog, push: Push): void {
   }
 }
 
+function checkTerrainFire(catalog: Catalog, push: Push): void {
+  const { burnsTo } = catalog.rules.terrain.fire;
+  for (const [sourceId, destinationId] of Object.entries(burnsTo)) {
+    if (catalog.rules.terrain.types[sourceId] === undefined) {
+      push('rules/terrain.json', `fire.burnsTo.${sourceId}`, `unknown terrain type "${sourceId}"`);
+    }
+    if (catalog.rules.terrain.types[destinationId] === undefined) {
+      push(
+        'rules/terrain.json',
+        `fire.burnsTo.${sourceId}`,
+        `unknown terrain type "${destinationId}"`,
+      );
+    }
+    if (sourceId === destinationId) {
+      push('rules/terrain.json', `fire.burnsTo.${sourceId}`, 'burn must change terrain type');
+    }
+    if (burnsTo[destinationId] !== undefined) {
+      push(
+        'rules/terrain.json',
+        `fire.burnsTo.${sourceId}`,
+        `burn destination "${destinationId}" must not be burnable`,
+      );
+    }
+  }
+}
+
 function checkCampaigns(catalog: Catalog, push: Push): void {
   for (const campaign of catalog.campaigns.values()) {
     const file = `campaigns/${campaign.id}.json`;
@@ -192,5 +218,6 @@ export function checkIntegrity(catalog: Catalog, issues: ContentIssue[]): void {
   checkDesigns(catalog, push);
   checkMissions(catalog, push);
   checkAiFireModes(catalog, push);
+  checkTerrainFire(catalog, push);
   checkCampaigns(catalog, push);
 }

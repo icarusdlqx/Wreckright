@@ -37,6 +37,15 @@
       "visionFactor": 0.65,
       "passable": true
     },
+    "burnt_forest": {
+      "moveMultiplier": 0.6,
+      "coverFactor": 0.95,
+      "losObstruction": 0.05,
+      "heatDissipationMultiplier": 1,
+      "signatureFactor": 0.9,
+      "visionFactor": 0.9,
+      "passable": true
+    },
     "water": {
       "moveMultiplier": 0.5,
       "coverFactor": 1,
@@ -64,5 +73,21 @@
       "visionFactor": 1,
       "passable": false
     }
+  },
+  "fire": {
+    "burnsTo": {
+      "forest": "burnt_forest"
+    },
+    "burnSeconds": 15,
+    "heatPerSecond": 4,
+    "spreadIntervalSeconds": 1,
+    "baseSpreadChance": 0.03,
+    "windSpreadChance": 0.08,
+    "ignitionChance": {
+      "incendiaryHit": 0.75,
+      "ammoExplosion": 1,
+      "artilleryImpact": 0.35
+    },
+    "maxBurningTiles": 128
   }
 }

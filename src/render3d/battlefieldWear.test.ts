@@ -74,17 +74,18 @@ describe('battlefield memory events', () => {
     active.destroy();
   });
 
-  it('routes player artillery with its authored shot count and scatter', () => {
+  it('routes a player artillery impact at its exact simulation point', () => {
     const artillery = vi.spyOn(BattlefieldWear.prototype, 'artillery');
     const world = playerWorld('player-artillery-craters');
     const team = world.playerTeam;
     if (team === null) throw new Error('player world has no team');
-    const active = feedback(new Scene());
+    const scene = new Scene();
+    const active = feedback(scene);
     const event: SimEvent = {
-      type: 'support_resolved',
+      type: 'ground_impact',
       tick: 81,
       team,
-      call: 'artillery_strike',
+      kind: 'artillery',
       x: 410,
       y: 260,
     };
@@ -93,21 +94,11 @@ describe('battlefield memory events', () => {
 
     expect(artillery).toHaveBeenCalledTimes(1);
     const call = artillery.mock.calls[0];
-    expect(call === undefined ? null : [
-      call[0].x,
-      call[0].y,
-      call[1],
-      call[2],
-      call[3],
-      call[4],
-    ]).toEqual([
-      410,
-      260,
-      81,
-      team,
-      world.rules.support.artillery_strike.shots,
-      world.rules.support.artillery_strike.scatter,
-    ]);
+    expect(call === undefined ? null : [call[0].x, call[0].y]).toEqual([410, 260]);
+    const scars = scene.getObjectByName('scars') as InstancedMesh | undefined;
+    const crater = scars === undefined ? undefined : placements(scars)[0];
+    expect(crater?.[0]).toBeCloseTo(410);
+    expect(crater?.[2]).toBeCloseTo(260);
     active.destroy();
   });
 
@@ -133,8 +124,8 @@ describe('battlefield memory events', () => {
         location: 'left_torso', damage: 30,
       },
       {
-        type: 'support_resolved', tick: 5, team: hidden.team,
-        call: 'artillery_strike', x: impact.x, y: impact.y,
+        type: 'ground_impact', tick: 5, team: hidden.team,
+        kind: 'artillery', x: impact.x, y: impact.y,
       },
     ];
 
@@ -144,8 +135,8 @@ describe('battlefield memory events', () => {
 
     vision.tiles[cell] = 1;
     active.consume(world, [{
-      type: 'support_resolved', tick: 6, team: hidden.team,
-      call: 'artillery_strike', x: impact.x, y: impact.y,
+      type: 'ground_impact', tick: 6, team: hidden.team,
+      kind: 'artillery', x: impact.x, y: impact.y,
     }]);
     expect(artillery).toHaveBeenCalledTimes(1);
 
@@ -164,33 +155,29 @@ describe('battlefield memory events', () => {
 });
 
 describe('battlefield memory pools', () => {
-  it('lays the same bounded artillery cluster for the same resolved event', () => {
+  it('lays each crater at the simulation-provided artillery point', () => {
     const heightAt = (x: number, y: number) => (x - y) / 500;
     const first = new BattlefieldWear(new Color(0x101820), heightAt);
     const second = new BattlefieldWear(new Color(0x101820), heightAt);
-    const shifted = new BattlefieldWear(new Color(0x101820), heightAt);
-    const centre = { x: 410, y: 260 };
-    const otherCentre = { x: 450, y: 260 };
-
-    first.artillery(centre, 81, 0, 5, 34);
-    second.artillery(centre, 81, 0, 5, 34);
-    shifted.artillery(otherCentre, 81, 0, 5, 34);
+    const impacts = [
+      { x: 410, y: 260 },
+      { x: 427.5, y: 243.25 },
+      { x: 391.75, y: 271.5 },
+    ];
+    for (const impact of impacts) {
+      first.artillery(impact);
+      second.artillery(impact);
+    }
 
     const firstCluster = placements(first.scars.mesh);
     const secondCluster = placements(second.scars.mesh);
     expect(firstCluster).toEqual(secondCluster);
-    expect(firstCluster).toHaveLength(5);
-    expect(new Set(firstCluster.map(([x, , z]) => `${x}:${z}`)).size).toBeGreaterThan(1);
-    for (const [x = Number.NaN, , z = Number.NaN] of firstCluster) {
-      expect(Math.hypot(x - centre.x, z - centre.y)).toBeLessThanOrEqual(34.001);
-    }
-    const offsets = firstCluster.map(([x = 0, , z = 0]) => [x - centre.x, z - centre.y]);
-    const shiftedOffsets = placements(shifted.scars.mesh)
-      .map(([x = 0, , z = 0]) => [x - otherCentre.x, z - otherCentre.y]);
-    expect(shiftedOffsets).not.toEqual(offsets);
+    expect(firstCluster).toHaveLength(impacts.length);
+    expect(firstCluster.map(([x, , z]) => [x, z])).toEqual(
+      impacts.map((impact) => [impact.x, impact.y]),
+    );
     first.dispose();
     second.dispose();
-    shifted.dispose();
   });
 
   it('keeps scene, meshes and instance attributes fixed under event churn', () => {
@@ -237,8 +224,8 @@ describe('battlefield memory pools', () => {
           location: 'centre_torso', damage: 25,
         },
         {
-          type: 'support_resolved', tick: index, team,
-          call: 'artillery_strike', x: 300 + index, y: 400 - index,
+          type: 'ground_impact', tick: index, team,
+          kind: 'artillery', x: 300 + index, y: 400 - index,
         },
       );
     }
@@ -275,13 +262,13 @@ describe('battlefield memory pools', () => {
     wear.scars.mesh.geometry.addEventListener('dispose', scarDispose);
     wear.wreck(1, { x: 10, y: 20 }, 4);
     wear.ammo({ x: 30, y: 40 }, 25);
-    wear.artillery({ x: 50, y: 60 }, 8, 0, 5, 34);
+    wear.artillery({ x: 50, y: 60 });
 
     wear.dispose();
     wear.dispose();
     wear.wreck(2, { x: 70, y: 80 }, 4);
     wear.ammo({ x: 90, y: 100 }, 25);
-    wear.artillery({ x: 110, y: 120 }, 9, 0, 5, 34);
+    wear.artillery({ x: 110, y: 120 });
     wear.update(60);
 
     expect(smokeDispose).toHaveBeenCalledTimes(1);

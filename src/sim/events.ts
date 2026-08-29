@@ -97,6 +97,16 @@ export type SimEvent =
       /** Contacts found by a sensor sweep; absent for calls that do not scan. */
       contactCount?: number;
     }
+  | { type: 'terrain_ignited'; tick: number; cell: number }
+  | { type: 'terrain_burned'; tick: number; cell: number }
+  | {
+      type: 'ground_impact';
+      tick: number;
+      kind: 'artillery';
+      team: number;
+      x: number;
+      y: number;
+    }
   | {
       type: 'mission_ended';
       tick: number;

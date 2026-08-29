@@ -32,6 +32,7 @@ import {
 import { buildTerrain, type TerrainMesh } from './terrain';
 import { UnitViews } from './unitViews';
 import { SupportEffects } from './supportEffects';
+import { TerrainFireLayer, type TerrainFireStats } from './terrainFire';
 import { canPresentEntity } from './visibilityPresentation';
 import { routeVisibleLegLoss } from './legLossEventPresentation';
 
@@ -58,6 +59,7 @@ export class Renderer {
   private readonly renderer: WebGLRenderer;
   private readonly terrain: TerrainMesh;
   private readonly props: PropLayer;
+  private readonly terrainFire: TerrainFireLayer;
   private readonly fog: FogLayer;
   private readonly units: UnitViews;
   private readonly effects: BattleEffects;
@@ -107,6 +109,11 @@ export class Renderer {
     this.scene.add(this.terrain.mesh);
     this.props = new PropLayer(world.terrain, mapData, this.terrain.heightAt, rig.tint);
     this.scene.add(this.props.group);
+    this.terrainFire = new TerrainFireLayer(
+      world.terrain, mapData, this.terrain.heightAt, this.camera.reducedMotion,
+    );
+    this.terrainFire.setPresentationMode(this.lowFx, this.camera.reducedMotion);
+    this.scene.add(this.terrainFire.group);
 
     const surround = new Mesh(
       new PlaneGeometry(mapWidth * 9, mapHeight * 9),
@@ -144,7 +151,7 @@ export class Renderer {
     this.scene.add(this.supportEffects.group);
     this.locomotion = new Locomotion(
       this.terrain.heightAt,
-      (at) => this.terrainAt(at),
+      (at) => world.terrain.idAtPoint(at),
       this.effects,
       this.camera.reducedMotion,
     );
@@ -180,6 +187,10 @@ export class Renderer {
     return rendererStats(this.renderer.info);
   }
 
+  get firePresentationStats(): TerrainFireStats {
+    return this.terrainFire.stats();
+  }
+
   get viewport(): Viewport {
     return { width: this.host.clientWidth || 1, height: this.host.clientHeight || 1 };
   }
@@ -206,6 +217,7 @@ export class Renderer {
     configureRenderer(this.renderer, low, globalThis.devicePixelRatio ?? 1);
     this.effects.setPresentationMode(low);
     this.supportEffects.setPresentationMode(low);
+    this.terrainFire.setPresentationMode(low, this.camera.reducedMotion);
     this.resize();
     this.scene.traverse((node) => {
       const mesh = node as Mesh;
@@ -237,9 +249,13 @@ export class Renderer {
     this.renderer.domElement.removeEventListener('webglcontextlost', this.handleContextLost);
     this.effects.destroy();
     this.supportEffects.dispose();
+    this.terrainFire.dispose();
     this.units.dispose();
     this.markers.dispose();
-    this.scene.remove(this.markers.group, this.supportEffects.group, this.fog.mesh, this.props.group);
+    this.scene.remove(
+      this.markers.group, this.supportEffects.group, this.terrainFire.group,
+      this.fog.mesh, this.props.group,
+    );
     this.fog.dispose();
     this.props.dispose();
     disposeObjectResources(this.scene);
@@ -317,11 +333,12 @@ export class Renderer {
 
     this.effects.finishFrame(presentationDelta);
     this.supportEffects.draw(world, presentationDelta);
+    this.terrainFire.draw(world, presentationDelta);
     this.markers.draw(world, view);
     if (world.tick !== this.visionTick) {
       this.visionTick = world.tick;
       this.fog.update(world.terrain, world.vision);
-      this.props.update(world.vision);
+      this.props.update(world.vision, world.terrain);
     }
 
     this.camera.advance(deltaSeconds);
@@ -362,9 +379,4 @@ export class Renderer {
     return teamColour(team);
   }
 
-  private terrainAt(at: Vec2): string {
-    const column = Math.max(0, Math.min(this.mapData.width - 1, Math.floor(at.x / this.mapData.tileSize)));
-    const row = Math.max(0, Math.min(this.mapData.height - 1, Math.floor(at.y / this.mapData.tileSize)));
-    return this.mapData.legend[this.mapData.tiles[row]?.[column] ?? ''] ?? 'open';
-  }
 }

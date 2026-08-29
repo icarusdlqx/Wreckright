@@ -7,6 +7,7 @@ import type { Mission } from '../schema/mission';
 import type { Frame, Rules } from '../schema/rules';
 import type { SupportDoctrineState } from './ai/support';
 import type { SimEvent } from './events';
+import type { FireState } from './fire';
 import type { ObjectiveState } from './objectives';
 import type { OrderState } from './orders';
 import type { Rng } from './rng';
@@ -305,6 +306,7 @@ export interface World {
   mission: Mission;
   entities: MechEntity[];
   projectiles: Projectile[];
+  fire: FireState;
   events: SimEvent[];
   /** Fire arriving from above — artillery, air strikes, mines — has no arc. */
   hitLocationTable: readonly { value: MechLocation; weight: number }[];

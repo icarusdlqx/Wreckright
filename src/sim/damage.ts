@@ -2,6 +2,7 @@ import { abilityFactor } from './abilities';
 import type { MechLocation } from '../schema/common';
 import type { ArmourFace } from './arcs';
 import { emit } from './events';
+import { queueIgnition } from './fire';
 import { replacePath } from './pathProgress';
 import { addStabilityImpulse } from './stability';
 import type { AmmoBin, KillMethod, MechEntity, World } from './types';
@@ -36,6 +37,7 @@ export function detonateAmmoBin(world: World, entity: MechEntity, bin: AmmoBin):
     location: bin.location,
     damage,
   });
+  queueIgnition(world, entity.pos, 'ammo_explosion');
 
   const core = entity.locations.centre_torso;
   if (core.destroyed) return;
