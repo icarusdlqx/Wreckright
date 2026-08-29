@@ -3,7 +3,6 @@ import type { Chassis } from '../../schema/chassis';
 import type { MechLocation } from '../../schema/common';
 import type { Design } from '../../schema/design';
 import type { Catalog } from '../../schema/load';
-import type { Weapon } from '../../schema/weapon';
 import {
   ammoShelfWeapons,
   remainingInventory,
@@ -11,6 +10,7 @@ import {
 } from './bayFit';
 import { Dossier, type Inspected, type InspectorFit } from './Dossier';
 import type { DropPayload } from './LocationCard';
+import { mountedWeaponProfiles as resolveMountedWeaponProfiles } from './rangeDamageChartModel';
 import { shelfFit } from './shelfFit';
 import { ShelfToolbar } from './ShelfToolbar';
 import {
@@ -142,12 +142,13 @@ export function StoreShelf({
   }, [chassis.id]);
 
   const remaining = useMemo(() => remainingInventory(inventory, design), [inventory, design]);
-  const mountedWeapons = useMemo(
-    () =>
-      design.mounts
-        .map((mount) => catalog.weapons.get(mount.weaponId))
-        .filter((weapon): weapon is Weapon => weapon !== undefined),
+  const mountedWeaponProfiles = useMemo(
+    () => resolveMountedWeaponProfiles(catalog, design.mounts),
     [catalog, design],
+  );
+  const mountedWeapons = useMemo(
+    () => mountedWeaponProfiles.map(({ weapon }) => weapon),
+    [mountedWeaponProfiles],
   );
   const mountedWeaponIds = useMemo(
     () => new Set(mountedWeapons.map((weapon) => weapon.id)),
@@ -275,6 +276,7 @@ export function StoreShelf({
         inspected={inspector}
         heatSinkId={design.heatSinkId}
         mountedWeapons={mountedWeapons}
+        mountedWeaponProfiles={mountedWeaponProfiles}
         chassisFaction={chassis.faction}
         fit={inspectorFit}
       />

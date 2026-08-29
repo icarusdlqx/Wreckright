@@ -41,6 +41,8 @@ describe('mechbay catalog inspector', () => {
     expect(html.match(/role="meter"/g)).toHaveLength(3);
     expect(html).toContain('aria-label="Damage"');
     expect(html).toContain('aria-valuetext="5.63 damage per second"');
+    expect(html).toContain('data-testid="range-damage-chart"');
+    expect(html).toContain('Longshot 10 expected damage by range, 0 to 600 metres');
     expect(html).toContain('weapon-range-strip');
     expect(html).toContain('Foreign pattern — origin only');
     expect(html).toContain('Right Torso has no free missile hardpoint.');
@@ -55,6 +57,7 @@ describe('mechbay catalog inspector', () => {
     expect(html).toContain('one ton lasts about 48s at full cycle');
     expect(html).not.toContain('5 tons');
     expect(html).not.toContain('role="meter"');
+    expect(html).not.toContain('range-damage-chart');
   });
 
   it('includes fire mode comparisons only for modal weapons', () => {
@@ -63,7 +66,7 @@ describe('mechbay catalog inspector', () => {
 
     expect(modal).toContain('Fire modes');
     expect(modal).toContain('Canister Cannon firing profiles');
-    expect(modal).not.toContain('Current');
+    expect(modal).not.toContain('<small>Current</small>');
     expect(fixed).not.toContain('Fire modes');
   });
 });

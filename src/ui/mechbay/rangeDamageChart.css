@@ -1,0 +1,137 @@
+.range-damage-chart {
+  display: grid;
+  gap: 4px;
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+  max-width: 340px;
+  margin: 7px 0;
+  padding: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(140, 224, 255, 0.16);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.range-damage-chart__caption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  color: var(--text);
+  font-size: 9px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.range-damage-chart__caption span {
+  color: var(--muted);
+  font-size: 7px;
+}
+
+.range-damage-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: hidden;
+}
+
+.range-damage-chart__frame {
+  fill: rgba(255, 255, 255, 0.025);
+  stroke: rgba(255, 255, 255, 0.09);
+}
+
+.range-damage-chart__grid,
+.range-damage-chart__breakpoint {
+  stroke: rgba(255, 255, 255, 0.08);
+}
+
+.range-damage-chart__breakpoint {
+  stroke-dasharray: 2 2;
+}
+
+.range-damage-chart__weapon-area {
+  opacity: 0.3;
+}
+
+.range-damage-chart__weapon-line {
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linejoin: bevel;
+}
+
+.range-damage-chart__loadout-area {
+  opacity: 0.55;
+}
+
+.range-damage-chart__loadout-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.3;
+  stroke-linejoin: bevel;
+}
+
+.range-damage-chart__minimum-zone {
+  opacity: 0.52;
+}
+
+.range-damage-chart pattern path {
+  stroke: var(--warn);
+  stroke-width: 0.75;
+}
+
+.range-damage-chart__minimum-boundary {
+  stroke: var(--warn);
+  stroke-width: 1;
+}
+
+.range-damage-chart__axis,
+.range-damage-chart__row-label,
+.range-damage-chart__peak,
+.range-damage-chart__minimum-label {
+  fill: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 6px;
+  letter-spacing: 0.04em;
+}
+
+.range-damage-chart__axis {
+  font-size: 6.5px;
+}
+
+.range-damage-chart__peak {
+  text-anchor: end;
+}
+
+.range-damage-chart__minimum-label {
+  fill: var(--warn);
+  font-size: 5.5px;
+}
+
+@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+  .range-damage-chart {
+    gap: 6px;
+    padding: 7px;
+  }
+
+  .range-damage-chart__caption {
+    font-size: 10px;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1180px) {
+  .range-damage-chart {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3px 6px;
+    max-width: 640px;
+    padding: 4px;
+  }
+
+  .range-damage-chart__caption {
+    grid-column: 1 / -1;
+  }
+
+  .range-damage-chart svg {
+    width: 100%;
+    height: 64px;
+  }
+}
