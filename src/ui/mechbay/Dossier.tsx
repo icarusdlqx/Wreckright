@@ -8,7 +8,9 @@ import {
   machineCulturePresentation,
 } from './machineCulturePresentation';
 import { FireModeComparison } from './FireModeComparison';
+import { RangeDamageChart } from './RangeDamageChart';
 import { RangeBandStrip } from './RangeBandStrip';
+import type { MountedWeaponProfile } from './rangeDamageChartModel';
 import { WeaponGlyph } from './WeaponGlyph';
 import { WeaponMeters } from './WeaponMeters';
 import {
@@ -82,6 +84,7 @@ export function Dossier({
   inspected,
   heatSinkId,
   mountedWeapons = [],
+  mountedWeaponProfiles = mountedWeapons.map((weapon) => ({ weapon, modeId: null })),
   chassisFaction,
   fit = null,
 }: {
@@ -89,6 +92,7 @@ export function Dossier({
   inspected: Inspected | null;
   heatSinkId: string;
   mountedWeapons?: readonly Weapon[];
+  mountedWeaponProfiles?: readonly MountedWeaponProfile[];
   chassisFaction?: Faction;
   fit?: InspectorFit | null;
 }) {
@@ -225,6 +229,11 @@ export function Dossier({
         </div>
       </dl>
 
+      <RangeDamageChart
+        catalog={catalog}
+        weapon={weapon}
+        mountedWeapons={mountedWeaponProfiles}
+      />
       <FireModeComparison weapon={weapon} />
       <RangeBandStrip catalog={catalog} weapon={weapon} mountedWeapons={mountedWeapons} />
       {traits.length === 0 ? null : (
