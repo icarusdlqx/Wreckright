@@ -3,6 +3,7 @@ import {
   verifyArmedIncompatibleRemovalFocus,
   verifyOutfitDialogRerender,
 } from './mechbay-accessibility.mjs';
+import { verifyArmourPaperDoll } from './mechbay-armour-paper-doll.mjs';
 
 async function selectWorkspace(page, tab) {
   await page.locator(`[data-workspace-tab="${tab}"]`).click();
@@ -129,6 +130,7 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
       (await page.locator('[data-testid="cooling-dissipation"]').innerText()).includes('/s') &&
       (await page.locator('[data-testid="torso-rear-total"]').innerText()).includes('points'),
   );
+  await verifyArmourPaperDoll({ page, check, shots });
   await selectWorkspace(page, 'loadout');
 
   const firstWeaponRow = page.locator('[data-testid^="stock-weapon-"]').first();
