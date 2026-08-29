@@ -279,6 +279,14 @@
   line-height: 1.45;
 }
 
+@media (min-width: 761px) and (max-width: 1180px) {
+  /* Keep the two-up range chart reachable when the workspace's comparison
+     strip leaves the catalog dossier in the compact tablet grid row. */
+  .bay-catalog-inspector {
+    min-height: 100px;
+  }
+}
+
 @media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
   .bay-side.bay-catalog {
     display: flex;
