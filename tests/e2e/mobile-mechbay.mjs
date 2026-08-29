@@ -17,6 +17,15 @@ async function renderedTextIncludes(locator, expected) {
   return (await locator.innerText()).toLowerCase().includes(expected.toLowerCase());
 }
 
+async function comparisonDirections(page) {
+  return Object.fromEntries(await page
+    .locator('[data-testid^="build-compare-"][data-direction]')
+    .evaluateAll((metrics) => metrics.map((metric) => [
+      metric.getAttribute('data-testid')?.replace('build-compare-', '') ?? '',
+      metric.getAttribute('data-direction') ?? '',
+    ])));
+}
+
 async function selectWorkspace(page, tab) {
   const button = page.locator(`[data-workspace-tab="${tab}"]`);
   await button.scrollIntoViewIfNeeded();
@@ -60,6 +69,24 @@ export async function runMobileMechbayJourney({
       !(await page.locator('[data-workspace-panel="armour"]').isVisible()) &&
       !(await page.locator('[data-workspace-panel="review"]').isVisible()),
   );
+  const comparison = await overflowOf(page, '[data-testid="build-compare"]');
+  const comparisonStart = await comparisonDirections(page);
+  check(
+    `${prefix} stock comparison is ordered before the workspace without overflow`,
+    comparison.scrollWidth <= comparison.clientWidth + 1 &&
+      Object.keys(comparisonStart).length === 7 &&
+      Object.values(comparisonStart).every((direction) => direction === 'neutral') &&
+      await page.locator('[data-testid="build-compare"]').evaluate((strip) => {
+        const tabs = document.querySelector('[data-testid="bay-workspace-tabs"]');
+        const panel = document.querySelector('[data-workspace-panel="loadout"]');
+        return tabs !== null && panel !== null &&
+          tabs.getBoundingClientRect().top < strip.getBoundingClientRect().top &&
+          strip.getBoundingClientRect().top < panel.getBoundingClientRect().top;
+      }),
+    `${comparison.scrollWidth}/${comparison.clientWidth} ${JSON.stringify(comparisonStart)}`,
+  );
+  await page.locator('[data-testid="build-compare"]').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: `${shots}/14-mobile-${shotLabel}-build-compare.png` });
   const panelOrder = await page.evaluate(() => ({
     hardpoints: document.querySelector('.bay-grid')?.getBoundingClientRect().top ?? Infinity,
     shelf: document.querySelector('.bay-side')?.getBoundingClientRect().top ?? -Infinity,
@@ -212,6 +239,18 @@ export async function runMobileMechbayJourney({
     beforeFit !== afterFit && (await page.locator('[data-testid="bay-armed"]').count()) === 0,
     `${beforeFit} → ${afterFit}`,
   );
+  const comparisonAfterFit = await comparisonDirections(page);
+  check(
+    `${prefix} comparison updates live after the fitted weapon`,
+    comparisonAfterFit.speed === 'neutral' &&
+      comparisonAfterFit.armour === 'neutral' &&
+      comparisonAfterFit.heat_margin === 'bad' &&
+      comparisonAfterFit.alpha_damage === 'good' &&
+      comparisonAfterFit.dps_short === 'good' &&
+      comparisonAfterFit.dps_medium === 'good' &&
+      comparisonAfterFit.dps_long === 'good',
+    JSON.stringify(comparisonAfterFit),
+  );
 
   const inspect = page.locator(
     '[data-testid="bay-location-right_torso"] [data-testid^="inspect-weapon-"]',
@@ -231,9 +270,13 @@ export async function runMobileMechbayJourney({
       await renderedTextIncludes(page.locator('#bay-shelf-inspector'), 'Medium Laser'),
   );
   await remove.tap();
+  const comparisonAfterRemove = await comparisonDirections(page);
   check(
     `${prefix} explicit Remove restores the starting loadout`,
-    (await page.locator('[data-testid="free-tonnage"]').innerText()) === beforeFit,
+    (await page.locator('[data-testid="free-tonnage"]').innerText()) === beforeFit &&
+      Object.keys(comparisonAfterRemove).length === 7 &&
+      Object.values(comparisonAfterRemove).every((direction) => direction === 'neutral'),
+    JSON.stringify(comparisonAfterRemove),
   );
 
   await page.locator('[data-testid="bay-save"]').scrollIntoViewIfNeeded();

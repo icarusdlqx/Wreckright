@@ -21,6 +21,15 @@ async function renderedTextIncludes(locator, expected) {
   return (await locator.innerText()).toLowerCase().includes(expected.toLowerCase());
 }
 
+async function comparisonDirections(page) {
+  return Object.fromEntries(await page
+    .locator('[data-testid^="build-compare-"][data-direction]')
+    .evaluateAll((metrics) => metrics.map((metric) => [
+      metric.getAttribute('data-testid')?.replace('build-compare-', '') ?? '',
+      metric.getAttribute('data-direction') ?? '',
+    ])));
+}
+
 async function verifySavedLoadoutJourney({ page, check }) {
   await selectWorkspace(page, 'loadout');
   const picker = page.locator('[data-testid="design-picker"]');
@@ -120,6 +129,14 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
     (await page.locator('[data-testid="bay-status"]').innerText()).includes('legal') &&
       !(await page.locator('[data-testid="bay-save"]').isDisabled()),
   );
+  const startingComparison = await comparisonDirections(page);
+  check(
+    'the stock comparison starts with seven neutral metrics',
+    Object.keys(startingComparison).length === 7 &&
+      Object.values(startingComparison).every((direction) => direction === 'neutral') &&
+      await renderedTextIncludes(page.locator('[data-testid="build-compare-baseline"]'), 'Sentinel'),
+    JSON.stringify(startingComparison),
+  );
 
   await selectWorkspace(page, 'armour');
   check(
@@ -128,7 +145,8 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
       await page.locator('[data-testid="armour-workbench"]').isVisible() &&
       (await page.locator('[data-testid="cooling-weapon-heat"]').innerText()).includes('/s') &&
       (await page.locator('[data-testid="cooling-dissipation"]').innerText()).includes('/s') &&
-      (await page.locator('[data-testid="torso-rear-total"]').innerText()).includes('points'),
+      (await page.locator('[data-testid="torso-rear-total"]').innerText()).includes('points') &&
+      await page.locator('[data-testid="build-compare"]').isVisible(),
   );
   await verifyArmourPaperDoll({ page, check, shots });
   await selectWorkspace(page, 'loadout');
@@ -199,6 +217,19 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
   await page.keyboard.press('Enter');
   const afterFit = await freeTonnage(page);
   check('keyboard pick-to-hardpoint mounts the weapon', afterFit < startingFree, `${startingFree}t → ${afterFit}t`);
+  const fittedComparison = await comparisonDirections(page);
+  check(
+    'the comparison exposes the fitted weapon trade across heat, alpha, and all range bands',
+    fittedComparison.speed === 'neutral' &&
+      fittedComparison.armour === 'neutral' &&
+      fittedComparison.heat_margin === 'bad' &&
+      fittedComparison.alpha_damage === 'good' &&
+      fittedComparison.dps_short === 'good' &&
+      fittedComparison.dps_medium === 'good' &&
+      fittedComparison.dps_long === 'good',
+    JSON.stringify(fittedComparison),
+  );
+  await page.screenshot({ path: `${shots}/05-mechbay-build-compare.png` });
   check('an illegal build reports its problems', (await page.locator('[data-testid="bay-issues"] li').count()) > 0);
   check('save is refused for an illegal build', await page.locator('[data-testid="bay-save"]').isDisabled());
   check('export is refused for an illegal build', await page.locator('[data-testid="bay-export"]').isDisabled());
@@ -238,6 +269,13 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
       ),
   );
   check('free tonnage returns to its starting value', (await freeTonnage(page)) === startingFree);
+  const restoredComparison = await comparisonDirections(page);
+  check(
+    'removing the edit restores all stock comparison metrics to neutral',
+    Object.keys(restoredComparison).length === 7 &&
+      Object.values(restoredComparison).every((direction) => direction === 'neutral'),
+    JSON.stringify(restoredComparison),
+  );
 
   await page.locator('[data-testid="stock-weapon-medium_laser"]').dragTo(
     page.locator('[data-testid="bay-location-right_torso"]'),

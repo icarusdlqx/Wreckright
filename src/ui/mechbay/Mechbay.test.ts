@@ -39,6 +39,23 @@ describe('campaign cooling inventory', () => {
 });
 
 describe('mechbay presentation', () => {
+  it('uses the same trait-adjusted speed in the machine header and comparison', () => {
+    const design = catalog.designs.get('halberd_prime');
+    if (design === undefined) throw new Error('missing Halberd design');
+    const html = renderToStaticMarkup(createElement(Mechbay, {
+      onExit: () => undefined,
+      commission: {
+        title: design.name,
+        design,
+        onCommit: () => ({ ok: true, reason: null }),
+        onCancel: () => undefined,
+      },
+    }));
+
+    expect(html).toMatch(/Halberd HLB-4[\s\S]{0,200}15\.2[\s\S]{0,50}m\/s/);
+    expect(html.match(/15\.2/g)?.length).toBeGreaterThanOrEqual(3);
+  });
+
   it('uses the expanding mobile workspace on coarse tablets without changing fine-pointer 1024px', () => {
     const css = readFileSync(new URL('./mechbayWorkspaceLayout.css', import.meta.url), 'utf8');
     const mobileQuery =

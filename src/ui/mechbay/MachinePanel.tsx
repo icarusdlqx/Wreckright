@@ -5,6 +5,7 @@ import type { DesignIssue } from '../../schema/designValidation';
 import type { Catalog } from '../../schema/load';
 import type { HeatProfile, Loadout } from '../../sim/loadout';
 import { MachineCultureBadge } from './MachineCultureBadge';
+import { designWalkSpeed } from './buildCompareModel';
 import { designUsesForeignComponents } from './machineCulturePresentation';
 import { MechPreview } from './MechPreview';
 
@@ -71,10 +72,7 @@ export function MachinePanel({
         {chassis.name}
         <span className="dossier-class">
           {chassis.class} · {chassis.tonnage}t ·{' '}
-          {(
-            (chassis.engineRating / chassis.tonnage) *
-            catalog.rules.movement.walkSpeedFactor
-          ).toFixed(0)}
+          {Number(designWalkSpeed(catalog, design).toFixed(1))}
           m/s
         </span>
       </h3>
