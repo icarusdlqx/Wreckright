@@ -163,9 +163,18 @@ export async function runMobileMechbayJourney({
     `${touchStartValue} → ${touchValue}`,
   );
   await page.locator('[data-testid="bay-undo"]').tap();
+  const undoSettled = await page.waitForFunction(
+    (expected) => Number(
+      document.querySelector('[data-testid="armour-doll-slider"]')?.value,
+    ) === expected,
+    touchStartValue,
+    { timeout: 2_000 },
+  ).then(() => true, () => false);
+  const undoValue = Number(await dollSlider.inputValue());
   check(
     `${prefix} one Undo restores the complete touch drag`,
-    Number(await dollSlider.inputValue()) === touchStartValue,
+    undoSettled && undoValue === touchStartValue,
+    `${touchValue} → ${undoValue}; expected ${touchStartValue}`,
   );
 
   const armourLayout = await page.evaluate(() => {
