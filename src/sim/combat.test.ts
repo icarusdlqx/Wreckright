@@ -26,6 +26,17 @@ function offTheNose(of: MechEntity): { x: number; y: number } {
   return { x: of.pos.x + Math.cos(of.facing) * 100, y: of.pos.y + Math.sin(of.facing) * 100 };
 }
 
+function pointOnTerrain(worldAt: World, terrainId: string): { x: number; y: number } {
+  for (let row = 0; row < worldAt.terrain.height; row += 1) {
+    for (let column = 0; column < worldAt.terrain.width; column += 1) {
+      if (worldAt.terrain.idAt(column, row) === terrainId) {
+        return worldAt.terrain.tileCentre(column, row);
+      }
+    }
+  }
+  throw new Error(`mission has no ${terrainId} tile`);
+}
+
 beforeEach(() => {
   world = testWorld('combat');
   shooter = unitOf(world, 'bulwark_assault');
@@ -227,6 +238,59 @@ describe('updateWeapons', () => {
 });
 
 describe('resolveProjectiles', () => {
+  it('queues an incendiary ignition only when the authored flamer lands a hit', () => {
+    target.pos = pointOnTerrain(world, 'forest');
+    world.projectiles.push({
+      shooterId: shooter.id,
+      targetId: target.id,
+      weaponId: 'flamer',
+      hit: true,
+      from: offTheNose(target),
+      calledShot: null,
+      damage: 3,
+      impactTick: world.tick,
+    });
+
+    resolveProjectiles(world);
+
+    const tile = world.terrain.toTile(target.pos);
+    expect(world.fire.pendingIgnitions).toEqual([{
+      cell: tile.row * world.terrain.width + tile.column,
+      source: 'incendiary_hit',
+      chance: world.rules.terrain.fire.ignitionChance.incendiaryHit,
+    }]);
+  });
+
+  it('does not queue ignition for an incendiary miss or an ordinary hit', () => {
+    target.pos = pointOnTerrain(world, 'forest');
+    world.projectiles.push(
+      {
+        shooterId: shooter.id,
+        targetId: target.id,
+        weaponId: 'flamer',
+        hit: false,
+        from: offTheNose(target),
+        calledShot: null,
+        damage: 3,
+        impactTick: world.tick,
+      },
+      {
+        shooterId: shooter.id,
+        targetId: target.id,
+        weaponId: 'ac5',
+        hit: true,
+        from: offTheNose(target),
+        calledShot: null,
+        damage: 5,
+        impactTick: world.tick,
+      },
+    );
+
+    resolveProjectiles(world);
+
+    expect(world.fire.pendingIgnitions).toHaveLength(0);
+  });
+
   it('credits damage to the shooter and taken damage to the target', () => {
     world.projectiles.push({
       shooterId: shooter.id,

@@ -6,6 +6,7 @@ import { arcTableKey, attackArcFrom, armourFaceOf, type ArcHit } from './arcs';
 import { penetrates, resolveCritical } from './critical';
 import { applyDamage } from './damage';
 import { emit } from './events';
+import { queueIgnition } from './fire';
 import { addHeat, currentHeatTier } from './heat';
 import { coverFactorAt } from './los';
 import { angleDifference, bearing, clamp, distance as distanceBetween } from './math';
@@ -355,6 +356,10 @@ export function resolveProjectiles(world: World): void {
 
     const absorbed = applyDamage(world, target, location, damage, face);
     target.stats.damageTaken += absorbed;
+
+    if (fired?.tags.includes('incendiary') === true) {
+      queueIgnition(world, target.pos, 'incendiary_hit');
+    }
 
     // Off what actually landed, not off the weapon's paper damage: a shot into
     // a mech whose transfer chain has already run out shoves nothing, and a

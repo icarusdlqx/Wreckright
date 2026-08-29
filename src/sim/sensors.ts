@@ -143,7 +143,7 @@ function footprintFor(world: World, vision: TeamVision, observer: MechEntity): U
   const tile = terrain.toTile(observer.pos);
   const vantage = vantageOf(world, observer);
   const sightRange = effectiveSightRange(world, observer);
-  const key = `${tile.column}:${tile.row}:${sightRange}:${vantage}`;
+  const key = `${terrain.revision}:${tile.column}:${tile.row}:${sightRange}:${vantage}`;
   const cached = vision.opticalFootprints.get(observer.id);
   if (cached?.key === key) return cached.cells;
 

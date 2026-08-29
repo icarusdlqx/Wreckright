@@ -13,8 +13,13 @@ export interface TerrainGrid {
   readonly height: number;
   readonly tileSize: number;
   readonly minStepCost: number;
+  /** Changes only when an authoritative terrain replacement succeeds. */
+  readonly revision: number;
+  idAt(column: number, row: number): string;
+  idAtPoint(point: Vec2): string;
   typeAt(column: number, row: number): TerrainType;
   typeAtPoint(point: Vec2): TerrainType;
+  replaceTypeAt(column: number, row: number, terrainId: string): boolean;
   elevationAt(column: number, row: number): number;
   elevationAtPoint(point: Vec2): number;
   /** Terrain, plateau and uphill pace as one multiplier shared with routing. */
@@ -35,14 +40,17 @@ const OFF_MAP: TerrainType = {
   visionFactor: 1,
   passable: false,
 };
+const OFF_MAP_ID = 'off_map';
 
 export function createTerrainGrid(
   data: TerrainMapData,
   rules: TerrainRules,
   movement?: MovementRules,
 ): TerrainGrid {
+  const ids: string[] = new Array<string>(data.width * data.height);
   const cells: TerrainType[] = new Array<TerrainType>(data.width * data.height);
   const elevations = new Uint8Array(data.width * data.height);
+  let revision = 0;
 
   for (let row = 0; row < data.height; row += 1) {
     const tileRow = data.tiles[row] ?? '';
@@ -51,6 +59,7 @@ export function createTerrainGrid(
       const symbol = tileRow[column] ?? '';
       const terrainId = data.legend[symbol];
       const terrain = terrainId === undefined ? undefined : rules.types[terrainId];
+      ids[row * data.width + column] = terrain === undefined ? OFF_MAP_ID : (terrainId ?? OFF_MAP_ID);
       cells[row * data.width + column] = terrain ?? OFF_MAP;
       elevations[row * data.width + column] = Number(elevationRow?.[column] ?? '0');
     }
@@ -61,6 +70,21 @@ export function createTerrainGrid(
 
   const typeAt = (column: number, row: number): TerrainType =>
     inBounds(column, row) ? (cells[row * data.width + column] ?? OFF_MAP) : OFF_MAP;
+
+  const idAt = (column: number, row: number): string =>
+    inBounds(column, row) ? (ids[row * data.width + column] ?? OFF_MAP_ID) : OFF_MAP_ID;
+
+  const replaceTypeAt = (column: number, row: number, terrainId: string): boolean => {
+    if (!inBounds(column, row)) return false;
+    const terrain = rules.types[terrainId];
+    if (terrain === undefined) return false;
+    const cell = row * data.width + column;
+    if (ids[cell] === terrainId) return false;
+    ids[cell] = terrainId;
+    cells[cell] = terrain;
+    revision += 1;
+    return true;
+  };
 
   const elevationAt = (column: number, row: number): number =>
     inBounds(column, row) ? (elevations[row * data.width + column] ?? 0) : 0;
@@ -89,9 +113,16 @@ export function createTerrainGrid(
     height: data.height,
     tileSize: data.tileSize,
     minStepCost,
+    get revision() {
+      return revision;
+    },
+    idAt,
+    idAtPoint: (point) =>
+      idAt(Math.floor(point.x / data.tileSize), Math.floor(point.y / data.tileSize)),
     typeAt,
     typeAtPoint: (point) =>
       typeAt(Math.floor(point.x / data.tileSize), Math.floor(point.y / data.tileSize)),
+    replaceTypeAt,
     elevationAt,
     elevationAtPoint: (point) =>
       elevationAt(Math.floor(point.x / data.tileSize), Math.floor(point.y / data.tileSize)),

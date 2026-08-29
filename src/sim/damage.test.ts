@@ -7,6 +7,17 @@ import { isImmobile, isOperational, type MechEntity, type World } from './types'
 let world: World;
 let mech: MechEntity;
 
+function pointOnTerrain(worldAt: World, terrainId: string): { x: number; y: number } {
+  for (let row = 0; row < worldAt.terrain.height; row += 1) {
+    for (let column = 0; column < worldAt.terrain.width; column += 1) {
+      if (worldAt.terrain.idAt(column, row) === terrainId) {
+        return worldAt.terrain.tileCentre(column, row);
+      }
+    }
+  }
+  throw new Error(`mission has no ${terrainId} tile`);
+}
+
 beforeEach(() => {
   world = testWorld('damage');
   mech = unitOf(world, 'sentinel_brawler');
@@ -138,6 +149,7 @@ describe('ammo explosions', () => {
   it('detonates unprotected ammo into the centre torso', () => {
     const bin = mech.ammoBins.find((entry) => !entry.protectedByCase);
     expect(bin).toBeDefined();
+    mech.pos = pointOnTerrain(world, 'forest');
 
     const core = mech.locations.centre_torso;
     const before = core.internal;
@@ -146,12 +158,14 @@ describe('ammo explosions', () => {
 
     expect(eventsOfType(world.events, 'ammo_explosion').length).toBeGreaterThan(0);
     expect(core.internal).toBeLessThan(before);
+    expect(world.fire.pendingIgnitions.map((request) => request.source)).toContain('ammo_explosion');
   });
 
   it('contains the blast when CASE is fitted', () => {
     const scout = unitOf(world, 'hornet_spotter');
     const bin = scout.ammoBins.find((entry) => entry.protectedByCase);
     expect(bin).toBeDefined();
+    scout.pos = pointOnTerrain(world, 'forest');
 
     const core = scout.locations.centre_torso;
     const before = core.internal;
@@ -161,6 +175,7 @@ describe('ammo explosions', () => {
     expect(eventsOfType(world.events, 'ammo_explosion').length).toBe(0);
     expect(core.internal).toBe(before);
     expect(bin?.rounds).toBe(0);
+    expect(world.fire.pendingIgnitions).toHaveLength(0);
   });
 
   it('caps explosion damage at the rules ceiling', () => {
@@ -180,6 +195,7 @@ describe('volatile mounts', () => {
     const gauss = siege.weapons.find((mount) => mount.weaponId === 'gauss_rifle');
     expect(gauss).toBeDefined();
     if (gauss === undefined) return;
+    siege.pos = pointOnTerrain(world, 'forest');
 
     const before = siege.locations.centre_torso.internal;
     destroyLocation(world, siege, gauss.location);
@@ -189,6 +205,7 @@ describe('volatile mounts', () => {
     );
     expect(blasts.length).toBeGreaterThan(0);
     expect(siege.locations.centre_torso.internal).toBeLessThan(before);
+    expect(world.fire.pendingIgnitions).toHaveLength(0);
   });
 
   it('leaves an ordinary mount to fail quietly', () => {

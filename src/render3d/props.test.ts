@@ -119,4 +119,51 @@ describe('PropLayer', () => {
     expect(ranges.length).toBeGreaterThan(0);
     expect(ranges.every((range) => range.count === 16)).toBe(true);
   });
+
+  it('keeps hidden burnout private, then remembers charred trees after an optical look', () => {
+    const data = mapData('ridge_pass');
+    const grid = createTerrainGrid(data, catalog.rules.terrain);
+    const layer = new PropLayer(grid, data, () => 0);
+    const cells = data.width * data.height;
+    const forest = firstTile(data, 'forest');
+    const vision: TeamVision = {
+      team: 0,
+      visible: new Set(),
+      identified: new Set(),
+      detected: new Set(),
+      tracks: new Map(),
+      observedHulks: new Set(),
+      ghosts: new Map(),
+      tiles: new Uint8Array(cells),
+      explored: new Uint8Array(cells),
+      opticalFootprints: new Map(),
+    };
+    vision.explored[forest] = 1;
+    layer.update(vision, grid);
+    const before = signature(layer);
+    const column = forest % grid.width;
+    const row = Math.floor(forest / grid.width);
+    expect(grid.replaceTypeAt(column, row, 'burnt_forest')).toBe(true);
+
+    layer.update(vision, grid);
+    expect(layer.stats().observedBurnt).toBe(0);
+    expect(signature(layer)).toEqual(before);
+
+    const matrixVersions = meshes(layer).map((mesh) => mesh.instanceMatrix.version);
+    const colourVersions = meshes(layer).map((mesh) => mesh.instanceColor?.version ?? 0);
+    vision.tiles[forest] = 1;
+    layer.update(vision, grid);
+    const observed = signature(layer);
+    expect(layer.stats().observedBurnt).toBe(1);
+    expect(observed).not.toEqual(before);
+    meshes(layer).forEach((mesh, index) => {
+      expect(mesh.instanceMatrix.version - (matrixVersions[index] ?? 0)).toBeLessThanOrEqual(1);
+      expect((mesh.instanceColor?.version ?? 0) - (colourVersions[index] ?? 0))
+        .toBeLessThanOrEqual(1);
+    });
+
+    vision.tiles[forest] = 0;
+    layer.update(vision, grid);
+    expect(signature(layer)).toEqual(observed);
+  });
 });

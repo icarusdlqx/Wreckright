@@ -22,6 +22,22 @@ export const TerrainTypeSchema = z.strictObject({
   passable: z.boolean(),
 });
 
+const TerrainFireRulesSchema = z.strictObject({
+  /** Terrain replacements after a complete burn; absent entries cannot ignite. */
+  burnsTo: z.record(IdSchema, IdSchema),
+  burnSeconds: z.number().positive().max(300),
+  heatPerSecond: z.number().nonnegative().max(100),
+  spreadIntervalSeconds: z.number().positive().max(30),
+  baseSpreadChance: Probability,
+  windSpreadChance: Probability,
+  ignitionChance: z.strictObject({
+    incendiaryHit: Probability,
+    ammoExplosion: Probability,
+    artilleryImpact: Probability,
+  }),
+  maxBurningTiles: z.number().int().positive().max(1024),
+});
+
 /** How a mech wants to fight, read off what it is actually carrying. */
 export const COMBAT_ROLES = ['brawler', 'skirmisher', 'sniper', 'missile_boat', 'scout'] as const;
 export type CombatRole = (typeof COMBAT_ROLES)[number];
@@ -214,9 +230,11 @@ export const SensorRulesSchema = z.strictObject({
 export const TerrainRulesSchema = z.strictObject({
   id: z.literal('terrain'),
   types: z.record(IdSchema, TerrainTypeSchema),
+  fire: TerrainFireRulesSchema,
 });
 
 export type TerrainRules = z.infer<typeof TerrainRulesSchema>;
+export type TerrainFireRules = TerrainRules['fire'];
 export type SensorRules = z.infer<typeof SensorRulesSchema>;
 export type AiRules = z.infer<typeof AiRulesSchema>;
 export type Trait = z.infer<typeof TraitSchema>;

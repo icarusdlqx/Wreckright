@@ -250,20 +250,12 @@ export class ScarLayer {
   }
 }
 
-function hashFraction(seed: number): number {
-  let mixed = seed | 0;
-  mixed = Math.imul(mixed ^ (mixed >>> 16), 0x45d9f3b);
-  mixed = Math.imul(mixed ^ (mixed >>> 16), 0x45d9f3b);
-  return ((mixed ^ (mixed >>> 16)) >>> 0) / 0x1_0000_0000;
-}
-
 /** Persistent battlefield memory, kept out of the already-full event router. */
 export class BattlefieldWear {
   readonly smoke: SmokeLayer;
   readonly scars = new ScarLayer();
   readonly objects: readonly [InstancedMesh, InstancedMesh];
 
-  private readonly artilleryPoint: Vec2 = { x: 0, y: 0 };
   private disposed = false;
 
   constructor(fogColour: Color, private readonly heightAt: (x: number, y: number) => number) {
@@ -274,14 +266,14 @@ export class BattlefieldWear {
   update(deltaSeconds: number): void { if (!this.disposed) this.smoke.update(deltaSeconds); }
 
   consumeSupport(world: World, event: SimEvent): void {
-    if (this.disposed || event.type !== 'support_resolved' || event.call !== 'artillery_strike') return;
+    if (this.disposed || event.type !== 'ground_impact' || event.kind !== 'artillery') return;
     const tile = world.terrain.toTile(event);
+    if (!world.terrain.inBounds(tile.column, tile.row)) return;
     const cell = tile.row * world.terrain.width + tile.column;
     const canSeeImpact = world.playerTeam === null || event.team === world.playerTeam ||
-      (world.terrain.inBounds(tile.column, tile.row) && tileVisible(world.vision, cell));
+      tileVisible(world.vision, cell);
     if (!canSeeImpact) return;
-    const rules = world.rules.support.artillery_strike;
-    this.artillery(event, event.tick, event.team, rules.shots, rules.scatter);
+    this.artillery(event);
   }
 
   wreck(key: number, at: Vec2, smokeGround: number): void {
@@ -300,26 +292,9 @@ export class BattlefieldWear {
     );
   }
 
-  artillery(at: Vec2, tick: number, team: number, shots: number, scatter: number): void {
+  artillery(at: Vec2): void {
     if (this.disposed) return;
-    const count = Math.max(0, Math.floor(shots));
-    const originSeed = Math.imul(Math.round(at.x * 10), 0x27d4eb2d) ^
-      Math.imul(Math.round(at.y * 10), 0x165667b1);
-    for (let shot = 0; shot < count; shot += 1) {
-      const seed = Math.imul((tick | 0) + 1, 0x6d2b79f5) ^
-        Math.imul(team + 17, 0x1b873593) ^ Math.imul(shot + 1, 0x85ebca6b) ^ originSeed;
-      const angle = hashFraction(seed) * Math.PI * 2;
-      const spread = Math.max(0, scatter) * hashFraction(seed ^ 0x27d4eb2d);
-      this.artilleryPoint.x = at.x + Math.cos(angle) * spread;
-      this.artilleryPoint.y = at.y + Math.sin(angle) * spread;
-      const radius = 15 + hashFraction(seed ^ 0x165667b1) * 6;
-      this.scars.crater(
-        this.artilleryPoint,
-        this.heightAt(this.artilleryPoint.x, this.artilleryPoint.y),
-        radius,
-        0.42,
-      );
-    }
+    this.scars.crater(at, this.heightAt(at.x, at.y), 18, 0.42);
   }
 
   dispose(): void {

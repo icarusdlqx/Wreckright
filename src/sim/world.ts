@@ -11,6 +11,7 @@ import { separateBodies } from './collision';
 import { resolveProjectiles, updateWeapons } from './combat';
 import { createMech, type LocationDamage } from './entity';
 import { emit } from './events';
+import { createFireState, updateFire } from './fire';
 import { updateDesignation } from './designation';
 import { updateHeat } from './heat';
 import { createObjectives, evaluateMission, updateObjectives } from './objectives';
@@ -148,6 +149,7 @@ export function createWorld(catalog: Catalog, options: WorldOptions): World {
     mission,
     entities,
     projectiles: [],
+    fire: createFireState(),
     events: [],
     hitLocationTable,
     arcHitTables: buildFrameArcTables(catalog.rules),
@@ -343,6 +345,7 @@ export function stepWorld(world: World, maxTicks: number): void {
   resolveProjectiles(world);
   resolveDisengagement(world);
   updateSupport(world);
+  updateFire(world);
   rememberObservedStops(world);
   updateZones(world);
   updateObjectives(world);
