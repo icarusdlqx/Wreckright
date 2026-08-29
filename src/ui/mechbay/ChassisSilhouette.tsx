@@ -21,6 +21,8 @@ interface Props {
   design: Design;
   /** Highlighted while the player is working on one location. */
   active?: MechLocation | null;
+  /** Locations whose fitted armour is light enough to warrant attention. */
+  underArmoured?: ReadonlySet<MechLocation>;
 }
 
 /**
@@ -29,7 +31,7 @@ interface Props {
  * out of the bay. Mounted weapons show on the hardpoint they are bolted to,
  * which is the quickest way to see that a build is all in one arm.
  */
-export function ChassisSilhouette({ chassis, design, active = null }: Props) {
+export function ChassisSilhouette({ chassis, design, active = null, underArmoured }: Props) {
   const plan = chassisBlueprint(chassis.silhouette, chassis.traits, chassis.hardpoints, chassis.id);
 
   // Leg and hip parts are already measured from the ground; everything above
@@ -54,7 +56,9 @@ export function ChassisSilhouette({ chassis, design, active = null }: Props) {
     const at: [number, number, number] = [part.at[0], part.at[1] + lift(part), part.at[2]];
     const far = part.at[2] < -0.01;
     const lit = active !== null && part.location === active;
-    const paint = partPaint(part.tone, lit, far);
+    const warned =
+      !lit && part.location !== null && (underArmoured?.has(part.location) ?? false);
+    const paint = partPaint(part.tone, lit, far, warned);
 
     const centre = project(at[0], at[1], at[2]);
     const facets: Facet[] = [];
@@ -94,6 +98,7 @@ export function ChassisSilhouette({ chassis, design, active = null }: Props) {
       depth: depth(at[0], at[1], at[2]),
       facets,
       ellipses,
+      armourState: lit ? 'selected' : warned ? 'under-armoured' : undefined,
       // A tilted plate is rotated on screen about its own centre. Blueprint
       // tilt turns the nose up about the lateral axis, which is anticlockwise
       // in the world and so a negative angle in a y-down coordinate system.
@@ -174,7 +179,7 @@ export function ChassisSilhouette({ chassis, design, active = null }: Props) {
       data-testid="chassis-silhouette"
     >
       {pieces.map((piece) => (
-        <g key={piece.key} transform={piece.spin}>
+        <g key={piece.key} transform={piece.spin} data-armour-state={piece.armourState}>
           {piece.facets.map((facet, index) => (
             <polygon
               key={index}

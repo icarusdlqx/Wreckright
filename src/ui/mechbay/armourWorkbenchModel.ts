@@ -1,4 +1,5 @@
 import { LOCATIONS, type MechLocation } from '../../schema/common';
+import type { Chassis } from '../../schema/chassis';
 import { TORSO_LOCATIONS, type Design, type TorsoLocation } from '../../schema/design';
 import type { Catalog } from '../../schema/load';
 import {
@@ -8,6 +9,45 @@ import {
   withArmourTotals,
 } from '../../sim/designArmour';
 import { computeLoadout } from '../../sim/loadout';
+
+export type ChassisClass = Chassis['class'];
+export type StockArmourMedians = Readonly<Record<MechLocation, number | null>>;
+
+function median(values: readonly number[]): number | null {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((left, right) => left - right);
+  const middle = Math.floor(sorted.length / 2);
+  const upper = sorted[middle];
+  if (upper === undefined) return null;
+  if (sorted.length % 2 === 1) return upper;
+  const lower = sorted[middle - 1];
+  return lower === undefined ? null : (lower + upper) / 2;
+}
+
+export function stockArmourMediansForClass(
+  catalog: Catalog,
+  chassisClass: ChassisClass,
+): StockArmourMedians {
+  const pointsByLocation = Object.fromEntries(
+    LOCATIONS.map((location) => [location, [] as number[]]),
+  ) as Record<MechLocation, number[]>;
+
+  for (const design of catalog.designs.values()) {
+    const chassis = catalog.chassis.get(design.chassisId);
+    if (chassis === undefined || chassis.class !== chassisClass) continue;
+    for (const location of activeArmourLocations(catalog.rules, chassis.frame)) {
+      pointsByLocation[location].push(design.armour[location]);
+    }
+  }
+
+  return Object.fromEntries(
+    LOCATIONS.map((location) => [location, median(pointsByLocation[location])]),
+  ) as Record<MechLocation, number | null>;
+}
+
+export function isArmourUnderMedian(points: number, medianPoints: number | null): boolean {
+  return medianPoints !== null && points < medianPoints;
+}
 
 export function designArmourLocations(
   catalog: Catalog,

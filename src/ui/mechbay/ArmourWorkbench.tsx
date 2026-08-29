@@ -1,14 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { Chassis } from '../../schema/chassis';
 import type { MechLocation } from '../../schema/common';
 import { TORSO_LOCATIONS, type Design, type TorsoLocation } from '../../schema/design';
 import type { Catalog } from '../../schema/load';
 import { armourFacesForDesign } from '../../sim/designArmour';
 import type { Loadout } from '../../sim/loadout';
+import { ArmourPaperDoll } from './ArmourPaperDoll';
 import {
   applyRearArmourPreset,
   applyRememberedArmourPosture,
   designArmourLocations,
+  stockArmourMediansForClass,
   selectedRearArmourPreset,
   setLocationPaidArmour,
   setPaidArmourTotal,
@@ -76,6 +78,12 @@ export function ArmourWorkbench({
   const torsoFront = torsoFaces.reduce((sum, faces) => sum + faces.front, 0);
   const torsoRear = torsoFaces.reduce((sum, faces) => sum + faces.rear, 0);
   const selectedPreset = selectedRearArmourPreset(catalog, design);
+  const classMedians = useMemo(
+    () => stockArmourMediansForClass(catalog, chassis.class),
+    [catalog, chassis.class],
+  );
+  const platingWeight = loadout.armourPoints
+    / catalog.rules.construction.armourPointsPerTon;
   const [postureIntent, setPostureIntent] = useState<string | null>(selectedPreset);
   useEffect(() => {
     if (selectedPreset !== null) setPostureIntent(selectedPreset);
@@ -97,7 +105,8 @@ export function ArmourWorkbench({
           <h4 id="armour-workbench-title">Armour</h4>
           <p>
             <strong>{loadout.armourPoints}/{armourMaximum}</strong> paid points ·{' '}
-            <strong>{loadout.armourWeight.toFixed(1)}t</strong>
+            <strong data-testid="armour-plate-weight">{platingWeight.toFixed(1)}t plate</strong>
+            {' · '}{loadout.armourWeight.toFixed(1)}t fitted
           </p>
         </div>
         <button
@@ -110,55 +119,71 @@ export function ArmourWorkbench({
         </button>
       </header>
 
-      <label className="armour-workbench__total" htmlFor="armour-paid-total">
-        <span>Total paid armour</span>
-        <output htmlFor="armour-paid-total">{loadout.armourPoints} points</output>
-        <input
-          id="armour-paid-total"
-          type="range"
-          min={0}
-          max={armourMaximum}
-          value={loadout.armourPoints}
-          aria-valuetext={`${loadout.armourPoints} points, ${loadout.armourWeight.toFixed(1)} tons`}
-          onChange={(event) =>
-            previewWithPosture(setPaidArmourTotal(catalog, design, Number(event.target.value)))}
-          {...previewEnd}
-          data-history-transaction="armour"
-          data-testid="armour-total"
+      <div className="armour-workbench__editor-grid">
+        <ArmourPaperDoll
+          chassis={chassis}
+          design={design}
+          activeLocations={active}
+          classMedians={classMedians}
+          plateWeightTons={platingWeight}
+          onPreview={(location, value) => previewWithPosture(
+            setLocationPaidArmour(catalog, design, location, value),
+          )}
+          onPreviewEnd={onPreviewEnd}
         />
-      </label>
 
-      <fieldset className="armour-workbench__presets">
-        <legend>Protection posture</legend>
-        <div className="armour-workbench__preset-grid">
-          {catalog.rules.construction.rearArmour.presets.map((preset) => (
-            <button
-              key={preset.id}
-              type="button"
-              aria-pressed={postureIntent === preset.id}
-              onClick={() => {
-                setPostureIntent(preset.id);
-                onApply(applyRearArmourPreset(catalog, design, preset.id));
-              }}
-              data-testid={`armour-preset-${preset.id}`}
-            >
-              <strong>{preset.label}</strong>
-              <span>{PRESET_TRADEOFFS[preset.id] ?? 'A different front and rear emphasis.'}</span>
-            </button>
-          ))}
-        </div>
-      </fieldset>
+        <div className="armour-workbench__allocation">
+          <label className="armour-workbench__total" htmlFor="armour-paid-total">
+            <span>Total paid armour</span>
+            <output htmlFor="armour-paid-total">{loadout.armourPoints} points</output>
+            <input
+              id="armour-paid-total"
+              type="range"
+              min={0}
+              max={armourMaximum}
+              value={loadout.armourPoints}
+              aria-valuetext={`${loadout.armourPoints} points, ${platingWeight.toFixed(1)} tons of plate`}
+              onChange={(event) =>
+                previewWithPosture(setPaidArmourTotal(catalog, design, Number(event.target.value)))}
+              {...previewEnd}
+              data-history-transaction="armour"
+              data-testid="armour-total"
+            />
+          </label>
 
-      <dl className="armour-workbench__faces" aria-label="Torso armour split">
-        <div>
-          <dt>Torso front</dt>
-          <dd data-testid="torso-front-total">{torsoFront} points</dd>
+          <fieldset className="armour-workbench__presets">
+            <legend>Protection posture</legend>
+            <div className="armour-workbench__preset-grid">
+              {catalog.rules.construction.rearArmour.presets.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  aria-pressed={postureIntent === preset.id}
+                  onClick={() => {
+                    setPostureIntent(preset.id);
+                    onApply(applyRearArmourPreset(catalog, design, preset.id));
+                  }}
+                  data-testid={`armour-preset-${preset.id}`}
+                >
+                  <strong>{preset.label}</strong>
+                  <span>{PRESET_TRADEOFFS[preset.id] ?? 'A different front and rear emphasis.'}</span>
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          <dl className="armour-workbench__faces" aria-label="Torso armour split">
+            <div>
+              <dt>Torso front</dt>
+              <dd data-testid="torso-front-total">{torsoFront} points</dd>
+            </div>
+            <div>
+              <dt>Torso rear</dt>
+              <dd data-testid="torso-rear-total">{torsoRear} points</dd>
+            </div>
+          </dl>
         </div>
-        <div>
-          <dt>Torso rear</dt>
-          <dd data-testid="torso-rear-total">{torsoRear} points</dd>
-        </div>
-      </dl>
+      </div>
 
       <details className="armour-workbench__advanced" data-testid="armour-detail">
         <summary>Advanced location armour</summary>

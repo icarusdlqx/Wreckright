@@ -1,4 +1,5 @@
 .armour-workbench {
+  container-type: inline-size;
   display: grid;
   gap: 10px;
   padding: 10px;
@@ -22,6 +23,142 @@
 .armour-workbench__header h4 {
   color: var(--text);
   font-size: 13px;
+}
+
+.armour-workbench__editor-grid {
+  display: grid;
+  grid-template-columns: minmax(310px, 0.9fr) minmax(0, 1.35fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.armour-workbench__allocation {
+  display: grid;
+  min-width: 0;
+  gap: 10px;
+  align-content: start;
+}
+
+.armour-paper-doll {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+}
+
+.armour-paper-doll__stage {
+  position: relative;
+  min-height: 350px;
+  overflow: hidden;
+  border: 1px solid rgba(140, 224, 255, 0.18);
+  border-radius: 5px;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(140, 224, 255, 0.1), transparent 45%),
+    linear-gradient(rgba(140, 224, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(140, 224, 255, 0.035) 1px, transparent 1px),
+    rgba(3, 8, 11, 0.62);
+  background-size: auto, 20px 20px, 20px 20px, auto;
+}
+
+.armour-paper-doll__silhouette {
+  position: absolute;
+  inset: 22px 42px 38px;
+  opacity: 0.78;
+  pointer-events: none;
+}
+
+.armour-paper-doll__silhouette .chassis-silhouette {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+.armour-paper-doll__locations {
+  position: absolute;
+  inset: 0;
+}
+
+.armour-paper-doll__location {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  width: 72px;
+  min-height: 46px;
+  padding: 4px 6px;
+  transform: translate(-50%, -50%);
+  align-content: center;
+  touch-action: pan-y;
+  user-select: none;
+  cursor: ew-resize;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.34);
+}
+
+.armour-paper-doll__location[aria-pressed='true'] {
+  z-index: 2;
+  border-color: var(--warn);
+  background: rgba(255, 192, 97, 0.18);
+  box-shadow: 0 0 0 1px rgba(255, 192, 97, 0.26), 0 3px 12px rgba(0, 0, 0, 0.4);
+}
+
+.armour-paper-doll__location--below-median:not([aria-pressed='true']) {
+  border-color: var(--danger);
+  background: rgba(255, 84, 91, 0.16);
+  box-shadow: 0 0 0 1px rgba(255, 84, 91, 0.2), 0 3px 12px rgba(0, 0, 0, 0.4);
+}
+
+.armour-paper-doll__location-label,
+.armour-paper-doll__location-value,
+.armour-paper-doll__location-status {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.armour-paper-doll__location-label {
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.armour-paper-doll__location-value {
+  color: var(--text);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.armour-paper-doll__location-status {
+  color: var(--danger);
+  font-size: 7px;
+}
+
+.armour-paper-doll__editor {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 7px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.armour-paper-doll__editor[data-below-class-median='true'] {
+  border-color: rgba(255, 138, 107, 0.56);
+}
+
+.armour-paper-doll__slider-label {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 8px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.armour-paper-doll__slider-label output {
+  color: var(--text);
+}
+
+.armour-paper-doll__slider-label > :last-child:not(output) {
+  grid-column: 1 / -1;
+  color: var(--danger);
+  font-size: 8px;
 }
 
 .armour-workbench__header p {
@@ -74,6 +211,10 @@
 
 .armour-workbench__total input {
   grid-column: 1 / -1;
+}
+
+.armour-paper-doll__slider {
+  width: 100%;
 }
 
 .armour-workbench__presets {
@@ -204,6 +345,16 @@
 
   .armour-workbench__preset-grid button {
     min-height: 54px;
+  }
+}
+
+@container (max-width: 720px) {
+  .armour-workbench__editor-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .armour-paper-doll__stage {
+    min-height: 330px;
   }
 }
 

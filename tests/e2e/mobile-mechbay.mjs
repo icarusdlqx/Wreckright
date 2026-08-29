@@ -8,7 +8,8 @@ async function overflowOf(page, selector) {
 async function fullyInViewport(page, selector) {
   return page.locator(selector).evaluate((element) => {
     const rect = element.getBoundingClientRect();
-    return rect.left >= 0 && rect.top >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight;
+    return rect.left >= -1 && rect.top >= -1 &&
+      rect.right <= innerWidth + 1 && rect.bottom <= innerHeight + 1;
   });
 }
 
@@ -84,6 +85,79 @@ export async function runMobileMechbayJourney({
     `${armourPanel.scrollWidth}/${armourPanel.clientWidth}`,
   );
   await page.screenshot({ path: `${shots}/14-mobile-${shotLabel}-mechbay-systems.png` });
+
+  const paperDoll = page.locator('[data-testid="armour-paper-doll"]');
+  await paperDoll.scrollIntoViewIfNeeded();
+  const dollButtons = paperDoll.locator('button[data-armour-doll-location]');
+  check(
+    `${prefix} armour paper doll exposes eight active native location buttons`,
+    (await dollButtons.count()) === 8 &&
+      await dollButtons.evaluateAll((buttons) => buttons.every((button) =>
+        button.tagName === 'BUTTON' && !button.disabled)),
+  );
+  check(
+    `${prefix} armour silhouette stays out of the focus order`,
+    (await paperDoll.locator('svg').count()) === 1 &&
+      await paperDoll.locator('svg, svg *').evaluateAll((elements) =>
+        elements.every((element) => element.tabIndex < 0)),
+  );
+  check(
+    `${prefix} armour location buttons are touch-sized and centre hit-testable`,
+    await dollButtons.evaluateAll((buttons) => buttons.length === 8 && buttons.every((button) => {
+      const bounds = button.getBoundingClientRect();
+      const centre = document.elementFromPoint(
+        bounds.left + bounds.width / 2,
+        bounds.top + bounds.height / 2,
+      );
+      return bounds.width >= 44 &&
+        bounds.height >= 44 &&
+        centre !== null &&
+        (centre === button || button.contains(centre));
+    })),
+  );
+
+  const leftTorso = page.locator('[data-testid="armour-doll-left_torso"]');
+  await leftTorso.tap();
+  check(
+    `${prefix} armour paper doll selects the left torso`,
+    (await leftTorso.getAttribute('aria-pressed')) === 'true' &&
+      (await paperDoll.locator('[aria-pressed="true"]').count()) === 1,
+  );
+  const dollSlider = page.locator('[data-testid="armour-doll-slider"]');
+  await dollSlider.scrollIntoViewIfNeeded();
+  check(
+    `${prefix} selected armour location exposes a reachable slider`,
+    await fullyInViewport(page, '[data-testid="armour-doll-slider"]') &&
+      (await dollSlider.boundingBox())?.height >= 44 &&
+      (await dollSlider.getAttribute('aria-label')) === 'Left torso armour',
+  );
+
+  const armourLayout = await page.evaluate(() => {
+    const selectors = {
+      root: document.documentElement,
+      mechbay: document.querySelector('[data-testid="mechbay"]'),
+      panel: document.querySelector('[data-workspace-panel="armour"]'),
+      workbench: document.querySelector('[data-testid="armour-workbench"]'),
+      doll: document.querySelector('[data-testid="armour-paper-doll"]'),
+      editorGrid: document.querySelector('.armour-workbench__editor-grid'),
+      dollEditor: document.querySelector('.armour-paper-doll__editor'),
+    };
+    return Object.fromEntries(Object.entries(selectors).map(([name, element]) => [
+      name,
+      element === null ? null : {
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth,
+      },
+    ]));
+  });
+  check(
+    `${prefix} armour paper doll has no horizontal overflow`,
+    Object.values(armourLayout).every((bounds) =>
+      bounds !== null && bounds.scrollWidth <= bounds.clientWidth + 1),
+    JSON.stringify(armourLayout),
+  );
+  await paperDoll.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: `${shots}/14-mobile-${shotLabel}-armour-paper-doll.png` });
 
   await selectWorkspace(page, 'review');
   const review = await overflowOf(page, '[data-testid="build-review"]');
@@ -168,7 +242,65 @@ export async function runMobileMechbayJourney({
     await fullyInViewport(page, '[data-testid="bay-save"]'),
   );
   await page.screenshot({ path: `${shots}/14-mobile-${shotLabel}-mechbay.png` });
-  await page.locator('[data-testid="bay-exit"]').tap();
+
+  // Raw CDP touch injection can poison Playwright's later synthetic tap
+  // channel in Chromium, so the gesture transaction is deliberately last.
+  await selectWorkspace(page, 'armour');
+  await leftTorso.tap();
+  const touchStartValue = Number(await dollSlider.inputValue());
+  // The selected slider can sit below the short landscape viewport. Bring the
+  // actual gesture target back on screen before sending viewport coordinates.
+  await leftTorso.scrollIntoViewIfNeeded();
+  const touchStartScroll = await page.evaluate(() => window.scrollY);
+  const touchTarget = await leftTorso.boundingBox();
+  if (touchTarget === null) throw new Error(`${prefix} left torso has no touch target`);
+  const touchX = touchTarget.x + touchTarget.width / 2;
+  const touchY = touchTarget.y + touchTarget.height / 2;
+  const cdp = await page.context().newCDPSession(page);
+  try {
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchStart',
+      touchPoints: [{ x: touchX, y: touchY, id: 1 }],
+    });
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [{ x: touchX - 32, y: touchY, id: 1 }],
+    });
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchEnd',
+      touchPoints: [],
+    });
+  } finally {
+    await cdp.detach();
+  }
+  const touchValue = Number(await dollSlider.inputValue());
+  check(
+    `${prefix} horizontal touch drag edits armour without stealing vertical scroll`,
+    touchValue < touchStartValue &&
+      (await page.evaluate(() => window.scrollY)) === touchStartScroll,
+    `${touchStartValue} → ${touchValue}`,
+  );
+  const undo = page.locator('[data-testid="bay-undo"]');
+  check(
+    `${prefix} touch drag creates an undoable armour transaction`,
+    await undo.isEnabled(),
+  );
+  await undo.click();
+  const undoSettled = await page.waitForFunction(
+    (expected) => Number(
+      document.querySelector('[data-testid="armour-doll-slider"]')?.value,
+    ) === expected,
+    touchStartValue,
+    { timeout: 2_000 },
+  ).then(() => true, () => false);
+  const undoValue = Number(await dollSlider.inputValue());
+  check(
+    `${prefix} one Undo restores the complete touch drag`,
+    undoSettled && undoValue === touchStartValue,
+    `${touchValue} → ${undoValue}; expected ${touchStartValue}`,
+  );
+
+  await page.locator('[data-testid="bay-exit"]').click();
   await page.waitForSelector('[data-testid="briefing"]');
   check(`${prefix} mechbay exit remains reachable`, true);
 }

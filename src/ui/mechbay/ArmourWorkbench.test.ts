@@ -12,11 +12,13 @@ import {
   applyRearArmourPreset,
   applyRememberedArmourPosture,
   designArmourLocations,
+  isArmourUnderMedian,
   selectedRearArmourPreset,
   setLocationPaidArmour,
   setPaidArmourTotal,
   setTorsoRearArmour,
   spendRemainingTonnage,
+  stockArmourMediansForClass,
 } from './armourWorkbenchModel';
 
 function stock(id: string): Design {
@@ -46,6 +48,38 @@ function elementWithTestId(html: string, testId: string, closingTag: string): st
 }
 
 describe('armour workbench model', () => {
+  it('finds stock medians by class without counting inactive frame locations', () => {
+    const medians = stockArmourMediansForClass(catalog, 'medium');
+
+    expect(medians.left_torso).toBe(49.5);
+    expect(medians.right_torso).toBe(49.5);
+    expect(medians.left_arm).toBe(35);
+    expect(medians.right_arm).toBe(35);
+    expect(medians.left_leg).toBe(46);
+    expect(medians.right_leg).toBe(46);
+  });
+
+  it('returns null for a location with no active stock cohort', () => {
+    const inactiveArms = new Map(
+      ['drover_carrier', 'redoubt_emplacement'].map((id) => [id, stock(id)]),
+    );
+    const medians = stockArmourMediansForClass(
+      { ...catalog, designs: inactiveArms },
+      'medium',
+    );
+
+    expect(medians.left_arm).toBeNull();
+    expect(medians.right_arm).toBeNull();
+    expect(medians.left_torso).toBe(54);
+  });
+
+  it('only marks armour strictly below a stock median', () => {
+    expect(isArmourUnderMedian(49, 49.5)).toBe(true);
+    expect(isArmourUnderMedian(49.5, 49.5)).toBe(false);
+    expect(isArmourUnderMedian(50, 49.5)).toBe(false);
+    expect(isArmourUnderMedian(0, null)).toBe(false);
+  });
+
   it('spreads an exact paid total over active locations without mutation or rounding loss', () => {
     const original = stock('sentinel_brawler');
     const before = structuredClone(original);
@@ -150,17 +184,21 @@ describe('armour workbench presentation', () => {
     const html = render('sentinel_brawler');
     expect(html).toContain('aria-labelledby="armour-workbench-title"');
     expect(html).toContain('Total paid armour');
-    expect(html).toContain('tons"');
+    expect(html).toContain('tons of plate');
     expect(html).toContain('Front-facing');
     expect(html).toContain('thinner if flanked');
     expect(html).toContain('Balanced');
     expect(html).toContain('Rear guard');
     expect(html).toContain('Torso front');
     expect(html).toContain('Torso rear');
+    expect(html).toContain('data-testid="armour-paper-doll"');
+    expect(html.match(/data-testid="armour-doll-(?!slider)[^"]+"/g)).toHaveLength(8);
+    expect(html).toContain('data-testid="armour-doll-slider"');
+    expect(html).toContain('data-testid="armour-plate-weight"');
     expect(html).toContain('Advanced location armour');
     expect(html).toContain('Rear controls move existing torso plate');
     expect(html.match(/data-testid="rear-armour-/g)).toHaveLength(3);
-    expect(html.match(/aria-pressed="(?:true|false)"/g)).toHaveLength(3);
+    expect(html.match(/aria-pressed="(?:true|false)"/g)).toHaveLength(11);
     expect(html).toContain('<legend>Protection posture</legend>');
     expect(html).toContain('aria-label="Centre torso rear armour"');
     expect(html).toContain('aria-label="Head paid armour"');
@@ -168,7 +206,7 @@ describe('armour workbench presentation', () => {
     const balanced = elementWithTestId(html, 'armour-preset-balanced', '</button>');
     expect(balanced).toContain('aria-pressed="true"');
     expect(elementWithTestId(html, 'armour-total', '>')).toContain('aria-valuetext=');
-    expect(html.match(/data-history-transaction="armour"/g)).toHaveLength(12);
+    expect(html.match(/data-history-transaction="armour"/g)).toHaveLength(13);
   });
 
   it('ends a streamed armour preview on pointer, keyboard, cancellation, or blur', () => {
@@ -198,6 +236,8 @@ describe('armour workbench presentation', () => {
   it('keeps touch targets and narrow layouts usable', () => {
     const css = readFileSync(new URL('./armourWorkbench.css', import.meta.url), 'utf8');
     expect(css).toContain('min-height: 44px;');
+    expect(css).toContain('touch-action: pan-y;');
+    expect(css).toContain('cursor: ew-resize;');
     expect(css).toContain('@media (max-width: 420px)');
     expect(css).toContain('(pointer: coarse) and (max-width: 1100px)');
     expect(css).toMatch(

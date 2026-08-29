@@ -11,6 +11,7 @@ const TONES: Record<Tone, number> = {
 
 const BACKDROP = 0x141c22;
 const HIGHLIGHT = 0xffc857;
+const UNDER_ARMOURED = 0xd94f52;
 const FACE = { top: 1.2, front: 0.95, side: 0.68 } as const;
 export type Face = keyof typeof FACE;
 
@@ -44,6 +45,7 @@ export interface Piece {
   depth: number;
   facets: Facet[];
   ellipses: Ellipse[];
+  armourState: 'selected' | 'under-armoured' | undefined;
   spin: string | undefined;
 }
 
@@ -66,9 +68,19 @@ export function round(value: number): number {
   return Math.round(value * 1_000) / 1_000;
 }
 
-export function partPaint(tone: Tone, lit: boolean, far: boolean) {
+export function partPaint(
+  tone: Tone,
+  lit: boolean,
+  far: boolean,
+  underArmoured = false,
+) {
   return (face: Face): string => {
-    const shaded = shade(lit ? HIGHLIGHT : TONES[tone], FACE[face]);
+    const base = lit
+      ? HIGHLIGHT
+      : underArmoured
+        ? mix(TONES[tone], UNDER_ARMOURED, 0.68)
+        : TONES[tone];
+    const shaded = shade(base, FACE[face]);
     const colour = far ? mix(shaded, BACKDROP, 0.45) : shaded;
     return `#${colour.toString(16).padStart(6, '0')}`;
   };
