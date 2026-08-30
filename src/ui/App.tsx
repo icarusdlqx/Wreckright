@@ -4,15 +4,18 @@ import { ErrorBoundary } from './ErrorBoundary';
 import { HomeScreen } from './HomeScreen';
 import { LazyMechbay } from './mechbay/LazyMechbay';
 import { PlaytestProvider } from './playtest';
+import { StrategicScoreProvider } from './StrategicScoreProvider';
 import { useGame } from './store';
 
 export function App() {
   return (
-    <PlaytestProvider>
-      <ErrorBoundary onReset={() => useGame.getState().patch({ screen: 'home', error: null })}>
-        <AppRoute />
-      </ErrorBoundary>
-    </PlaytestProvider>
+    <StrategicScoreProvider>
+      <PlaytestProvider>
+        <ErrorBoundary onReset={() => useGame.getState().patch({ screen: 'home', error: null })}>
+          <AppRoute />
+        </ErrorBoundary>
+      </PlaytestProvider>
+    </StrategicScoreProvider>
   );
 }
 

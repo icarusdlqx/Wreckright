@@ -28,9 +28,17 @@ export async function installAudioProbe(page, scoreSourceCount) {
         this.context = context;
         this.kind = kind;
         this.id = context.nodes.length;
+        this.connections = [];
         context.nodes.push(this);
       }
-      connect(destination) { return destination; }
+      connect(destination) {
+        this.connections.push(
+          destination instanceof ProbeNode
+            ? `node:${destination.id}`
+            : `param:${destination?.name ?? 'unknown'}`,
+        );
+        return destination;
+      }
     }
 
     class ProbeSource extends ProbeNode {
@@ -170,6 +178,11 @@ export async function installAudioProbe(page, scoreSourceCount) {
       master: context.gains[0]?.gain.value ?? null,
       targets: context.automation.filter((entry) => entry.method === 'target').length,
       automation: context.automation.map((entry) => ({ ...entry })),
+      topology: context.nodes.map((node) => ({
+        id: node.id,
+        kind: node.kind,
+        connections: [...node.connections],
+      })),
       sources: context.sources.map(sourceView),
       // The score is constructed before ambient or one-shot voices. Cohort
       // position remains stable even while culture automation changes pitch.

@@ -8,6 +8,7 @@ export interface CampaignHeaderProps {
   balance: string;
   seed: string;
   manualOpen: boolean;
+  muted: boolean;
   persistence: CampaignPersistenceState;
   advanceDisabled: boolean;
   onAdvance: () => void;
@@ -18,6 +19,7 @@ export interface CampaignHeaderProps {
   onImport: (text: string) => void;
   onRestart: () => void;
   onToggleManual: () => void;
+  onToggleMuted: () => void;
   onExit: () => void;
 }
 
@@ -27,6 +29,7 @@ export function CampaignHeader({
   balance,
   seed,
   manualOpen,
+  muted,
   persistence,
   advanceDisabled,
   onAdvance,
@@ -37,6 +40,7 @@ export function CampaignHeader({
   onImport,
   onRestart,
   onToggleManual,
+  onToggleMuted,
   onExit,
 }: CampaignHeaderProps) {
   const { openFeedback } = usePlaytest();
@@ -89,6 +93,14 @@ export function CampaignHeader({
       </button>
       <button type="button" onClick={onToggleManual} data-testid="camp-manual-toggle">
         {manualOpen ? 'Close Manual' : 'Field Manual'}
+      </button>
+      <button
+        type="button"
+        onClick={onToggleMuted}
+        title={muted ? 'Sound is off' : 'Sound is on'}
+        data-testid="campaign-mute-button"
+      >
+        {muted ? 'Sound off' : 'Sound on'}
       </button>
       <button type="button" onClick={onExit} data-testid="camp-exit">
         Home

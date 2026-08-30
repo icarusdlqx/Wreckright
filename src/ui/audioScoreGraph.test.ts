@@ -3,6 +3,7 @@ import {
   SCORE_FILTER_COUNT,
   SCORE_GAIN_COUNT,
   SCORE_NODE_COUNT,
+  SCORE_LEVEL,
   SCORE_RETARGET_INTERVAL_SECONDS,
   SCORE_SOURCE_COUNT,
   fullLayerLevel,
@@ -141,6 +142,24 @@ describe('fixed procedural score graph', () => {
     context.currentTime = 24.75;
     handle.setState({ intensity: 0.05, aurelianShare: 0 }, 4);
     expectIntensityTiming(context, 24.75, 1.6 / 4, 2.2 / 4);
+  });
+
+  it('crossfades treatment trim without changing the graph or battle defaults', () => {
+    const { context, handle } = scoreHarness(0, 0);
+    const params = scoreParams(context);
+    expect(params.level.value).toBe(0);
+    const counts = [context.sources.length, context.gains.length, context.filters.length];
+
+    context.currentTime = 9;
+    handle.setState({ intensity: 0, aurelianShare: 0, level: 0.6 });
+    expectAutomation(params.level, 9, 1.2);
+    expect(targetAt(params.level, 9)?.value).toBeCloseTo(SCORE_LEVEL * 0.6);
+
+    context.currentTime = 11;
+    handle.setState({ intensity: 0, aurelianShare: 0 });
+    expect(targetAt(params.level, 11)?.value).toBeCloseTo(SCORE_LEVEL);
+    expect([context.sources.length, context.gains.length, context.filters.length]).toEqual(counts);
+    expect(context.sources.every((source) => source.starts.length === 1)).toBe(true);
   });
 
   it('morphs pitch and filters geometrically and levels and Q linearly', () => {

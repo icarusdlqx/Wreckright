@@ -2,6 +2,7 @@ import type { BattleTopbarProps } from './BattleTopbar';
 import { SetupToolbar } from './BattleSetup';
 import { usePlaytest } from './playtest';
 import { useGame } from './store';
+import { useStrategicScoreControls } from './StrategicScoreProvider';
 
 interface BattleMenuProps extends BattleTopbarProps {
   fullHud: boolean;
@@ -12,6 +13,7 @@ interface BattleMenuProps extends BattleTopbarProps {
 export function BattleMenu({ fullHud, variant, ...props }: BattleMenuProps) {
   const state = useGame();
   const { openFeedback } = usePlaytest();
+  const score = useStrategicScoreControls();
   const mobile = variant === 'mobile';
   const lockedTitle = state.campaignPending
     ? 'The lance is in the field — resolve the contract first.'
@@ -70,7 +72,10 @@ export function BattleMenu({ fullHud, variant, ...props }: BattleMenuProps) {
                 className="pause"
                 disabled={props.locked}
                 title={props.locked ? lockedTitle : ''}
-                onClick={() => state.patch({ screen: 'mechbay' })}
+                onClick={() => {
+                  score.prepare();
+                  state.patch({ screen: 'mechbay' });
+                }}
                 data-testid="open-mechbay"
               >
                 Mechbay
@@ -80,7 +85,10 @@ export function BattleMenu({ fullHud, variant, ...props }: BattleMenuProps) {
                 className="pause"
                 disabled={props.locked}
                 title={props.locked ? lockedTitle : ''}
-                onClick={() => state.patch({ screen: 'campaign' })}
+                onClick={() => {
+                  score.prepare();
+                  state.patch({ screen: 'campaign' });
+                }}
                 data-testid="open-campaign"
               >
                 Campaign

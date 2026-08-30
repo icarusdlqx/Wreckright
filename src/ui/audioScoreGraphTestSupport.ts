@@ -129,7 +129,7 @@ export class FakeContext {
   }
 }
 
-export function scoreHarness(initialShare: number | null = 0): {
+export function scoreHarness(initialShare: number | null = 0, initialLevel = 1): {
   context: FakeContext;
   handle: ReturnType<typeof startBattleScore>;
 } {
@@ -140,10 +140,11 @@ export function scoreHarness(initialShare: number | null = 0): {
     noise: {} as AudioBuffer,
     random: () => 0.25,
   };
-  return { context, handle: startBattleScore(bus, initialShare) };
+  return { context, handle: startBattleScore(bus, initialShare, initialLevel) };
 }
 
 export interface ScoreParams {
+  readonly level: FakeParam;
   readonly intensity: FakeParam[];
   readonly full: FakeParam;
   readonly culture: FakeParam[];
@@ -158,6 +159,7 @@ export function scoreParams(context: FakeContext): ScoreParams {
   const frequency = (index: number): FakeParam => required(oscillators[index]).frequency;
   const full = gain(8);
   return {
+    level: gain(0),
     intensity: [gain(1), gain(4), frequency(3), full],
     full,
     culture: [

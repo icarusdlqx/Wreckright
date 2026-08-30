@@ -14,13 +14,9 @@ import {
   type HeatTier,
 } from './audioCues';
 import { AudioGraph, type VoicePlacement } from './audioGraph';
-import {
-  BattleIntensity,
-  SCORE_CLOSE_DELAY_MS,
-  startBattleScore,
-  type ScoreHandle,
-} from './audioScore';
-import { battleCultureShare } from './audioScoreVoicing';
+import { BattleScoreDirector } from './audioBattleScore';
+import { readAudioMuted, writeAudioMuted } from './audioPreference';
+import { SCORE_CLOSE_DELAY_MS } from './audioScore';
 import { playSupportResolution } from './audioSupport';
 import {
   playAbility,
@@ -52,16 +48,14 @@ export class AudioDirector {
 
   private graph: AudioGraph | null = null;
   private ambient: AmbientHandle | null = null;
-  private score: ScoreHandle | null = null;
-  private readonly battleIntensity = new BattleIntensity();
-  private battleAurelianShare = 0;
+  private readonly battleScore = new BattleScoreDirector();
   private pendingAmbient: string | null = null;
   private terrain: TerrainMapData | null = null;
   private readonly heatTiers = new Map<number, HeatTier>();
   private readonly cueEvents: SimEvent[] = [];
   private readonly destroyedThisBatch = new Set<number>();
   private readonly knockedDownThisBatch = new Set<number>();
-  private mutedState = readMuted();
+  private mutedState = readAudioMuted();
   private destroyed = false;
 
   get muted(): boolean {
@@ -70,11 +64,7 @@ export class AudioDirector {
 
   toggleMuted(): boolean {
     this.mutedState = !this.mutedState;
-    try {
-      localStorage.setItem('ironline.muted', this.mutedState ? '1' : '0');
-    } catch {
-      // Private browsing; the preference just does not persist.
-    }
+    writeAudioMuted(this.mutedState);
     this.graph?.setMuted(this.mutedState);
     return this.mutedState;
   }
@@ -87,7 +77,7 @@ export class AudioDirector {
       return;
     }
     this.graph = AudioGraph.create(this.mutedState);
-    if (this.graph !== null) this.score = startBattleScore(this.graph, this.battleAurelianShare);
+    if (this.graph !== null) this.battleScore.unlock(this.graph);
     this.restartAmbient();
   }
 
@@ -101,14 +91,16 @@ export class AudioDirector {
     this.restartAmbient();
   }
 
+  /** Cache only culture that the presentation boundary may reveal at briefing. */
+  primeScore(world: World): void {
+    this.battleScore.prime(world);
+  }
+
   /** Every battle gets one context, and every context leaves with its battle. */
   destroy(): void {
     if (this.destroyed) return;
     this.destroyed = true;
-    this.score?.stop();
-    this.score = null;
-    this.battleIntensity.reset();
-    this.battleAurelianShare = 0;
+    this.battleScore.destroy();
     this.stopAmbient();
     this.terrain = null;
     this.heatTiers.clear();
@@ -126,6 +118,17 @@ export class AudioDirector {
     this.ambient = null;
   }
 
+  setMechbayScore(aurelianShare: number | null): void {
+    this.ambient?.stop();
+    this.ambient = null;
+    this.battleScore.setMechbay(aurelianShare);
+  }
+
+  clearMechbayScore(): void {
+    this.battleScore.clearMechbay();
+    this.restartAmbient();
+  }
+
   /** The battle's events, straight from the simulation and never written back. */
   consume(
     world: World,
@@ -134,15 +137,10 @@ export class AudioDirector {
     reducedMotion = false,
   ): void {
     const heatCue = this.updateHeat(world);
-    const cultureShare = battleCultureShare(world);
-    if (cultureShare !== null) this.battleAurelianShare = cultureShare;
+    this.battleScore.observe(world, events, playbackSpeed);
     const graph = this.graph;
     this.cueEvents.length = 0;
     if (graph === null) return;
-    this.score?.setState({
-      intensity: this.battleIntensity.advance(world, events),
-      aurelianShare: this.battleAurelianShare,
-    }, playbackSpeed);
     if (this.mutedState) return;
 
     this.destroyedThisBatch.clear();
@@ -322,7 +320,11 @@ export class AudioDirector {
   private restartAmbient(): void {
     this.ambient?.stop();
     this.ambient = null;
-    if (this.graph !== null && this.pendingAmbient !== null) {
+    if (
+      !this.battleScore.overridden
+      && this.graph !== null
+      && this.pendingAmbient !== null
+    ) {
       this.ambient = startAmbient(this.graph, this.pendingAmbient);
     }
   }
@@ -378,12 +380,4 @@ function isPlayerConsoleCue(world: World, event: SimEvent): boolean {
   if (event.type !== 'ability_used' && event.type !== 'alpha_strike') return false;
   const entity = entityOf(world, event.entityId);
   return entity !== null && entity.team === (world.playerTeam ?? 0);
-}
-
-function readMuted(): boolean {
-  try {
-    return localStorage.getItem('ironline.muted') === '1';
-  } catch {
-    return false;
-  }
 }

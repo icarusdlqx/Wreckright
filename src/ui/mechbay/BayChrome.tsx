@@ -16,6 +16,7 @@ interface Props {
   stored: readonly string[];
   saveable: boolean;
   status: BayStatus | null;
+  muted: boolean;
   onNameChange: (name: string) => void;
   onDesignPick: (design: Design) => void;
   canUndo?: boolean;
@@ -23,6 +24,7 @@ interface Props {
   onUndo?: () => void;
   onRedo?: () => void;
   onReset: () => void;
+  onToggleMuted: () => void;
   onExit: () => void;
   onSave: () => void;
   onExport: () => void;
@@ -38,6 +40,7 @@ export function BayChrome({
   stored,
   saveable,
   status,
+  muted,
   onNameChange,
   onDesignPick,
   canUndo = false,
@@ -45,6 +48,7 @@ export function BayChrome({
   onUndo,
   onRedo,
   onReset,
+  onToggleMuted,
   onExit,
   onSave,
   onExport,
@@ -117,6 +121,14 @@ export function BayChrome({
           data-testid="bay-reset-stock"
         >
           Reset to stock
+        </button>
+        <button
+          type="button"
+          onClick={onToggleMuted}
+          title={muted ? 'Sound is off' : 'Sound is on'}
+          data-testid="bay-mute-button"
+        >
+          {muted ? 'Sound off' : 'Sound on'}
         </button>
         <button type="button" onClick={onExit} data-testid="bay-exit">
           {commissioned ? commissionCancelLabel ?? 'Back to manifest' : 'Back to skirmish'}

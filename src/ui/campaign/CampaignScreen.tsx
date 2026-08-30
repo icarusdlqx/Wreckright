@@ -1,13 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  abandonContract,
-  acceptContract,
-  advanceDays,
-  availableNodes,
-  campaignOf,
-  deployableLance,
-  negotiationOptions,
-} from '../../campaign/campaign';
+import { abandonContract, acceptContract, advanceDays, availableNodes, campaignOf,
+  deployableLance, negotiationOptions } from '../../campaign/campaign';
 import {
   campaignBlob,
   campaignPersistenceStatus,
@@ -43,6 +36,7 @@ import { usePlaytest } from '../playtest';
 import { CampaignGuide } from './CampaignGuide';
 import { CampaignPrep } from './CampaignPrep';
 import { firstDropStage, type FirstDropPrep } from './firstDropGuide';
+import { useCampaignScore } from './useCampaignScore';
 
 const catalog = getCatalog();
 const CAMPAIGN_ID = 'border_dispute';
@@ -66,6 +60,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
   const [status, setStatus] = useState<string | null>(null);
   const enterBattle = useGame((game) => game.enterBattle);
   const { record } = usePlaytest();
+  const score = useCampaignScore(catalog, state);
 
   const campaign = campaignOf(catalog, state);
   const employers = useMemo(
@@ -205,6 +200,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         balance={cbills(state.cbills)}
         seed={state.seed}
         manualOpen={manualOpen}
+        muted={score.muted}
         persistence={persistence}
         advanceDisabled={state.finished}
         onAdvance={advanceDay}
@@ -250,6 +246,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
           );
         }}
         onToggleManual={() => setManualOpen((open) => !open)}
+        onToggleMuted={score.toggleMuted}
         onExit={() => {
           const saved = saveCampaign(state);
           setPersistence(saved.status);

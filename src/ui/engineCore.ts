@@ -61,6 +61,7 @@ export class Engine {
     this.world = world;
     this.renderer = renderer;
     this.maxTicks = maxTicks;
+    this.audio.primeScore(world);
     this.presentation = new EnginePresentation(world, renderer, this.audio, maxTicks, incomingFire);
   }
 

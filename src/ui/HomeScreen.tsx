@@ -3,6 +3,7 @@ import { loadCampaign } from '../campaign/save';
 import { getCatalog } from '../schema/load';
 import { createNewBattleCode, TRAINING_BATTLE_CODE } from './battleCode';
 import { usePlaytest } from './playtest';
+import { useStrategicScoreControls } from './StrategicScoreProvider';
 import { useGame } from './store';
 import {
   skipTraining,
@@ -22,6 +23,7 @@ export function HomeScreen() {
   const enterBattle = useGame((state) => state.enterBattle);
   const patch = useGame((state) => state.patch);
   const { record } = usePlaytest();
+  const score = useStrategicScoreControls();
 
   useEffect(() => {
     record({ name: 'front_door_viewed' });
@@ -36,6 +38,7 @@ export function HomeScreen() {
   };
 
   const campaign = (): void => {
+    score.prepare();
     record({ name: 'route_chosen', route: 'campaign' });
     skipTraining();
     patch({ screen: 'campaign', campaignPending: false, error: null });
