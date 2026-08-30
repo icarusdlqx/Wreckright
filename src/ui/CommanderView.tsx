@@ -76,6 +76,7 @@ export function CommanderView({ engine, compact = false }: CommanderViewProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [supportAim, setSupportAim] = useState<SupportAim | null>(null);
   const [cursor, setCursor] = useState<Vec2 | null>(null);
+  const [orderRevision, setOrderRevision] = useState(0);
   const model = useMemo(
     () =>
       engine === null
@@ -85,7 +86,7 @@ export function CommanderView({ engine, compact = false }: CommanderViewProps) {
             selection: state.selection,
             contacts: state.contacts,
           }),
-    [engine, state.contacts, state.playerTeam, state.selection, state.tick],
+    [engine, orderRevision, state.contacts, state.playerTeam, state.selection, state.tick],
   );
 
   useEffect(() => {
@@ -119,13 +120,14 @@ export function CommanderView({ engine, compact = false }: CommanderViewProps) {
     },
   ): void => {
     const current = useGame.getState();
-    routeCommanderOrder({
+    const result = routeCommanderOrder({
       engine,
       state: current,
       actions: currentActions(),
       target,
       pointer,
     });
+    if (result.kind !== 'ignored') setOrderRevision((revision) => revision + 1);
   };
 
   const onPointerDown = (event: ReactPointerEvent<SVGSVGElement>): void => {
