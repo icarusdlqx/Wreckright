@@ -106,6 +106,7 @@ export class Renderer {
     this.scene.fog = rig.fog;
 
     this.terrain = buildTerrain(world.terrain, mapData, rig.tint);
+    this.terrain.setLowFx(this.lowFx);
     this.scene.add(this.terrain.mesh);
     this.props = new PropLayer(world.terrain, mapData, this.terrain.heightAt, rig.tint);
     this.scene.add(this.props.group);
@@ -218,6 +219,7 @@ export class Renderer {
     this.effects.setPresentationMode(low);
     this.supportEffects.setPresentationMode(low);
     this.terrainFire.setPresentationMode(low, this.camera.reducedMotion);
+    this.terrain.setLowFx(low);
     this.resize();
     this.scene.traverse((node) => {
       const mesh = node as Mesh;
@@ -343,6 +345,7 @@ export class Renderer {
 
     this.camera.advance(deltaSeconds);
     this.camera.update(this.viewport);
+    this.terrain.setTime((world.tick + alpha) * world.dt);
     this.renderer.render(this.scene, this.camera.camera);
     this.effects.advance(presentationDelta);
   }
