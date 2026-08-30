@@ -8,7 +8,8 @@ import {
 import type { TerrainMapData } from '../schema/map';
 import type { TerrainGrid } from '../sim/terrain';
 import { mix, shade, TERRAIN_COLOURS } from '../render/palette';
-import { buildWaterSurface } from './waterSurface';
+import { buildRoadWear } from './roadWear';
+import { buildWaterSurface, type WaterSurface } from './waterSurface';
 
 /** Bare rock, for ground too steep to hold anything else. */
 const ROCK = 0x6d675d;
@@ -98,9 +99,13 @@ function cornerHeight(grid: TerrainGrid, column: number, row: number): number {
 export interface TerrainMesh {
   mesh: Mesh;
   /** One capped ripple draw for wet maps; null keeps dry maps at their old budget. */
-  waterSurface: Mesh | null;
+  waterSurface: WaterSurface | null;
   /** Ground height under a battlefield point, for standing mechs on the hills. */
   heightAt(x: number, y: number): number;
+  /** Suppress new presentation work while preserving the old low-FX draw budget. */
+  setLowFx(lowFx: boolean): void;
+  /** Absolute presentation time keeps shimmer deterministic and pause-safe. */
+  setTime(seconds: number): void;
 }
 
 /**
@@ -216,10 +221,30 @@ export function buildTerrain(
     }
   }
 
+  const heightAt = (x: number, y: number): number =>
+    sampleHeight(heights, across, grid, x, y);
+  const baseIndexCount = indices.length;
+  const baseVertexCount = positions.length / 3;
+  const roadWear = buildRoadWear(data, heightAt, tint);
+  const combinedPositions = new Float32Array(positions.length + roadWear.positions.length);
+  combinedPositions.set(positions);
+  combinedPositions.set(roadWear.positions, positions.length);
+  const combinedColours = new Float32Array(colours.length + roadWear.colours.length);
+  combinedColours.set(colours);
+  combinedColours.set(roadWear.colours, colours.length);
+  const combinedIndices = [
+    ...indices,
+    ...roadWear.indices.map((index) => baseVertexCount + index),
+  ];
+  const fullIndexCount = combinedIndices.length;
+
   const geometry = new BufferGeometry();
-  geometry.setAttribute('position', new BufferAttribute(positions, 3));
-  geometry.setAttribute('color', new BufferAttribute(colours, 3));
-  geometry.setIndex(indices);
+  geometry.setAttribute('position', new BufferAttribute(combinedPositions, 3));
+  geometry.setAttribute('color', new BufferAttribute(combinedColours, 3));
+  geometry.setIndex(combinedIndices);
+  geometry.setDrawRange(0, fullIndexCount);
+  geometry.userData.terrainBaseIndexCount = baseIndexCount;
+  geometry.userData.terrainFullIndexCount = fullIndexCount;
   geometry.computeVertexNormals();
 
   const mesh = new Mesh(
@@ -228,9 +253,18 @@ export function buildTerrain(
   );
   mesh.receiveShadow = true;
   mesh.name = 'terrain';
+  mesh.userData.roadWear = { ...roadWear.stats };
+  const raycastBaseTerrain = mesh.raycast.bind(mesh);
+  mesh.raycast = (raycaster, intersections): void => {
+    const { start, count } = geometry.drawRange;
+    geometry.setDrawRange(0, baseIndexCount);
+    try {
+      raycastBaseTerrain(raycaster, intersections);
+    } finally {
+      geometry.setDrawRange(start, count);
+    }
+  };
 
-  const heightAt = (x: number, y: number): number =>
-    sampleHeight(heights, across, grid, x, y);
   const waterSurface = buildWaterSurface(grid, data, heightAt);
   if (waterSurface !== null) mesh.add(waterSurface);
 
@@ -238,6 +272,13 @@ export function buildTerrain(
     mesh,
     waterSurface,
     heightAt,
+    setLowFx(lowFx: boolean): void {
+      geometry.setDrawRange(0, lowFx ? baseIndexCount : fullIndexCount);
+      waterSurface?.setLowFx(lowFx);
+    },
+    setTime(seconds: number): void {
+      waterSurface?.setTime(seconds);
+    },
   };
 }
 

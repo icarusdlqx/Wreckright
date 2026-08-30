@@ -1,4 +1,4 @@
-import { MeshBasicMaterial } from 'three';
+import { BufferAttribute, MeshBasicMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 import { catalog } from '../../tests/support';
 import { createTerrainGrid } from '../sim/terrain';
@@ -63,6 +63,46 @@ describe('procedural water surface', () => {
       expect(material.depthWrite).toBe(false);
       expect(material.opacity).toBeLessThanOrEqual(0.22);
     }
+
+    const surface = wet.waterSurface;
+    expect(surface).not.toBeNull();
+    if (surface === null) return;
+    const geometry = surface.geometry;
+    const position = geometry.getAttribute('position');
+    expect(position).toBeInstanceOf(BufferAttribute);
+    if (!(position instanceof BufferAttribute)) return;
+    const positionArray = position.array;
+    const positionVersion = position.version;
+    const materialId = surface.material.uuid;
+    const geometryId = geometry.uuid;
+
+    surface.setTime(1.25);
+    const first = surface.material.opacity;
+    surface.setTime(4.75);
+    const second = surface.material.opacity;
+    surface.setTime(1.25);
+    expect(surface.material.opacity).toBe(first);
+    expect(second).not.toBe(first);
+    expect(first).toBeGreaterThanOrEqual(0.1);
+    expect(first).toBeLessThanOrEqual(0.22);
+    expect(second).toBeGreaterThanOrEqual(0.1);
+    expect(second).toBeLessThanOrEqual(0.22);
+
+    surface.setLowFx(true);
+    expect(surface.visible).toBe(true);
+    expect(surface.material.opacity).toBe(0.2);
+    for (let step = 0; step < 1_000; step += 1) surface.setTime(step / 20);
+    expect(surface.material.opacity).toBe(0.2);
+    surface.setLowFx(false);
+    surface.setTime(4.75);
+    expect(surface.material.opacity).toBe(second);
+
+    expect(surface.geometry.uuid).toBe(geometryId);
+    expect(surface.material.uuid).toBe(materialId);
+    expect(surface.geometry.getAttribute('position')).toBe(position);
+    expect(position.array).toBe(positionArray);
+    expect(position.version).toBe(positionVersion);
+    expect(wet.mesh.children).toHaveLength(1);
   });
 
   it('lowers only waterborne mechs by roughly half their rendered height', () => {

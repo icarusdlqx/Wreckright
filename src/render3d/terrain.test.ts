@@ -1,3 +1,4 @@
+import { Raycaster, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
 import { catalog } from '../../tests/support';
 import { createTerrainGrid } from '../sim/terrain';
@@ -52,6 +53,57 @@ describe('render terrain height', () => {
         terrain.waterSurface.material.dispose();
       }
     }
+    if (Array.isArray(terrain.mesh.material)) {
+      terrain.mesh.material.forEach((material) => material.dispose());
+    } else {
+      terrain.mesh.material.dispose();
+    }
+  });
+
+  it('gates appended road wear out of the original low-FX draw range', () => {
+    const data = catalog.maps.get('causeway');
+    expect(data).toBeDefined();
+    if (data === undefined) return;
+    const grid = createTerrainGrid(data, catalog.rules.terrain);
+    const terrain = buildTerrain(grid, data);
+    const geometry = terrain.mesh.geometry;
+    const baseIndexCount = grid.width * grid.height * 6;
+    const fullIndexCount = geometry.index?.count ?? 0;
+
+    expect(geometry.userData.terrainBaseIndexCount).toBe(baseIndexCount);
+    expect(geometry.userData.terrainFullIndexCount).toBe(fullIndexCount);
+    expect(fullIndexCount).toBeGreaterThan(baseIndexCount);
+    expect(terrain.mesh.userData.roadWear).toMatchObject({
+      roadTiles: 80,
+      centreMarks: 80,
+    });
+    expect(terrain.mesh.children).toEqual([terrain.waterSurface]);
+    expect(geometry.drawRange).toEqual({ start: 0, count: fullIndexCount });
+
+    terrain.setLowFx(true);
+    expect(geometry.drawRange).toEqual({ start: 0, count: baseIndexCount });
+    expect(terrain.waterSurface?.visible).toBe(true);
+    expect(terrain.waterSurface?.material.opacity).toBe(0.2);
+    terrain.setLowFx(false);
+    expect(geometry.drawRange).toEqual({ start: 0, count: fullIndexCount });
+
+    const raycaster = new Raycaster(
+      new Vector3(492, 1_000, 492),
+      new Vector3(0, -1, 0),
+    );
+    const fullFxHits = raycaster.intersectObject(terrain.mesh, false);
+    expect(fullFxHits.length).toBeGreaterThan(0);
+    expect(fullFxHits.every((hit) => (hit.faceIndex ?? Infinity) < baseIndexCount / 3)).toBe(true);
+    expect(fullFxHits[0]?.point.y).toBeCloseTo(terrain.heightAt(492, 492), 6);
+    expect(geometry.drawRange).toEqual({ start: 0, count: fullIndexCount });
+    terrain.setLowFx(true);
+    const lowFxHits = raycaster.intersectObject(terrain.mesh, false);
+    expect(lowFxHits[0]?.point.y).toBeCloseTo(fullFxHits[0]?.point.y ?? Infinity, 6);
+    expect(geometry.drawRange).toEqual({ start: 0, count: baseIndexCount });
+
+    geometry.dispose();
+    terrain.waterSurface?.geometry.dispose();
+    terrain.waterSurface?.material.dispose();
     if (Array.isArray(terrain.mesh.material)) {
       terrain.mesh.material.forEach((material) => material.dispose());
     } else {

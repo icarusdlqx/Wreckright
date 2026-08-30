@@ -13,10 +13,32 @@ const MAX_GLINT_TILES = 700;
 const GLINT_TILE_DENSITY = 0.28;
 const SURFACE_LIFT = 0.22;
 const SUBMERGED_FRACTION = 0.46;
+const STATIC_OPACITY = 0.2;
 
 interface WaterTile {
   column: number;
   row: number;
+}
+
+/**
+ * The existing one-draw water glints, with a zero-allocation presentation
+ * clock. Low FX deliberately restores the old static opacity and then stops
+ * touching the material, preserving the previous draw and triangle budget.
+ */
+export class WaterSurface extends Mesh<BufferGeometry, MeshBasicMaterial> {
+  private lowFx = false;
+
+  setLowFx(lowFx: boolean): void {
+    this.lowFx = lowFx;
+    if (lowFx) this.material.opacity = STATIC_OPACITY;
+  }
+
+  setTime(seconds: number): void {
+    if (this.lowFx || !Number.isFinite(seconds)) return;
+    const time = Math.max(0, seconds);
+    this.material.opacity =
+      0.17 + Math.sin(time * 1.7) * 0.03 + Math.sin(time * 3.1 + 0.8) * 0.02;
+  }
 }
 
 /** Deterministic tile noise; water keeps the same highlights every load. */
@@ -58,7 +80,7 @@ export function buildWaterSurface(
   grid: TerrainGrid,
   data: TerrainMapData,
   heightAt: (x: number, y: number) => number,
-): Mesh | null {
+): WaterSurface | null {
   const tiles = cappedGlintTiles(grid, data);
   if (tiles.length === 0) return null;
 
@@ -110,12 +132,12 @@ export function buildWaterSurface(
   geometry.setIndex(indices);
   geometry.computeBoundingSphere();
 
-  const surface = new Mesh(
+  const surface = new WaterSurface(
     geometry,
     new MeshBasicMaterial({
       vertexColors: true,
       transparent: true,
-      opacity: 0.2,
+      opacity: STATIC_OPACITY,
       depthWrite: false,
     }),
   );
