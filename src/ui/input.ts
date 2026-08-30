@@ -1,6 +1,7 @@
 import type { MechEntity, Vec2 } from '../sim/types';
 import { isOperational } from '../sim/types';
 import { arrowPanDelta } from './cameraNavigation';
+import { commanderViewActive } from './commanderViewState';
 import type { Engine } from './engine';
 import { attachBattleKeyboard } from './inputKeyboard';
 import { createPointerGestureState, createPointerHandlers } from './inputPointer';
@@ -116,6 +117,9 @@ export function attachInput(engine: Engine, canvas: HTMLCanvasElement): () => vo
   const keyboard = attachBattleKeyboard(engine, () => {
     pointer.resetGesture();
     touchInput.cancelAll();
+    engine.hoveredId = null;
+    engine.cursorWorld = null;
+    canvas.style.cursor = 'default';
   });
 
   let lastCameraFrame = 0;
@@ -123,10 +127,11 @@ export function attachInput(engine: Engine, canvas: HTMLCanvasElement): () => vo
     const delta = lastCameraFrame === 0 ? 0 : Math.min(0.1, (now - lastCameraFrame) / 1000);
     lastCameraFrame = now;
 
-    if (battleFinished()) keyboard.held.clear();
+    const commanderActive = commanderViewActive();
+    if (battleFinished() || commanderActive) keyboard.held.clear();
     const speed = PAN_SPEED * delta * (engine.renderer.camera.distance / 620);
     const pan = arrowPanDelta(keyboard.held, speed);
-    if (!battleFinished() && (pan.x !== 0 || pan.y !== 0)) {
+    if (!battleFinished() && !commanderActive && (pan.x !== 0 || pan.y !== 0)) {
       engine.renderer.camera.panBy(pan.x, pan.y);
     }
 
@@ -136,7 +141,7 @@ export function attachInput(engine: Engine, canvas: HTMLCanvasElement): () => vo
       pointerState.marqueeFrom !== null ||
       engine.supportAim !== null ||
       touchInput.active;
-    if (pointerState.lastPointer !== null && !busy && !battleFinished()) {
+    if (pointerState.lastPointer !== null && !busy && !battleFinished() && !commanderActive) {
       const camera = engine.renderer.camera;
       const cameraKey = `${camera.target.x}:${camera.target.y}:${camera.distance}`;
       const moved = pointerState.pointerDirty || cameraKey !== lastCameraKey;

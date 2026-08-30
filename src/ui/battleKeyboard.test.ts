@@ -38,7 +38,7 @@ describe('battle keyboard gate', () => {
   });
 
   it('ignores key repeat for state toggles', () => {
-    for (const code of ['Space', 'KeyH', 'KeyP', 'KeyT']) {
+    for (const code of ['Backquote', 'Space', 'KeyH', 'KeyP', 'KeyT']) {
       expect(shouldIgnoreBattleKey({ ...context, code, repeat: true })).toBe(true);
     }
     expect(shouldIgnoreBattleKey({ ...context, code: 'Period', repeat: true })).toBe(false);

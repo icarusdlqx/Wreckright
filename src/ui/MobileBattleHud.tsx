@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { CommandPalette, type Command } from './CommandPalette';
 import { CentreSelectionButton } from './CentreSelectionButton';
+import { CommanderToggle } from './CommanderToggle';
 import { selectedTargetIds } from './ContactsBar';
 import type { Engine } from './engine';
 import { FormationPicker } from './FormationPicker';
@@ -128,6 +129,7 @@ export function MobileBattleHud({
             onSelect={(id) => state.setSelection([id])}
           />
           <CentreSelectionButton engine={engine} className="mobile-lance-action" />
+          {fullHud ? <CommanderToggle compact disabled={engine === null} /> : null}
           {fullHud && routeOrder ? (
             <button
               type="button"

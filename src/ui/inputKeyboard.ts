@@ -1,10 +1,12 @@
 import type { Engine } from './engine';
 import {
+  battleShortcutAllowedOnTarget,
   battleModalOpen,
   blocksBattleKey,
   isInteractiveKeyTarget,
   shouldIgnoreBattleKey,
 } from './battleKeyboard';
+import { resetCommanderView, toggleCommanderView } from './commanderViewState';
 import { useGame } from './store';
 
 interface AttachedBattleKeyboard {
@@ -16,18 +18,21 @@ export function attachBattleKeyboard(
   engine: Engine,
   cancelPointerGesture: () => void,
 ): AttachedBattleKeyboard {
+  resetCommanderView();
   const held = new Set<string>();
 
   const onKeyDown = (event: KeyboardEvent): void => {
     const state = useGame.getState();
+    const modalOpen = battleModalOpen();
+    const interactiveTarget = isInteractiveKeyTarget(event.target);
     if (
       shouldIgnoreBattleKey({
         briefingSeen: state.briefingSeen,
         finished: state.finished || engine.world.finished,
         interactiveTarget: blocksBattleKey(
           event.code,
-          isInteractiveKeyTarget(event.target),
-          battleModalOpen(),
+          interactiveTarget && !battleShortcutAllowedOnTarget(event.code, event.target),
+          modalOpen,
         ),
         code: event.code,
         repeat: event.repeat,
@@ -45,6 +50,11 @@ export function attachBattleKeyboard(
 
     held.add(event.code);
     switch (event.code) {
+      case 'Backquote':
+        event.preventDefault();
+        cancelPointerGesture();
+        toggleCommanderView();
+        return;
       case 'Space':
         event.preventDefault();
         engine.togglePause();
@@ -98,6 +108,7 @@ export function attachBattleKeyboard(
         break;
       case 'Escape':
         cancelPointerGesture();
+        resetCommanderView();
         state.setOrderMode(null);
         state.setSupportMode(null);
         state.setSelection([]);
@@ -148,6 +159,7 @@ export function attachBattleKeyboard(
   const onBlur = (): void => {
     held.clear();
     cancelPointerGesture();
+    resetCommanderView();
   };
 
   window.addEventListener('keydown', onKeyDown);
@@ -157,6 +169,7 @@ export function attachBattleKeyboard(
   return {
     held,
     detach: () => {
+      resetCommanderView();
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
       window.removeEventListener('blur', onBlur);

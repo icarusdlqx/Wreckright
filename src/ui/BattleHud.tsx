@@ -1,5 +1,7 @@
 import { CommandPalette, type Command } from './CommandPalette';
 import { CentreSelectionButton } from './CentreSelectionButton';
+import { CommanderToggle } from './CommanderToggle';
+import { CommanderView } from './CommanderView';
 import { selectedTargetIds } from './ContactsBar';
 import type { Engine } from './engine';
 import { FormationPicker } from './FormationPicker';
@@ -69,6 +71,7 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
   if (compact) {
     return (
       <>
+        {fullHud ? <CommanderView engine={engine} compact /> : null}
         <SensorSweepReadout world={engine?.world ?? null} />
         <MobileBattleHud
           engine={engine}
@@ -82,6 +85,7 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
 
   return (
     <>
+      {fullHud ? <CommanderView engine={engine} /> : null}
       <SensorSweepReadout world={engine?.world ?? null} />
       {fullHud ? <UnitPanel engine={engine} /> : null}
       {showsContacts ? (
@@ -103,6 +107,7 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
         ) : null}
         <div className="camera-lance-row">
           <CentreSelectionButton engine={engine} className="command camera-centre" />
+          <CommanderToggle disabled={engine === null} />
           <LanceBar
             units={state.units}
             selection={state.selection}

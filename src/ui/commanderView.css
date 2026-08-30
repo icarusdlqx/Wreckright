@@ -1,0 +1,298 @@
+.commander-view {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 86px 302px 184px 270px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(31, 50, 55, 0.34), transparent 48%),
+    rgba(4, 7, 9, 0.94);
+  pointer-events: auto;
+}
+
+.commander-view[hidden] {
+  display: none;
+}
+
+.commander-map-header,
+.commander-map-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  color: rgba(215, 226, 234, 0.72);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.commander-map-header strong {
+  color: var(--accent);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+}
+
+.commander-map-header span:last-child,
+.commander-map-footer span:last-child {
+  margin-left: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.commander-map-frame {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(140, 224, 255, 0.34);
+  border-radius: 5px;
+  background: #0a1113;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.8),
+    inset 0 0 48px rgba(0, 0, 0, 0.72),
+    0 18px 54px rgba(0, 0, 0, 0.34);
+}
+
+.commander-map {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: default;
+  touch-action: none;
+}
+
+.commander-map.ordering {
+  cursor: crosshair;
+}
+
+.commander-map-border {
+  fill: #0d1718;
+  stroke: rgba(140, 224, 255, 0.4);
+  vector-effect: non-scaling-stroke;
+}
+
+.commander-grid-major {
+  fill: url(#commander-grid);
+  opacity: 0.58;
+}
+
+.commander-zone {
+  fill-opacity: 0.12;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.commander-zone.contested {
+  stroke-dasharray: 7 5;
+  animation: commander-dash 2.4s linear infinite;
+}
+
+.commander-zone-label,
+.commander-chit-label,
+.commander-contact-label {
+  paint-order: stroke;
+  stroke: rgba(5, 8, 10, 0.95);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  fill: rgba(215, 226, 234, 0.84);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.commander-zone-label {
+  fill: rgba(215, 226, 234, 0.58);
+  text-anchor: middle;
+  text-transform: uppercase;
+}
+
+.commander-route {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.84;
+  pointer-events: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.commander-route.queued {
+  stroke-dasharray: 5 7;
+  opacity: 0.4;
+}
+
+.commander-route-origin,
+.commander-route-end {
+  fill: #0d1718;
+  stroke-width: 2;
+  pointer-events: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.commander-chit-hit,
+.commander-contact-hit {
+  fill: transparent;
+  stroke: transparent;
+  cursor: pointer;
+  pointer-events: all;
+}
+
+.commander-chit-body {
+  fill: #0d1718;
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.commander-chit.selected .commander-chit-body {
+  fill: rgba(140, 224, 255, 0.18);
+  stroke-width: 5;
+  filter: drop-shadow(0 0 5px rgba(140, 224, 255, 0.76));
+}
+
+.commander-facing {
+  fill: currentColor;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.commander-chit.optical .commander-chit-body {
+  fill: rgba(42, 13, 12, 0.88);
+}
+
+.commander-chit-label {
+  transform: translateY(29px);
+  text-anchor: middle;
+}
+
+.commander-contact-body {
+  fill: rgba(10, 13, 16, 0.82);
+  stroke: #ffc15c;
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.commander-contact.memory {
+  opacity: 0.42;
+}
+
+.commander-contact.current .commander-contact-body {
+  animation: commander-contact 1.8s ease-out infinite;
+}
+
+.commander-contact-label {
+  fill: #ffc15c;
+  transform: translateY(29px);
+  text-anchor: middle;
+}
+
+.commander-support-aim {
+  fill: rgba(255, 138, 107, 0.08);
+  stroke: var(--danger);
+  stroke-width: 2;
+  stroke-dasharray: 7 5;
+  pointer-events: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.commander-toggle {
+  min-height: 32px;
+  flex: none;
+  padding: 5px 10px;
+  border: 1px solid rgba(140, 224, 255, 0.28);
+  border-radius: 4px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.commander-toggle:hover,
+.commander-toggle.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.commander-mode .damage-readout,
+.commander-mode .incoming-fire-directions,
+.commander-mode .training-coach,
+.commander-mode .minimap {
+  display: none;
+}
+
+.commander-mode .objectives,
+.commander-mode .sidebar,
+.commander-mode .hostiles,
+.commander-mode .bottombar,
+.commander-mode .paused-banner {
+  z-index: 12;
+}
+
+@keyframes commander-contact {
+  0% {
+    stroke-width: 5;
+    stroke-opacity: 1;
+  }
+  100% {
+    stroke-width: 2;
+    stroke-opacity: 0.5;
+  }
+}
+
+@keyframes commander-dash {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .commander-zone.contested,
+  .commander-contact.current .commander-contact-body {
+    animation: none;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1180px) {
+  .commander-view {
+    padding-right: 208px;
+    padding-left: 216px;
+  }
+}
+
+@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+  .commander-view {
+    z-index: 28;
+    gap: 5px;
+    padding: calc(var(--mobile-top) + 6px) calc(8px + var(--safe-right))
+      calc(var(--mobile-dock) + 18px + var(--safe-bottom)) calc(8px + var(--safe-left));
+  }
+
+  .commander-map-header,
+  .commander-map-footer {
+    font-size: 8px;
+  }
+
+  .commander-map-header strong {
+    font-size: 10px;
+  }
+
+  .commander-chit-label,
+  .commander-contact-label,
+  .commander-zone-label {
+    display: none;
+  }
+
+  .mobile-lance-row .commander-toggle {
+    min-width: 54px;
+    min-height: 58px;
+    padding: 4px 6px;
+    font-size: 9px;
+  }
+}
