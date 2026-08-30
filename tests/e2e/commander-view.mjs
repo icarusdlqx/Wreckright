@@ -5,6 +5,14 @@ function closePoint(left, right, tolerance = 0.01) {
   return Math.abs(left.x - right.x) <= tolerance && Math.abs(left.y - right.y) <= tolerance;
 }
 
+function commanderMapPosition(point, bounds, mapSize) {
+  const scale = Math.min(bounds.width / mapSize.width, bounds.height / mapSize.height);
+  return {
+    x: (bounds.width - mapSize.width * scale) / 2 + point.x * scale,
+    y: (bounds.height - mapSize.height * scale) / 2 + point.y * scale,
+  };
+}
+
 export async function runCommanderViewChecks({ page, check, shots }) {
   process.stdout.write('\ncommander view\n');
   const view = page.locator('[data-testid="commander-view"]');
@@ -67,17 +75,49 @@ export async function runCommanderViewChecks({ page, check, shots }) {
   }));
   check('Commander arrow keys do not move the hidden field camera', closePoint(cameraBefore, cameraAfter));
 
+  const routeFixture = await page.evaluate(() => {
+    const { world, useGame } = globalThis.__wreckright;
+    const selected = useGame.getState().selection[0];
+    const entity = world.entities.find((entry) => entry.id === selected);
+    if (entity === undefined) throw new Error('Commander route fixture has no selected mech');
+
+    const terrain = world.terrain;
+    return {
+      entityId: entity.id,
+      mapSize: {
+        width: terrain.width * terrain.tileSize,
+        height: terrain.height * terrain.tileSize,
+      },
+      points: [
+        { x: 300, y: 756 },
+        { x: 420, y: 612 },
+        { x: 540, y: 492 },
+        { x: 660, y: 348 },
+      ],
+    };
+  });
   const bounds = await map.boundingBox();
   if (bounds === null) throw new Error('Commander map has no bounds');
-  const points = [
-    { x: bounds.width * 0.42, y: bounds.height * 0.42 },
-    { x: bounds.width * 0.57, y: bounds.height * 0.38 },
-    { x: bounds.width * 0.62, y: bounds.height * 0.56 },
-    { x: bounds.width * 0.47, y: bounds.height * 0.66 },
-  ];
+  const points = routeFixture.points.map((point) =>
+    commanderMapPosition(point, bounds, routeFixture.mapSize)
+  );
   await map.click({ button: 'right', position: points[0] });
-  for (const point of points.slice(1)) {
+  await page.waitForFunction(
+    (entityId) => {
+      const entity = globalThis.__wreckright.world.entities.find((entry) => entry.id === entityId);
+      return entity?.orders.move !== null;
+    },
+    routeFixture.entityId,
+  );
+  for (const [index, point] of points.slice(1).entries()) {
     await map.click({ button: 'right', modifiers: ['Shift'], position: point });
+    await page.waitForFunction(
+      ({ entityId, queueLength }) => {
+        const entity = globalThis.__wreckright.world.entities.find((entry) => entry.id === entityId);
+        return entity?.orders.queue.length === queueLength;
+      },
+      { entityId: routeFixture.entityId, queueLength: index + 1 },
+    );
   }
   await page.waitForFunction(
     () => document.querySelectorAll('.commander-route.queued').length >= 3,
