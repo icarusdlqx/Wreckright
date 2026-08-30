@@ -213,4 +213,39 @@ describe('terminal voice priority', () => {
     )).toBe(true);
     harness.audio.destroy();
   });
+
+  it('admits one ejection alert without spending either terminal reserve slot', () => {
+    vi.spyOn(performance, 'now').mockReturnValue(250);
+    const harness = saturatedAudio('terminal-priority-ejection');
+    const begin = vi.spyOn(harness.graph, 'begin');
+    const terminal = harness.events.at(-1);
+    if (terminal === undefined) throw new Error('audio test needs a terminal event');
+    const hostile = harness.world.entities.find(
+      (entity) => entity.team !== (harness.world.playerTeam ?? 0),
+    );
+    if (hostile === undefined || harness.world.vision === null) {
+      throw new Error('audio test needs a visible hostile');
+    }
+    harness.world.vision.visible.add(hostile.id);
+
+    harness.audio.consume(harness.world, [
+      ...harness.events.slice(0, -1),
+      { type: 'pilot_ejected', tick: harness.world.tick, entityId: hostile.id },
+      { type: 'pilot_ejected', tick: harness.world.tick, entityId: harness.target.id },
+      { type: 'pilot_ejected', tick: harness.world.tick, entityId: harness.target.id },
+      terminal,
+    ]);
+
+    const consoleAlerts = begin.mock.calls.filter((call, index) =>
+      call[0]?.distance === null && begin.mock.results[index]?.value !== null,
+    );
+    const terminals = begin.mock.calls.filter((call, index) =>
+      call[1] === 'terminal' && begin.mock.results[index]?.value !== null,
+    );
+    expect(consoleAlerts).toHaveLength(1);
+    expect(consoleAlerts[0]?.[0]).toEqual({ level: 0.12, distance: null });
+    expect(terminals).toHaveLength(TERMINAL_VOICE_RESERVE);
+    expect(harness.context.sources.every((source) => source.stops.length === 1)).toBe(true);
+    harness.audio.destroy();
+  });
 });
