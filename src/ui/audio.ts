@@ -14,6 +14,12 @@ import {
   type HeatTier,
 } from './audioCues';
 import { AudioGraph, type VoicePlacement } from './audioGraph';
+import {
+  BattleIntensity,
+  SCORE_CLOSE_DELAY_MS,
+  startBattleScore,
+  type ScoreHandle,
+} from './audioScore';
 import { playSupportResolution } from './audioSupport';
 import {
   playAbility,
@@ -45,6 +51,8 @@ export class AudioDirector {
 
   private graph: AudioGraph | null = null;
   private ambient: AmbientHandle | null = null;
+  private score: ScoreHandle | null = null;
+  private readonly battleIntensity = new BattleIntensity();
   private pendingAmbient: string | null = null;
   private terrain: TerrainMapData | null = null;
   private readonly heatTiers = new Map<number, HeatTier>();
@@ -77,6 +85,7 @@ export class AudioDirector {
       return;
     }
     this.graph = AudioGraph.create(this.mutedState);
+    if (this.graph !== null) this.score = startBattleScore(this.graph);
     this.restartAmbient();
   }
 
@@ -94,6 +103,9 @@ export class AudioDirector {
   destroy(): void {
     if (this.destroyed) return;
     this.destroyed = true;
+    this.score?.stop();
+    this.score = null;
+    this.battleIntensity.reset();
     this.stopAmbient();
     this.terrain = null;
     this.heatTiers.clear();
@@ -102,7 +114,7 @@ export class AudioDirector {
     this.knockedDownThisBatch.clear();
     const graph = this.graph;
     this.graph = null;
-    graph?.close();
+    graph?.close(SCORE_CLOSE_DELAY_MS);
   }
 
   stopAmbient(): void {
@@ -121,7 +133,9 @@ export class AudioDirector {
     const heatCue = this.updateHeat(world);
     const graph = this.graph;
     this.cueEvents.length = 0;
-    if (graph === null || this.mutedState) return;
+    if (graph === null) return;
+    this.score?.setIntensity(this.battleIntensity.advance(world, events), playbackSpeed);
+    if (this.mutedState) return;
 
     this.destroyedThisBatch.clear();
     this.knockedDownThisBatch.clear();

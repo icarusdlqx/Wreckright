@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { playerWorld } from '../../tests/support';
 import { AudioDirector } from './audio';
 import type { VoiceBus, VoiceFrame } from './audioGraph';
+import { SCORE_SOURCE_COUNT } from './audioScore';
 import { playSupportResolution, supportAudioCue } from './audioSupport';
 
 class FakeParam {
@@ -18,6 +19,8 @@ class FakeParam {
   setTargetAtTime(value: number): void {
     this.value = value;
   }
+
+  cancelScheduledValues(): void {}
 }
 
 class FakeNode {
@@ -172,7 +175,7 @@ describe('support audio voices', () => {
       { type: 'support_resolved', tick: world.tick, team: 1 - player, call: 'sensor_probe', x: 200, y: 200 },
     ]);
 
-    expect(FakeContext.instances.at(-1)?.sources).toHaveLength(9);
+    expect(FakeContext.instances.at(-1)?.sources).toHaveLength(SCORE_SOURCE_COUNT + 9);
     audio.destroy();
   });
 });

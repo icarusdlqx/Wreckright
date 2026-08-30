@@ -18,6 +18,7 @@ import {
   type DestructionVoiceProfile,
   type ImpactVoiceProfile,
 } from './audioWeapons';
+import { SCORE_CLOSE_DELAY_MS } from './audioScore';
 
 class FakeParam {
   value = 0;
@@ -37,6 +38,8 @@ class FakeParam {
   setTargetAtTime(value: number): void {
     this.value = value;
   }
+
+  cancelScheduledValues(): void {}
 }
 
 class FakeNode {
@@ -210,6 +213,7 @@ function firingEvent(world: World, entity: MechEntity): Extract<SimEvent, { type
 }
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
   FakeContext.instances.length = 0;
@@ -289,6 +293,7 @@ describe('field voice admission', () => {
   });
 
   it('bounds a thousand weapon events and closes every source with the battle', () => {
+    vi.useFakeTimers();
     vi.stubGlobal('AudioContext', FakeContext as unknown as typeof AudioContext);
     vi.spyOn(performance, 'now').mockReturnValue(250);
     const world = playerWorld('audio-thousand-events');
@@ -301,16 +306,20 @@ describe('field voice admission', () => {
     const audio = new AudioDirector();
     audio.listenAt = shooter.pos;
     audio.unlock();
+    const baseline = FakeContext.instances.at(-1)?.sources.length ?? 0;
     audio.consume(world, Array.from({ length: 1_000 }, () => ({ ...event })));
 
     const context = FakeContext.instances.at(-1);
     expect(context).toBeDefined();
     if (context === undefined) return;
-    expect(context.sources.length).toBeLessThanOrEqual(FIELD_VOICE_LIMIT * 15);
+    expect(context.sources.length).toBeLessThanOrEqual(baseline + FIELD_VOICE_LIMIT * 15);
+    expect(context.sources.slice(baseline).every((source) => source.stops.length === 1)).toBe(true);
+    expect(context.sources.slice(baseline).every((source) => Number.isFinite(source.stops[0]))).toBe(true);
+    audio.destroy();
+    audio.destroy();
     expect(context.sources.every((source) => source.stops.length === 1)).toBe(true);
-    expect(context.sources.every((source) => Number.isFinite(source.stops[0]))).toBe(true);
-    audio.destroy();
-    audio.destroy();
+    expect(context.closeCalls).toBe(0);
+    vi.advanceTimersByTime(SCORE_CLOSE_DELAY_MS);
     expect(context.closeCalls).toBe(1);
   });
 });
@@ -368,15 +377,16 @@ describe('audible visibility', () => {
     const context = FakeContext.instances.at(-1);
     expect(context).toBeDefined();
     if (context === undefined) return;
+    const baseline = context.sources.length;
 
     world.vision.visible.delete(enemy.id);
     const hiddenFire = firingEvent(world, enemy);
     audio.consume(world, Array.from({ length: 1_000 }, () => ({ ...hiddenFire })));
-    expect(context.sources).toHaveLength(0);
+    expect(context.sources).toHaveLength(baseline);
 
     world.vision.visible.add(enemy.id);
     audio.consume(world, [firingEvent(world, enemy)]);
-    expect(context.sources.length).toBeGreaterThan(0);
+    expect(context.sources.length).toBeGreaterThan(baseline);
     const afterFieldVoice = context.sources.length;
     audio.consume(world, [
       { type: 'ability_used', tick: world.tick, entityId: enemy.id, abilityId: 'brace' },
