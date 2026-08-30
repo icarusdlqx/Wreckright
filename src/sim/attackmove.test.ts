@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { playerWorld } from '../../tests/support';
 import { distance } from './math';
-import { issueMove } from './orders';
+import { issueMove, updatePlayerControl } from './orders';
 import type { MechEntity, World } from './types';
 import { stepWorld } from './world';
 
@@ -74,6 +74,33 @@ describe('attack-move', () => {
 });
 
 describe('waypoint queue', () => {
+  it('preserves every unpromoted tail while advancing three queued legs', () => {
+    const { world, mech, foe } = setup('wp-three-promotions');
+    foe.pos = { x: 24, y: 24 };
+    const start = { ...mech.pos };
+    const destinations = [40, 80, 120, 160].map((offset) => ({
+      x: start.x + offset,
+      y: start.y,
+    }));
+    const active = destinations[0];
+    if (active === undefined) throw new Error('active destination missing');
+    expect(issueMove(world, mech, active, false)).toBe(true);
+    for (const queued of destinations.slice(1)) {
+      expect(issueMove(world, mech, queued, false, { queued: true })).toBe(true);
+    }
+    expect(mech.orders.queue).toHaveLength(3);
+
+    for (let promotion = 0; promotion < 3; promotion += 1) {
+      const arrived = destinations[promotion];
+      const next = destinations[promotion + 1];
+      if (arrived === undefined || next === undefined) throw new Error('route leg missing');
+      mech.pos = { ...arrived };
+      updatePlayerControl(world, mech);
+      expect(mech.orders.move?.to).toEqual(next);
+      expect(mech.orders.queue).toHaveLength(2 - promotion);
+    }
+  });
+
   it('walks queued legs in order and finishes at the last one', () => {
     const { world, mech, foe } = setup('wp');
     foe.pos = { x: 24, y: 24 };

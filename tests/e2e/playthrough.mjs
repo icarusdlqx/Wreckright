@@ -20,6 +20,7 @@ import { runAdaptiveScoreTreatmentChecks } from './adaptive-score-treatments.mjs
 import { runLastSilentMomentsChecks } from './last-silent-moments.mjs';
 import { runCommanderViewChecks } from './commander-view.mjs';
 import { runMinimapControlChecks } from './minimap-control.mjs';
+import { runReadableRouteChecks } from './readable-routes.mjs';
 import { runCampaignRecovery } from './campaign-recovery.mjs';
 import { runMobilePlaythrough } from './mobile-playthrough.mjs';
 import { runRangeDamageChartChecks } from './range-damage-chart.mjs';
@@ -846,6 +847,7 @@ async function main() {
     check('resource points are shown', (await page.locator('[data-testid="resource-points"]').innerText()).includes('RP'));
     await runMinimapControlChecks({ page, check, shots: SHOTS });
     await runCommanderViewChecks({ page, check, shots: SHOTS });
+    await runReadableRouteChecks({ page, check, shots: SHOTS });
     await runDesktopSupportChecks({ page, check, state, mission, shots: SHOTS });
 
     const triggered = await page.evaluate(async () => {

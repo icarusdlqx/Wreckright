@@ -21,6 +21,7 @@ import { TacticalCamera, type Viewport } from './camera';
 import { FogLayer } from './fog';
 import { Locomotion } from './locomotion';
 import { MarkerLayer, type MarkerViewState } from './markerLayer';
+import type { RouteMarkerStats } from './routeMarkerPool';
 import { PropLayer } from './props';
 import {
   configureRenderer,
@@ -188,6 +189,10 @@ export class Renderer {
     return rendererStats(this.renderer.info);
   }
 
+  get routeMarkerStats(): RouteMarkerStats {
+    return this.markers.routeMarkerStats;
+  }
+
   get firePresentationStats(): TerrainFireStats {
     return this.terrainFire.stats();
   }
@@ -336,7 +341,7 @@ export class Renderer {
     this.effects.finishFrame(presentationDelta);
     this.supportEffects.draw(world, presentationDelta);
     this.terrainFire.draw(world, presentationDelta);
-    this.markers.draw(world, view);
+    this.markers.draw(world, view, deltaSeconds, this.camera.reducedMotion);
     if (world.tick !== this.visionTick) {
       this.visionTick = world.tick;
       this.fog.update(world.terrain, world.vision);

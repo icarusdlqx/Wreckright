@@ -11,7 +11,16 @@ import {
 import { teamColour, UI } from '../render/palette';
 import { effectiveSensorRange } from '../sim/sensors';
 import type { PendingCall } from '../sim/support';
-import { isOperational, type EntityId, type MechEntity, type Vec2, type World } from '../sim/types';
+import {
+  findEntity,
+  isOperational,
+  type EntityId,
+  type MechEntity,
+  type Vec2,
+  type World,
+} from '../sim/types';
+import { RouteMarkerPool, type RouteMarkerStats } from './routeMarkerPool';
+import type { RouteMarkerView } from './routeMarkerTypes';
 import { canPresentEntity, canPresentSupportCall } from './visibilityPresentation';
 
 export interface MarkerViewState {
@@ -19,10 +28,10 @@ export interface MarkerViewState {
   orderMode: 'move' | 'run' | 'attack' | 'attack_move' | 'called_shot' | 'jump' | null;
   supportRadius: { at: Vec2; radius: number } | null;
   supportRun: { at: Vec2; heading: number; length: number; width: number } | null;
+  routes: readonly RouteMarkerView[];
 }
 
 const REACHES: number[] = [];
-const PATH_POINTS = 128;
 
 /** Pooled battlefield annotations, kept out of the scene's orchestration. */
 export class MarkerLayer {
@@ -32,13 +41,7 @@ export class MarkerLayer {
   private readonly markerMaterials = new Map<string, MeshBasicMaterial>();
   private readonly ringPool: Mesh[] = [];
   private ringsUsed = 0;
-  private readonly pathPool: Line[] = [];
-  private pathsUsed = 0;
-  private readonly pathMaterial = new LineBasicMaterial({
-    color: UI.moveMarker,
-    transparent: true,
-    opacity: 0.7,
-  });
+  private readonly routes: RouteMarkerPool;
   private readonly supportLaneMaterial = new LineBasicMaterial({
     color: UI.attackMarker,
     transparent: true,
@@ -56,21 +59,25 @@ export class MarkerLayer {
     this.supportLane = new Line(geometry, this.supportLaneMaterial);
     this.supportLane.frustumCulled = false;
     this.supportLane.visible = false;
-    this.group.add(this.supportLane);
+    this.routes = new RouteMarkerPool(heightAt);
+    this.group.add(this.supportLane, this.routes.group);
   }
 
   dispose(): void {
     for (const geometry of this.ringGeometries.values()) geometry.dispose();
     for (const material of this.markerMaterials.values()) material.dispose();
-    for (const line of this.pathPool) line.geometry.dispose();
-    this.pathMaterial.dispose();
+    this.routes.dispose();
     this.supportLane.geometry.dispose();
     this.supportLaneMaterial.dispose();
   }
 
-  draw(world: World, view: MarkerViewState): void {
+  get routeMarkerStats(): RouteMarkerStats {
+    return this.routes.stats;
+  }
+
+  draw(world: World, view: MarkerViewState, deltaSeconds = 0, reducedMotion = false): void {
     this.ringsUsed = 0;
-    this.pathsUsed = 0;
+    this.routes.begin(deltaSeconds, reducedMotion);
 
     for (const zone of world.zones) {
       const colour = zone.owner === null ? UI.ghost : teamColour(zone.owner);
@@ -123,17 +130,31 @@ export class MarkerLayer {
       ) {
         this.weaponReaches(world, entity);
       }
-
-      if (entity.path.length > 0) this.pathLine(entity);
     }
+
+    if (world.playerTeam !== null) {
+      for (const route of view.routes) {
+        const entity = findEntity(world, route.entityId);
+        if (
+          entity === null ||
+          !view.selection.has(entity.id) ||
+          !isOperational(entity) ||
+          !canPresentEntity(world, entity.id) ||
+          entity.team !== world.playerTeam ||
+          route.team !== world.playerTeam
+        ) continue;
+        this.routes.add(
+          route,
+          this.positionOf(route.entityId) ?? entity.pos,
+          world.terrain.tileSize,
+        );
+      }
+    }
+    this.routes.commit();
 
     for (let index = this.ringsUsed; index < this.ringPool.length; index += 1) {
       const ring = this.ringPool[index];
       if (ring !== undefined) ring.visible = false;
-    }
-    for (let index = this.pathsUsed; index < this.pathPool.length; index += 1) {
-      const line = this.pathPool[index];
-      if (line !== undefined) line.visible = false;
     }
   }
 
@@ -238,32 +259,5 @@ export class MarkerLayer {
     });
     this.markerMaterials.set(key, fresh);
     return fresh;
-  }
-
-  private pathLine(entity: MechEntity): void {
-    let line = this.pathPool[this.pathsUsed];
-    if (line === undefined) {
-      const geometry = new BufferGeometry();
-      geometry.setAttribute('position', new BufferAttribute(new Float32Array(PATH_POINTS * 3), 3));
-      line = new Line(geometry, this.pathMaterial);
-      line.frustumCulled = false;
-      this.group.add(line);
-      this.pathPool.push(line);
-    }
-    this.pathsUsed += 1;
-
-    const positions = line.geometry.getAttribute('position') as BufferAttribute;
-    const at = this.positionOf(entity.id) ?? entity.pos;
-    positions.setXYZ(0, at.x, this.heightAt(at.x, at.y) + 1.5, at.y);
-    let count = 1;
-    for (let index = entity.pathIndex; index < entity.path.length && count < PATH_POINTS; index += 1) {
-      const point = entity.path[index];
-      if (point === undefined) break;
-      positions.setXYZ(count, point.x, this.heightAt(point.x, point.y) + 1.5, point.y);
-      count += 1;
-    }
-    positions.needsUpdate = true;
-    line.geometry.setDrawRange(0, count);
-    line.visible = true;
   }
 }

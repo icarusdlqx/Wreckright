@@ -205,6 +205,7 @@ export class Engine {
         selectionBox: this.selectionBox,
         supportRadius: this.supportArea(state.supportMode),
         supportRun: this.supportRun(state.supportMode),
+        routes: this.presentation.routeMarkers(this.selectionSet),
       },
       presentationDelta,
     );
