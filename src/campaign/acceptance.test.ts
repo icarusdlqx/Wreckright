@@ -18,6 +18,7 @@ import { campaignOutcomeCount } from './history';
 import { fitFromStore, planFit, rebuildHulk } from './refit';
 import { estimateRepair, startRepair } from './repair';
 import { assessSolvency, retireCompany } from './solvency';
+import { registerAurelianAcceptance } from './aurelianAcceptance';
 import {
   isPilotAvailable,
   storeCount,
@@ -349,3 +350,5 @@ describe('campaign contracts', () => {
     });
   });
 });
+
+registerAurelianAcceptance();
