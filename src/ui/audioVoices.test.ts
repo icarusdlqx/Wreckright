@@ -4,6 +4,7 @@ import type { TerrainMapData } from '../schema/map';
 import { AudioDirector } from './audio';
 import { startAmbient } from './audioAmbient';
 import { AudioGraph, type VoiceBus, type VoiceFrame } from './audioGraph';
+import { SCORE_CLOSE_DELAY_MS } from './audioScore';
 import {
   playAbility,
   playAlphaStrike,
@@ -35,6 +36,8 @@ class FakeParam {
   setTargetAtTime(value: number): void {
     this.value = value;
   }
+
+  cancelScheduledValues(): void {}
 }
 
 class FakeNode {
@@ -260,6 +263,7 @@ describe('faction audio voices', () => {
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllGlobals();
   FakeContext.instances.length = 0;
 });
@@ -305,6 +309,7 @@ describe('the battle audio lifetime', () => {
 
     const audio = new AudioDirector();
     audio.unlock();
+    const baseline = FakeContext.instances.at(-1)?.sources.length ?? 0;
     audio.listenAt = sealed.pos;
     audio.consume(world, [
       {
@@ -315,8 +320,8 @@ describe('the battle audio lifetime', () => {
         weaponId: sealedWeapon.weaponId,
       },
     ]);
-    const starts = FakeContext.instances.at(-1)?.sources.map((source) => source.starts[0] ?? 0) ?? [];
-    expect(starts.slice(2).some((at) => at === 5)).toBe(true);
+    const sources = FakeContext.instances.at(-1)?.sources.slice(baseline) ?? [];
+    expect(sources.some((source) => source.starts[0] === 5)).toBe(true);
     audio.destroy();
   });
 
@@ -352,6 +357,7 @@ describe('the battle audio lifetime', () => {
   });
 
   it('routes the new events and cancels their pending sources on destroy', () => {
+    vi.useFakeTimers();
     vi.stubGlobal('AudioContext', FakeContext as unknown as typeof AudioContext);
     const audio = new AudioDirector();
     const map: TerrainMapData = {
@@ -395,6 +401,8 @@ describe('the battle audio lifetime', () => {
     expect(context.sources.slice(ambient.length).every((source) => source.stops.length === 1)).toBe(true);
     audio.destroy();
     expect(ambient.every((source) => source.stops.length === 1)).toBe(true);
+    expect(context.closeCalls).toBe(0);
+    vi.advanceTimersByTime(SCORE_CLOSE_DELAY_MS);
     expect(context.closeCalls).toBe(1);
   });
 });

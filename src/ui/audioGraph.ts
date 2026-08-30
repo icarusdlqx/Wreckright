@@ -31,6 +31,16 @@ export const FIELD_VOICE_LIMIT = 8;
 export const FIELD_VOICE_WINDOW_MS = 100;
 /** A terminal blast and its landing must survive an already saturated volley. */
 export const TERMINAL_VOICE_RESERVE = 2;
+/** Restart storms may leave at most two contexts finishing their short fade. */
+export const PENDING_AUDIO_CLOSE_LIMIT = 2;
+
+const MAX_AUDIO_CLOSE_DELAY_MS = 1_000;
+
+interface PendingAudioClose {
+  finish(): void;
+}
+
+const pendingAudioCloses: PendingAudioClose[] = [];
 
 /** The shared graph and the admission control in front of every one-shot. */
 export class AudioGraph implements VoiceBus, AmbientBus {
@@ -75,10 +85,35 @@ export class AudioGraph implements VoiceBus, AmbientBus {
     if (!this.closed && this.context.state === 'suspended') void this.context.resume();
   }
 
-  close(): void {
+  close(delayMs = 0): void {
     if (this.closed) return;
     this.closed = true;
-    void this.context.close().catch(() => undefined);
+    const boundedDelay = Number.isFinite(delayMs)
+      ? Math.min(MAX_AUDIO_CLOSE_DELAY_MS, Math.max(0, delayMs))
+      : 0;
+    if (boundedDelay === 0) {
+      closeContext(this.context);
+      return;
+    }
+
+    while (pendingAudioCloses.length >= PENDING_AUDIO_CLOSE_LIMIT) {
+      pendingAudioCloses[0]?.finish();
+    }
+
+    let finished = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const pending: PendingAudioClose = {
+      finish: (): void => {
+        if (finished) return;
+        finished = true;
+        if (timer !== null) clearTimeout(timer);
+        const index = pendingAudioCloses.indexOf(pending);
+        if (index >= 0) pendingAudioCloses.splice(index, 1);
+        closeContext(this.context);
+      },
+    };
+    pendingAudioCloses.push(pending);
+    timer = setTimeout(pending.finish, boundedDelay);
   }
 
   /** Refuses excess field voices before they can allocate a source node. */
@@ -133,6 +168,14 @@ export class AudioGraph implements VoiceBus, AmbientBus {
     this.seed ^= this.seed >>> 17;
     this.seed ^= this.seed << 5;
     return ((this.seed >>> 0) % 10_000) / 10_000;
+  }
+}
+
+function closeContext(context: AudioContext): void {
+  try {
+    void context.close().catch(() => undefined);
+  } catch {
+    // A browser may synchronously reject a context already being discarded.
   }
 }
 
