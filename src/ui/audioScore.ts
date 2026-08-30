@@ -1,7 +1,18 @@
 import { canPresentEntity } from '../render3d/visibilityPresentation';
 import type { SimEvent } from '../sim/events';
 import { isOperational, type MechEntity, type World } from '../sim/types';
-import type { AmbientBus } from './audioGraph';
+
+export {
+  SCORE_CLOSE_DELAY_MS,
+  SCORE_FILTER_COUNT,
+  SCORE_GAIN_COUNT,
+  SCORE_NODE_COUNT,
+  SCORE_RETARGET_INTERVAL_SECONDS,
+  SCORE_SOURCE_COUNT,
+  fullLayerLevel,
+  startBattleScore,
+} from './audioScoreGraph';
+export type { ScoreHandle, ScoreState } from './audioScoreGraph';
 
 const INTENSITY_HALF_LIFE_SECONDS = 4.5;
 const MOVEMENT_FLOOR = 0.12;
@@ -10,13 +21,6 @@ const SENSOR_CONTACT_FLOOR = 0.3;
 const OPTICAL_CONTACT_FLOOR = 0.38;
 const NEW_CONTACT_IMPULSE = 0.12;
 const NEW_CONTACT_IMPULSE_LIMIT = 0.24;
-
-/** Four standing sources, independent of the bounded one-shot voice pool. */
-export const SCORE_SOURCE_COUNT = 4;
-/** Gain automation never grows faster than eight retargets per real second. */
-export const SCORE_RETARGET_INTERVAL_SECONDS = 0.125;
-/** Leaves five fade constants before the shared context releases its graph. */
-export const SCORE_CLOSE_DELAY_MS = 120;
 
 /**
  * Presentation-only pressure. It follows simulation time without feeding any
@@ -93,133 +97,6 @@ export class BattleIntensity {
     const bounded = clamp01(weight);
     this.current += (1 - this.current) * bounded;
   }
-}
-
-export interface ScoreHandle {
-  setIntensity(value: number, playbackSpeed?: number): void;
-  stop(): void;
-}
-
-type ScoreBus = Pick<AmbientBus, 'context' | 'master'>;
-
-const SCORE_LEVEL = 0.052;
-const AUTOMATION_EPSILON = 0.004;
-const ATTACK_SECONDS = 0.6;
-const RELEASE_SECONDS = 1.6;
-const STOP_TIME_CONSTANT_SECONDS = 0.02;
-const SOURCE_STOP_SECONDS = 0.1;
-
-/** Builds the battle's two continuous score layers under the shared master. */
-export function startBattleScore(bus: ScoreBus): ScoreHandle {
-  const now = bus.context.currentTime;
-  const scoreLevel = bus.context.createGain();
-  scoreLevel.gain.value = 0;
-  scoreLevel.connect(bus.master);
-  scoreLevel.gain.setTargetAtTime(SCORE_LEVEL, now, 1.2);
-
-  const droneLayer = bus.context.createGain();
-  droneLayer.gain.value = 0;
-  droneLayer.connect(scoreLevel);
-  droneLayer.gain.setTargetAtTime(droneLevel(0), now, 1.2);
-  const droneFilter = bus.context.createBiquadFilter();
-  droneFilter.type = 'lowpass';
-  droneFilter.frequency.value = 190;
-  droneFilter.Q.value = 0.7;
-  droneFilter.connect(droneLayer);
-
-  const root = bus.context.createOscillator();
-  root.type = 'triangle';
-  root.frequency.value = 43.65;
-  const rootLevel = bus.context.createGain();
-  rootLevel.gain.value = 0.56;
-  root.connect(rootLevel).connect(droneFilter);
-
-  const fifth = bus.context.createOscillator();
-  fifth.type = 'sine';
-  fifth.frequency.value = 65.41;
-  const fifthLevel = bus.context.createGain();
-  fifthLevel.gain.value = 0.22;
-  fifth.connect(fifthLevel).connect(droneFilter);
-
-  const pulseLayer = bus.context.createGain();
-  pulseLayer.gain.value = 0;
-  pulseLayer.connect(scoreLevel);
-  pulseLayer.gain.setTargetAtTime(pulseLevelFor(0), now, 1.2);
-  const pulseFilter = bus.context.createBiquadFilter();
-  pulseFilter.type = 'lowpass';
-  pulseFilter.frequency.value = 520;
-  pulseFilter.Q.value = 0.9;
-  pulseFilter.connect(pulseLayer);
-
-  const pulseGate = bus.context.createGain();
-  pulseGate.gain.value = 0.5;
-  pulseGate.connect(pulseFilter);
-  const pulse = bus.context.createOscillator();
-  pulse.type = 'triangle';
-  pulse.frequency.value = 87.31;
-  const pulseLevel = bus.context.createGain();
-  pulseLevel.gain.value = 0.34;
-  pulse.connect(pulseLevel).connect(pulseGate);
-
-  const pulseLfo = bus.context.createOscillator();
-  pulseLfo.type = 'sine';
-  pulseLfo.frequency.value = pulseRate(0);
-  const pulseDepth = bus.context.createGain();
-  pulseDepth.gain.value = 0.44;
-  pulseLfo.connect(pulseDepth);
-  pulseDepth.connect(pulseGate.gain);
-
-  const sources: OscillatorNode[] = [root, fifth, pulse, pulseLfo];
-  for (const source of sources) source.start(now);
-
-  let stopped = false;
-  let lastIntensity = 0;
-  let lastDrone = droneLevel(0);
-  let lastPulse = pulseLevelFor(0);
-  let lastRate = pulseRate(0);
-  let lastRetargetAt = Number.NEGATIVE_INFINITY;
-
-  return {
-    setIntensity: (rawValue: number, playbackSpeed = 1): void => {
-      if (stopped) return;
-      const value = clamp01(Number.isFinite(rawValue) ? rawValue : 0);
-      const nextDrone = droneLevel(value);
-      const nextPulse = pulseLevelFor(value);
-      const nextRate = pulseRate(value);
-      if (
-        Math.abs(nextDrone - lastDrone) < AUTOMATION_EPSILON
-        && Math.abs(nextPulse - lastPulse) < AUTOMATION_EPSILON
-        && Math.abs(nextRate - lastRate) < AUTOMATION_EPSILON
-      ) return;
-
-      const at = bus.context.currentTime;
-      const elapsed = at - lastRetargetAt;
-      if (elapsed >= 0 && elapsed < SCORE_RETARGET_INTERVAL_SECONDS) return;
-      const speed = sanitiseSpeed(playbackSpeed);
-      const seconds = (value >= lastIntensity ? ATTACK_SECONDS : RELEASE_SECONDS) / speed;
-      retarget(droneLayer.gain, nextDrone, at, seconds);
-      retarget(pulseLayer.gain, nextPulse, at, seconds);
-      retarget(pulseLfo.frequency, nextRate, at, seconds);
-      lastIntensity = value;
-      lastDrone = nextDrone;
-      lastPulse = nextPulse;
-      lastRate = nextRate;
-      lastRetargetAt = at;
-    },
-    stop: (): void => {
-      if (stopped) return;
-      stopped = true;
-      const at = bus.context.currentTime;
-      retarget(scoreLevel.gain, 0, at, STOP_TIME_CONSTANT_SECONDS);
-      for (const source of sources) {
-        try {
-          source.stop(at + SOURCE_STOP_SECONDS);
-        } catch {
-          // Closing the context has already ended the same finite lifetime.
-        }
-      }
-    },
-  };
 }
 
 function contactState(world: World): { ids: number[]; optical: boolean; sensor: boolean } {
@@ -328,33 +205,6 @@ function pointIsPresentable(world: World, x: number, y: number): boolean {
   const tile = world.terrain.toTile({ x, y });
   if (!world.terrain.inBounds(tile.column, tile.row)) return false;
   return vision.tiles[tile.row * world.terrain.width + tile.column] === 1;
-}
-
-function droneLevel(intensity: number): number {
-  return 0.58 + intensity * 0.22;
-}
-
-function pulseLevelFor(intensity: number): number {
-  const mix = smoothstep(0.14, 0.52, intensity);
-  return mix * (0.32 + intensity * 0.46);
-}
-
-function pulseRate(intensity: number): number {
-  return 0.72 + intensity * 1.45;
-}
-
-function retarget(param: AudioParam, value: number, at: number, seconds: number): void {
-  param.cancelScheduledValues(at);
-  param.setTargetAtTime(value, at, Math.max(0.01, seconds));
-}
-
-function sanitiseSpeed(value: number): number {
-  return Number.isFinite(value) && value > 0 ? Math.min(4, Math.max(0.25, value)) : 1;
-}
-
-function smoothstep(from: number, to: number, value: number): number {
-  const t = clamp01((value - from) / (to - from));
-  return t * t * (3 - 2 * t);
 }
 
 function clamp01(value: number): number {

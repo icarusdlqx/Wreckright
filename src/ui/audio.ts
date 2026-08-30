@@ -20,6 +20,7 @@ import {
   startBattleScore,
   type ScoreHandle,
 } from './audioScore';
+import { battleCultureShare } from './audioScoreVoicing';
 import { playSupportResolution } from './audioSupport';
 import {
   playAbility,
@@ -53,6 +54,7 @@ export class AudioDirector {
   private ambient: AmbientHandle | null = null;
   private score: ScoreHandle | null = null;
   private readonly battleIntensity = new BattleIntensity();
+  private battleAurelianShare = 0;
   private pendingAmbient: string | null = null;
   private terrain: TerrainMapData | null = null;
   private readonly heatTiers = new Map<number, HeatTier>();
@@ -85,7 +87,7 @@ export class AudioDirector {
       return;
     }
     this.graph = AudioGraph.create(this.mutedState);
-    if (this.graph !== null) this.score = startBattleScore(this.graph);
+    if (this.graph !== null) this.score = startBattleScore(this.graph, this.battleAurelianShare);
     this.restartAmbient();
   }
 
@@ -106,6 +108,7 @@ export class AudioDirector {
     this.score?.stop();
     this.score = null;
     this.battleIntensity.reset();
+    this.battleAurelianShare = 0;
     this.stopAmbient();
     this.terrain = null;
     this.heatTiers.clear();
@@ -131,10 +134,15 @@ export class AudioDirector {
     reducedMotion = false,
   ): void {
     const heatCue = this.updateHeat(world);
+    const cultureShare = battleCultureShare(world);
+    if (cultureShare !== null) this.battleAurelianShare = cultureShare;
     const graph = this.graph;
     this.cueEvents.length = 0;
     if (graph === null) return;
-    this.score?.setIntensity(this.battleIntensity.advance(world, events), playbackSpeed);
+    this.score?.setState({
+      intensity: this.battleIntensity.advance(world, events),
+      aurelianShare: this.battleAurelianShare,
+    }, playbackSpeed);
     if (this.mutedState) return;
 
     this.destroyedThisBatch.clear();

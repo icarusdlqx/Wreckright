@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { playerWorld } from '../../tests/support';
 import type { SimEvent } from '../sim/events';
 import type { MechEntity, World } from '../sim/types';
-import { BattleIntensity } from './audioScore';
+import { BattleIntensity, fullLayerLevel } from './audioScore';
 
 function silentWorld(seed: string): World {
   const world = playerWorld(seed);
@@ -111,31 +111,55 @@ describe('battle intensity', () => {
     expect(intensity.advance(world, [])).toBe(0);
   });
 
-  it('builds a sustained volley, reserves the future full layer, and clamps floods', () => {
+  it('builds the full layer from sustained fire and friendly damage, then clamps floods', () => {
     const singleWorld = silentWorld('score-single');
     const singleEvent = fired(singleWorld, teams(singleWorld).ally);
     const single = new BattleIntensity().advance(singleWorld, [singleEvent]);
+    expect(single).toBeCloseTo(0.08);
+    expect(fullLayerLevel(single)).toBe(0);
 
     const volleyWorld = silentWorld('score-volley');
     const volleyEvent = fired(volleyWorld, teams(volleyWorld).ally);
-    const volley = new BattleIntensity().advance(
-      volleyWorld,
-      Array.from({ length: 8 }, () => ({ ...volleyEvent })),
-    );
-    expect(volley).toBeGreaterThan(single);
+    const volleyIntensity = new BattleIntensity();
+    let volley = 0;
+    for (let shot = 0; shot < 12; shot += 1) {
+      volleyWorld.tick = shot * 5;
+      volley = volleyIntensity.advance(volleyWorld, [{ ...volleyEvent, tick: volleyWorld.tick }]);
+    }
+    expect(volley).toBeGreaterThan(0.46);
+    expect(fullLayerLevel(volley)).toBeGreaterThan(0);
 
     const criticalWorld = silentWorld('score-critical');
     const { ally, enemies } = teams(criticalWorld);
-    detect(criticalWorld, enemies[0]!, 'optical');
-    const critical = new BattleIntensity().advance(criticalWorld, [{
+    const criticalEvent: Extract<SimEvent, { type: 'critical_hit' }> = {
       type: 'critical_hit',
       tick: criticalWorld.tick,
       entityId: ally.id,
       shooterId: enemies[0]!.id,
       location: 'centre_torso',
       component: 'gyro',
+    };
+    const critical = new BattleIntensity().advance(criticalWorld, [criticalEvent]);
+    expect(critical).toBeCloseTo(0.55);
+    expect(fullLayerLevel(critical)).toBeGreaterThan(0);
+
+    const contactWorld = silentWorld('score-critical-contact');
+    const contactTeams = teams(contactWorld);
+    detect(contactWorld, contactTeams.enemies[0]!, 'optical');
+    const contactCritical = new BattleIntensity().advance(contactWorld, [{
+      ...criticalEvent,
+      entityId: contactTeams.ally.id,
+      shooterId: contactTeams.enemies[0]!.id,
     }]);
-    expect(critical).toBeGreaterThan(0.68);
+    expect(contactCritical).toBeCloseTo(0.721);
+    expect(fullLayerLevel(contactCritical)).toBeGreaterThan(fullLayerLevel(critical));
+
+    const hiddenCriticalWorld = silentWorld('score-hidden-critical');
+    const hiddenEnemy = teams(hiddenCriticalWorld).enemies[0]!;
+    expect(new BattleIntensity().advance(hiddenCriticalWorld, [{
+      ...criticalEvent,
+      entityId: hiddenEnemy.id,
+    }])).toBe(0);
 
     const floodWorld = silentWorld('score-flood');
     const floodEvent = fired(floodWorld, teams(floodWorld).ally);
