@@ -13,6 +13,7 @@ import {
 import { checkIncomingFireDirection } from './incoming-fire-direction.mjs';
 import { runFireModeStage2Checks } from './fire-modes.mjs';
 import { runNightOperationsChecks } from './night-operations.mjs';
+import { runCultureSilhouetteChecks } from './culture-silhouettes.mjs';
 import { runCampaignRecovery } from './campaign-recovery.mjs';
 import { runMobilePlaythrough } from './mobile-playthrough.mjs';
 import { runRangeDamageChartChecks } from './range-damage-chart.mjs';
@@ -1294,6 +1295,7 @@ async function main() {
     await runFireModeStage2Checks({ browser, url: URL, check });
     await runRangeDamageChartChecks({ browser, url: URL, shots: SHOTS, check });
     await runNightOperationsChecks({ browser, url: URL, shots: SHOTS, check });
+    await runCultureSilhouetteChecks({ browser, url: URL, shots: SHOTS, check });
     await runMobilePlaythrough({ browser, url: URL, shots: SHOTS, check });
   } finally {
     await browser.close();

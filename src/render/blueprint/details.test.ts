@@ -5,6 +5,7 @@ import type { MechLocation } from '../../schema/common';
 import { chassisBlueprint, type Blueprint, type BlueprintPart } from '../blueprint';
 import {
   AURELIAN_SIGNATURE_IDS,
+  LINE_SIGNATURE_IDS,
   SIGNATURE_CHASSIS_IDS,
 } from './details';
 
@@ -146,6 +147,23 @@ describe('signature chassis detail', () => {
       const mirrored = details.map((part) => detailKey(part, true)).sort();
       expect(mirrored, id).toEqual(direct);
       expect(details.every((part) => part.shape === 'box'), id).toBe(true);
+    }
+  });
+
+  it('keeps every Linewrought battlefield package visibly asymmetric', () => {
+    for (const id of LINE_SIGNATURE_IDS) {
+      const surface = planFor(id).parts.filter((part) => part.detail === 'surface');
+      const direct = surface.map((part) => detailKey(part)).sort();
+      const mirrored = surface.map((part) => detailKey(part, true)).sort();
+      expect(mirrored, id).not.toEqual(direct);
+    }
+  });
+
+  it('keeps battlefield culture cues out of team-painted tones', () => {
+    for (const id of SIGNATURE_CHASSIS_IDS) {
+      const surface = planFor(id).parts.filter((part) => part.detail === 'surface');
+      expect(surface.every((part) => part.tone !== 'trim' && part.tone !== 'deep'), id)
+        .toBe(true);
     }
   });
 
