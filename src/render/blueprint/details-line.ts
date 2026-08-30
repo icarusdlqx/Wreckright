@@ -13,19 +13,21 @@ function hero(piece: BlueprintPart): BlueprintPart {
 function gadflyDetails(b: Bones): BlueprintPart[] {
   const headX = b.long * 0.78;
   const headY = b.tall * 0.22;
+  // The four battlefield pieces are deliberately unmatched: a dorsal repair,
+  // two different nacelle jobs and a raised weld strap.
   const parts: BlueprintPart[] = [
-    surface(shaped('centre_torso', PROFILES.wedge,
-      [-b.long * 0.3, b.tall * 0.55, 0],
-      [b.long * 0.28, 0.07, b.wide * 0.5], 'trim', b.pitch)),
+    surface(shaped('centre_torso', PROFILES.pauldron,
+      [-b.long * 0.18, b.tall * 0.43, -b.wide * 0.1],
+      [b.long * 0.38, b.tall * 0.12, b.wide * 0.36], 'accent', b.pitch)),
+    surface(part('left_torso', 'cylinder',
+      [-b.long * 0.28, b.tall * 0.08, -b.wide * 1.06],
+      [0.18, b.long * 0.22, 0.18], 'accent', Math.PI / 2)),
     surface(part('centre_torso', 'box',
-      [-b.long * 0.48, b.tall * 0.3, b.wide * 0.36],
-      [b.long * 0.22, b.tall * 0.16, 0.08], 'accent', b.pitch)),
-    surface(part('centre_torso', 'box',
-      [-b.long * 0.48, b.tall * 0.3, -b.wide * 0.36],
-      [b.long * 0.22, b.tall * 0.16, 0.08], 'accent', b.pitch)),
+      [b.long * 0.34, b.tall * 0.06, b.wide * 0.2],
+      [0.09, b.tall * 0.72, b.wide * 0.14], 'accent', b.pitch)),
     surface(part('right_torso', 'box',
-      [-b.long * 0.16, b.tall * 0.43, b.wide * 0.74],
-      [b.long * 0.42, 0.06, 0.07], 'deep', b.pitch)),
+      [b.long * 0.08, b.tall * 0.08, b.wide * 1.04],
+      [b.long * 0.14, b.tall * 0.3, b.wide * 0.14], 'accent', b.pitch)),
   ];
 
   for (const side of [-1, 1]) {
@@ -52,21 +54,21 @@ function gadflyDetails(b: Bones): BlueprintPart[] {
 
 function droverDetails(b: Bones): BlueprintPart[] {
   const deck = b.hip * 0.92;
-  const parts: BlueprintPart[] = [];
-  for (const side of [-1, 1]) {
-    const location = side < 0 ? 'left_leg' : 'right_leg';
-    parts.push(surface(bolted(part(location, 'box',
-      [0, b.hip * 0.64, side * b.spread * 1.08],
-      [b.long * 0.92, 0.08, b.thigh * 0.18], 'trim'))));
-  }
-  parts.push(
+  // Unequal skirt patches and loose deck stores keep the carrier shop-built.
+  const parts: BlueprintPart[] = [
+    surface(bolted(shaped('left_leg', PROFILES.skirt,
+      [b.long * 0.08, b.hip * 0.62, -b.spread * 1.12],
+      [b.long * 1.08, 0.14, b.thigh * 0.34], 'plate'))),
+    surface(bolted(part('right_leg', 'box',
+      [-b.long * 0.2, b.hip * 0.54, b.spread * 1.1],
+      [b.long * 0.58, 0.11, b.thigh * 0.24], 'accent'))),
     surface(bolted(part('centre_torso', 'box',
-      [b.long * 0.18, deck + b.tall * 0.5, b.wide * 0.34],
-      [b.long * 0.58, 0.07, 0.08], 'deep'))),
+      [-b.long * 0.14, deck + b.tall * 0.52, -b.wide * 0.58],
+      [b.long * 0.74, b.tall * 0.26, b.wide * 0.24], 'accent'))),
     surface(bolted(part('centre_torso', 'cylinder',
-      [-b.long * 0.76, deck + b.tall * 0.34, 0],
-      [0.14, b.wide * 0.62, 0.14], 'accent', Math.PI / 2))),
-  );
+      [-b.long * 0.82, deck + b.tall * 0.3, b.wide * 0.38],
+      [0.18, b.wide * 0.52, 0.18], 'accent', Math.PI / 2))),
+  ];
   for (const side of [-1, 1]) {
     const location = side < 0 ? 'left_leg' : 'right_leg';
     parts.push(
@@ -86,15 +88,21 @@ function droverDetails(b: Bones): BlueprintPart[] {
 
 function bulwarkDetails(b: Bones): BlueprintPart[] {
   const shieldZ = -b.shoulder * 1.39;
-  const parts: BlueprintPart[] = [];
-  for (const level of [-0.68, -0.24, 0.2]) {
-    parts.push(surface(part('left_arm', 'box',
-      [b.long * 0.39, b.tall * level, shieldZ - 0.17],
-      [0.07, b.tall * 0.22, 0.06], 'accent', b.pitch)));
-  }
-  parts.push(surface(part('right_arm', 'box',
-    [-b.long * 0.08, -b.tall * 0.28, b.shoulder * 1.08],
-    [b.long * 0.18, b.tall * 0.72, 0.09], 'deep', b.pitch)));
+  // The shield has been plated twice; the free arm carries the field kit.
+  const parts: BlueprintPart[] = [
+    surface(shaped('left_arm', PROFILES.shield,
+      [b.long * 0.38, -b.tall * 0.18, shieldZ - b.wide * 0.2],
+      [b.long * 0.24, b.tall * 1.08, b.wide * 0.18], 'accent', b.pitch)),
+    surface(part('left_arm', 'box',
+      [b.long * 0.08, -b.tall * 0.54, shieldZ - b.wide * 0.3],
+      [b.long * 0.62, b.tall * 0.13, b.wide * 0.2], 'plate', b.pitch)),
+    surface(part('centre_torso', 'box',
+      [b.long * 0.42, b.tall * 0.18, -b.wide * 0.24],
+      [0.12, b.tall * 0.78, b.wide * 0.16], 'accent', b.pitch)),
+    surface(shaped('right_arm', PROFILES.block,
+      [-b.long * 0.16, -b.tall * 0.38, b.shoulder * 1.2],
+      [b.long * 0.38, b.tall * 0.48, b.wide * 0.32], 'accent', b.pitch)),
+  ];
 
   for (const y of [-0.68, -0.18, 0.28, 0.66]) {
     parts.push(hero(part('left_arm', 'cylinder',
@@ -113,16 +121,24 @@ function bulwarkDetails(b: Bones): BlueprintPart[] {
 }
 
 function colossusDetails(b: Bones): BlueprintPart[] {
-  const parts: BlueprintPart[] = [];
+  // A siege survivor wears four unrelated jobs rather than paired trim.
+  const parts: BlueprintPart[] = [
+    surface(shaped('left_torso', PROFILES.block,
+      [-b.long * 0.34, b.tall * 0.14, -b.wide * 0.88],
+      [b.long * 0.5, b.tall * 0.7, b.wide * 0.2], 'accent', b.pitch)),
+    surface(part('centre_torso', 'box',
+      [b.long * 0.48, b.tall * 0.22, b.wide * 0.13],
+      [0.12, b.tall * 0.9, b.wide * 0.13], 'accent', b.pitch)),
+    surface(shaped('right_torso', PROFILES.carriage,
+      [-b.long * 0.48, b.tall * 0.43, b.wide * 0.9],
+      [b.long * 0.42, b.tall * 0.3, b.wide * 0.28], 'plate', b.pitch)),
+    surface(part('left_torso', 'box',
+      [b.long * 0.16, -b.tall * 0.34, -b.wide * 0.82],
+      [b.long * 0.66, b.tall * 0.14, b.wide * 0.2], 'accent', b.pitch)),
+  ];
   for (const side of [-1, 1]) {
     const torso = side < 0 ? 'left_torso' : 'right_torso';
     parts.push(
-      surface(shaped('centre_torso', PROFILES.keel,
-        [b.long * 0.45, b.tall * 0.18, side * b.wide * 0.3],
-        [0.08, b.tall * 0.72, b.wide * 0.16], 'trim', b.pitch)),
-      surface(part(torso, 'box',
-        [-b.long * 0.4, b.tall * 0.1, side * b.wide * 0.76],
-        [b.long * 0.22, b.tall * 0.62, 0.09], 'accent', b.pitch)),
       hero(part(torso, 'box',
         [-b.long * 0.12, b.tall * 0.52, side * b.wide * 0.82],
         [b.long * 0.24, 0.12, b.wide * 0.16], 'trim', b.pitch)),

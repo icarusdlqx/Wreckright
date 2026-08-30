@@ -16,12 +16,12 @@ function votiveDetails(b: Bones): BlueprintPart[] {
     const arm = side < 0 ? 'left_arm' : 'right_arm';
     const torso = side < 0 ? 'left_torso' : 'right_torso';
     parts.push(
-      surface(shaped(arm, PROFILES.wedge,
-        [b.long * 0.18, -b.tall * 0.12, side * b.shoulder * 1.03],
-        [0.06, b.tall * 0.34, b.wide * 0.09], 'trim', b.pitch)),
       surface(shaped(torso, PROFILES.pauldron,
-        [-b.long * 0.1, b.tall * 0.34, side * b.wide * 0.62],
-        [b.long * 0.18, 0.07, b.wide * 0.12], 'trim', b.pitch)),
+        [-b.long * 0.08, b.tall * 0.42, side * b.wide * 0.7],
+        [b.long * 0.48, b.tall * 0.24, b.wide * 0.22], 'plate', b.pitch)),
+      surface(shaped(arm, PROFILES.keel,
+        [b.long * 0.22, -b.tall * 0.12, side * b.shoulder * 1.02],
+        [b.long * 0.18, b.tall * 0.62, b.wide * 0.16], 'accent', b.pitch)),
       hero(shaped('head', PROFILES.wedge,
         [b.long * 0.47, b.tall * 0.28, side * b.wide * 0.2],
         [0.06, b.tall * 0.1, b.wide * 0.07], 'accent', b.pitch)),
@@ -43,11 +43,11 @@ function sentinelDetails(b: Bones): BlueprintPart[] {
     const torso = side < 0 ? 'left_torso' : 'right_torso';
     parts.push(
       surface(shaped(torso, PROFILES.pauldron,
-        [b.long * 0.18, b.tall * 0.3, side * b.wide * 0.64],
-        [b.long * 0.2, b.tall * 0.1, b.wide * 0.1], 'trim', b.pitch)),
-      surface(part(arm, 'box',
-        [b.long * 0.25, -b.tall * 0.22, side * b.shoulder * 1.02],
-        [0.06, b.tall * 0.3, b.wide * 0.08], 'trim', b.pitch)),
+        [b.long * 0.2, b.tall * 0.3, side * b.wide * 0.72],
+        [b.long * 0.42, b.tall * 0.34, b.wide * 0.18], 'plate', b.pitch)),
+      surface(shaped(arm, PROFILES.keel,
+        [b.long * 0.16, -b.tall * 0.18, side * b.shoulder * 1.02],
+        [b.long * 0.24, b.tall * 0.46, b.wide * 0.18], 'accent', b.pitch)),
       hero(shaped(torso, PROFILES.keel,
         [b.long * 0.44, 0, side * b.wide * 0.25],
         [0.05, b.tall * 0.28, b.wide * 0.11], 'accent', b.pitch)),
@@ -69,11 +69,11 @@ function halberdDetails(b: Bones): BlueprintPart[] {
     const torso = side < 0 ? 'left_torso' : 'right_torso';
     parts.push(
       surface(shaped(torso, PROFILES.keel,
-        [b.long * 0.22, b.tall * 0.62, side * b.wide * 0.75],
-        [0.06, b.tall * 0.68, b.wide * 0.1], 'trim', b.pitch)),
-      surface(part(torso, 'box',
-        [-b.long * 0.22, b.tall * 0.7, side * b.wide * 0.76],
-        [b.long * 0.24, 0.055, b.wide * 0.12], 'accent', b.pitch)),
+        [b.long * 0.24, b.tall * 0.72, side * b.wide * 0.88],
+        [b.long * 0.18, b.tall * 1.18, b.wide * 0.18], 'plate', b.pitch)),
+      surface(shaped(torso, PROFILES.pauldron,
+        [-b.long * 0.12, b.tall * 1.28, side * b.wide],
+        [b.long * 0.58, b.tall * 0.16, b.wide * 0.5], 'accent', b.pitch)),
       hero(shaped(arm, PROFILES.wedge,
         [b.long * 0.29, -b.tall * 0.16, side * b.shoulder],
         [b.long * 0.12, b.tall * 0.2, b.wide * 0.32], 'accent', b.pitch)),
@@ -94,12 +94,12 @@ function pallvaultDetails(b: Bones): BlueprintPart[] {
     const arm = side < 0 ? 'left_arm' : 'right_arm';
     const torso = side < 0 ? 'left_torso' : 'right_torso';
     parts.push(
-      surface(part(torso, 'box',
-        [b.long * 0.34, b.tall * 0.15, side * b.wide * 0.64],
-        [0.055, b.tall * 0.2, b.wide * 0.26], 'accent', b.pitch)),
-      surface(part(arm, 'box',
-        [b.long * 0.3, -b.tall * 0.34, side * b.shoulder],
-        [0.055, b.tall * 0.24, b.wide * 0.26], 'accent', b.pitch)),
+      surface(shaped(torso, PROFILES.keel,
+        [b.long * 0.38, b.tall * 0.18, side * b.wide * 0.82],
+        [b.long * 0.16, b.tall * 0.56, b.wide * 0.32], 'accent', b.pitch)),
+      surface(shaped(arm, PROFILES.pauldron,
+        [b.long * 0.32, -b.tall * 0.34, side * b.shoulder * 1.08],
+        [b.long * 0.18, b.tall * 0.48, b.wide * 0.38], 'plate', b.pitch)),
       hero(shaped(torso, PROFILES.wedge,
         [-b.long * 0.24, b.tall * 0.08, side * b.wide * 0.66],
         [b.long * 0.18, b.tall * 0.3, b.wide * 0.1], 'trim', b.pitch)),
