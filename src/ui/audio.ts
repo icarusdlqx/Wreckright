@@ -15,6 +15,7 @@ import {
 } from './audioCues';
 import { AudioGraph, type VoicePlacement } from './audioGraph';
 import { BattleScoreDirector } from './audioBattleScore';
+import { isPlayerConsoleCue, lifecyclePlacement, preferredLifecycleEntity } from './audioCueRouting';
 import { readAudioMuted, writeAudioMuted } from './audioPreference';
 import { SCORE_CLOSE_DELAY_MS } from './audioScore';
 import { playSupportResolution } from './audioSupport';
@@ -27,6 +28,7 @@ import {
   playHeatWarning,
   playJets,
   playLanding,
+  playLifecycleMoment,
   playMissionMessage,
   playOrder,
   playPowerSweep,
@@ -160,7 +162,11 @@ export class AudioDirector {
     if (summary.alphaCount > 0) playAlphaStrike(graph, summary.alphaCount);
     if (summary.missionMessage) playMissionMessage(graph);
 
+    const preferredEjection = preferredLifecycleEntity(world, events, 'pilot_ejected');
+    const preferredWithdrawal = preferredLifecycleEntity(world, events, 'unit_withdrew');
     let chimed = false;
+    let ejectionVoiced = false;
+    let withdrawalVoiced = false;
     for (const event of events) {
       switch (event.type) {
         case 'weapon_fired': {
@@ -274,6 +280,23 @@ export class AudioDirector {
             playLanding(graph, this.placementAt({ x: event.x, y: event.y }), 1);
           }
           break;
+        case 'stood_up':
+        case 'pilot_ejected':
+        case 'unit_withdrew': {
+          if (event.type === 'pilot_ejected'
+            && (ejectionVoiced || event.entityId !== preferredEjection)) break;
+          if (event.type === 'unit_withdrew'
+            && (withdrawalVoiced || event.entityId !== preferredWithdrawal)) break;
+          if (!canPresentEntity(world, event.entityId)) break;
+          const at = positionOf(world, event.entityId);
+          if (at !== null) {
+            const placement = lifecyclePlacement(event.type, this.placementAt(at));
+            playLifecycleMoment(graph, event.type, placement);
+          }
+          if (event.type === 'pilot_ejected') ejectionVoiced = true;
+          if (event.type === 'unit_withdrew') withdrawalVoiced = true;
+          break;
+        }
         case 'support_resolved':
           if (event.team === (world.playerTeam ?? 0)) {
             playSupportResolution(
@@ -373,11 +396,4 @@ function positionOf(world: World, id: number): Vec2 | null {
 
 function factionOf(world: World, entity: MechEntity): Faction | null {
   return world.catalog.chassis.get(entity.chassisId)?.faction ?? null;
-}
-
-function isPlayerConsoleCue(world: World, event: SimEvent): boolean {
-  if (event.type === 'mission_message') return true;
-  if (event.type !== 'ability_used' && event.type !== 'alpha_strike') return false;
-  const entity = entityOf(world, event.entityId);
-  return entity !== null && entity.team === (world.playerTeam ?? 0);
 }

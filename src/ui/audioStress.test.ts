@@ -396,6 +396,17 @@ describe('audible visibility', () => {
       { type: 'ability_used', tick: world.tick, entityId: ally.id, abilityId: 'brace' },
     ]);
     expect(context.sources.length).toBeGreaterThan(afterFieldVoice);
+    const afterFriendlyCommand = context.sources.length;
+    world.vision.visible.delete(enemy.id);
+    audio.consume(world, [
+      { type: 'stood_up', tick: world.tick, entityId: enemy.id },
+      { type: 'pilot_ejected', tick: world.tick, entityId: enemy.id },
+      { type: 'unit_withdrew', tick: world.tick, entityId: enemy.id, team: enemy.team },
+    ]);
+    expect(context.sources).toHaveLength(afterFriendlyCommand);
+    world.vision.visible.add(enemy.id);
+    audio.consume(world, [{ type: 'stood_up', tick: world.tick, entityId: enemy.id }]);
+    expect(context.sources.length).toBeGreaterThan(afterFriendlyCommand);
     audio.destroy();
   });
 });

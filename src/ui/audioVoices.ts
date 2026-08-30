@@ -1,5 +1,6 @@
 import type { Faction } from '../schema/faction';
 import type { AbilityVoice, FootfallSurface, HeatCue } from './audioCues';
+import type { LifecycleMoment } from './audioCueRouting';
 import {
   blip,
   body,
@@ -67,6 +68,31 @@ export function playLanding(bus: VoiceBus, placement: VoicePlacement, weight: nu
   if (frame === null) return;
   const mass = Math.max(0.3, Math.min(1.2, weight));
   thump(frame, frame.now, 0.18, 70 + 40 * (1 - mass), 30, 0.7);
+}
+
+/** Three field transitions that must remain recognisable without the picture. */
+export function playLifecycleMoment(
+  bus: VoiceBus,
+  moment: LifecycleMoment,
+  placement: VoicePlacement,
+): void {
+  const frame = bus.begin(placement);
+  if (frame === null) return;
+  switch (moment) {
+    case 'stood_up':
+      body(frame, frame.now, 0.48, 170, 1_250, 0.3, 1.4);
+      thump(frame, frame.now + 0.38, 0.2, 62, 30, 0.38);
+      return;
+    case 'pilot_ejected':
+      crack(frame, frame.now, 0.2, 2_600);
+      noiseSweep(frame, frame.now, 0.42, 900, 4_600, 0.26, 'bandpass', 1.1);
+      oscillator(frame, frame.now + 0.035, 0.32, 210, 880, 0.11, 'triangle');
+      return;
+    case 'unit_withdrew':
+      blip(frame, frame.now, 740, 0.07, 0.055);
+      blip(frame, frame.now + 0.1, 510, 0.09, 0.05);
+      noiseSweep(frame, frame.now + 0.04, 0.32, 1_200, 180, 0.16, 'lowpass', 0.6);
+  }
 }
 
 /** A fall is delayed to meet the rendered hull, not the tick that condemned it. */

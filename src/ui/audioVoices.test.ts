@@ -389,6 +389,9 @@ describe('the battle audio lifetime', () => {
       { type: 'ability_used', tick: world.tick, entityId: mech.id, abilityId: 'coolant_flush' },
       { type: 'alpha_strike', tick: world.tick, entityId: mech.id },
       { type: 'mission_message', tick: world.tick, text: 'Hold where you are.' },
+      { type: 'stood_up', tick: world.tick, entityId: mech.id },
+      { type: 'pilot_ejected', tick: world.tick, entityId: mech.id },
+      { type: 'unit_withdrew', tick: world.tick, entityId: mech.id, team: mech.team },
       { type: 'knocked_down', tick: world.tick, entityId: mech.id, attackerId: null },
       { type: 'mech_destroyed', tick: world.tick, entityId: mech.id, method: 'centre_torso' },
     ]);
