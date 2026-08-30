@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { prepareDeployment, resolveMission } from '../campaign/campaign';
 import { loadCampaign, saveCampaign } from '../campaign/save';
-import type { Design } from '../schema/design';
 import { getCatalog } from '../schema/load';
 import { BattleHud } from './BattleHud';
 import { BattleResults } from './BattleResults';
@@ -10,7 +9,6 @@ import { Briefing } from './Briefing';
 import { briefingLanceFor } from './briefingLance';
 import { createEngine, type Engine } from './engine';
 import {
-  berthDesign,
   defaultLance,
   factionLance,
   lanceEntries,
@@ -19,9 +17,8 @@ import {
   storeLance,
   type SkirmishBerth,
 } from './lance';
-import type { BayCommission } from './mechbay/Mechbay';
 import { ObjectiveList } from './ObjectiveList';
-import { OutfitBayDialog } from './OutfitBayDialog';
+import { createBattleOutfitBay, OutfitBayDialog } from './OutfitBayDialog';
 import { BriefingSetup } from './BattleSetup';
 import { difficultyChoices, type BattleSetupKey } from './battleSetupState';
 import { usePlaytest } from './playtest';
@@ -33,13 +30,10 @@ import { skipTraining, TRAINING_MISSION_ID } from './trainingProgress';
 import { battleStartsPaused, trainingShowsFullHud } from './trainingPresentation';
 import { useBattleSetup } from './useBattleSetup';
 import { checkBattleCode, createNewBattleCode, resultWithBattleCode } from './battleCode';
+import { useStrategicScoreControls } from './StrategicScoreProvider';
 import './trainingPresentation.css';
 
-interface BattleProps {
-  onSkipTraining?: () => void;
-  onTrainingComplete?: () => void;
-  onTrainingContinueAnyway?: () => void;
-}
+type BattleProps = Partial<Record<'onSkipTraining' | 'onTrainingComplete' | 'onTrainingContinueAnyway', () => void>>;
 
 export function Battle(props: BattleProps = {}) {
   const { onSkipTraining, onTrainingComplete, onTrainingContinueAnyway } = props;
@@ -47,6 +41,7 @@ export function Battle(props: BattleProps = {}) {
   const engineRef = useRef<Engine | null>(null);
   const state = useGame();
   const { record } = usePlaytest();
+  const strategicScore = useStrategicScoreControls();
   const battleSeedRef = useRef(state.battleCode);
 
   const [resolved, setResolved] = useState(false);
@@ -97,13 +92,20 @@ export function Battle(props: BattleProps = {}) {
   });
   const [outfitting, setOutfitting] = useState<number | null>(null);
   const closeOutfitBay = useCallback(() => setOutfitting(null), []);
+  const openOutfitBay = (index: number): void => {
+    engineRef.current?.audio.unlock();
+    setOutfitting(index);
+  };
   const activeTraining = !state.campaignPending && missionId === TRAINING_MISSION_ID;
   const training = useTrainingPresentation({
     active: activeTraining,
     onSkip: onSkipTraining,
     onComplete: onTrainingComplete,
     onContinueAnyway: onTrainingContinueAnyway,
-    onFallback: () => state.patch({ campaignPending: false, screen: 'campaign' }),
+    onFallback: () => {
+      strategicScore.prepare();
+      state.patch({ campaignPending: false, screen: 'campaign' });
+    },
   });
 
   useEffect(() => {
@@ -156,6 +158,8 @@ export function Battle(props: BattleProps = {}) {
           return;
         }
         engineRef.current = engine;
+        setMuted(engine.audio.muted);
+        setLowFx(engine.renderer.lowFx);
         if (deployOnReady) {
           engine.renderer.camera.beginDropIn();
           useGame.getState().patch({
@@ -220,36 +224,15 @@ export function Battle(props: BattleProps = {}) {
       setResolved(true);
       return;
     }
+    strategicScore.prepare();
     state.patch({ campaignPending: false, screen: 'campaign' });
   };
 
-  useEffect(() => {
-    setMuted(engineRef.current?.audio.muted ?? false);
-    setLowFx(engineRef.current?.renderer.lowFx ?? false);
-  }, [state.ready]);
-
-  const briefingLance = state.campaignPending || activeTraining ? null : briefingLanceFor(catalog, missionId, lance, setLance, setOutfitting);
-
-  const outfitBerth = outfitting === null ? null : (lance[outfitting] ?? null);
-  const outfitBay: BayCommission | null =
-    outfitting === null || outfitBerth === null
-      ? null
-      : {
-          title: `Berth ${outfitting + 1}`,
-          cancelLabel: 'Back to briefing',
-          design: berthDesign(catalog, outfitBerth) ?? (catalog.designs.get('sentinel_brawler') as Design),
-          onCancel: closeOutfitBay,
-          onCommit: (design) => {
-            const next = lance.map((berth) => ({ ...berth }));
-            const target = next[outfitting];
-            if (target === undefined) return { ok: false, reason: 'no such berth' };
-            target.designId = null;
-            target.design = design;
-            setLance(next);
-            setOutfitting(null);
-            return { ok: true, reason: null };
-          },
-        };
+  const briefingLance = state.campaignPending || activeTraining
+    ? null
+    : briefingLanceFor(catalog, missionId, lance, setLance, openOutfitBay);
+  const outfitBay = createBattleOutfitBay(catalog, lance, outfitting, setLance, closeOutfitBay);
+  const outfitAudio = engineRef.current?.audio ?? null;
 
   const supportOptions = useMemo(
     () => buildSupportOptions(catalog.rules.support, state.reservesLeft),
@@ -334,8 +317,13 @@ export function Battle(props: BattleProps = {}) {
         />
       ) : null}
 
-      {outfitBay === null ? null : (
-        <OutfitBayDialog bay={outfitBay} onClose={closeOutfitBay} />
+      {outfitBay === null || outfitAudio === null ? null : (
+        <OutfitBayDialog
+          bay={outfitBay}
+          battleAudio={outfitAudio}
+          onMuted={setMuted}
+          onClose={closeOutfitBay}
+        />
       )}
 
       {state.briefingSeen && trainingShowsFullHud(training.presentedStep) ? (
@@ -374,7 +362,10 @@ export function Battle(props: BattleProps = {}) {
           {...(activeTraining
             ? {
                 trainingActions: {
-                  onStartCampaign: training.complete,
+                  onStartCampaign: () => {
+                    strategicScore.prepare();
+                    training.complete();
+                  },
                   onReplay: restartBattle,
                   onRetry: restartBattle,
                   onContinueAnyway: training.continueAnyway,

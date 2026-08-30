@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react';
+import type { AudioDirector } from '../audio';
 import type { BayCommission } from './Mechbay';
 
 /**
@@ -15,9 +16,11 @@ const Mechbay = lazy(() => import('./Mechbay').then((module) => ({ default: modu
 interface Props {
   onExit: () => void;
   commission?: BayCommission;
+  battleAudio?: AudioDirector;
+  onBattleMuted?: (muted: boolean) => void;
 }
 
-export function LazyMechbay({ onExit, commission }: Props) {
+export function LazyMechbay({ onExit, commission, battleAudio, onBattleMuted }: Props) {
   return (
     <Suspense
       fallback={
@@ -26,7 +29,12 @@ export function LazyMechbay({ onExit, commission }: Props) {
         </div>
       }
     >
-      <Mechbay onExit={onExit} {...(commission === undefined ? {} : { commission })} />
+      <Mechbay
+        onExit={onExit}
+        {...(commission === undefined ? {} : { commission })}
+        {...(battleAudio === undefined ? {} : { battleAudio })}
+        {...(onBattleMuted === undefined ? {} : { onBattleMuted })}
+      />
     </Suspense>
   );
 }

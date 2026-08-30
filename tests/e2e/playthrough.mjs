@@ -16,6 +16,7 @@ import { runNightOperationsChecks } from './night-operations.mjs';
 import { runCultureSilhouetteChecks } from './culture-silhouettes.mjs';
 import { runTerrainWearChecks } from './terrain-wear.mjs';
 import { runAdaptiveScoreChecks } from './adaptive-score.mjs';
+import { runAdaptiveScoreTreatmentChecks } from './adaptive-score-treatments.mjs';
 import { runCampaignRecovery } from './campaign-recovery.mjs';
 import { runMobilePlaythrough } from './mobile-playthrough.mjs';
 import { runRangeDamageChartChecks } from './range-damage-chart.mjs';
@@ -1300,6 +1301,7 @@ async function main() {
     await runCultureSilhouetteChecks({ browser, url: URL, shots: SHOTS, check });
     await runTerrainWearChecks({ browser, url: URL, shots: SHOTS, check });
     await runAdaptiveScoreChecks({ browser, url: URL, check });
+    await runAdaptiveScoreTreatmentChecks({ browser, url: URL, check });
     await runMobilePlaythrough({ browser, url: URL, shots: SHOTS, check });
   } finally {
     await browser.close();

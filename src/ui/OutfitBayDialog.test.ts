@@ -3,7 +3,12 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { catalog } from '../../tests/support';
-import { isolateModalBackground, OutfitBayDialog } from './OutfitBayDialog';
+import {
+  createBattleOutfitBay,
+  isolateModalBackground,
+  OutfitBayDialog,
+} from './OutfitBayDialog';
+import { AudioDirector } from './audio';
 
 interface FakeElement {
   inert: boolean;
@@ -36,6 +41,8 @@ describe('skirmish outfit dialog', () => {
         onCommit: () => ({ ok: true, reason: null }),
         onCancel: () => undefined,
       },
+      battleAudio: new AudioDirector(),
+      onMuted: () => undefined,
       onClose: () => undefined,
     }));
 
@@ -53,8 +60,33 @@ describe('skirmish outfit dialog', () => {
 
     const battleSource = readFileSync(new URL('./Battle.tsx', import.meta.url), 'utf8');
     expect(battleSource).toContain('const closeOutfitBay = useCallback');
-    expect(battleSource).toContain('onCancel: closeOutfitBay');
+    expect(battleSource).toContain('createBattleOutfitBay(catalog, lance, outfitting');
     expect(battleSource).toContain('onClose={closeOutfitBay}');
+    expect(battleSource).toContain('onMuted={setMuted}');
+  });
+
+  it('commits an edited briefing berth and closes the dialog', () => {
+    const design = catalog.designs.get('sentinel_brawler');
+    if (design === undefined) throw new Error('missing Sentinel design');
+    let committed = false;
+    let closed = false;
+    const bay = createBattleOutfitBay(
+      catalog,
+      [{ designId: design.id, pilotId: 'test-pilot' }],
+      0,
+      (lance) => {
+        committed = lance[0]?.design?.name === 'Edited Sentinel';
+      },
+      () => { closed = true; },
+    );
+
+    expect(bay).not.toBeNull();
+    expect(bay?.onCommit({ ...design, name: 'Edited Sentinel' })).toEqual({
+      ok: true,
+      reason: null,
+    });
+    expect(committed).toBe(true);
+    expect(closed).toBe(true);
   });
 
   it('isolates every background sibling and restores its prior state', () => {

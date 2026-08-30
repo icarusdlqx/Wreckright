@@ -8,12 +8,13 @@ export const SCORE_NODE_COUNT = SCORE_SOURCE_COUNT + SCORE_GAIN_COUNT + SCORE_FI
 export const SCORE_RETARGET_INTERVAL_SECONDS = 0.125;
 export const SCORE_CLOSE_DELAY_MS = 120;
 
-const SCORE_LEVEL = 0.052;
+export const SCORE_LEVEL = 0.052;
 const ATTACK_SECONDS = 0.6;
 const RELEASE_SECONDS = 1.6;
 const FULL_ATTACK_SECONDS = 0.35;
 const FULL_RELEASE_SECONDS = 2.2;
 const CULTURE_MORPH_SECONDS = 0.75;
+const TREATMENT_MORPH_SECONDS = 1.2;
 const STOP_TIME_CONSTANT_SECONDS = 0.02;
 const SOURCE_STOP_SECONDS = 0.1;
 const STATE_EPSILON = 0.0001;
@@ -22,6 +23,8 @@ export interface ScoreState {
   intensity: number;
   /** Null retains the most recent presentable culture mix. */
   aurelianShare: number | null;
+  /** Route treatment trim; omitted battle updates stay at full score level. */
+  level?: number;
 }
 
 export interface ScoreHandle {
@@ -38,6 +41,7 @@ export type ScoreBus = Pick<AmbientBus, 'context' | 'master'>;
 export function createProceduralScore(
   bus: ScoreBus,
   initialAurelianShare: number | null = 0,
+  initialLevel = 1,
 ): ScoreHandle {
   const now = bus.context.currentTime;
   const linewrought = scoreVoicingAt(0);
@@ -109,7 +113,8 @@ export function createProceduralScore(
   fullColour.frequency.value = initialVoicing.fullHz;
   fullColour.connect(fullFilter);
 
-  retarget(scoreLevel.gain, SCORE_LEVEL, now, 1.2);
+  const startingLevel = clamp01(Number.isFinite(initialLevel) ? initialLevel : 1);
+  retarget(scoreLevel.gain, SCORE_LEVEL * startingLevel, now, TREATMENT_MORPH_SECONDS);
   retarget(droneLayer.gain, droneLayerLevel(0), now, 1.2);
 
   const sources: OscillatorNode[] = [root, fifth, pulse, pulseLfo, fullColour];
@@ -118,8 +123,10 @@ export function createProceduralScore(
   let stopped = false;
   let pendingIntensity = 0;
   let pendingShare = initialShare;
+  let pendingLevel = startingLevel;
   let appliedIntensity = 0;
   let appliedShare = initialShare;
+  let appliedLevel = startingLevel;
   let lastRetargetAt = Number.NEGATIVE_INFINITY;
 
   return {
@@ -127,6 +134,7 @@ export function createProceduralScore(
       if (stopped) return;
       pendingIntensity = clamp01(Number.isFinite(state.intensity) ? state.intensity : 0);
       pendingShare = optionalShare(state.aurelianShare) ?? pendingShare;
+      pendingLevel = clamp01(Number.isFinite(state.level) ? state.level ?? 1 : 1);
 
       const at = bus.context.currentTime;
       const elapsed = at - lastRetargetAt;
@@ -134,7 +142,8 @@ export function createProceduralScore(
 
       const intensityChanged = Math.abs(pendingIntensity - appliedIntensity) >= STATE_EPSILON;
       const cultureChanged = Math.abs(pendingShare - appliedShare) >= STATE_EPSILON;
-      if (!intensityChanged && !cultureChanged) return;
+      const levelChanged = Math.abs(pendingLevel - appliedLevel) >= STATE_EPSILON;
+      if (!intensityChanged && !cultureChanged && !levelChanged) return;
 
       const speed = sanitiseSpeed(playbackSpeed);
       if (intensityChanged) {
@@ -170,6 +179,15 @@ export function createProceduralScore(
           seconds,
         );
         appliedShare = pendingShare;
+      }
+      if (levelChanged) {
+        retarget(
+          scoreLevel.gain,
+          SCORE_LEVEL * pendingLevel,
+          at,
+          TREATMENT_MORPH_SECONDS / speed,
+        );
+        appliedLevel = pendingLevel;
       }
       lastRetargetAt = at;
     },

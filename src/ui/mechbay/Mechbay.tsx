@@ -1,19 +1,12 @@
 import { useMemo, useRef, useState } from 'react';
+import type { AudioDirector } from '../audio';
 import type { MechLocation } from '../../schema/common';
 import type { Design } from '../../schema/design';
 import { validateDesign } from '../../schema/designValidation';
 import type { RefitAvailability } from '../../campaign/refitQuote';
 import { getCatalog } from '../../schema/load';
 import { computeHeatProfile, computeLoadout } from '../../sim/loadout';
-import {
-  exportDesign,
-  InvalidBuildError,
-  listStoredDesigns,
-  loadFromStorage,
-  parseDesign,
-  saveToStorage,
-  setName,
-} from './editor';
+import { setName } from './editor';
 import { BayChrome, type BayStatus } from './BayChrome';
 import {
   BayWorkspacePanel,
@@ -45,6 +38,8 @@ import { evaluateDrop } from './mechbayEdits';
 import { StoreShelf, type Shelf } from './StoreShelf';
 import { useArmedPlacementFocus } from './useArmedPlacementFocus';
 import './mechbayWorkspaceLayout.css';
+import { useMechbayScore } from './useMechbayScore';
+import { useMechbayPersistence } from './useMechbayPersistence';
 
 const catalog = getCatalog();
 
@@ -68,9 +63,13 @@ export function guidedWeaponId(
 export function Mechbay({
   onExit,
   commission,
+  battleAudio,
+  onBattleMuted,
 }: {
   onExit: () => void;
   commission?: BayCommission;
+  battleAudio?: AudioDirector;
+  onBattleMuted?: (muted: boolean) => void;
 }) {
   const initial = commission?.design ?? catalog.designs.get('sentinel_brawler');
   if (initial === undefined) throw new Error('missing default mechbay design');
@@ -78,7 +77,6 @@ export function Mechbay({
   const [history, setHistory] = useState(() => beginDesignHistory(initial));
   const design = history.present;
   const [status, setStatus] = useState<BayStatus | null>(null);
-  const [stored, setStored] = useState<string[]>(() => listStoredDesigns());
   const [shelf, setShelf] = useState<Shelf>('weapons');
   const [inspected, setInspected] = useState<DropPayload | null>(null);
   const [armed, setArmed] = useState<DropPayload | null>(null);
@@ -89,7 +87,27 @@ export function Mechbay({
   const [workspace, setWorkspace] = useState<BayWorkspaceTab>('loadout');
   const bayRef = useRef<HTMLDivElement>(null);
 
+  const replace = (next: Design): void => {
+    setSelectedLocation(null);
+    setHoveredLocation(null);
+    setHoveredWeaponId(null);
+    setArmed(null);
+    setInspected(null);
+    setShowAll(false);
+    setWorkspace('loadout');
+    setHistory(beginDesignHistory(next));
+    setStatus(null);
+  };
+  const persistence = useMechbayPersistence({
+    catalog,
+    design,
+    commission,
+    onReplace: replace,
+    onStatus: setStatus,
+  });
+
   const chassis = catalog.chassis.get(design.chassisId);
+  const score = useMechbayScore(chassis?.faction ?? null, battleAudio, onBattleMuted);
   const loadout = useMemo(() => computeLoadout(catalog, design), [design]);
   const heat = useMemo(() => computeHeatProfile(catalog, design), [design]);
   const report = useMemo(() => validateDesign(catalog, design), [design]);
@@ -132,18 +150,6 @@ export function Mechbay({
     setHistory((current) => previewDesign(current, transaction, next));
     setStatus(null);
   };
-  const replace = (next: Design): void => {
-    setSelectedLocation(null);
-    setHoveredLocation(null);
-    setHoveredWeaponId(null);
-    setArmed(null);
-    setInspected(null);
-    setShowAll(false);
-    setWorkspace('loadout');
-    setHistory(beginDesignHistory(next));
-    setStatus(null);
-  };
-
   const navigateHistory = (direction: 'undo' | 'redo'): void => {
     setHistory((current) => direction === 'undo' ? undoDesign(current) : redoDesign(current));
     setArmed(null);
@@ -243,58 +249,6 @@ export function Mechbay({
     setShelf('weapons');
   };
 
-  const onSave = (): void => {
-    if (commission !== undefined) {
-      const result = commission.onCommit(design);
-      if (!result.ok) setStatus({ tone: 'error', text: result.reason ?? 'refit refused' });
-      return;
-    }
-    try {
-      const { replaced } = saveToStorage(catalog, design);
-      setStored(listStoredDesigns());
-      setStatus({
-        tone: 'ok',
-        text: replaced
-          ? `Saved "${design.name}", replacing the loadout already under that name.`
-          : `Saved "${design.name}".`,
-      });
-    } catch (error) {
-      if (error instanceof InvalidBuildError) {
-        setStatus({ tone: 'error', text: `Cannot save — ${error.issues.join('; ')}` });
-        return;
-      }
-      throw error;
-    }
-  };
-
-  const onExport = (): void => {
-    try {
-      const url = URL.createObjectURL(exportDesign(catalog, design));
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.download = `${design.id}.json`;
-      anchor.click();
-      URL.revokeObjectURL(url);
-      setStatus({ tone: 'ok', text: `Exported "${design.name}".` });
-    } catch (error) {
-      if (error instanceof InvalidBuildError) {
-        setStatus({ tone: 'error', text: `Cannot export — ${error.issues.join('; ')}` });
-        return;
-      }
-      throw error;
-    }
-  };
-
-  const onImport = async (file: File): Promise<void> => {
-    const result = parseDesign(await file.text());
-    if (result.design === null) {
-      setStatus({ tone: 'error', text: `Import failed — ${result.error ?? 'unknown error'}` });
-      return;
-    }
-    replace(result.design);
-    setStatus({ tone: 'ok', text: `Imported "${result.design.name}".` });
-  };
-
   return (
     <div
       ref={bayRef}
@@ -309,9 +263,11 @@ export function Mechbay({
           commissionTitle: commission.title,
           commissionCancelLabel: commission.cancelLabel,
         })}
-        stored={stored}
+        stored={persistence.stored}
         saveable={saveable}
         status={status}
+        muted={score.muted}
+        onToggleMuted={score.toggleMuted}
         canUndo={history.past.length > 0}
         canRedo={history.future.length > 0}
         onUndo={() => navigateHistory('undo')}
@@ -327,18 +283,10 @@ export function Mechbay({
           setStatus({ tone: 'ok', text: `Back to the stock ${factory.name} loadout.` });
         }}
         onExit={commission?.onCancel ?? onExit}
-        onSave={onSave}
-        onExport={onExport}
-        onImport={(file) => void onImport(file)}
-        onLoad={(id) => {
-          const result = loadFromStorage(id);
-          if (result.design === null) {
-            setStatus({ tone: 'error', text: result.error ?? 'load failed' });
-            return;
-          }
-          replace(result.design);
-          setStatus({ tone: 'ok', text: `Loaded "${result.design.name}".` });
-        }}
+        onSave={persistence.save}
+        onExport={persistence.exportFile}
+        onImport={(file) => void persistence.importFile(file)}
+        onLoad={persistence.load}
       />
       <BayWorkspaceTabs
         active={workspace}

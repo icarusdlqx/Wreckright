@@ -1,6 +1,9 @@
 import { useEffect, useRef, type RefObject } from 'react';
+import type { Catalog } from '../schema/load';
 import { LazyMechbay } from './mechbay/LazyMechbay';
 import type { BayCommission } from './mechbay/Mechbay';
+import type { AudioDirector } from './audio';
+import { berthDesign, type SkirmishBerth } from './lance';
 import { useDialogFocus } from './useDialogFocus';
 
 interface IsolatedState {
@@ -41,11 +44,45 @@ function useModalBackgroundIsolation(backdropRef: RefObject<HTMLDivElement | nul
   }, [backdropRef]);
 }
 
+export function createBattleOutfitBay(
+  catalog: Catalog,
+  lance: readonly SkirmishBerth[],
+  berthIndex: number | null,
+  setLance: (lance: SkirmishBerth[]) => void,
+  onClose: () => void,
+): BayCommission | null {
+  if (berthIndex === null) return null;
+  const berth = lance[berthIndex];
+  if (berth === undefined) return null;
+  const design = berthDesign(catalog, berth) ?? catalog.designs.get('sentinel_brawler');
+  if (design === undefined) return null;
+  return {
+    title: `Berth ${berthIndex + 1}`,
+    cancelLabel: 'Back to briefing',
+    design,
+    onCancel: onClose,
+    onCommit: (committedDesign) => {
+      const next = lance.map((entry) => ({ ...entry }));
+      const target = next[berthIndex];
+      if (target === undefined) return { ok: false, reason: 'no such berth' };
+      target.designId = null;
+      target.design = committedDesign;
+      setLance(next);
+      onClose();
+      return { ok: true, reason: null };
+    },
+  };
+}
+
 export function OutfitBayDialog({
   bay,
+  battleAudio,
+  onMuted,
   onClose,
 }: {
   bay: BayCommission;
+  battleAudio: AudioDirector;
+  onMuted: (muted: boolean) => void;
   onClose: () => void;
 }) {
   const backdropRef = useRef<HTMLDivElement>(null);
@@ -65,7 +102,12 @@ export function OutfitBayDialog({
         aria-label={`Refit ${bay.title}`}
         tabIndex={-1}
       >
-        <LazyMechbay onExit={onClose} commission={bay} />
+        <LazyMechbay
+          onExit={onClose}
+          commission={bay}
+          battleAudio={battleAudio}
+          onBattleMuted={onMuted}
+        />
       </div>
     </div>
   );
