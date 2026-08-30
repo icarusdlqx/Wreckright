@@ -18,6 +18,7 @@ import { runTerrainWearChecks } from './terrain-wear.mjs';
 import { runAdaptiveScoreChecks } from './adaptive-score.mjs';
 import { runAdaptiveScoreTreatmentChecks } from './adaptive-score-treatments.mjs';
 import { runLastSilentMomentsChecks } from './last-silent-moments.mjs';
+import { runCommanderViewChecks } from './commander-view.mjs';
 import { runCampaignRecovery } from './campaign-recovery.mjs';
 import { runMobilePlaythrough } from './mobile-playthrough.mjs';
 import { runRangeDamageChartChecks } from './range-damage-chart.mjs';
@@ -842,6 +843,7 @@ async function main() {
     check('the objective tracker is on screen', (await page.locator('[data-testid="objective-list"] li').count()) >= 3);
     check('the zone tracker lists both posts', (await page.locator('[data-testid="zone-list"] li').count()) === 2);
     check('resource points are shown', (await page.locator('[data-testid="resource-points"]').innerText()).includes('RP'));
+    await runCommanderViewChecks({ page, check, shots: SHOTS });
     await runDesktopSupportChecks({ page, check, state, mission, shots: SHOTS });
 
     const triggered = await page.evaluate(async () => {

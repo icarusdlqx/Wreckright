@@ -109,6 +109,42 @@ async function unlockRangeDrill(page, check, prefix) {
   await page.waitForSelector('[data-testid="mobile-tab-support"]');
 }
 
+async function verifyMobileCommander({ page, check, prefix, shots }) {
+  await page.evaluate(() => {
+    const state = globalThis.__wreckright.useGame.getState();
+    state.setOrderMode(null);
+    state.setSupportMode(null);
+    state.patch({ queueOrders: false });
+  });
+  await page.locator('[data-testid="lance-bar"] button').first().tap();
+  await page.locator('[data-testid="mobile-commander-toggle"]').tap();
+  const view = page.locator('[data-testid="commander-view"]');
+  const map = page.locator('[data-testid="commander-map"]');
+  await view.waitFor({ state: 'visible' });
+  const mapBounds = await map.boundingBox();
+  if (mapBounds === null) throw new Error('mobile Commander map has no bounds');
+  await map.tap({ position: { x: mapBounds.width * 0.55, y: mapBounds.height * 0.42 } });
+  check(
+    `${prefix} Commander map accepts touch movement orders`,
+    await page.evaluate(() => {
+      const { useGame, world } = globalThis.__wreckright;
+      const selected = useGame.getState().selection[0];
+      return world.entities.find((entity) => entity.id === selected)?.orders.move !== null;
+    }),
+  );
+  const overflow = await documentOverflow(page);
+  check(
+    `${prefix} Commander map and dock fit without horizontal overflow`,
+    overflow.scrollWidth <= overflow.clientWidth + 1 &&
+      (await fullyInViewport(page, '[data-testid="commander-view"]')) &&
+      (await fullyInViewport(page, '[data-testid="mobile-dock"]')),
+    `${overflow.scrollWidth}/${overflow.clientWidth}`,
+  );
+  await page.screenshot({ path: `${shots}/12-mobile-portrait-commander.png` });
+  await page.locator('[data-testid="mobile-commander-toggle"]').tap();
+  await view.waitFor({ state: 'hidden' });
+}
+
 
 async function runOrientation({ browser, url, shots, check, viewport, label, shotLabel }) {
   const { context, page, errors, homeWithoutEngine } = await mobilePage(browser, url, viewport);
@@ -192,6 +228,10 @@ async function runOrientation({ browser, url, shots, check, viewport, label, sho
     );
 
     await verifyTouchDockControls({ page, check, prefix });
+
+    if (label === 'portrait') {
+      await verifyMobileCommander({ page, check, prefix, shots });
+    }
 
     await verifyTouchNavigation({ page, check, prefix });
     if (label === 'portrait') await verifyTouchOrders({ page, check, prefix });

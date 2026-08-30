@@ -21,7 +21,7 @@ const INTERACTIVE_TARGETS = [
   '[role="tab"]',
 ].join(',');
 
-const TOGGLE_KEYS = new Set(['Space', 'KeyH', 'KeyP', 'KeyT']);
+const TOGGLE_KEYS = new Set(['Backquote', 'Space', 'KeyH', 'KeyP', 'KeyT']);
 
 export interface BattleKeyContext {
   briefingSeen: boolean;
@@ -43,6 +43,15 @@ export function isInteractiveKeyTarget(target: EventTarget | null): boolean {
   const activeElement = typeof document === 'undefined' ? null : document.activeElement;
   const element = eventElement ?? activeElement;
   return element instanceof Element && element.closest(INTERACTIVE_TARGETS) !== null;
+}
+
+/** A focused control may explicitly keep one battle shortcut active. */
+export function battleShortcutAllowedOnTarget(
+  code: string,
+  target: EventTarget | null,
+): boolean {
+  const element = target instanceof Element ? target : null;
+  return element?.closest(`[data-battle-shortcut="${code}"]`) !== null;
 }
 
 /** Escape still cancels field intent from a focused control, unless a modal owns it. */
