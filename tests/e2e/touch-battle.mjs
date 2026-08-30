@@ -98,6 +98,79 @@ async function cancelTouch(page) {
   ]);
 }
 
+async function minimapGesturePoints(page) {
+  return page.locator('[data-testid="minimap"]').evaluate((canvas) => {
+    const bounds = canvas.getBoundingClientRect();
+    const point = (x, y) => ({
+      x: bounds.left + bounds.width * x,
+      y: bounds.top + bounds.height * y,
+    });
+    return {
+      dragFrom: point(0.25, 0.25),
+      dragTo: point(0.7, 0.6),
+      cancelFrom: point(0.35, 0.7),
+      recovery: point(0.75, 0.3),
+    };
+  });
+}
+
+async function dragMinimapLive(page) {
+  const points = await minimapGesturePoints(page);
+  const session = await page.context().newCDPSession(page);
+  try {
+    await session.send('Input.dispatchTouchEvent', {
+      type: 'touchStart',
+      touchPoints: [touchPoint(points.dragFrom, 7)],
+    });
+    const pressed = await cameraSnapshot(page);
+    await session.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [touchPoint(points.dragTo, 7)],
+    });
+    await page.waitForFunction(() =>
+      document.querySelector('[data-testid="minimap"]')?.classList.contains('dragging')
+    );
+    const live = await cameraSnapshot(page);
+    await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await page.waitForFunction(() =>
+      !document.querySelector('[data-testid="minimap"]')?.classList.contains('dragging')
+    );
+    return { pressed, live, ended: await cameraSnapshot(page) };
+  } finally {
+    await session.detach();
+  }
+}
+
+async function cancelMinimapTouch(page) {
+  const points = await minimapGesturePoints(page);
+  const session = await page.context().newCDPSession(page);
+  try {
+    await session.send('Input.dispatchTouchEvent', {
+      type: 'touchStart',
+      touchPoints: [touchPoint(points.cancelFrom, 8)],
+    });
+    await page.waitForFunction(() =>
+      document.querySelector('[data-testid="minimap"]')?.classList.contains('dragging')
+    );
+    await session.send('Input.dispatchTouchEvent', { type: 'touchCancel', touchPoints: [] });
+    await page.waitForFunction(() =>
+      !document.querySelector('[data-testid="minimap"]')?.classList.contains('dragging')
+    );
+  } finally {
+    await session.detach();
+  }
+
+  const cancelled = await cameraSnapshot(page);
+  await page.touchscreen.tap(points.recovery.x, points.recovery.y);
+  return {
+    cancelled,
+    recovered: await cameraSnapshot(page),
+    dragging: await page.locator('[data-testid="minimap"]').evaluate((canvas) =>
+      canvas.classList.contains('dragging')
+    ),
+  };
+}
+
 async function tapMinimapAt(page, point) {
   const box = await page.locator('[data-testid="minimap"]').boundingBox();
   const size = await page.evaluate(() => {
@@ -257,6 +330,34 @@ export async function verifyTouchNavigation({ page, check, prefix }) {
     centred.count > 0 &&
       Math.hypot(centred.camera.x - centred.centre.x, centred.camera.y - centred.centre.y) <
         centred.tolerance,
+  );
+
+  const beforeMinimap = await orderSnapshot(page);
+  const minimapDrag = await dragMinimapLive(page);
+  check(
+    `${prefix} minimap touch drag pans live before touch-end`,
+    Math.hypot(
+      minimapDrag.live.target.x - minimapDrag.pressed.target.x,
+      minimapDrag.live.target.y - minimapDrag.pressed.target.y,
+    ) > 1 &&
+      Math.hypot(
+        minimapDrag.ended.target.x - minimapDrag.live.target.x,
+        minimapDrag.ended.target.y - minimapDrag.live.target.y,
+      ) < 0.1,
+  );
+
+  const minimapCancel = await cancelMinimapTouch(page);
+  check(
+    `${prefix} minimap touch cancellation releases the next gesture`,
+    !minimapCancel.dragging &&
+      Math.hypot(
+        minimapCancel.recovered.target.x - minimapCancel.cancelled.target.x,
+        minimapCancel.recovered.target.y - minimapCancel.cancelled.target.y,
+      ) > 1,
+  );
+  check(
+    `${prefix} minimap touch gestures do not select or order`,
+    same(await orderSnapshot(page), beforeMinimap),
   );
 
   const beforePinch = await cameraSnapshot(page);
