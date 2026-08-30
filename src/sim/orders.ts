@@ -335,9 +335,12 @@ export function updatePlayerControl(world: World, entity: MechEntity): void {
     if (next === undefined) {
       issueStop(entity);
     } else {
-      issueMove(world, entity, next.to, next.run, {
+      // A promoted leg becomes an ordinary active move, but the untouched
+      // queue tail must survive the ordinary move's replace-route semantics.
+      const remaining = entity.orders.queue;
+      if (issueMove(world, entity, next.to, next.run, {
         ...(next.engage === true ? { engage: true } : {}),
-      });
+      })) entity.orders.queue = remaining;
     }
   } else if (entity.stallStrikes >= HOPELESS_STRIKES) {
     // Re-solved the route this many times and stalled out every time — the

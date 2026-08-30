@@ -18,6 +18,7 @@ const baseView: MarkerViewState = {
   orderMode: null,
   supportRadius: null,
   supportRun: null,
+  routes: [],
 };
 
 describe('support placement markers', () => {
@@ -128,7 +129,23 @@ describe('support placement markers', () => {
     enemy.path = [{ x: enemy.pos.x + 20, y: enemy.pos.y + 20 }];
     friendly.path = [{ x: friendly.pos.x + 20, y: friendly.pos.y + 20 }];
     const layer = new MarkerLayer(() => 0, () => null);
-    const selectedEnemy = { ...baseView, selection: new Set([enemy.id]), orderMode: 'attack' as const };
+    const selectedEnemy = {
+      ...baseView,
+      selection: new Set([enemy.id]),
+      orderMode: 'attack' as const,
+      routes: [{
+        entityId: enemy.id,
+        team: enemy.team,
+        legs: [{
+          points: [enemy.pos, enemy.path[0] ?? enemy.pos],
+          kind: 'active' as const,
+          run: false,
+          arrivalFacing: 0,
+          arrivalFacingEstimated: true as const,
+          cumulativeEtaSeconds: 5,
+        }],
+      }],
+    };
 
     world.vision.visible.add(enemy.id);
     layer.draw(world, selectedEnemy);
@@ -142,9 +159,22 @@ describe('support placement markers', () => {
       ...baseView,
       selection: new Set([friendly.id]),
       orderMode: 'attack',
+      routes: [{
+        entityId: friendly.id,
+        team: friendly.team,
+        legs: [{
+          points: [friendly.pos, friendly.path[0] ?? friendly.pos],
+          kind: 'active',
+          run: false,
+          arrivalFacing: 0,
+          arrivalFacingEstimated: true,
+          cumulativeEtaSeconds: 5,
+        }],
+      }],
     });
     expect(layer.group.children.some((child) => child instanceof Mesh && child.visible)).toBe(true);
-    expect(layer.group.children.some((child) => child instanceof Line && child.visible)).toBe(true);
+    expect(layer.routeMarkerStats.routes).toBe(1);
+    expect(layer.routeMarkerStats.activeLegs).toBe(1);
     layer.dispose();
   });
 
