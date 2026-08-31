@@ -291,6 +291,55 @@ Accuracy falloff and min-range come from the weapon schema's range block.
 
 **Done when:** the Longshot's minimum-range hole is visible as a hole.
 
+## 3.4 The quiet bay (M) — the current priority in this tier
+
+**Files:** `src/ui/mechbay/LocationCard.tsx`, `LoadoutGrid.tsx`, `Mechbay.tsx`,
+`BuildCompare.tsx`, the mechbay CSS files, and `tests/e2e/mechbay-*.mjs` +
+`tests/e2e/mobile-mechbay.mjs` (updated alongside, never deleted).
+
+The bay is functionally complete and perceptually loud. Six information
+systems speak at once — culture banner, workbench stepper, hardpoint chips,
+size limits, fit flags, refusal text, armour lines, delta strip — and each
+earned its place individually. The fix is **sequencing, not deletion**: show
+information when it answers a live question, hide it when it doesn't.
+
+1. **Quiet at rest, loud while holding.** Hardpoint chips (`E 1/2`), size
+   limits (`≤ medium`), Fits/Cannot-fit flags and refusal sentences render
+   **only while a part is held or dragged**. A resting location card is three
+   things: name, rack cells, armour line. On pickup the targeting layer
+   appears at once; announce the reveal through the existing status line
+   (`bay-fit-status` is `aria-live` already) so screen readers hear the state
+   change without a new live region.
+2. **Fold the explainer furniture.** The culture panel and the three-step
+   workbench header collapse to one line each after the player's first
+   successful fit (persist the flag next to the other `ironline.*` training
+   keys — reuse `trainingProgress`'s pattern, do not invent a new store).
+   A disclosure toggle brings either back.
+3. **One number per card at rest.** Drop the `N/M slots` header figure — the
+   cells already say it (keep the figure in the aria-label). Armour compresses
+   to `front+rear` with the full split on hover/focus and in the Armour tab.
+4. **Snap feedback.** When a drop or auto-fit lands, the incoming cells
+   flash-fill and settle over ~120ms so placement feels like a part clicking
+   into a rack. `prefers-reduced-motion` makes it an instant fill. No
+   per-drop allocation — toggle a class, let CSS do the work.
+5. **The delta strip moves into Review.** Comparison belongs where the player
+   evaluates, not above the workbench. Review's tab badge already counts
+   issues; the strip slots under it.
+
+Load-bearing contracts that must survive exactly: every `data-testid` the
+harness touches (`bay-location-*`, `inspect-*`/`remove-*`, `free-slots-*`,
+`bay-armed`, `bay-armed-autofit`, `design-picker`, `bay-role`), the ≥44px
+mobile tap targets, dialog focus behaviour, and keyboard arm-then-place. The
+e2e files assert several things this task deliberately changes (resting-state
+chips, the slots header) — **update those assertions to the new behaviour in
+the same branch**, keeping the coverage; a deleted check is a review reject.
+
+**Done when:** a resting location card shows three elements; picking a part up
+reveals full targeting information in the same frame; the fold state survives
+reload; all four gates are green with the e2e count no lower than before; and
+the before/after screenshot pair (desktop + mobile portrait) reads obviously
+calmer at rest.
+
 # Tier 4 — Graphics `[render]`
 
 ## 4.1 Night operations (M)
