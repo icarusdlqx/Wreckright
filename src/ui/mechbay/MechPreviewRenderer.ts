@@ -19,6 +19,7 @@ import {
 import type { MechLocation } from '../../schema/common';
 import type { Chassis } from '../../schema/chassis';
 import type { Design } from '../../schema/design';
+import { radiusFor } from '../../render/shape';
 import type { Catalog } from '../../schema/load';
 import { buildPreviewModel, previewModelKey, setPreviewHighlights, type PreviewHighlights, type PreviewModel } from './previewModel';
 import { PreviewLoop } from './previewLoop';
@@ -54,6 +55,14 @@ export class MechPreviewRenderer {
   };
   private pointerLocation: MechLocation | null = null;
   private radius = 10;
+  /**
+   * The frame is sized once, by the heaviest hull the catalogue knows, and
+   * never re-fitted per machine. Fitting per machine is what made a scout and
+   * a hundred-tonner the same height on screen: each model's own radius set
+   * the camera distance, normalising away exactly the difference a bay
+   * exists to show.
+   */
+  private referenceRadius = 10;
   private resizeObserver: ResizeObserver | null = null;
   private intersectionObserver: IntersectionObserver | null = null;
   private disposed = false;
@@ -63,6 +72,13 @@ export class MechPreviewRenderer {
     private readonly catalog: Catalog,
     reducedMotion: boolean,
   ) {
+    let heaviest = 50;
+    for (const chassis of catalog.chassis.values()) {
+      heaviest = Math.max(heaviest, chassis.tonnage);
+    }
+    // The tallest plans overshoot their footprint radius; 1.35 keeps a full
+    // assault silhouette inside the frame with headroom for the turntable.
+    this.referenceRadius = radiusFor(heaviest) * 1.35;
     this.renderer = new WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' });
     this.loop = new PreviewLoop({
       reducedMotion,
@@ -232,10 +248,14 @@ export class MechPreviewRenderer {
     const vertical = MathUtils.degToRad(this.camera.fov);
     const horizontal = 2 * Math.atan(Math.tan(vertical / 2) * this.camera.aspect);
     const halfFov = Math.max(0.15, Math.min(vertical, horizontal) / 2);
-    const distance = (this.radius / Math.sin(halfFov)) * 1.12;
+    // A machine may still outgrow the reference frame — a long-gunned build's
+    // bounding sphere can beat the heaviest bare hull — so the frame gives
+    // ground only when it must, and a light stays honestly small in it.
+    const framed = Math.max(this.referenceRadius, this.radius);
+    const distance = (framed / Math.sin(halfFov)) * 1.12;
     this.camera.position.copy(CAMERA_DIRECTION).multiplyScalar(distance);
-    this.camera.near = Math.max(0.1, distance - this.radius * 1.6);
-    this.camera.far = distance + this.radius * 3;
+    this.camera.near = Math.max(0.1, distance - framed * 1.6);
+    this.camera.far = distance + framed * 3;
     this.camera.lookAt(0, 0, 0);
     this.camera.updateProjectionMatrix();
   }
