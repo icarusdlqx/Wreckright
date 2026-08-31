@@ -20,6 +20,18 @@ function render(faction: Faction, foreignComponents = false): string {
   );
 }
 
+function renderDisclosure(expanded: boolean): string {
+  return renderToStaticMarkup(
+    createElement(MachineCultureBadge, {
+      faction: 'aurelian',
+      foreignComponents: true,
+      testId: 'machine-culture-primary',
+      expanded,
+      onExpandedChange: () => undefined,
+    }),
+  );
+}
+
 describe('machine culture badge', () => {
   it('names both chassis cultures in text with an accessible group label', () => {
     const linewrought = render('linewrought');
@@ -48,6 +60,25 @@ describe('machine culture badge', () => {
     expect(foreignComponentPresentation('aurelian', 'aurelian')).toBeNull();
   });
 
+  it('folds controlled culture details to one line and restores them on disclosure', () => {
+    const collapsed = renderDisclosure(false);
+    expect(collapsed).toContain('data-testid="machine-culture-primary"');
+    expect(collapsed).toContain('data-testid="bay-culture-disclosure"');
+    expect(collapsed).toContain('aria-expanded="false"');
+    expect(collapsed).toContain('Aurelian Stock — Sealed');
+    const controlledId = collapsed.match(/aria-controls="([^"]+)"/)?.[1];
+    expect(controlledId).toBeDefined();
+    expect(collapsed).toContain(
+      `id="${controlledId}" class="machine-culture__details" hidden=""`,
+    );
+
+    const expanded = renderDisclosure(true);
+    expect(expanded).toContain('aria-expanded="true"');
+    expect(expanded).not.toContain('class="machine-culture__details" hidden=""');
+    expect(expanded).toContain('Factory-sealed around integrated systems');
+    expect(expanded).toContain('Mixed-pattern fit installed');
+  });
+
   it('detects the actual mixed-pattern Sentinel fit without treating missing legacy ids as foreign', () => {
     const design = catalog.designs.get('sentinel_brawler');
     if (design === undefined) throw new Error('missing Sentinel design');
@@ -69,11 +100,15 @@ describe('machine culture badge', () => {
 
   it('keeps compact copy wrapping and stacks it at the shared touch breakpoint', () => {
     const css = readFileSync(new URL('./machineCultureBadge.css', import.meta.url), 'utf8');
+    const touchRules = css.slice(css.indexOf('@media (max-width: 640px)'));
     expect(css).toContain('overflow-wrap: anywhere;');
     expect(css).toMatch(/\.machine-culture--compact\s*{[^}]*flex-wrap: wrap;/s);
     expect(css).toContain('(pointer: coarse) and (max-width: 1100px)');
-    expect(css).toMatch(
-      /@media[^}]+\.machine-culture--compact\s*{[^}]*flex-direction: column;/s,
+    expect(touchRules).toMatch(
+      /\.machine-culture--compact\s*{[^}]*flex-direction: column;/s,
+    );
+    expect(touchRules).toMatch(
+      /\.machine-culture__disclosure\s*{[^}]*min-height: 44px;/s,
     );
   });
 });

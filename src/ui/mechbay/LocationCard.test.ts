@@ -121,9 +121,32 @@ describe('location workbench card', () => {
       onRemoveEquipment: () => undefined,
     }));
 
-    expect(html).toContain(`>${exact.armour.right_torso - 5} front<`);
-    expect(html).toContain('>5 rear<');
+    expect(html).toContain(`bay-armour-compact">${exact.armour.right_torso - 5}+5<`);
+    expect(html).toContain('47 front · 5 rear · 52/52 total');
     expect(html).toContain('aria-label="Armour: 47 front, 5 rear, 52 of 52 total"');
+  });
+
+  it('keeps the resting card to its name, rack, and compressed armour line', () => {
+    const html = renderToStaticMarkup(createElement(LocationCard, fixtureProps('right_torso')));
+
+    expect(html).toContain('aria-label="Right Torso location, 2 of 6 slots used');
+    expect(html).toContain('data-testid="slots-grid-right_torso"');
+    expect(html).toContain('bay-armour-compact');
+    expect(html).not.toContain('class="bay-slots');
+    expect(html).not.toContain('class="bay-hardpoints"');
+    expect(html).not.toContain('class="bay-location-flags"');
+    expect(html).not.toContain('bay-location-refusal');
+  });
+
+  it('marks only the newly landed occupant for class-driven snap feedback', () => {
+    const html = renderToStaticMarkup(createElement(LocationCard, fixtureProps('right_torso', {
+      snapTarget: { kind: 'equipment', id: 'case' },
+      snapPhase: 1,
+    })));
+
+    expect(html.match(/snap-target/g)).toHaveLength(1);
+    expect(html).toMatch(/slot-block tone-gear snap-target[^>]*>[\s\S]*?Blowout Cell/);
+    expect(html).not.toMatch(/slot-block tone-ammo snap-target/);
   });
 
   it('inspects fitted weapons, ammunition, and gear without removing them', () => {

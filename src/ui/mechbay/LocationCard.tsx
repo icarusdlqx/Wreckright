@@ -3,7 +3,8 @@ import type { MechLocation } from '../../schema/common';
 import type { Design } from '../../schema/design';
 import type { Catalog } from '../../schema/load';
 import { armourFacesForDesign } from '../../sim/designArmour';
-import { weaponSize, weaponSizeLabel, type LocationUsage } from '../../sim/loadout';
+import { weaponSizeLabel, type LocationUsage } from '../../sim/loadout';
+import { buildLocationOccupants, type LocationOccupant } from './locationOccupants';
 
 export const MECH_LOCATION_NAMES: Record<MechLocation, string> = {
   head: 'Head',
@@ -44,11 +45,7 @@ export function stableRemovalFocusTarget(removeControl: HTMLElement): HTMLButton
     ?? null;
 }
 
-/**
- * A run of rack cells, one per slot. The cell is the same size everywhere, so
- * a three-cell laser reads as the same object in an arm or a torso, and the
- * hollow cells left over say at a glance what still fits.
- */
+/** One consistently sized cell per slot makes footprints comparable across locations. */
 function RackCells({ count, incoming = 0 }: { count: number; incoming?: number }) {
   return (
     <span className="rack-cells" aria-hidden="true">
@@ -70,20 +67,6 @@ function armedFootprint(catalog: Catalog, armed: DropPayload | null): number {
   return 1;
 }
 
-/** One thing bolted into this location, and how much room it takes. */
-interface Occupant {
-  key: string;
-  kind: 'weapon' | 'ammo' | 'equipment';
-  id: string;
-  index: number;
-  label: string;
-  slots: number;
-  /** Colours the block by what it is: energy, ballistic, missile, ammo, gear. */
-  tone: string;
-  /** True when the mount is too small for what has been put in it. */
-  oversized: boolean;
-}
-
 interface Props {
   catalog: Catalog;
   chassis: Chassis;
@@ -94,21 +77,18 @@ interface Props {
   onRemoveMount: (index: number) => void;
   onRemoveAmmo: (index: number) => void;
   onRemoveEquipment: (index: number) => void;
-  /** Called when the player picks something here, so the dossier can follow. */
   onInspect?: (payload: DropPayload) => void;
   onSelect?: (location: MechLocation) => void;
   onHover?: (location: MechLocation | null) => void;
   selected?: boolean;
   hovered?: boolean;
   compatible?: boolean;
-  /** Why this location refused the held part, in words the player can act on. */
   refusal?: string | null;
-  /**
-   * What the player has picked up off the shelf and not yet placed. Dragging
-   * does not exist on a touch screen, so the bay also works as pick-then-place:
-   * while something is armed, a location is a target rather than a display.
-   */
+  /** Touch placement keeps a picked part armed until a location accepts it. */
   armed?: DropPayload | null;
+  targeting?: DropPayload | null;
+  snapTarget?: DropPayload | null;
+  snapPhase?: 0 | 1 | 2;
 }
 
 export function LocationCard({
@@ -129,6 +109,9 @@ export function LocationCard({
   compatible = false,
   refusal = null,
   armed = null,
+  targeting = null,
+  snapTarget = null,
+  snapPhase = 0,
 }: Props) {
   const hardpoints = chassis.hardpoints[location];
   const slotsOver = usage.slotsUsed > usage.slotsAvailable;
@@ -138,69 +121,26 @@ export function LocationCard({
   );
   const hardpointOver = overHardpointTypes.length > 0;
 
-  // Everything fitted here, in the order it was bolted on, with the room it
-  // takes. This is the loadout as the machine actually carries it.
-  const occupants: Occupant[] = [];
-  let sizeOver = false;
-
-  design.mounts.forEach((mount, index) => {
-    if (mount.location !== location) return;
-    const weapon = catalog.weapons.get(mount.weaponId);
-    const oversized = weapon !== undefined && weaponSize(catalog, weapon) > usage.size;
-    if (oversized) sizeOver = true;
-    occupants.push({
-      key: `m${index}`,
-      kind: 'weapon',
-      id: mount.weaponId,
-      index,
-      label: weapon?.name ?? mount.weaponId,
-      slots: weapon?.slots ?? 1,
-      tone: weapon?.type ?? 'energy',
-      oversized,
-    });
-  });
-
-  design.ammo.forEach((load, index) => {
-    if (load.location !== location) return;
-    const weapon = catalog.weapons.get(load.weaponId);
-    occupants.push({
-      key: `a${index}`,
-      kind: 'ammo',
-      id: load.weaponId,
-      index,
-      label: `${weapon?.name ?? load.weaponId} ammo ×${load.tons}`,
-      slots: Math.max(1, Math.round(load.tons * catalog.rules.construction.ammoSlotsPerTon)),
-      tone: 'ammo',
-      oversized: false,
-    });
-  });
-
-  design.equipment.forEach((fit, index) => {
-    if (fit.location !== location) return;
-    const gear = catalog.equipment.get(fit.equipmentId);
-    occupants.push({
-      key: `e${index}`,
-      kind: 'equipment',
-      id: fit.equipmentId,
-      index,
-      label: gear?.name ?? fit.equipmentId,
-      slots: gear?.slots ?? 1,
-      tone: 'gear',
-      oversized: false,
-    });
-  });
+  const { occupants, sizeOver } = buildLocationOccupants(catalog, design, location, usage.size);
 
   const filled = occupants.reduce((total, item) => total + item.slots, 0);
   const empty = Math.max(0, usage.slotsAvailable - filled);
+  let snapOccupantKey: string | null = null;
+  if (snapPhase !== 0 && snapTarget !== null) {
+    for (const item of occupants) {
+      if (item.kind === snapTarget.kind && item.id === snapTarget.id) snapOccupantKey = item.key;
+    }
+  }
 
-  const remove = (item: Occupant): void => {
+  const remove = (item: LocationOccupant): void => {
     if (item.kind === 'weapon') onRemoveMount(item.index);
     else if (item.kind === 'ammo') onRemoveAmmo(item.index);
     else onRemoveEquipment(item.index);
   };
 
   const plate = armourFacesForDesign(catalog.rules.construction, design, location);
-  const armedFits = armed === null || compatible;
+  const target = targeting ?? armed;
+  const targetFits = target === null || compatible;
   const invalid = slotsOver || hardpointOver || sizeOver;
   const locationName = MECH_LOCATION_NAMES[location];
   const issueStates = [
@@ -210,29 +150,32 @@ export function LocationCard({
     ),
     ...(sizeOver ? ['Weapon too large'] : []),
   ];
-  const fitState = armed === null
-    ? compatible ? 'Fits previewed part' : null
+  const fitState = target === null
+    ? null
     : compatible ? 'Fits held part' : 'Cannot fit held part';
-  // A refusal the player cannot read is indistinguishable from a bug, so carry
-  // the reason the fit check already produced instead of dropping it.
-  const refusalText = armed !== null && !compatible ? refusal : null;
+  // Preserve the evaluator's actionable reason instead of reducing refusal to a red state.
+  const refusalText = target !== null && !compatible ? refusal : null;
 
   const classes = ['bay-location', `loc-${location}`];
   if (invalid) classes.push('invalid');
-  if (armed !== null && compatible) classes.push('armed-target');
+  if (target !== null) classes.push('is-targeting');
+  if (target !== null && compatible) classes.push('armed-target');
   if (selected) classes.push('selected');
   if (hovered) classes.push('hovered');
-  if (compatible) classes.push('compatible');
+  if (target !== null && compatible) classes.push('compatible');
+  if (snapPhase !== 0) classes.push(`snap-phase-${snapPhase}`);
 
   return (
     <div
       className={classes.join(' ')}
       data-testid={`bay-location-${location}`}
       data-selected={selected || undefined}
-      data-compatible={compatible || undefined}
+      data-compatible={target !== null && compatible || undefined}
       data-invalid={invalid || undefined}
+      data-targeting={target === null ? undefined : 'true'}
+      data-snap-phase={snapPhase === 0 ? undefined : snapPhase}
       role="group"
-      aria-label={`${locationName} location${selected ? ', selected' : ''}${fitState === null ? '' : `, ${fitState.toLowerCase()}`}${refusalText === null ? '' : `, ${refusalText}`}${issueStates.length === 0 ? '' : `, ${issueStates.join(', ').toLowerCase()}`}`}
+      aria-label={`${locationName} location, ${usage.slotsUsed} of ${usage.slotsAvailable} slots used${selected ? ', selected' : ''}${fitState === null ? '' : `, ${fitState.toLowerCase()}`}${refusalText === null ? '' : `, ${refusalText}`}${issueStates.length === 0 ? '' : `, ${issueStates.join(', ').toLowerCase()}`}`}
       aria-invalid={invalid || undefined}
       onPointerEnter={() => onHover?.(location)}
       onPointerLeave={() => onHover?.(null)}
@@ -246,11 +189,9 @@ export function LocationCard({
         if (raw === '') return;
         onDrop(JSON.parse(raw) as DropPayload, location);
       }}
-      // The other half of pick-then-place. The card surface remains a generous
-      // touch target while fitted-part controls keep their own explicit jobs.
       onClick={() => {
         if (armed !== null) {
-          if (armedFits) onDrop(armed, location);
+          if (compatible) onDrop(armed, location);
           return;
         }
         onSelect?.(location);
@@ -270,26 +211,19 @@ export function LocationCard({
         >
           {locationName}
         </button>
-        <span
-          className={`bay-slots ${slotsOver ? 'over' : ''}`}
-          data-testid={`slots-${location}`}
-          aria-label={`${usage.slotsUsed} of ${usage.slotsAvailable} slots used`}
-        >
-          {usage.slotsUsed}/{usage.slotsAvailable} slots
-        </span>
       </header>
 
-      <div className="bay-location-flags">
-        {selected ? <span className="location-flag location-flag--selected">Selected</span> : null}
-        {fitState === null ? null : (
+      {target === null ? null : (
+        <div className="bay-location-flags">
+          {selected ? <span className="location-flag location-flag--selected">Selected</span> : null}
           <span className={`location-flag ${compatible ? 'location-flag--compatible' : 'location-flag--blocked'}`}>
             {fitState}
           </span>
-        )}
-        {issueStates.map((issue) => (
-          <span key={issue} className="location-flag location-flag--invalid">{issue}</span>
-        ))}
-      </div>
+          {issueStates.map((issue) => (
+            <span key={issue} className="location-flag location-flag--invalid">{issue}</span>
+          ))}
+        </div>
+      )}
 
       {refusalText === null ? null : (
         <p className="bay-location-refusal" data-testid={`bay-refusal-${location}`}>
@@ -297,28 +231,30 @@ export function LocationCard({
         </p>
       )}
 
-      <div className="bay-hardpoints">
-        {(['energy', 'ballistic', 'missile'] as const).map((type) =>
-          hardpoints[type] === 0 ? null : (
-            <span
-              key={type}
-              className={`pip ${type} ${usage.hardpointsUsed[type] > hardpoints[type] ? 'over' : ''}`}
-              title={`${type} hardpoints`}
-              aria-label={`${type} hardpoints: ${usage.hardpointsUsed[type]} of ${hardpoints[type]} used`}
-            >
-              {type.slice(0, 1).toUpperCase()} {usage.hardpointsUsed[type]}/{hardpoints[type]}
-            </span>
-          ),
-        )}
-        <span
-          className={`pip size ${sizeOver ? 'over' : ''}`}
-          title={`Takes ${weaponSizeLabel(catalog, usage.size)} weapons and smaller`}
-          data-testid={`size-${location}`}
-          aria-label={`Maximum weapon size: ${weaponSizeLabel(catalog, usage.size)}`}
-        >
-          ≤ {weaponSizeLabel(catalog, usage.size)}
-        </span>
-      </div>
+      {target === null ? null : (
+        <div className="bay-hardpoints">
+          {(['energy', 'ballistic', 'missile'] as const).map((type) =>
+            hardpoints[type] === 0 ? null : (
+              <span
+                key={type}
+                className={`pip ${type} ${usage.hardpointsUsed[type] > hardpoints[type] ? 'over' : ''}`}
+                title={`${type} hardpoints`}
+                aria-label={`${type} hardpoints: ${usage.hardpointsUsed[type]} of ${hardpoints[type]} used`}
+              >
+                {type.slice(0, 1).toUpperCase()} {usage.hardpointsUsed[type]}/{hardpoints[type]}
+              </span>
+            ),
+          )}
+          <span
+            className={`pip size ${sizeOver ? 'over' : ''}`}
+            title={`Takes ${weaponSizeLabel(catalog, usage.size)} weapons and smaller`}
+            data-testid={`size-${location}`}
+            aria-label={`Maximum weapon size: ${weaponSizeLabel(catalog, usage.size)}`}
+          >
+            ≤ {weaponSizeLabel(catalog, usage.size)}
+          </span>
+        </div>
+      )}
 
       <ul
         className="bay-slotgrid"
@@ -328,7 +264,7 @@ export function LocationCard({
         {occupants.map((item) => (
           <li
             key={item.key}
-            className={`slot-block tone-${item.tone}${item.oversized ? ' too-big' : ''}`}
+            className={`slot-block tone-${item.tone}${item.oversized ? ' too-big' : ''}${item.key === snapOccupantKey ? ' snap-target' : ''}`}
             title={
               item.oversized
                 ? `${item.label} — too large for this mount`
@@ -380,7 +316,7 @@ export function LocationCard({
             <>
               <RackCells
                 count={empty}
-                incoming={armedFits && armed !== null ? Math.min(empty, armedFootprint(catalog, armed)) : 0}
+                incoming={targetFits && target !== null ? Math.min(empty, armedFootprint(catalog, target)) : 0}
               />
               <small className="rack-free-count">
                 {empty} slot{empty === 1 ? '' : 's'} free
@@ -394,6 +330,7 @@ export function LocationCard({
       <span
         className="bay-armour-read"
         data-testid={`armour-faces-${location}`}
+        tabIndex={0}
         aria-label={`Armour: ${plate.front} front, ${plate.rear} rear, ${design.armour[location]} of ${chassis.armourMax[location]} total`}
         title={
           plate.rear === 0
@@ -402,9 +339,10 @@ export function LocationCard({
         }
       >
         <strong>Armour</strong>
-        <span>{plate.front} front</span>
-        <span>{plate.rear} rear</span>
-        <span>{design.armour[location]}/{chassis.armourMax[location]} total</span>
+        <span className="bay-armour-compact">{plate.front}+{plate.rear}</span>
+        <span className="bay-armour-detail">
+          {plate.front} front · {plate.rear} rear · {design.armour[location]}/{chassis.armourMax[location]} total
+        </span>
       </span>
     </div>
   );

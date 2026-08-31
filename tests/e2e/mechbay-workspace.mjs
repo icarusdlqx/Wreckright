@@ -1,7 +1,13 @@
 import { openDesktopBattleMenu } from './input-safety.mjs';
 import {
+  dragStockToLocation,
+  quietLocationState,
   verifyArmedIncompatibleRemovalFocus,
+  verifyAutoFitSnap,
+  verifyFirstFitExplainers,
+  verifyFoldPersistenceAfterReload,
   verifyOutfitDialogRerender,
+  verifyQuietBayOpening,
 } from './mechbay-accessibility.mjs';
 import { verifyArmourPaperDoll } from './mechbay-armour-paper-doll.mjs';
 
@@ -114,29 +120,7 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
   await openDesktopBattleMenu(page);
   await page.locator('[data-testid="open-mechbay"]').click();
   await page.waitForSelector('[data-testid="mechbay"]');
-
-  check('mechbay shows all eight locations', (await page.locator('.bay-location').count()) === 8);
-  check(
-    'the workspace opens on one visible Loadout panel',
-    (await page.locator('[data-testid="bay-workspace-tabs"] [role="tab"]').count()) === 3 &&
-      (await page.locator('[data-workspace-tab="loadout"]').getAttribute('aria-selected')) === 'true' &&
-      await page.locator('[data-workspace-panel="loadout"]').isVisible() &&
-      !(await page.locator('[data-workspace-panel="armour"]').isVisible()) &&
-      !(await page.locator('[data-workspace-panel="review"]').isVisible()),
-  );
-  check(
-    'the starting build is legal',
-    (await page.locator('[data-testid="bay-status"]').innerText()).includes('legal') &&
-      !(await page.locator('[data-testid="bay-save"]').isDisabled()),
-  );
-  const startingComparison = await comparisonDirections(page);
-  check(
-    'the stock comparison starts with seven neutral metrics',
-    Object.keys(startingComparison).length === 7 &&
-      Object.values(startingComparison).every((direction) => direction === 'neutral') &&
-      await renderedTextIncludes(page.locator('[data-testid="build-compare-baseline"]'), 'Sentinel'),
-    JSON.stringify(startingComparison),
-  );
+  await verifyQuietBayOpening({ page, check, selectWorkspace, comparisonDirections });
 
   await selectWorkspace(page, 'armour');
   check(
@@ -146,7 +130,7 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
       (await page.locator('[data-testid="cooling-weapon-heat"]').innerText()).includes('/s') &&
       (await page.locator('[data-testid="cooling-dissipation"]').innerText()).includes('/s') &&
       (await page.locator('[data-testid="torso-rear-total"]').innerText()).includes('points') &&
-      await page.locator('[data-testid="build-compare"]').isVisible(),
+      !(await page.locator('[data-testid="build-compare"]').isVisible()),
   );
   await verifyArmourPaperDoll({ page, check, shots });
   await selectWorkspace(page, 'loadout');
@@ -159,7 +143,8 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
     (await page.locator('[data-testid="mech-preview-canvas"]').count()) === 1 &&
       (await inspector.locator('[role="meter"]').count()) === 3 &&
       (await inspector.locator('.weapon-glyph').count()) === 1 &&
-      (await inspector.locator('.weapon-range-strip').count()) === 1,
+      (await inspector.locator('.weapon-range-strip').count()) === 1 &&
+      (await quietLocationState(page)).quiet === 8,
   );
 
   const shelfSearch = page.locator('[data-testid="shelf-search"]');
@@ -191,10 +176,12 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
     (await page.locator('[data-testid="stock-weapon-gauss_rifle"]').count()) === 0,
   );
   await page.locator('[data-testid="bay-location-right_torso"] .bay-location-name').click();
+  const selectedLocations = await quietLocationState(page, true);
   check(
     'selecting a hardpoint filters the shelf to that mount',
     (await page.locator('[data-testid="bay-location-filter"]').innerText()).toLowerCase().includes('right torso') &&
-      (await page.locator('.weapon-card.is-unavailable').count()) === 0,
+      (await page.locator('.weapon-card.is-unavailable').count()) === 0 &&
+      selectedLocations.count === 8 && selectedLocations.quiet === 8,
   );
   await page.locator('[data-testid="shelf-show-all"]').check();
   const incompatibleGauss = page.locator('[data-testid="stock-weapon-gauss_rifle"]');
@@ -217,9 +204,11 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
   await page.keyboard.press('Enter');
   const afterFit = await freeTonnage(page);
   check('keyboard pick-to-hardpoint mounts the weapon', afterFit < startingFree, `${startingFree}t → ${afterFit}t`);
+  await verifyFirstFitExplainers({ page, check });
+  await selectWorkspace(page, 'review');
   const fittedComparison = await comparisonDirections(page);
   check(
-    'the comparison exposes the fitted weapon trade across heat, alpha, and all range bands',
+    'Review exposes the fitted weapon trade across heat, alpha, and all range bands',
     fittedComparison.speed === 'neutral' &&
       fittedComparison.armour === 'neutral' &&
       fittedComparison.heat_margin === 'bad' &&
@@ -269,6 +258,7 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
       ),
   );
   check('free tonnage returns to its starting value', (await freeTonnage(page)) === startingFree);
+  await selectWorkspace(page, 'review');
   const restoredComparison = await comparisonDirections(page);
   check(
     'removing the edit restores all stock comparison metrics to neutral',
@@ -276,11 +266,19 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
       Object.values(restoredComparison).every((direction) => direction === 'neutral'),
     JSON.stringify(restoredComparison),
   );
+  await selectWorkspace(page, 'loadout');
+  await verifyAutoFitSnap({ page, check });
 
-  await page.locator('[data-testid="stock-weapon-medium_laser"]').dragTo(
-    page.locator('[data-testid="bay-location-right_torso"]'),
+  const draggedTargeting = await dragStockToLocation(
+    page, 'stock-weapon-medium_laser', 'bay-location-right_torso',
   );
-  check('drag-to-hardpoint uses the same legal mount path', (await freeTonnage(page)) < startingFree);
+  check(
+    'drag-to-hardpoint reveals targeting and uses the same legal mount path',
+    draggedTargeting.count === 8 && draggedTargeting.complete && draggedTargeting.refusals > 0 &&
+      draggedTargeting.uniqueStatus && draggedTargeting.statusChanged && draggedTargeting.namesHeldPart &&
+      draggedTargeting.sameLiveRegionCount && (await freeTonnage(page)) < startingFree,
+    JSON.stringify(draggedTargeting),
+  );
   await page.locator('[data-testid="bay-location-right_torso"] [data-testid^="remove-weapon-"]').click();
   check('dragged weapon can be removed cleanly', (await freeTonnage(page)) === startingFree);
   await page.locator('[data-testid="bay-undo"]').click();
@@ -314,6 +312,8 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
   await page.screenshot({ path: `${shots}/06-mechbay-legal.png` });
 
   await verifySavedLoadoutJourney({ page, check });
+  await verifyFoldPersistenceAfterReload({ page, check });
+  await page.waitForSelector('.viewport canvas:not(.perf-overlay)', { state: 'attached' });
   check(
     'returning to the skirmish remounts the battle',
     (await page.locator('.viewport canvas:not(.perf-overlay)').count()) === 1,
@@ -340,8 +340,9 @@ export async function runCampaignRefitMechbayJourney({ page, check }) {
     shelvedWeapons.join(', '),
   );
   check(
-    'every location exposes a compact fitting summary',
-    (await page.locator('[data-testid^="free-slots-"]').count()) === 8,
+    'every resting campaign location exposes a quiet accessible rack summary',
+    (await page.locator('[data-testid^="free-slots-"]').count()) === 8 &&
+      (await quietLocationState(page)).quiet === 8,
   );
 
   const flamerRow = page.locator('[data-testid="stock-weapon-flamer"]');

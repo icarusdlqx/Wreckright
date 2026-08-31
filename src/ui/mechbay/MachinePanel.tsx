@@ -48,8 +48,10 @@ interface Props {
   selectedLocation: MechLocation | null;
   hoveredLocation: MechLocation | null;
   compatibleLocations: ReadonlySet<MechLocation>;
+  cultureExpanded: boolean;
   onSelectLocation: (location: MechLocation) => void;
   onHoverLocation: (location: MechLocation | null) => void;
+  onCultureExpandedChange: (expanded: boolean) => void;
 }
 
 export function MachinePanel({
@@ -62,8 +64,10 @@ export function MachinePanel({
   selectedLocation,
   hoveredLocation,
   compatibleLocations,
+  cultureExpanded,
   onSelectLocation,
   onHoverLocation,
+  onCultureExpandedChange,
 }: Props) {
   const overweight = loadout.freeTonnage < 0;
   return (
@@ -83,6 +87,8 @@ export function MachinePanel({
         faction={chassis.faction}
         foreignComponents={designUsesForeignComponents(catalog, design, chassis.faction)}
         testId="machine-culture-primary"
+        expanded={cultureExpanded}
+        onExpandedChange={onCultureExpandedChange}
       />
 
       <MechPreview

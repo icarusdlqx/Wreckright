@@ -4,8 +4,10 @@ import { isOperational } from '../sim/types';
 import { createWorld, stepWorld } from '../sim/world';
 import {
   advanceTrainingStep,
+  completeMechbayFitTraining,
   completeTraining,
   initialSkirmishMission,
+  readMechbayFitComplete,
   skipTraining,
   startTraining,
   STANDARD_MISSION_ID,
@@ -46,6 +48,12 @@ describe('the first training offer', () => {
 
   it('does not mistake playtest bookkeeping for prior play', () => {
     localStorage.setItem('ironline.playtest.v1', '{"opened":1}');
+    expect(initialSkirmishMission()).toBe(TRAINING_MISSION_ID);
+  });
+
+  it('does not mistake mechbay training bookkeeping for prior battle play', () => {
+    completeMechbayFitTraining();
+
     expect(initialSkirmishMission()).toBe(TRAINING_MISSION_ID);
   });
 
@@ -92,6 +100,72 @@ describe('the first training offer', () => {
       step: 0,
       status: 'active',
     });
+  });
+});
+
+describe('mechbay fit training', () => {
+  const real = globalThis.localStorage;
+  let entries: Map<string, string>;
+
+  beforeEach(() => {
+    entries = new Map<string, string>();
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: {
+        get length() {
+          return entries.size;
+        },
+        key: (index: number) => [...entries.keys()][index] ?? null,
+        getItem: (key: string) => entries.get(key) ?? null,
+        setItem: (key: string, value: string) => entries.set(key, value),
+      },
+    });
+  });
+
+  afterEach(() => {
+    Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: real });
+  });
+
+  it('starts incomplete and rejects invalid or unknown records', () => {
+    expect(readMechbayFitComplete()).toBe(false);
+
+    localStorage.setItem('ironline.training.mechbay-fit', '{bad json');
+    expect(readMechbayFitComplete()).toBe(false);
+
+    localStorage.setItem(
+      'ironline.training.mechbay-fit',
+      JSON.stringify({ version: 2, complete: true }),
+    );
+    expect(readMechbayFitComplete()).toBe(false);
+
+    localStorage.setItem(
+      'ironline.training.mechbay-fit',
+      JSON.stringify({ version: 1, complete: false }),
+    );
+    expect(readMechbayFitComplete()).toBe(false);
+  });
+
+  it('writes and reads a versioned completion record', () => {
+    completeMechbayFitTraining();
+
+    expect(JSON.parse(localStorage.getItem('ironline.training.mechbay-fit') ?? '{}')).toEqual({
+      version: 1,
+      complete: true,
+    });
+    expect(readMechbayFitComplete()).toBe(true);
+  });
+
+  it('treats unavailable storage as incomplete without throwing on writes', () => {
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: {
+        getItem: () => { throw new Error('storage unavailable'); },
+        setItem: () => { throw new Error('storage unavailable'); },
+      },
+    });
+
+    expect(readMechbayFitComplete()).toBe(false);
+    expect(() => completeMechbayFitTraining()).not.toThrow();
   });
 });
 

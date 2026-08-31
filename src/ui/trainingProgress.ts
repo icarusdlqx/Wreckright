@@ -10,6 +10,11 @@ interface TrainingRecord {
   status: TrainingStatus;
 }
 
+interface MechbayFitRecord {
+  version: 1;
+  complete: true;
+}
+
 export interface TrainingSignals {
   selected: boolean;
   moved: boolean;
@@ -18,7 +23,12 @@ export interface TrainingSignals {
 }
 
 const TRAINING_KEY = 'ironline.training';
-const PROFILE_MARKER_EXCLUSIONS = new Set([TRAINING_KEY, 'ironline.playtest.v1']);
+const MECHBAY_FIT_KEY = 'ironline.training.mechbay-fit';
+const PROFILE_MARKER_EXCLUSIONS = new Set([
+  TRAINING_KEY,
+  MECHBAY_FIT_KEY,
+  'ironline.playtest.v1',
+]);
 
 function storage(): Storage | null {
   try {
@@ -47,6 +57,26 @@ export function readTraining(): TrainingRecord | null {
     return record as TrainingRecord;
   } catch {
     return null;
+  }
+}
+
+export function readMechbayFitComplete(): boolean {
+  try {
+    const raw = storage()?.getItem(MECHBAY_FIT_KEY);
+    if (raw === null || raw === undefined) return false;
+    const record = JSON.parse(raw) as Partial<MechbayFitRecord>;
+    return record.version === 1 && record.complete === true;
+  } catch {
+    return false;
+  }
+}
+
+export function completeMechbayFitTraining(): void {
+  try {
+    const record: MechbayFitRecord = { version: 1, complete: true };
+    storage()?.setItem(MECHBAY_FIT_KEY, JSON.stringify(record));
+  } catch {
+    // Private browsing keeps the quieter bay for this page only.
   }
 }
 

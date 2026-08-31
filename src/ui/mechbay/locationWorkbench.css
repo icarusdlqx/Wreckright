@@ -249,12 +249,6 @@
   color: var(--text);
 }
 
-.location-overview .bay-armour-read span:not(:last-child)::after {
-  margin-left: 4px;
-  color: rgba(255, 255, 255, 0.2);
-  content: '\00b7';
-}
-
 @media (min-width: 1680px) {
   .location-overview {
     grid-template-columns: repeat(3, minmax(0, 1fr));
