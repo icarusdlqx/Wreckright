@@ -151,7 +151,11 @@ export async function runMinimapControlChecks({ page, check, shots }) {
     paint.calls.length === 12 &&
       paint.calls.every((calls) => calls === 2) &&
       paint.intervals.every((interval) => interval >= 90) &&
-      paint.hz >= Math.min(8, paint.availableHz * 0.8) &&
+      // A 10Hz timer on an fps-starved harness can only land on frame
+      // boundaries: at ~14fps it fires every other frame and honestly reads
+      // ~7Hz. The floor is therefore half the available rate with slack, so
+      // the check measures the minimap's cadence rather than the machine's.
+      paint.hz >= Math.min(8, paint.availableHz * 0.45) &&
       paint.hz <= 12 &&
       paint.p95 < 8,
     JSON.stringify(paint),
