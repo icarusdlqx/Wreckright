@@ -1,10 +1,33 @@
 import { describe, expect, it } from 'vitest';
 import { catalog } from '../../tests/support';
+import type { Catalog } from '../schema/load';
 import { buyPart, partMarketListings, pruneMarket } from './market';
 import { startCampaign } from './campaign';
 
 function freshState() {
   return startCampaign(catalog, 'border_dispute', 'parts-test');
+}
+
+function fixedPartPrices(): Catalog {
+  return {
+    ...catalog,
+    rules: {
+      ...catalog.rules,
+      economy: {
+        ...catalog.rules.economy,
+        market: {
+          ...catalog.rules.economy.market,
+          priceVariance: [1, 1 + Number.EPSILON],
+        },
+      },
+    },
+  };
+}
+
+function supplierPriceFactor(): number {
+  const event = catalog.rules.events.entries.find((entry) => entry.type === 'supplier_discount');
+  if (event?.type !== 'supplier_discount') throw new Error('supplier event is missing');
+  return event.priceFactor;
 }
 
 describe('the parts counter', () => {
@@ -27,6 +50,42 @@ describe('the parts counter', () => {
   it('offers the same crates at the same prices however often the player looks', () => {
     const state = freshState();
     expect(partMarketListings(catalog, state)).toEqual(partMarketListings(catalog, state));
+  });
+
+  it('discounts crates before rounding without changing their identity', () => {
+    const pricedCatalog = fixedPartPrices();
+    const state = freshState();
+    const regular = partMarketListings(pricedCatalog, state);
+    state.eventEffects.supplierDiscountThroughDay = state.day;
+    const discounted = partMarketListings(pricedCatalog, state);
+    const rounding = pricedCatalog.rules.economy.market.partPriceRounding;
+    const factor = supplierPriceFactor();
+
+    expect(discounted).toHaveLength(regular.length);
+    discounted.forEach((listing, index) => {
+      const before = regular[index];
+      if (before === undefined) throw new Error('discount changed the crate count');
+      expect({ ...listing, price: 0 }).toEqual({ ...before, price: 0 });
+      const authored = listing.kind === 'weapon'
+        ? pricedCatalog.weapons.get(listing.itemId)?.cost
+        : pricedCatalog.equipment.get(listing.itemId)?.cost;
+      const raw = (authored ?? 0) * factor;
+      expect(listing.price).toBe(
+        Math.max(rounding, Math.round(raw / rounding) * rounding),
+      );
+      expect(listing.price).toBeLessThanOrEqual(before.price);
+    });
+  });
+
+  it('charges the discounted crate price at the counter', () => {
+    const state = freshState();
+    state.eventEffects.supplierDiscountThroughDay = state.day + 7;
+    const listing = partMarketListings(catalog, state)[0];
+    if (listing === undefined) throw new Error('the parts counter is empty');
+    state.cbills = listing.price;
+
+    expect(buyPart(catalog, state, listing.id).ok).toBe(true);
+    expect(state.cbills).toBe(0);
   });
 
   it('sells a crate into stores and takes the money', () => {

@@ -32,6 +32,7 @@ function outcome(values: Partial<MissionOutcome>): MissionOutcome {
     mechsLost: [],
     pilotReports: [],
     ...values,
+    paymentDisputeSettled: values.paymentDisputeSettled ?? false,
   };
 }
 

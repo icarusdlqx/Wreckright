@@ -48,10 +48,10 @@ export function repairQueue(catalog: Catalog, state: CampaignState): RepairQueue
       };
     }
 
-    // Saves made before capacity existed may promise two completions before a
-    // single lift could have performed them. Keep that paid promise, but do
-    // not invent an impossible zero-day sequential job in the readout.
-    if (mech.readyOnDay <= previous.readyOnDay) {
+    // Saves made before capacity existed may promise a completion before the
+    // preceding lift release. Keep that paid promise. Equal dates are valid:
+    // a banked workshop day can make a queued one-day booking finish at start.
+    if (mech.readyOnDay < previous.readyOnDay) {
       return {
         mechId: mech.id,
         position: index + 1,
@@ -79,6 +79,10 @@ export function projectedRepairWindow(
   state: CampaignState,
   days: number,
 ): Omit<RepairQueueEntry, 'mechId'> {
+  const creditedDays = Math.max(
+    0,
+    days - (days > 0 && state.eventEffects.freeRepairDays > 0 ? 1 : 0),
+  );
   const queue = repairQueue(catalog, state);
   const capacity = catalog.rules.economy.repair.bayCapacity;
   const startsOnDay = Math.max(
@@ -94,7 +98,7 @@ export function projectedRepairWindow(
     queuePosition,
     status: queuePosition === null ? 'active' : 'queued',
     startsOnDay,
-    readyOnDay: startsOnDay + days,
+    readyOnDay: startsOnDay + creditedDays,
   };
 }
 
@@ -105,9 +109,17 @@ export function bookRepair(
   mech: MechRecord,
   days: number,
 ): RepairQueueEntry {
+  const usesFreeDay = days > 0 && state.eventEffects.freeRepairDays > 0;
   const window = projectedRepairWindow(catalog, state, days);
-  mech.status = 'repairing';
+  if (usesFreeDay) state.eventEffects.freeRepairDays -= 1;
+
   mech.readyOnDay = window.readyOnDay;
+  if (window.readyOnDay <= state.day) {
+    completeRepair(catalog, mech);
+    return { mechId: mech.id, ...window };
+  }
+
+  mech.status = 'repairing';
   mech.rebuildCost = 0;
   return { mechId: mech.id, ...window };
 }

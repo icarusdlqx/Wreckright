@@ -12,6 +12,7 @@ import {
 import { campaignOutcomeCount } from './history';
 import { estimateRepair, startRepair } from './repair';
 import { deserialiseCampaign, serialiseCampaign } from './save';
+import { assessSolvency } from './solvency';
 import { isPilotAvailable, type CampaignState } from './types';
 
 const CAMPAIGN_ID = 'aurelian_recall';
@@ -147,6 +148,33 @@ export function registerAurelianAcceptance(): void {
         expect(restored === null ? [] : availableNodes(catalog, restored)).toEqual([]);
       },
     );
+
+    it('finishes two seeded routes with different rest-day stories', () => {
+      const runs = [
+        { seed: 'rest-day-acceptance-export', nodeId: 'continuance_export' },
+        { seed: 'rest-day-acceptance-stewardship', nodeId: 'local_stewardship' },
+      ].map(({ seed, nodeId }) => {
+        const state = startCampaign(catalog, CAMPAIGN_ID, seed);
+        for (const routeNodeId of [...SPINE, nodeId]) {
+          sign(state, routeNodeId);
+          resolveWithoutCombat(state, true);
+          if (!state.finished) expect(assessSolvency(catalog, state).state).not.toBe('terminal');
+        }
+        return state;
+      });
+
+      for (const state of runs) {
+        expect(state).toMatchObject({ campaignId: CAMPAIGN_ID, finished: true, won: true });
+        expect(state.log.filter((entry) => entry.text.startsWith('Rest day —'))).toHaveLength(7);
+      }
+
+      const stories = runs.map((state) =>
+        state.log
+          .filter((entry) => entry.text.startsWith('Rest day —'))
+          .map((entry) => entry.text),
+      );
+      expect(stories[0]).not.toEqual(stories[1]);
+    });
 
     it('resolves the opening arc through live battles', { timeout: 60_000 }, () => {
       const state = startCampaign(catalog, CAMPAIGN_ID, 'aurelian-live');

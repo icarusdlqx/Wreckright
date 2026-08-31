@@ -2,6 +2,7 @@ import type { Design } from '../schema/design';
 import type { Faction } from '../schema/faction';
 import type { Catalog } from '../schema/load';
 import { createRng } from '../sim/rng';
+import { supplierDiscountFactor } from './events';
 import { estimateRepair, pristineCondition } from './repair';
 import { addToStore, type CampaignState, type MechRecord, type StoreItem, type StoreKind } from './types';
 
@@ -123,6 +124,7 @@ export function marketListings(catalog: Catalog, state: CampaignState): Listing[
   const rules = catalog.rules.economy.market;
   const period = marketPeriod(catalog, state.day);
   const rng = createRng(`${state.seed}:market:${period}`);
+  const supplierFactor = supplierDiscountFactor(catalog, state);
 
   // Sorted first so the lot does not depend on the order the content happened
   // to load in. Mechs only: a yard that sold emplacements would be selling
@@ -157,7 +159,8 @@ export function marketListings(catalog: Catalog, state: CampaignState): Listing[
     const worn = rng.chance(rules.wornChance);
     if (sold.has(id)) return;
 
-    const raw = valueOf(catalog, design) * variance * (worn ? rules.wornDiscount : 1);
+    const raw =
+      valueOf(catalog, design) * variance * (worn ? rules.wornDiscount : 1) * supplierFactor;
     listings.push({
       id,
       design,
@@ -259,6 +262,7 @@ export function partMarketListings(catalog: Catalog, state: CampaignState): Part
   const rules = catalog.rules.economy.market;
   const period = marketPeriod(catalog, state.day);
   const rng = createRng(`${state.seed}:market:parts:${period}`);
+  const supplierFactor = supplierDiscountFactor(catalog, state);
 
   const pool: { kind: StoreKind; itemId: string; name: string; cost: number }[] = [];
   for (const weapon of catalog.weapons.values()) {
@@ -278,7 +282,7 @@ export function partMarketListings(catalog: Catalog, state: CampaignState): Part
     // purchase cannot move the price of the crate beside it.
     const variance = rng.range(rules.priceVariance[0], rules.priceVariance[1]);
     if (sold.has(id)) return;
-    const raw = item.cost * variance;
+    const raw = item.cost * variance * supplierFactor;
     listings.push({
       id,
       kind: item.kind,

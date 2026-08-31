@@ -42,12 +42,14 @@ import {
   type SalvageRules,
   type SupportRules,
 } from './rulesCampaign';
+import { EventsRulesSchema, type EventsRules } from './rulesEvents';
 
 // Keep `schema/rules` as the stable public surface while the schemas themselves
 // live beside the domain that owns them.
 export * from './rulesBattle';
 export * from './rulesAwareness';
 export * from './rulesCampaign';
+export * from './rulesEvents';
 
 export interface Rules {
   readonly simulation: SimulationRules;
@@ -69,6 +71,7 @@ export interface Rules {
   readonly abilities: AbilityRules;
   readonly frames: FrameRules;
   readonly difficulty: DifficultyRules;
+  readonly events: EventsRules;
 }
 
 export const RULE_SCHEMAS = {
@@ -91,6 +94,7 @@ export const RULE_SCHEMAS = {
   abilities: AbilityRulesSchema,
   frames: FrameRulesSchema,
   difficulty: DifficultyRulesSchema,
+  events: EventsRulesSchema,
 } as const;
 
 export type RuleId = keyof typeof RULE_SCHEMAS;

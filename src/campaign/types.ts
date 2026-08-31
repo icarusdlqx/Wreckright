@@ -91,6 +91,13 @@ export interface CampaignLogEntry {
   text: string;
 }
 
+export interface CampaignEventEffects {
+  /** Last campaign day covered by the active supplier week, inclusive. */
+  supplierDiscountThroughDay: number | null;
+  /** One-day workshop credits waiting to be consumed by later bookings. */
+  freeRepairDays: number;
+}
+
 export interface EmployerFailure {
   employerId: string;
   employerName: string;
@@ -123,6 +130,8 @@ export interface MissionOutcome {
   won: boolean;
   day: number;
   payout: number;
+  /** A favorable rest-day settlement can adjust each live field report once. */
+  paymentDisputeSettled: boolean;
   salvagedChassis: string[];
   salvagedItems: StoreItem[];
   /** Everything the crews cut loose, of which `salvagedItems` was taken. */
@@ -185,6 +194,7 @@ export interface CampaignState {
   /** Old field reports reduced to the totals the campaign still shows. */
   historyArchive: CampaignHistoryArchive;
   employerFailures: EmployerFailure[];
+  eventEffects: CampaignEventEffects;
   log: CampaignLogEntry[];
   finished: boolean;
   won: boolean;

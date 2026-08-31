@@ -55,21 +55,20 @@ describe('repair queue readouts', () => {
     expect(market).toContain('This paid workshop booking must finish before sale');
   });
 
-  it('labels an overlapping old promise without claiming a zero-day queue slot', () => {
-    const state = startCampaign(catalog, 'border_dispute', 'inherited-repair-booking');
-    const [first, inherited] = state.mechs;
-    if (first === undefined || inherited === undefined) throw new Error('campaign needs two machines');
+  it('shows a credited zero-day booking at its queue start', () => {
+    const state = startCampaign(catalog, 'border_dispute', 'credited-repair-booking');
+    const [first, credited] = state.mechs;
+    if (first === undefined || credited === undefined) throw new Error('campaign needs two machines');
     first.status = 'repairing';
-    inherited.status = 'repairing';
+    credited.status = 'repairing';
     first.readyOnDay = state.day + 2;
-    inherited.readyOnDay = state.day + 2;
+    credited.readyOnDay = state.day + 2;
 
     const bay = renderToStaticMarkup(
       createElement(MechBayPanel, { state, mutate: () => undefined }),
     );
-    expect(bay).toContain(`inherited concurrent booking · ready day ${inherited.readyOnDay}`);
-    expect(bay).not.toContain(
-      `starts day ${inherited.readyOnDay} · ready day ${inherited.readyOnDay}`,
+    expect(bay).toContain(
+      `queued 1 · starts day ${credited.readyOnDay} · ready day ${credited.readyOnDay}`,
     );
 
     const hangar = renderToStaticMarkup(
@@ -83,7 +82,7 @@ describe('repair queue readouts', () => {
       }),
     );
     expect(hangar).toContain(
-      `Inherited concurrent booking — ready day ${inherited.readyOnDay}`,
+      `Queued 1 — starts day ${credited.readyOnDay}, ready day ${credited.readyOnDay}`,
     );
   });
 });

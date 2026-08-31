@@ -18,6 +18,7 @@ import {
   CombatRulesSchema,
   ConstructionRulesSchema,
   DifficultyRulesSchema,
+  EventsRulesSchema,
   FrameRulesSchema,
   DamageRulesSchema,
   StabilityRulesSchema,
@@ -227,6 +228,7 @@ function parseRules(files: RawFiles, issues: ContentIssue[]): Rules | null {
   const abilities = parseRule('abilities', AbilityRulesSchema, byStem, issues);
   const frames = parseRule('frames', FrameRulesSchema, byStem, issues);
   const difficulty = parseRule('difficulty', DifficultyRulesSchema, byStem, issues);
+  const events = parseRule('events', EventsRulesSchema, byStem, issues);
 
   if (
     simulation === null ||
@@ -247,7 +249,8 @@ function parseRules(files: RawFiles, issues: ContentIssue[]): Rules | null {
     pilotTraits === null ||
     abilities === null ||
     frames === null ||
-    difficulty === null
+    difficulty === null ||
+    events === null
   ) {
     return null;
   }
@@ -272,6 +275,7 @@ function parseRules(files: RawFiles, issues: ContentIssue[]): Rules | null {
     abilities,
     frames,
     difficulty,
+    events,
   };
 }
 

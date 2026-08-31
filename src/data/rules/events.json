@@ -1,0 +1,39 @@
+{
+  "id": "events",
+  "entries": [
+    {
+      "id": "supplier_discount_week",
+      "type": "supplier_discount",
+      "title": "Open Account Week",
+      "log": "A supplier opens its account book: yard purchases are discounted for seven days.",
+      "weight": 3,
+      "priceFactor": 0.9,
+      "durationDays": 7
+    },
+    {
+      "id": "pilot_rumour",
+      "type": "pilot_rumour",
+      "title": "A Rumour Worth Hearing",
+      "log": "A useful cockpit rumour reaches the barracks and sharpens one pilot's instincts.",
+      "weight": 3,
+      "xp": 75
+    },
+    {
+      "id": "yard_mishap",
+      "type": "yard_mishap",
+      "title": "The Yard Makes Good",
+      "log": "The yard settles a mishap by adding a free repair day to the company account.",
+      "weight": 2,
+      "freeRepairDays": 1,
+      "bankLimit": 2
+    },
+    {
+      "id": "contract_payment_dispute",
+      "type": "contract_payment_dispute",
+      "title": "Disputed Account",
+      "log": "A contract-payment dispute settles in the company's favour.",
+      "weight": 1,
+      "settlementCredits": 25000
+    }
+  ]
+}

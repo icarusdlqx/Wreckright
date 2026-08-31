@@ -104,6 +104,8 @@ const MissionOutcomeSchema = z.strictObject({
   won: z.boolean(),
   day: z.number().int(),
   payout: z.number().int(),
+  // Historical reports predate event adjustments and retain their final ledgers.
+  paymentDisputeSettled: z.boolean().default(true),
   salvagedChassis: z.array(IdSchema),
   salvagedItems: z.array(StoreItemSchema),
   /** Older saves predate the salvage choice and simply offered nothing. */
@@ -161,6 +163,11 @@ const RngStateSchema = z.strictObject({
   w: z.number().int().nonnegative(),
 });
 
+const CampaignEventEffectsSchema = z.strictObject({
+  supplierDiscountThroughDay: z.number().int().nonnegative().nullable(),
+  freeRepairDays: z.number().int().nonnegative().max(7),
+});
+
 export const CampaignStateSchema = z.strictObject({
   campaignId: IdSchema,
   seed: z.string(),
@@ -183,6 +190,10 @@ export const CampaignStateSchema = z.strictObject({
   history: z.array(MissionOutcomeSchema),
   historyArchive: CampaignHistoryArchiveSchema.default({ outcomes: 0, employers: {} }),
   employerFailures: z.array(EmployerFailureSchema).max(EMPLOYER_FAILURE_LIMIT).default([]),
+  eventEffects: CampaignEventEffectsSchema.default({
+    supplierDiscountThroughDay: null,
+    freeRepairDays: 0,
+  }),
   log: z.array(z.strictObject({ day: z.number().int(), text: z.string() })),
   finished: z.boolean(),
   won: z.boolean(),
