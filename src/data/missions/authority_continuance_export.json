@@ -1,0 +1,145 @@
+{
+  "id": "authority_continuance_export",
+  "name": "Disposition — Continuance Export",
+  "type": "assault",
+  "mapId": "causeway",
+  "briefing": "The Tender has read Barrow Reach's warrant for export. Carry the Continuance seal to the disposition stand, clear the Linewrought nullity guard, and ratify the order in the field. Once countersigned, the restored roots leave Tessell under Continuance custody.",
+  "maxDurationSeconds": 480,
+  "startingResourcePoints": 750,
+  "dropTonnage": 205,
+  "lances": [
+    {
+      "team": 0,
+      "name": "Continuance Export Detail",
+      "units": [
+        {
+          "designId": "votive_picket",
+          "pilotId": "petra_lindqvist",
+          "spawn": { "x": 36, "y": 636 },
+          "facingDegrees": -45
+        },
+        {
+          "designId": "sentinel_brawler",
+          "pilotId": "silas_okonkwo",
+          "spawn": { "x": 108, "y": 636 },
+          "facingDegrees": -45
+        },
+        {
+          "designId": "falchion_duellist",
+          "pilotId": "teodor_krysa",
+          "spawn": { "x": 180, "y": 636 },
+          "facingDegrees": -45
+        },
+        {
+          "designId": "halberd_prime",
+          "pilotId": "arne_gedde",
+          "spawn": { "x": 36, "y": 708 },
+          "facingDegrees": -45
+        }
+      ]
+    },
+    {
+      "team": 1,
+      "name": "Export Nullity Guard",
+      "units": [
+        {
+          "designId": "bulwark_assault",
+          "pilotId": "kessa_vale",
+          "spawn": { "x": 756, "y": 36 },
+          "facingDegrees": 135
+        },
+        {
+          "designId": "hornet_spotter",
+          "pilotId": "marek_sud",
+          "spawn": { "x": 732, "y": 108 },
+          "facingDegrees": 135
+        },
+        {
+          "designId": "courser_patrol",
+          "pilotId": "roz_havel",
+          "spawn": { "x": 924, "y": 108 },
+          "facingDegrees": 135
+        },
+        {
+          "designId": "drover_carrier",
+          "pilotId": "suri_kell",
+          "spawn": { "x": 684, "y": 156 },
+          "facingDegrees": 135
+        }
+      ]
+    }
+  ],
+  "reserves": [],
+  "zones": [
+    {
+      "id": "disposition_stand",
+      "name": "Continuance Export Stand",
+      "x": 480,
+      "y": 480,
+      "radius": 65,
+      "owner": 1,
+      "captureSeconds": 12,
+      "resourcePoints": 250
+    }
+  ],
+  "objectives": [
+    {
+      "id": "ratify_disposition",
+      "label": "Affix the Continuance export seal",
+      "type": "capture_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": ["disposition_stand"],
+      "resourcePoints": 250
+    },
+    {
+      "id": "clear_nullity_guard",
+      "label": "Clear the export nullity guard",
+      "type": "destroy_all",
+      "team": 0,
+      "required": true
+    },
+    {
+      "id": "lance_survives",
+      "label": "Keep at least one machine operational",
+      "type": "survive",
+      "team": 0,
+      "required": true
+    }
+  ],
+  "triggers": [
+    {
+      "id": "disposition_order",
+      "when": { "type": "elapsed", "seconds": 4 },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Tender clerk: carry the Continuance export seal to the stand. Ratification puts every restored root aboard for departure from Tessell."
+        }
+      ]
+    },
+    {
+      "id": "disposition_ratified",
+      "when": { "type": "zone_captured", "zoneId": "disposition_stand", "team": 0 },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Continuance export seal accepted. The restored roots now leave Tessell under the Tender's registered custody."
+        }
+      ]
+    },
+    {
+      "id": "guard_accounted",
+      "when": { "type": "objective_complete", "objectiveId": "clear_nullity_guard" },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "The nullity guard is accounted for. No field objection remains against the Continuance export order."
+        }
+      ]
+    }
+  ]
+}
