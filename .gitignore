@@ -8,3 +8,4 @@ coverage/
 !.dev.vars.example
 *.local
 reports/
+.DS_Store
