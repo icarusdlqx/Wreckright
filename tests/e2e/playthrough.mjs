@@ -996,10 +996,10 @@ async function main() {
       JSON.parse(localStorage.getItem('ironline.campaign')).state,
     );
     check(
-      'the Aurelian campaign opens with its sealed roster and seven-node route',
+      'the Aurelian campaign opens with its sealed roster, seven-contract spine and both endings',
       (await page.locator('.camp-title h2').innerText()) === 'The Great Recall: Custodians' &&
         aurelianNodeIds.join(',') ===
-          'first_warrant,cutbank_attestation,sarn_inventory,root_exchange,quarry_receipt,conduit_injunction,barrow_warrant' &&
+          'first_warrant,cutbank_attestation,sarn_inventory,root_exchange,quarry_receipt,conduit_injunction,barrow_warrant,continuance_export,local_stewardship' &&
         (await page.locator('.camp-node.available').count()) === 1 &&
         aurelianState.campaignId === 'aurelian_recall' &&
         aurelianState.mechs.map((mech) => mech.design.id).join(',') ===
@@ -1011,6 +1011,40 @@ async function main() {
       }),
     );
     const aurelianSeed = aurelianState.seed;
+    await page.setViewportSize({ width: 1024, height: 720 });
+    const branchGeometry = await page.locator('[data-testid="camp-map"]').evaluate((map) => {
+      const ids = ['barrow_warrant', 'continuance_export', 'local_stewardship'];
+      const mapRect = map.getBoundingClientRect();
+      const nodes = ids.map((id) => {
+        const node = map.querySelector(`[data-testid="camp-node-${id}"]`);
+        if (node === null) return null;
+        const rect = node.getBoundingClientRect();
+        return { id, left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom };
+      });
+      const overlap = (first, second) =>
+        Math.min(first.right, second.right) - Math.max(first.left, second.left) > 0.5 &&
+        Math.min(first.bottom, second.bottom) - Math.max(first.top, second.top) > 0.5;
+      return {
+        nodes,
+        contained: nodes.every((node) =>
+          node !== null &&
+          node.left >= mapRect.left - 0.5 &&
+          node.right <= mapRect.right + 0.5 &&
+          node.top >= mapRect.top - 0.5 &&
+          node.bottom <= mapRect.bottom + 0.5
+        ),
+        separated: nodes.every((node, index) =>
+          node !== null && nodes.slice(index + 1).every((other) => other !== null && !overlap(node, other))
+        ),
+      };
+    });
+    check(
+      'Aurelian disposition choices stay contained and separate at compact desktop width',
+      branchGeometry.contained && branchGeometry.separated,
+      JSON.stringify(branchGeometry.nodes),
+    );
+    await page.screenshot({ path: `${SHOTS}/06c-aurelian-branch-compact.png` });
+    await page.setViewportSize({ width: 1440, height: 900 });
     await page.locator('[data-testid="camp-restart"]').click();
     const restartedAurelian = await page.evaluate(() =>
       JSON.parse(localStorage.getItem('ironline.campaign')).state,

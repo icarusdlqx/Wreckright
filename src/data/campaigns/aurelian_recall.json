@@ -21,8 +21,10 @@
     "juno_reyes",
     "yusra_demir"
   ],
-  "victoryNodeId": "barrow_warrant",
-  "alternateVictoryNodeIds": [],
+  "victoryNodeId": "continuance_export",
+  "alternateVictoryNodeIds": [
+    "local_stewardship"
+  ],
   "employers": [
     {
       "id": "continuance_tender",
@@ -147,8 +149,42 @@
       "maxSalvageShare": 0.1,
       "deadlineDays": 42,
       "position": {
-        "x": 0.66,
-        "y": 0.14
+        "x": 0.5,
+        "y": 0.25
+      }
+    },
+    {
+      "id": "continuance_export",
+      "name": "Export Under Seal",
+      "missionId": "authority_continuance_export",
+      "employerId": "continuance_tender",
+      "brief": "The Barrow archive supports the Continuance reading: every copied root remains Compact property under an unclosed custody chain. Take the disposition stand and hold it while the Tender seals the register for export. The reader will attest each machine, but the company must clear the nullity guard without destroying the proof it came to carry home.",
+      "requires": [
+        "barrow_warrant"
+      ],
+      "basePayout": 2100000,
+      "maxSalvageShare": 0.1,
+      "deadlineDays": 46,
+      "position": {
+        "x": 0.25,
+        "y": 0.08
+      }
+    },
+    {
+      "id": "local_stewardship",
+      "name": "Countersign Stewardship",
+      "missionId": "authority_local_stewardship",
+      "employerId": "continuance_tender",
+      "brief": "Barrow's compact also supports a lawful local reading: a century of recorded service can be countersigned as stewardship rather than counterfeit possession. Take the disposition stand and hold it while the Tender records that countersignature. The reader can prove continuity, not ownership; clear the guard and leave the working roots under local custody.",
+      "requires": [
+        "barrow_warrant"
+      ],
+      "basePayout": 2100000,
+      "maxSalvageShare": 0.1,
+      "deadlineDays": 46,
+      "position": {
+        "x": 0.78,
+        "y": 0.08
       }
     }
   ]

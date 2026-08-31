@@ -45,8 +45,47 @@ function hostilePilotIds(entry: Mission): string[] {
   return [...initial, ...reinforcements];
 }
 
+function mechanicalMission(entry: Mission): object {
+  return {
+    type: entry.type,
+    mapId: entry.mapId,
+    atmosphereId: entry.atmosphereId,
+    maxDurationSeconds: entry.maxDurationSeconds,
+    startingResourcePoints: entry.startingResourcePoints,
+    dropTonnage: entry.dropTonnage,
+    lances: entry.lances.map((lance) => ({ team: lance.team, units: lance.units })),
+    reserves: entry.reserves,
+    zones: entry.zones.map((zone) => ({
+      id: zone.id,
+      x: zone.x,
+      y: zone.y,
+      radius: zone.radius,
+      owner: zone.owner,
+      captureSeconds: zone.captureSeconds,
+      resourcePoints: zone.resourcePoints,
+    })),
+    objectives: entry.objectives.map((objective) => ({
+      id: objective.id,
+      type: objective.type,
+      team: objective.team,
+      required: objective.required,
+      zoneIds: objective.zoneIds,
+      holdSeconds: objective.holdSeconds,
+      resourcePoints: objective.resourcePoints,
+    })),
+    triggers: entry.triggers.map((trigger) => ({
+      id: trigger.id,
+      when: trigger.when,
+      once: trigger.once,
+      effects: trigger.effects.map((effect) =>
+        effect.type === 'message' ? { type: effect.type } : effect,
+      ),
+    })),
+  };
+}
+
 describe('Aurelian Recall campaign', () => {
-  it('authors a winnable seven-contract arc with four original missions', () => {
+  it('authors a winnable nine-contract arc with two disposition endings', () => {
     expect(campaign.nodes.map((node) => [node.id, node.missionId, node.requires])).toEqual([
       ['first_warrant', 'raid_ridge', []],
       ['cutbank_attestation', 'base_capture_ridge', ['first_warrant']],
@@ -55,9 +94,11 @@ describe('Aurelian Recall campaign', () => {
       ['quarry_receipt', 'authority_quarry_receipt', ['root_exchange']],
       ['conduit_injunction', 'authority_conduit_injunction', ['quarry_receipt']],
       ['barrow_warrant', 'authority_barrow_warrant', ['conduit_injunction']],
+      ['continuance_export', 'authority_continuance_export', ['barrow_warrant']],
+      ['local_stewardship', 'authority_local_stewardship', ['barrow_warrant']],
     ]);
-    expect(campaign.victoryNodeId).toBe('barrow_warrant');
-    expect(campaign.alternateVictoryNodeIds).toEqual([]);
+    expect(campaign.victoryNodeId).toBe('continuance_export');
+    expect(campaign.alternateVictoryNodeIds).toEqual(['local_stewardship']);
     expect(campaign.sideWork).toEqual({ missionIds: [], employerIds: [] });
     expect(campaign.nodes.every((node) => node.maxSalvageShare === 0.1)).toBe(true);
 
@@ -67,8 +108,10 @@ describe('Aurelian Recall campaign', () => {
       'authority_quarry_receipt',
       'authority_conduit_injunction',
       'authority_barrow_warrant',
+      'authority_continuance_export',
+      'authority_local_stewardship',
     ]);
-    expect(new Set(originalMissions.map((entry) => entry.name))).toHaveLength(4);
+    expect(new Set(originalMissions.map((entry) => entry.name))).toHaveLength(6);
     for (const entry of originalMissions) {
       const playerDesigns = entry.lances
         .filter((lance) => lance.team === 0)
@@ -78,7 +121,32 @@ describe('Aurelian Recall campaign', () => {
       expect(entry.objectives.filter((objective) => objective.required).length).toBeGreaterThan(1);
     }
     expect(originalMissions.map((entry) => entry.briefing).join(' '))
-      .toMatch(/exchange.*Blackglass.*conduit.*warrant/is);
+      .toMatch(/exchange.*Blackglass.*conduit.*warrant.*export.*stewardship/is);
+  });
+
+  it('offers mechanically equal final dispositions as leaves of the same warrant', () => {
+    const exportNode = campaign.nodes.find((node) => node.id === 'continuance_export');
+    const stewardshipNode = campaign.nodes.find((node) => node.id === 'local_stewardship');
+    expect(exportNode).toMatchObject({
+      employerId: 'continuance_tender',
+      requires: ['barrow_warrant'],
+      basePayout: 2_100_000,
+      maxSalvageShare: 0.1,
+      deadlineDays: 46,
+    });
+    expect(stewardshipNode).toMatchObject({
+      employerId: 'continuance_tender',
+      requires: ['barrow_warrant'],
+      basePayout: 2_100_000,
+      maxSalvageShare: 0.1,
+      deadlineDays: 46,
+    });
+    expect(campaign.nodes.some((node) => node.requires.includes('continuance_export'))).toBe(false);
+    expect(campaign.nodes.some((node) => node.requires.includes('local_stewardship'))).toBe(false);
+
+    const exportMission = mission('authority_continuance_export');
+    const stewardshipMission = mission('authority_local_stewardship');
+    expect(mechanicalMission(exportMission)).toEqual(mechanicalMission(stewardshipMission));
   });
 
   it('fields a full sealed company against only Linewrought opposition', () => {
@@ -129,9 +197,33 @@ describe('Aurelian Recall campaign', () => {
     expect(restored.log[0]?.text).toContain('new contracts reopen this completed run');
   });
 
+  it('reopens a completed Stage 2 save at both final dispositions', () => {
+    const state = startCampaign(catalog, campaign.id, 'aurelian-stage-two-save');
+    state.completedNodes.push(
+      'first_warrant',
+      'cutbank_attestation',
+      'sarn_inventory',
+      'root_exchange',
+      'quarry_receipt',
+      'conduit_injunction',
+      'barrow_warrant',
+    );
+    state.finished = true;
+    state.won = true;
+
+    const restored = deserialiseCampaign(serialiseCampaign(state), catalog).state;
+    expect(restored).toMatchObject({ finished: false, won: false });
+    if (restored === null) throw new Error('expanded campaign save did not load');
+    expect(availableNodes(catalog, restored).map((node) => node.id)).toEqual([
+      'continuance_export',
+      'local_stewardship',
+    ]);
+    expect(restored.log[0]?.text).toContain('new contracts reopen this completed run');
+  });
+
   it('frames custody as civil attestation rather than remote control', () => {
     const briefs = campaign.nodes.map((node) => node.brief);
-    expect(new Set(briefs)).toHaveLength(7);
+    expect(new Set(briefs)).toHaveLength(9);
     expect(briefs.join(' ')).toMatch(/Recall Authority.*Linewrought.*custody/is);
     expect(campaign.nodes.map((node) => mission(node.missionId).briefing).join(' '))
       .not.toMatch(/Halloran|Kestrel/);
@@ -148,5 +240,12 @@ describe('Aurelian Recall campaign', () => {
     });
     expect(catalog.lore.get('the_borrowed_roots')?.body.join(' '))
       .toMatch(/Foundry Winter.*not a command channel.*Recall Authority/is);
+    expect(catalog.lore.get('the_two_readings')).toMatchObject({
+      order: 9,
+      unlockNodeId: 'barrow_warrant',
+    });
+    expect(catalog.lore.get('the_two_readings')?.summary).toMatch(/two lawful dispositions/i);
+    expect(catalog.lore.get('the_two_readings')?.body.join(' '))
+      .toMatch(/local stewardship.*Both readings.*Continuance.*cannot choose.*cannot start a reactor/is);
   });
 });
