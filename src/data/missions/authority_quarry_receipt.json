@@ -1,0 +1,233 @@
+{
+  "id": "authority_quarry_receipt",
+  "name": "Seizure — Casting Receipts",
+  "type": "base_capture",
+  "mapId": "blackglass_quarry",
+  "briefing": "The Root Exchange trail ends at Blackglass. Its weigh ledger, lift manifest and serial punch recorded fresh castings under the roots of condemned machines, giving counterfeit rebuilds a clean provenance. Seize all three stations and hold them while the Tender images the receipts and plates. The quarry floor holds the evidence; the rim will hold the people who want it gone.",
+  "maxDurationSeconds": 600,
+  "startingResourcePoints": 700,
+  "dropTonnage": 205,
+  "lances": [
+    {
+      "team": 0,
+      "name": "Receipt Seizure Lance",
+      "units": [
+        {
+          "designId": "votive_picket",
+          "pilotId": "petra_lindqvist",
+          "spawn": { "x": 84, "y": 1260 },
+          "facingDegrees": -45
+        },
+        {
+          "designId": "sentinel_brawler",
+          "pilotId": "silas_okonkwo",
+          "spawn": { "x": 156, "y": 1260 },
+          "facingDegrees": -45
+        },
+        {
+          "designId": "falchion_duellist",
+          "pilotId": "teodor_krysa",
+          "spawn": { "x": 84, "y": 1188 },
+          "facingDegrees": -45
+        },
+        {
+          "designId": "halberd_prime",
+          "pilotId": "arne_gedde",
+          "spawn": { "x": 156, "y": 1188 },
+          "facingDegrees": -45
+        }
+      ]
+    },
+    {
+      "team": 1,
+      "name": "Blackglass Plate Guard",
+      "units": [
+        {
+          "designId": "courser_patrol",
+          "pilotId": "dario_senn",
+          "spawn": { "x": 396, "y": 900 },
+          "facingDegrees": 135
+        },
+        {
+          "designId": "hornet_spotter",
+          "pilotId": "kessa_vale",
+          "spawn": { "x": 708, "y": 636 },
+          "facingDegrees": 135
+        },
+        {
+          "designId": "drover_carrier",
+          "pilotId": "nadia_ostrow",
+          "spawn": { "x": 1092, "y": 516 },
+          "facingDegrees": 135
+        },
+        {
+          "designId": "bulwark_assault",
+          "pilotId": "dorn_hess",
+          "spawn": { "x": 1164, "y": 156 },
+          "facingDegrees": 135
+        }
+      ]
+    }
+  ],
+  "reserves": [],
+  "zones": [
+    {
+      "id": "weigh_ledger",
+      "name": "Weigh Ledger",
+      "x": 252,
+      "y": 828,
+      "radius": 64,
+      "owner": 1,
+      "captureSeconds": 9,
+      "resourcePoints": 75
+    },
+    {
+      "id": "lift_manifest",
+      "name": "Lift Manifest",
+      "x": 684,
+      "y": 684,
+      "radius": 74,
+      "owner": 1,
+      "captureSeconds": 12,
+      "resourcePoints": 100
+    },
+    {
+      "id": "serial_punch",
+      "name": "Serial Punch",
+      "x": 1116,
+      "y": 540,
+      "radius": 64,
+      "owner": 1,
+      "captureSeconds": 10,
+      "resourcePoints": 75
+    }
+  ],
+  "objectives": [
+    {
+      "id": "seize_receipts",
+      "label": "Seize the ledger, manifest and serial punch",
+      "type": "capture_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": ["weigh_ledger", "lift_manifest", "serial_punch"],
+      "resourcePoints": 250
+    },
+    {
+      "id": "image_provenance",
+      "label": "Hold all three stations for 32 seconds",
+      "type": "hold_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": ["weigh_ledger", "lift_manifest", "serial_punch"],
+      "holdSeconds": 32,
+      "resourcePoints": 200
+    },
+    {
+      "id": "seizure_survives",
+      "label": "Keep at least one Custodian operational",
+      "type": "survive",
+      "team": 0,
+      "required": true
+    }
+  ],
+  "triggers": [
+    {
+      "id": "receipt_order",
+      "when": { "type": "elapsed", "seconds": 3 },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Take the weigh ledger, lift manifest and serial punch. The counterfeit chain only stands if all three records agree."
+        },
+        {
+          "type": "reveal",
+          "x": 684,
+          "y": 684,
+          "radius": 300,
+          "seconds": 28
+        }
+      ]
+    },
+    {
+      "id": "ledger_seized",
+      "when": { "type": "zone_captured", "zoneId": "weigh_ledger", "team": 0 },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Weigh ledger sealed. Those casting masses belong to frames the Authority already condemned."
+        }
+      ]
+    },
+    {
+      "id": "manifest_seized",
+      "when": { "type": "zone_captured", "zoneId": "lift_manifest", "team": 0 },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Lift manifest sealed. The loads left Blackglass under replacement service numbers."
+        }
+      ]
+    },
+    {
+      "id": "punch_seized",
+      "when": { "type": "zone_captured", "zoneId": "serial_punch", "team": 0 },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Serial punch sealed. Its plate sequence matches the false roots from the exchange."
+        }
+      ]
+    },
+    {
+      "id": "plate_scrubbers",
+      "when": { "type": "objective_complete", "objectiveId": "seize_receipts" },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "The receipt chain is complete. Plate scrubbers are descending from the north-east rim; hold every station while the evidence is imaged."
+        },
+        {
+          "type": "spawn",
+          "team": 1,
+          "units": [
+            {
+              "designId": "hornet_spotter",
+              "pilotId": "suri_kell",
+              "spawn": { "x": 1260, "y": 84 },
+              "facingDegrees": 135
+            },
+            {
+              "designId": "courser_patrol",
+              "pilotId": "corin_dast",
+              "spawn": { "x": 1188, "y": 84 },
+              "facingDegrees": 135
+            }
+          ]
+        },
+        {
+          "type": "reveal",
+          "x": 1224,
+          "y": 84,
+          "radius": 220,
+          "seconds": 24
+        }
+      ]
+    },
+    {
+      "id": "receipts_imaged",
+      "when": { "type": "objective_complete", "objectiveId": "image_provenance" },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Receipts and plates imaged. The counterfeit provenance now leads past the foundries to the custody archive that accepted it."
+        }
+      ]
+    }
+  ]
+}

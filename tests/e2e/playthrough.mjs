@@ -989,19 +989,24 @@ async function main() {
     await page.locator('[data-testid="campaign-choice"]').selectOption('aurelian_recall');
     await page.locator('[data-testid="campaign-choice-start"]').click();
     await page.waitForSelector('[data-testid="camp-node-first_warrant"]');
+    const aurelianNodeIds = await page.locator('.camp-node').evaluateAll((nodes) =>
+      nodes.map((node) => node.getAttribute('data-testid')?.replace('camp-node-', '') ?? ''),
+    );
     const aurelianState = await page.evaluate(() =>
       JSON.parse(localStorage.getItem('ironline.campaign')).state,
     );
     check(
-      'the Aurelian campaign opens with its sealed roster and three-node route',
+      'the Aurelian campaign opens with its sealed roster and seven-node route',
       (await page.locator('.camp-title h2').innerText()) === 'The Great Recall: Custodians' &&
-        (await page.locator('.camp-node').count()) === 3 &&
+        aurelianNodeIds.join(',') ===
+          'first_warrant,cutbank_attestation,sarn_inventory,root_exchange,quarry_receipt,conduit_injunction,barrow_warrant' &&
         (await page.locator('.camp-node.available').count()) === 1 &&
         aurelianState.campaignId === 'aurelian_recall' &&
         aurelianState.mechs.map((mech) => mech.design.id).join(',') ===
           'votive_picket,sentinel_brawler,falchion_duellist,halberd_prime',
       JSON.stringify({
         campaignId: aurelianState.campaignId,
+        nodes: aurelianNodeIds,
         mechs: aurelianState.mechs.map((mech) => mech.design.id),
       }),
     );

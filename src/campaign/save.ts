@@ -65,6 +65,24 @@ function object(value: unknown): JsonObject | null {
     : null;
 }
 
+/** A staged campaign may add a new endpoint after an earlier release was won. */
+function reopenExpandedCampaign(catalog: Catalog, state: CampaignState): void {
+  if (!state.finished || !state.won) return;
+  const campaign = catalog.campaigns.get(state.campaignId);
+  if (campaign === undefined) return;
+
+  const currentVictories = [campaign.victoryNodeId, ...campaign.alternateVictoryNodeIds];
+  if (currentVictories.some((nodeId) => state.completedNodes.includes(nodeId))) return;
+
+  state.finished = false;
+  state.won = false;
+  state.log.unshift({
+    day: state.day,
+    text: 'Campaign archive updated: new contracts reopen this completed run.',
+  });
+  if (state.log.length > 200) state.log.length = 200;
+}
+
 function inferredEmployer(
   campaign: Campaign | undefined,
   record: JsonObject,
@@ -183,6 +201,7 @@ export function deserialiseCampaign(text: string, catalog: Catalog = getCatalog(
   coalesceMigratedWeaponItems(state);
   pruneSideOffers(catalog, state);
   pruneCampaignHistory(catalog, state);
+  reopenExpandedCampaign(catalog, state);
   return { state, error: null };
 }
 
