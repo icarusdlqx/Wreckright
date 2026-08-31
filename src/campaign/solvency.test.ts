@@ -7,7 +7,8 @@ import {
   deployableLance,
   startCampaign,
 } from './campaign';
-import { buyMech, marketListings, saleValueOf, sellMech } from './market';
+import { dailyPayroll } from './ledger';
+import { buyMech, marketListings, marketPeriod, saleValueOf, sellMech, valueOf } from './market';
 import { assign, availableHires, hireCost, hirePilot } from './roster';
 import { deserialiseCampaign, serialiseCampaign } from './save';
 import { assessSolvency, retireCompany } from './solvency';
@@ -21,6 +22,28 @@ function imported(state: CampaignState): CampaignState {
   const restored = deserialiseCampaign(serialiseCampaign(state)).state;
   if (restored === null) throw new Error('campaign save did not load');
   return restored;
+}
+
+function supplierPriceFactor(): number {
+  const event = catalog.rules.events.entries.find((entry) => entry.type === 'supplier_discount');
+  if (event?.type !== 'supplier_discount') throw new Error('supplier event is missing');
+  return event.priceFactor;
+}
+
+function minimumPossibleYardPrice(factor: number): number {
+  const rules = catalog.rules.economy.market;
+  const prices = [...catalog.designs.values()]
+    .filter((design) => catalog.chassis.get(design.chassisId)?.frame === 'mech')
+    .map((design) => {
+      const raw = valueOf(catalog, design) * rules.priceVariance[0] * rules.wornDiscount * factor;
+      return Math.max(
+        rules.priceRounding,
+        Math.round(raw / rules.priceRounding) * rules.priceRounding,
+      );
+    });
+  const minimum = Math.min(...prices);
+  if (!Number.isFinite(minimum)) throw new Error('yard has no priced designs');
+  return minimum;
 }
 
 describe('company solvency', () => {
@@ -102,6 +125,53 @@ describe('company solvency', () => {
     if (pilot === undefined || mech === undefined) throw new Error('yard recovery is incomplete');
     assign(restored, pilot.id, mech.id);
     expect(assessSolvency(catalog, restored).state).toBe('fieldable');
+  });
+
+  it('uses the active supplier price for an immediately fundable yard recovery', () => {
+    const state = campaign('discounted-yard-recovery');
+    state.mechs = [];
+    state.cbills = 100_000_000;
+    const regular = marketListings(catalog, state).sort((left, right) => left.price - right.price)[0];
+    state.eventEffects.supplierDiscountThroughDay = state.day;
+    const discounted = marketListings(catalog, state).sort((left, right) => left.price - right.price)[0];
+    if (regular === undefined || discounted === undefined) throw new Error('yard has no listing');
+
+    expect(discounted.price).toBeLessThan(regular.price);
+    expect(assessSolvency(catalog, state)).toMatchObject({
+      state: 'fundable',
+      plan: { mechSource: 'yard', mechCost: discounted.price },
+    });
+
+    state.eventEffects.supplierDiscountThroughDay = null;
+    expect(assessSolvency(catalog, state)).toMatchObject({
+      state: 'fundable',
+      plan: { mechSource: 'yard', mechCost: regular.price },
+    });
+  });
+
+  it('uses a persisted supplier window at a projected yard day but invents no future discount', () => {
+    const active = campaign('projected-discounted-yard');
+    active.mechs = [];
+    const nextDay = (marketPeriod(catalog, active.day) + 1) *
+      catalog.rules.economy.market.refreshDays;
+    active.eventEffects.supplierDiscountThroughDay = nextDay;
+    active.marketBought = marketListings(catalog, active).map((listing) => listing.id);
+    active.cbills = minimumPossibleYardPrice(supplierPriceFactor()) +
+      dailyPayroll(catalog, active) * (nextDay - active.day);
+
+    expect(assessSolvency(catalog, active)).toMatchObject({
+      state: 'temporary', action: 'wait_yard', recoverOnDay: nextDay,
+    });
+
+    const expired = campaign('projected-discounted-yard');
+    expired.mechs = [];
+    expired.eventEffects.supplierDiscountThroughDay = nextDay - 1;
+    expired.marketBought = marketListings(catalog, expired).map((listing) => listing.id);
+    expired.cbills = active.cbills;
+    expect(minimumPossibleYardPrice(1)).toBeGreaterThan(
+      minimumPossibleYardPrice(supplierPriceFactor()),
+    );
+    expect(assessSolvency(catalog, expired).state).toBe('terminal');
   });
 
   it('waits for affordable fresh stock instead of declaring a sold-out yard terminal', () => {

@@ -3,7 +3,7 @@ import type { Catalog } from '../schema/load';
 import { missionTickBudget } from '../schema/missionClock';
 import { pruneMarket } from './market';
 import { isSideContract, pruneSideOffers, sideContracts } from './sidework';
-import { createRng, rngFromState, type Rng } from '../sim/rng';
+import { createRng } from '../sim/rng';
 import { runBattle, type BattleResult } from '../sim/world';
 import { completeRepair, pristineCondition } from './repair';
 import { applyContractFailure, recoveryNotice } from './recovery';
@@ -15,6 +15,8 @@ import { dailyPayroll } from './ledger';
 import { employerById, recordEmployerFailure } from './employers';
 import { emptyHistoryArchive, pruneCampaignHistory } from './history';
 import { fillEmptySeats, PLAYER_TEAM, prepareDeployment, type DeployablePair } from './deployment';
+import { logCampaign, withCampaignRng } from './campaignState';
+import { applyRestDayEvent } from './events';
 import {
   findMech, findPilot, type CampaignState, type MechRecord, type MissionOutcome, type PilotReport,
 } from './types';
@@ -25,18 +27,6 @@ export {
   fillEmptySeats, missionSlots, PLAYER_TEAM, prepareDeployment,
 } from './deployment';
 export type { DeployablePair, Deployment } from './deployment';
-
-function log(state: CampaignState, text: string): void {
-  state.log.unshift({ day: state.day, text });
-  if (state.log.length > 200) state.log.length = 200;
-}
-
-function withRng<T>(state: CampaignState, use: (rng: Rng) => T): T {
-  const rng = rngFromState(state.rng);
-  const value = use(rng);
-  state.rng = rng.save();
-  return value;
-}
 
 function isVictoryNode(campaign: Campaign, nodeId: string): boolean {
   return campaign.victoryNodeId === nodeId || campaign.alternateVictoryNodeIds.includes(nodeId);
@@ -68,6 +58,7 @@ export function startCampaign(catalog: Catalog, campaignId: string, seed: string
     history: [],
     historyArchive: emptyHistoryArchive(),
     employerFailures: [],
+    eventEffects: { supplierDiscountThroughDay: null, freeRepairDays: 0 },
     log: [],
     finished: false,
     won: false,
@@ -111,7 +102,7 @@ export function startCampaign(catalog: Catalog, campaignId: string, seed: string
     state.nextId += 1;
   });
 
-  log(state, `${campaign.name} begins.`);
+  logCampaign(state, `${campaign.name} begins.`);
   return state;
 }
 
@@ -182,7 +173,7 @@ export function acceptContract(
     deadlineDay: state.day + node.deadlineDays,
   };
 
-  log(
+  logCampaign(
     state,
     `Signed ${option.name.toLowerCase()} terms with ${employer.name} for ${node.name}: ` +
       `${option.payout} credits, ` +
@@ -197,7 +188,7 @@ export function abandonContract(catalog: Catalog, state: CampaignState): void {
   state.contract = null;
   const employerName = recordEmployerFailure(catalog, state, contract, 'withdrawn');
   const failure = applyContractFailure(catalog, state, contract);
-  log(state, `Withdrew from the ${employerName} contract.${recoveryNotice(failure)}`);
+  logCampaign(state, `Withdrew from the ${employerName} contract.${recoveryNotice(failure)}`);
   advanceDays(catalog, state, failure.recoveryDays);
 }
 
@@ -257,7 +248,7 @@ export function resolveMission(
 
       const xp = awardXp(catalog, { pilot: pair.pilot, unit }, won);
 
-      const casualty = withRng(state, (rng) =>
+      const casualty = withCampaignRng(state, (rng) =>
         resolveCasualty(catalog, rng, pair.pilot, unit, state.day),
       );
 
@@ -282,7 +273,7 @@ export function resolveMission(
     });
 
   const salvage = won
-    ? withRng(state, (rng) =>
+    ? withCampaignRng(state, (rng) =>
         resolveSalvage(catalog, rng, battle, PLAYER_TEAM, contract.salvageShare),
       )
     : {
@@ -314,6 +305,7 @@ export function resolveMission(
     won,
     day: state.day,
     payout: won ? contract.payout : 0,
+    paymentDisputeSettled: false,
     salvagedChassis: salvage.chassisRecovered,
     salvagedItems: salvage.items,
     salvageOffered: salvage.offered,
@@ -328,7 +320,7 @@ export function resolveMission(
   state.history.push(outcome);
   state.contract = null;
 
-  log(
+  logCampaign(
     state,
     won
       ? `Contract complete: ${contract.payout} credits, ${salvage.items.length} item(s) and ` +
@@ -340,7 +332,7 @@ export function resolveMission(
   if (won && isVictoryNode(campaign, contract.nodeId)) {
     state.finished = true;
     state.won = true;
-    log(state, `${campaign.name} won.`);
+    logCampaign(state, `${campaign.name} won.`);
   }
 
   advanceDays(catalog, state, 1 + (failure?.recoveryDays ?? 0));
@@ -362,7 +354,7 @@ export function advanceDays(catalog: Catalog, state: CampaignState, days: number
     for (const mech of state.mechs) {
       if (mech.status === 'repairing' && mech.readyOnDay <= state.day) {
         completeRepair(catalog, mech);
-        log(state, `${mech.design.name} is out of the bay.`);
+        logCampaign(state, `${mech.design.name} is out of the bay.`);
       }
     }
 
@@ -371,12 +363,19 @@ export function advanceDays(catalog: Catalog, state: CampaignState, days: number
       state.contract = null;
       const employerName = recordEmployerFailure(catalog, state, contract, 'expired');
       const failure = applyContractFailure(catalog, state, contract);
-      log(state, `The ${employerName} contract expired.${recoveryNotice(failure)}`);
+      logCampaign(state, `The ${employerName} contract expired.${recoveryNotice(failure)}`);
       remaining += failure.recoveryDays;
     }
+
+    if (!state.finished) {
+      withCampaignRng(state, (rng) => {
+        applyRestDayEvent(catalog, state, rng.fork(`rest-day:${state.day}`));
+      });
+    }
+    pruneCampaignHistory(catalog, state);
   }
 
-  if (payrollPaid > 0) log(state, `Payroll: ${payrollPaid} credits.`);
+  if (payrollPaid > 0) logCampaign(state, `Payroll: ${payrollPaid} credits.`);
 
   // Casualties and finished repairs both leave hulls without a pilot; seat them
   // now so the barracks and the deploy button agree before the player looks.
@@ -393,7 +392,7 @@ export function advanceDays(catalog: Catalog, state: CampaignState, days: number
   if (campaignNodes(catalog, state).length === 0 && state.contract === null) {
     state.finished = true;
     state.won = completedVictory(campaignOf(catalog, state), state.completedNodes);
-    log(state, state.won ? 'Campaign won.' : 'No contracts remain. Campaign over.');
+    logCampaign(state, state.won ? 'Campaign won.' : 'No contracts remain. Campaign over.');
   }
 }
 

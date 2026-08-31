@@ -79,6 +79,7 @@ function outcome(): MissionOutcome {
     won: true,
     day: 4,
     payout: 100,
+    paymentDisputeSettled: false,
     salvagedChassis: ['sentinel_brawler'],
     salvagedItems: [{ kind: 'weapon', itemId: 'medium_laser', count: 3 }],
     salvageOffered: [{ kind: 'weapon', itemId: 'medium_laser', count: 3 }],

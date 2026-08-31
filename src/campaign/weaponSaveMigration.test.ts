@@ -15,6 +15,7 @@ function legacyOutcome(sourceDesignId: string): MissionOutcome {
     won: true,
     day: 0,
     payout: 0,
+    paymentDisputeSettled: false,
     salvagedChassis: [],
     salvagedItems: [
       { kind: 'weapon', itemId: 'light_gauss', count: 1 },

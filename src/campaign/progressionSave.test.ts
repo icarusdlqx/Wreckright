@@ -17,6 +17,7 @@ describe('progression reports in old saves', () => {
       won: true,
       day: state.day,
       payout: 0,
+      paymentDisputeSettled: false,
       salvagedChassis: [],
       salvagedItems: [],
       salvageOffered: [],

@@ -55,6 +55,28 @@ describe('company solvency workshop paths', () => {
     expect(assessSolvency(catalog, state).state).toBe('fieldable');
   });
 
+  it('projects and enacts a hulk rebuild with one banked workshop day', () => {
+    const state = campaign('credited-rebuild-plan');
+    const mech = state.mechs[0];
+    if (mech === undefined) throw new Error('campaign has no mech');
+    state.mechs = [mech];
+    mech.status = 'hulk';
+    mech.rebuildCost = 100_000;
+    const quote = estimateRepair(catalog, mech);
+    state.cbills = quote.cost;
+    state.eventEffects.freeRepairDays = 1;
+    const creditedReady = state.day + quote.days - 1;
+
+    expect(assessSolvency(catalog, state)).toMatchObject({
+      state: 'fundable',
+      plan: { mechId: mech.id, mechCost: quote.cost, mechReadyOnDay: creditedReady },
+    });
+    expect(state.eventEffects.freeRepairDays).toBe(1);
+    expect(rebuildHulk(catalog, state, mech).ok).toBe(true);
+    expect(mech.readyOnDay).toBe(creditedReady);
+    expect(state.eventEffects.freeRepairDays).toBe(0);
+  });
+
   it('only treats a stripped hull as recoverable when a stored weapon fits it', () => {
     const state = campaign('stripped-recovery');
     const mech = state.mechs[0];

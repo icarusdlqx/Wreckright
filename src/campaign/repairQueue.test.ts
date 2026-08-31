@@ -157,6 +157,77 @@ describe('single repair bay', () => {
     });
   });
 
+  it('projects one banked day without spending it and consumes it only on an affordable repair', () => {
+    const state = start();
+    const mech = state.mechs[0];
+    if (mech === undefined) throw new Error('campaign has no test mech');
+    damage(mech);
+    const quote = estimateRepair(catalog, mech);
+    expect(quote.days).toBe(1);
+    state.eventEffects.freeRepairDays = 1;
+
+    expect(projectedRepairWindow(catalog, state, quote.days)).toMatchObject({
+      startsOnDay: state.day,
+      readyOnDay: state.day,
+    });
+    expect(state.eventEffects.freeRepairDays).toBe(1);
+
+    state.cbills = quote.cost - 1;
+    expect(startRepair(catalog, state, mech).ok).toBe(false);
+    expect(state.eventEffects.freeRepairDays).toBe(1);
+    expect(mech.status).toBe('ready');
+
+    state.cbills = quote.cost;
+    expect(startRepair(catalog, state, mech).ok).toBe(true);
+    expect(state.eventEffects.freeRepairDays).toBe(0);
+    expect(mech).toMatchObject({ status: 'ready', readyOnDay: state.day, rebuildCost: 0 });
+    expect(estimateRepair(catalog, mech).days).toBe(0);
+    expect(state.cbills).toBe(0);
+  });
+
+  it('finishes a credited one-day queued repair at the queue start', () => {
+    const state = start();
+    const [active, credited] = firstThree(state);
+    damage(active);
+    damage(credited);
+    expect(estimateRepair(catalog, active).days).toBe(1);
+    expect(estimateRepair(catalog, credited).days).toBe(1);
+    expect(startRepair(catalog, state, active).ok).toBe(true);
+    state.eventEffects.freeRepairDays = 1;
+    const startsOnDay = active.readyOnDay;
+
+    expect(startRepair(catalog, state, credited).ok).toBe(true);
+    expect(credited).toMatchObject({ status: 'repairing', readyOnDay: startsOnDay });
+    expect(state.eventEffects.freeRepairDays).toBe(0);
+    expect(repairQueue(catalog, state).find((entry) => entry.mechId === credited.id)).toMatchObject({
+      status: 'queued',
+      startsOnDay,
+      readyOnDay: startsOnDay,
+    });
+
+    advanceDays(catalog, state, startsOnDay - state.day);
+    expect(active.status).toBe('ready');
+    expect(credited.status).toBe('ready');
+  });
+
+  it('applies the same single-day credit to a hulk rebuild', () => {
+    const state = start();
+    const hulk = state.mechs[0];
+    if (hulk === undefined) throw new Error('campaign has no test hulk');
+    hulk.status = 'hulk';
+    hulk.rebuildCost = 1_000;
+    const quote = estimateRepair(catalog, hulk);
+    state.eventEffects.freeRepairDays = 2;
+    state.cbills = quote.cost;
+
+    expect(projectedRepairWindow(catalog, state, quote.days).readyOnDay).toBe(
+      state.day + quote.days - 1,
+    );
+    expect(rebuildHulk(catalog, state, hulk).ok).toBe(true);
+    expect(hulk.readyOnDay).toBe(state.day + quote.days - 1);
+    expect(state.eventEffects.freeRepairDays).toBe(1);
+  });
+
   it('honours authored capacity before placing another machine in line', () => {
     const twoBayCatalog = withBayCapacity(2);
     const state = startCampaign(twoBayCatalog, 'border_dispute', 'two-repair-lifts');
@@ -229,9 +300,9 @@ describe('single repair bay', () => {
     ]);
     expect(repairQueue(catalog, restored)[1]).toMatchObject({
       mechId: second.id,
-      status: 'inherited',
-      queuePosition: null,
-      startsOnDay: null,
+      status: 'queued',
+      queuePosition: 1,
+      startsOnDay: state.day + 2,
     });
 
     const restoredThird = restored.mechs.find((mech) => mech.id === third.id);

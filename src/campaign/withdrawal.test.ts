@@ -174,12 +174,17 @@ describe('campaign withdrawal resolution', () => {
 
     const reports = run.outcome.pilotReports;
     expect(reports.map((report) => report.fate)).toEqual(['returned', 'injured']);
+    const rumour = catalog.rules.events.entries.find((event) => event.type === 'pilot_rumour');
+    if (rumour?.type !== 'pilot_rumour') throw new Error('pilot rumour event is missing');
     for (const [index, pair] of lance.entries()) {
       const expectedXp = Math.round(
         catalog.rules.economy.xp.missionSurvival * traitFactor(catalog, pair.pilot, 'xpFactor'),
       );
+      const restDayXp = state.log.some((entry) =>
+        entry.text.includes(`${pair.pilot.name} gains ${rumour.xp} XP.`)
+      ) ? rumour.xp : 0;
       expect(reports[index]?.xp).toBe(expectedXp);
-      expect(pair.pilot.xp).toBe(expectedXp);
+      expect(pair.pilot.xp).toBe(expectedXp + restDayXp);
     }
   });
 });

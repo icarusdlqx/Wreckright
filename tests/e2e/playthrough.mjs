@@ -1176,6 +1176,17 @@ async function main() {
     const dayBefore = await day();
     await page.locator('[data-testid="camp-advance"]').click();
     check('advancing a day moves the clock', (await day()) === dayBefore + 1);
+    const restDayLog = await page.locator('[data-testid="camp-log"]').innerText();
+    check(
+      'a rest day draws and records one seeded campaign event',
+      restDayLog.includes('Rest day —'),
+      restDayLog,
+    );
+    await page.screenshot({ path: `${SHOTS}/06d-rest-day-event.png` });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.locator('[data-testid="camp-log"]').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${SHOTS}/06e-rest-day-event-touch.png` });
+    await page.setViewportSize({ width: 1440, height: 900 });
 
     // Back to the war for the rest of the run: the authored node is the one
     // whose payout, salvage and unlocks the later checks are written against.

@@ -29,6 +29,7 @@ function outcome(index: number, day: number): MissionOutcome {
     won,
     day,
     payout: won ? 100 + index : 0,
+    paymentDisputeSettled: false,
     salvagedChassis: [],
     salvagedItems: [],
     salvageOffered: [{ kind: 'weapon', itemId: 'medium_laser', count: 1 }],

@@ -1,5 +1,6 @@
 import type { Catalog } from '../schema/load';
 import { deployableLance } from './deployment';
+import { supplierDiscountFactor } from './events';
 import { dailyPayroll } from './ledger';
 import { marketListings, marketPeriod, saleValueOf, valueOf } from './market';
 import { planFit } from './refit';
@@ -183,12 +184,14 @@ function nextMarketDay(catalog: Catalog, day: number): number {
 }
 
 /** Cheapest price the rotating yard can ever post under its authored rules. */
-function minimumYardPrice(catalog: Catalog): number | null {
+function minimumYardPrice(catalog: Catalog, state: CampaignState): number | null {
   const rules = catalog.rules.economy.market;
+  const supplierFactor = supplierDiscountFactor(catalog, state);
   const prices = [...catalog.designs.values()]
     .filter((design) => catalog.chassis.get(design.chassisId)?.frame === 'mech')
     .map((design) => {
-      const raw = valueOf(catalog, design) * rules.priceVariance[0] * rules.wornDiscount;
+      const raw =
+        valueOf(catalog, design) * rules.priceVariance[0] * rules.wornDiscount * supplierFactor;
       return Math.max(
         rules.priceRounding,
         Math.round(raw / rules.priceRounding) * rules.priceRounding,
@@ -197,11 +200,7 @@ function minimumYardPrice(catalog: Catalog): number | null {
   return prices.length === 0 ? null : Math.min(...prices);
 }
 
-function projectedStateOnDay(
-  catalog: Catalog,
-  state: CampaignState,
-  day: number,
-): CampaignState {
+function projectedStateOnDay(catalog: Catalog, state: CampaignState, day: number): CampaignState {
   const mechs = state.mechs.map((mech) => {
     const copy = { ...mech };
     if (copy.status === 'repairing' && copy.readyOnDay <= day) completeRepair(catalog, copy);
@@ -217,10 +216,10 @@ function projectedStateOnDay(
 
 /** Whether a later yard rotation can still produce an executable recovery. */
 function futureYardRecovery(catalog: Catalog, state: CampaignState): number | null {
-  const price = minimumYardPrice(catalog);
-  if (price === null) return null;
   const day = nextMarketDay(catalog, state.day);
   const projected = projectedStateOnDay(catalog, state, day);
+  const price = minimumYardPrice(catalog, projected);
+  if (price === null) return null;
   const living = projected.pilots.some((pilot) => !pilot.dead);
   const hire = living ? null : availableHires(catalog, projected)[0] ?? null;
   if (!living && hire === null) return null;

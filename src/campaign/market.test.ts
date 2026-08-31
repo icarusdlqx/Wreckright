@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { catalog } from '../../tests/support';
+import type { Catalog } from '../schema/load';
 import { acceptContract, advanceDays, startCampaign } from './campaign';
 import {
   buyMech,
@@ -33,6 +34,29 @@ function firstListing(current: CampaignState) {
   const listing = marketListings(catalog, current)[0];
   if (listing === undefined) throw new Error('the lot was empty');
   return listing;
+}
+
+function supplierPriceFactor(): number {
+  const event = catalog.rules.events.entries.find((entry) => entry.type === 'supplier_discount');
+  if (event?.type !== 'supplier_discount') throw new Error('supplier event is missing');
+  return event.priceFactor;
+}
+
+function fixedMachinePrices(): Catalog {
+  return {
+    ...catalog,
+    rules: {
+      ...catalog.rules,
+      economy: {
+        ...catalog.rules.economy,
+        market: {
+          ...catalog.rules.economy.market,
+          priceVariance: [1, 1 + Number.EPSILON],
+          wornChance: 0,
+        },
+      },
+    },
+  };
 }
 
 describe('the yard', () => {
@@ -108,13 +132,57 @@ describe('the yard', () => {
     expect(state.rng).toEqual(before);
   });
 
+  it('applies the supplier week before machine-price rounding without changing the lot', () => {
+    const pricedCatalog = fixedMachinePrices();
+    const regular = marketListings(pricedCatalog, state);
+    state.eventEffects.supplierDiscountThroughDay = state.day;
+    const discounted = marketListings(pricedCatalog, state);
+    const rounding = pricedCatalog.rules.economy.market.priceRounding;
+    const factor = supplierPriceFactor();
+
+    expect(discounted).toHaveLength(regular.length);
+    discounted.forEach((listing, index) => {
+      const before = regular[index];
+      if (before === undefined) throw new Error('discount changed the lot length');
+      expect(listing.id).toBe(before.id);
+      expect(listing.design).toBe(before.design);
+      expect(listing.worn).toBe(before.worn);
+      const raw = valueOf(pricedCatalog, listing.design) * factor;
+      expect(listing.price).toBe(
+        Math.max(rounding, Math.round(raw / rounding) * rounding),
+      );
+      expect(listing.price).toBeLessThanOrEqual(before.price);
+    });
+  });
+
+  it('never applies a supplier purchase discount to yard sale proceeds', () => {
+    const regular = startCampaign(catalog, 'border_dispute', 'sale-discount-invariance');
+    const discounted = startCampaign(catalog, 'border_dispute', 'sale-discount-invariance');
+    discounted.eventEffects.supplierDiscountThroughDay = discounted.day + 7;
+    const regularMech = regular.mechs[0];
+    const discountedMech = discounted.mechs[0];
+    if (regularMech === undefined || discountedMech === undefined) {
+      throw new Error('campaign has no saleable machine');
+    }
+    const regularBefore = regular.cbills;
+    const discountedBefore = discounted.cbills;
+
+    expect(sellMech(catalog, regular, regularMech.id).ok).toBe(true);
+    expect(sellMech(catalog, discounted, discountedMech.id).ok).toBe(true);
+    expect(regular.cbills - regularBefore).toBe(saleValueOf(catalog, regularMech));
+    expect(discounted.cbills - discountedBefore).toBe(saleValueOf(catalog, discountedMech));
+    expect(discounted.cbills - discountedBefore).toBe(regular.cbills - regularBefore);
+  });
+
   it('holds the same stock all week and turns it over on the rollover', () => {
     const monday = marketListings(catalog, state);
     const period = marketPeriod(catalog, state.day);
 
     advanceDays(catalog, state, 1);
     expect(marketPeriod(catalog, state.day)).toBe(period);
-    expect(marketListings(catalog, state)).toEqual(monday);
+    expect(marketListings(catalog, state).map(({ id, design, worn }) => ({
+      id, designId: design.id, worn,
+    }))).toEqual(monday.map(({ id, design, worn }) => ({ id, designId: design.id, worn })));
 
     advanceDays(catalog, state, catalog.rules.economy.market.refreshDays);
     expect(marketPeriod(catalog, state.day)).toBeGreaterThan(period);
