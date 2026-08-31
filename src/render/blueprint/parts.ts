@@ -178,6 +178,18 @@ export function shoulderMount(
   const z = side * b.wide * out;
   const y = b.tall * lift;
 
+  // Pods pushed well wide of the hull — the siege silhouette above all —
+  // otherwise hang in air, so those get a structural spar from the torso flank
+  // to the pod's inner face. Mounts that already hug the hull get nothing:
+  // an identity plan is allowed one extra structural part over its anonymous
+  // baseline, and a spar everywhere would spend that allowance twice.
+  if (out >= 1.05) {
+    const flank = side * b.wide * 0.4;
+    parts.push(part(location, 'box',
+      [0, y - b.tall * 0.04, (flank + z) / 2],
+      [b.long * 0.3, b.tall * 0.26, Math.max(0.12, Math.abs(z - flank))], 'deep', b.pitch));
+  }
+
   if (fitting === 'launcher') {
     parts.push(
       shaped(location, PROFILES.pod, [b.long * 0.06, y, z],

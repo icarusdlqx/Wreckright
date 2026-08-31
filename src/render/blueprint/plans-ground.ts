@@ -130,7 +130,9 @@ export const emplacementPlan: Plan = (b, has, fit) => {
     parts.push(shaped(location, PROFILES.block,
       [-b.long * 0.1, b.tall * 0.06, side * b.wide * 0.68],
       [b.long * 0.9, b.tall * 0.74, b.wide * 0.34], 'deep'));
-    shoulderMount(parts, b, side, fittingFor(fit[location]), 1, 1, 0.2);
+    // 1.06 pushes the pod just past the spar threshold: a carrier's racks
+    // sit wide of a vehicle hull and need the bridge more than anything.
+    shoulderMount(parts, b, side, fittingFor(fit[location]), 1, 1.06, 0.2);
   }
   const headX = -b.long * 0.3;
   const headY = b.tall * 0.6;
