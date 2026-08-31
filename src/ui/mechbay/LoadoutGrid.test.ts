@@ -10,6 +10,8 @@ import type { DropPayload } from './LocationCard';
 
 function render(options: {
   armed?: DropPayload | null;
+  targeting?: DropPayload | null;
+  guideExpanded?: boolean;
   selectedLocation?: MechLocation | null;
   compatibleLocations?: ReadonlySet<MechLocation>;
   locationFits?: ReadonlyMap<MechLocation, { ok: boolean; reason: string | null }>;
@@ -23,11 +25,17 @@ function render(options: {
     design,
     loadout: computeLoadout(catalog, design),
     armed: options.armed ?? null,
+    targeting: options.targeting ?? options.armed ?? null,
+    guideExpanded: options.guideExpanded ?? true,
+    snapLocation: null,
+    snapTarget: null,
+    snapPhase: 0,
     selectedLocation: options.selectedLocation ?? null,
     hoveredLocation: null,
     compatibleLocations: options.compatibleLocations ?? new Set<MechLocation>(),
     locationFits: options.locationFits ?? new Map(),
     onCancelArmed: () => undefined,
+    onGuideExpandedChange: () => undefined,
     onAutoFit: () => undefined,
     onDrop: () => undefined,
     onRemoveMount: () => undefined,
@@ -49,6 +57,17 @@ describe('loadout fitting guide', () => {
     expect(html).toContain('<span>3</span><strong>Review</strong>');
     expect(html).not.toContain('aria-current="step"');
     expect(html.match(/data-testid="bay-location-/g)).toHaveLength(8);
+    expect(html).not.toContain('class="bay-hardpoints"');
+    expect(html).not.toContain('class="bay-slots');
+  });
+
+  it('folds the stepper to one disclosure line without removing the live status', () => {
+    const html = render({ guideExpanded: false });
+
+    expect(html).toContain('data-testid="bay-workbench-disclosure" aria-expanded="false"');
+    expect(html).toContain('id="location-fit-steps"');
+    expect(html).toContain('hidden=""');
+    expect(html.match(/data-testid="bay-fit-status"/g)).toHaveLength(1);
   });
 
   it('makes placement and compatible locations explicit while a part is held', () => {

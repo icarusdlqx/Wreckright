@@ -1,10 +1,9 @@
 .bay.bay--workspace {
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   grid-template-areas:
     'top'
     'tabs'
-    'compare'
     'workspace'
     'act';
 }
@@ -70,7 +69,6 @@
   .bay.bay--workspace > .bay-top,
   .bay.bay--workspace > .bay-actions,
   .bay.bay--workspace > .bay-workspace-tabs,
-  .bay.bay--workspace > .build-compare,
   .bay.bay--workspace > .bay-workspace-panel {
     grid-area: auto;
     grid-column: 1;
@@ -99,9 +97,8 @@
 
   .bay.bay--workspace > .bay-top { order: 0; }
   .bay.bay--workspace > .bay-workspace-tabs { order: 1; }
-  .bay.bay--workspace > .build-compare { order: 2; }
-  .bay.bay--workspace > .bay-workspace-panel { order: 3; }
-  .bay.bay--workspace > .bay-actions { order: 4; }
+  .bay.bay--workspace > .bay-workspace-panel { order: 2; }
+  .bay.bay--workspace > .bay-actions { order: 3; }
 }
 
 /* The gantry label: what this machine is for, before any numbers. */

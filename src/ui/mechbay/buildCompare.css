@@ -1,5 +1,4 @@
 .build-compare {
-  grid-area: compare;
   display: grid;
   grid-template-columns: minmax(168px, 0.8fr) minmax(0, 5fr);
   gap: 8px;

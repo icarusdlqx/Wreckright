@@ -13,11 +13,17 @@ interface Props {
   design: Design;
   loadout: Loadout;
   armed: DropPayload | null;
+  targeting: DropPayload | null;
+  guideExpanded: boolean;
+  snapLocation: MechLocation | null;
+  snapTarget: DropPayload | null;
+  snapPhase: 0 | 1 | 2;
   selectedLocation: MechLocation | null;
   hoveredLocation: MechLocation | null;
   compatibleLocations: ReadonlySet<MechLocation>;
   locationFits: ReadonlyMap<MechLocation, LocationFit>;
   onCancelArmed: () => void;
+  onGuideExpandedChange: (expanded: boolean) => void;
   onAutoFit: (payload: DropPayload) => void;
   onDrop: (payload: DropPayload, location: MechLocation) => void;
   onRemoveMount: (index: number) => void;
@@ -34,11 +40,17 @@ export function LoadoutGrid({
   design,
   loadout,
   armed,
+  targeting,
+  guideExpanded,
+  snapLocation,
+  snapTarget,
+  snapPhase,
   selectedLocation,
   hoveredLocation,
   compatibleLocations,
   locationFits,
   onCancelArmed,
+  onGuideExpandedChange,
   onAutoFit,
   onDrop,
   onRemoveMount,
@@ -48,19 +60,15 @@ export function LoadoutGrid({
   onSelectLocation,
   onHoverLocation,
 }: Props) {
-  const heldName =
-    armed?.kind === 'equipment'
-      ? (catalog.equipment.get(armed.id)?.name ?? armed.id)
-      : armed === null
+  const targetName =
+    targeting?.kind === 'equipment'
+      ? (catalog.equipment.get(targeting.id)?.name ?? targeting.id)
+      : targeting === null
         ? ''
-        : `${catalog.weapons.get(armed.id)?.name ?? armed.id}${armed.kind === 'ammo' ? ' ammo' : ''}`;
-  // Holding a part is the only progress this view can prove. A selected
-  // location may be a pre-fit shelf filter or a post-fit review, while an
-  // inspected occupant deliberately clears the selection. Keep those states
-  // neutral instead of claiming the player has completed steps we cannot see.
-  const currentStep = armed !== null ? 2 : null;
-  const statusText = armed !== null
-    ? `Step 2 of 3: holding ${heldName}. Choose a green location marked Fits held part.`
+        : `${catalog.weapons.get(targeting.id)?.name ?? targeting.id}${targeting.kind === 'ammo' ? ' ammo' : ''}`;
+  const currentStep = targeting !== null ? 2 : null;
+  const statusText = targeting !== null
+    ? `${armed === null ? `Dragging ${targetName}` : `Step 2 of 3: holding ${targetName}`}. Targeting details revealed; choose a green location marked Fits held part.`
     : selectedLocation !== null
       ? `${MECH_LOCATION_NAMES[selectedLocation]} is selected as a shelf filter. Pick a compatible part, or inspect and remove fitted parts here.`
       : 'Ready to fit or review: pick a part from the shelf, select a location to filter, or inspect a fitted part.';
@@ -71,12 +79,27 @@ export function LoadoutGrid({
       data-testid="bay-grid"
       aria-labelledby="location-workbench-title"
     >
-      <header className="location-workbench__guide">
-        <div>
+      <header className={`location-workbench__guide ${guideExpanded ? 'is-expanded' : 'is-folded'}`}>
+        <div className="location-workbench__heading">
           <span className="location-workbench__eyebrow">Loadout workbench</span>
           <h3 id="location-workbench-title">Fit parts in three steps</h3>
         </div>
-        <ol className="location-fit-steps" aria-label="Part fitting steps">
+        <button
+          type="button"
+          className="location-workbench__disclosure"
+          data-testid="bay-workbench-disclosure"
+          aria-expanded={guideExpanded}
+          aria-controls="location-fit-steps"
+          onClick={() => onGuideExpandedChange(!guideExpanded)}
+        >
+          {guideExpanded ? 'Hide guide' : 'Show guide'}
+        </button>
+        <ol
+          id="location-fit-steps"
+          className="location-fit-steps"
+          aria-label="Part fitting steps"
+          hidden={!guideExpanded}
+        >
           {[
             ['Pick', 'from shelf'],
             ['Place', 'in a green location'],
@@ -109,14 +132,14 @@ export function LoadoutGrid({
       {armed === null ? null : (
         <div className="bay-armed-banner" data-testid="bay-armed">
           <span>
-            Holding <strong>{heldName}</strong> — choose a highlighted location.
+            Holding <strong>{targetName}</strong> — choose a highlighted location.
           </span>
           <button
             type="button"
             className="bay-armed-fit"
             onClick={() => onAutoFit(armed)}
             data-testid="bay-armed-autofit"
-            aria-label={`Fit ${heldName} in the best location`}
+            aria-label={`Fit ${targetName} in the best location`}
           >
             Fit it for me
           </button>
@@ -124,7 +147,7 @@ export function LoadoutGrid({
             type="button"
             onClick={onCancelArmed}
             data-testid="bay-armed-cancel"
-            aria-label={`Cancel placement of ${heldName}`}
+            aria-label={`Cancel placement of ${targetName}`}
           >
             Put it back
           </button>
@@ -151,6 +174,9 @@ export function LoadoutGrid({
             compatible={compatibleLocations.has(location)}
             refusal={locationFits.get(location)?.reason ?? null}
             armed={armed}
+            targeting={targeting}
+            snapTarget={snapTarget}
+            snapPhase={snapLocation === location ? snapPhase : 0}
           />
         ))}
       </div>

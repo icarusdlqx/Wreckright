@@ -3,9 +3,8 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { catalog } from '../../../tests/support';
-import { compatibleLocations } from './bayFit';
 import { beginDesignHistory } from './designHistory';
-import { guidedWeaponId, Mechbay } from './Mechbay';
+import { Mechbay } from './Mechbay';
 
 describe('campaign cooling inventory', () => {
   it('shows an unavailable heat-sink type without allowing it to be selected', () => {
@@ -69,18 +68,11 @@ describe('mechbay presentation', () => {
     );
   });
 
-  it('keeps the armed weapon guidance while another card is hovered', () => {
-    const design = catalog.designs.get('sentinel_brawler');
-    if (design === undefined) throw new Error('missing Sentinel design');
+  it('keeps passive shelf inspection from revealing the targeting layer', () => {
+    const html = renderToStaticMarkup(createElement(Mechbay, { onExit: () => undefined }));
 
-    const weaponId = guidedWeaponId(
-      { kind: 'weapon', id: 'medium_laser' },
-      'ac5',
-    );
-
-    expect(compatibleLocations(catalog, design, 'ac5')).toEqual([]);
-    expect(weaponId).toBe('medium_laser');
-    expect(compatibleLocations(catalog, design, weaponId ?? '')).toEqual(['right_torso']);
+    expect(html).not.toContain('data-targeting="true"');
+    expect(html).not.toContain('class="bay-hardpoints"');
   });
 
   it('renders the live preview, selectable locations, and compact inspected catalog', () => {
@@ -115,6 +107,10 @@ describe('mechbay presentation', () => {
     expect(html).toMatch(/id="bay-workspace-panel-loadout"[^>]*role="tabpanel"(?![^>]*hidden="")/);
     expect(html).toMatch(/id="bay-workspace-panel-armour"[^>]*hidden=""/);
     expect(html).toMatch(/id="bay-workspace-panel-review"[^>]*hidden=""/);
+    const reviewStart = html.indexOf('id="bay-workspace-panel-review"');
+    const comparison = html.indexOf('data-testid="build-compare"');
+    expect(comparison).toBeGreaterThan(reviewStart);
+    expect(html.slice(0, reviewStart)).not.toContain('data-testid="build-compare"');
     expect(html).not.toMatch(/dead inside|Lobs over cover/);
   });
 

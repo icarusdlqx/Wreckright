@@ -14,6 +14,7 @@ import {
   type BayWorkspaceTab,
 } from './BayWorkspaceTabs';
 import { BuildReview } from './BuildReview';
+import { BuildCompare } from './BuildCompare';
 import { CoolingBank } from './CoolingBank';
 import { ArmourWorkbench } from './ArmourWorkbench';
 import {
@@ -38,11 +39,12 @@ import { evaluateDrop } from './mechbayEdits';
 import { StoreShelf, type Shelf } from './StoreShelf';
 import { useArmedPlacementFocus } from './useArmedPlacementFocus';
 import './mechbayWorkspaceLayout.css';
+import './quietBay.css';
 import { useMechbayScore } from './useMechbayScore';
 import { useMechbayPersistence } from './useMechbayPersistence';
+import { useQuietBay } from './useQuietBay';
 
 const catalog = getCatalog();
-
 export interface BayCommission {
   title: string;
   design: Design;
@@ -52,14 +54,6 @@ export interface BayCommission {
   onCommit: (design: Design) => { ok: boolean; reason: string | null };
   onCancel: () => void;
 }
-
-export function guidedWeaponId(
-  armed: DropPayload | null,
-  hoveredWeaponId: string | null,
-): string | null {
-  return armed?.kind === 'weapon' ? armed.id : hoveredWeaponId;
-}
-
 export function Mechbay({
   onExit,
   commission,
@@ -83,18 +77,19 @@ export function Mechbay({
   const [showAll, setShowAll] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<MechLocation | null>(null);
   const [hoveredLocation, setHoveredLocation] = useState<MechLocation | null>(null);
-  const [hoveredWeaponId, setHoveredWeaponId] = useState<string | null>(null);
   const [workspace, setWorkspace] = useState<BayWorkspaceTab>('loadout');
+  const quietBay = useQuietBay(armed);
   const bayRef = useRef<HTMLDivElement>(null);
 
   const replace = (next: Design): void => {
     setSelectedLocation(null);
     setHoveredLocation(null);
-    setHoveredWeaponId(null);
     setArmed(null);
+    quietBay.clearDrag();
     setInspected(null);
     setShowAll(false);
     setWorkspace('loadout');
+    quietBay.resetSnap();
     setHistory(beginDesignHistory(next));
     setStatus(null);
   };
@@ -113,14 +108,12 @@ export function Mechbay({
   const report = useMemo(() => validateDesign(catalog, design), [design]);
   const saveable = report.valid;
   const inventory = commission?.inventory;
-  const guideWeaponId = guidedWeaponId(armed, hoveredWeaponId);
-  const guidePayload: DropPayload | null =
-    armed ?? (guideWeaponId === null ? null : { kind: 'weapon', id: guideWeaponId });
+  const targeting = quietBay.targeting;
   // One pass over the eight locations serves both jobs: which to highlight, and
   // what to tell the player about the ones that refused.
   const locationFits = useMemo(
-    () => fitByLocation(catalog, design, guidePayload, inventory),
-    [design, guidePayload, inventory],
+    () => fitByLocation(catalog, design, targeting, inventory),
+    [design, targeting, inventory],
   );
   const compatible = useMemo(() => new Set(compatibleFrom(locationFits)), [locationFits]);
 
@@ -137,8 +130,8 @@ export function Mechbay({
     if (next.chassisId !== design.chassisId) {
       setSelectedLocation(null);
       setHoveredLocation(null);
-      setHoveredWeaponId(null);
       setArmed(null);
+      quietBay.clearDrag();
       setInspected(null);
       setShowAll(false);
     }
@@ -221,14 +214,16 @@ export function Mechbay({
     acceptEvaluation(evaluateEdit(catalog, design, intent, inventory));
 
   const onDrop = (payload: DropPayload, location: MechLocation): void => {
-    acceptEvaluation(evaluateDrop(catalog, design, payload, location, inventory), location);
+    const accepted = acceptEvaluation(
+      evaluateDrop(catalog, design, payload, location, inventory),
+      location,
+    );
+    quietBay.clearDrag();
+    if (!accepted) return;
+    quietBay.recordFit(location, payload);
   };
 
-  /**
-   * Fits a part without asking where. Picking the bay is the step players stall
-   * on, and for most parts only one or two locations were ever legal — so offer
-   * the choice, do not require it. Dragging still places by hand.
-   */
+  // Auto-fit removes a low-value berth choice while manual dragging remains available.
   const autoFit = (payload: DropPayload): void => {
     const fits = fitByLocation(catalog, design, payload, inventory);
     const berth = bestLocationFor(catalog, design, payload, fits);
@@ -255,6 +250,10 @@ export function Mechbay({
       className="bay bay--workspace"
       data-testid="mechbay"
       data-workspace={workspace}
+      onDragStart={(event) => quietBay.beginDrag(
+        event.dataTransfer.getData('application/wreckright'))}
+      onDragEnd={quietBay.clearDrag}
+      onDrop={quietBay.clearDrag}
     >
       <BayChrome
         catalog={catalog}
@@ -305,6 +304,8 @@ export function Mechbay({
           selectedLocation={selectedLocation}
           hoveredLocation={hoveredLocation}
           compatibleLocations={compatible}
+          cultureExpanded={quietBay.cultureExpanded}
+          onCultureExpandedChange={quietBay.setCultureExpanded}
           onSelectLocation={selectLocation}
           onHoverLocation={setHoveredLocation}
         />
@@ -314,11 +315,17 @@ export function Mechbay({
           design={design}
           loadout={loadout}
           armed={armed}
+          targeting={targeting}
+          guideExpanded={quietBay.guideExpanded}
+          snapLocation={quietBay.snapLocation}
+          snapTarget={quietBay.snapTarget}
+          snapPhase={quietBay.snapPhase}
           selectedLocation={selectedLocation}
           hoveredLocation={hoveredLocation}
           compatibleLocations={compatible}
           locationFits={locationFits}
           onCancelArmed={() => setArmed(null)}
+          onGuideExpandedChange={quietBay.setGuideExpanded}
           onAutoFit={autoFit}
           onDrop={onDrop}
           onRemoveMount={(index) => applyIntent({ type: 'remove_weapon', index })}
@@ -352,7 +359,7 @@ export function Mechbay({
             setArmed(payload);
           }}
           onAutoFit={autoFit}
-          onHoverWeapon={setHoveredWeaponId}
+          onHoverWeapon={() => undefined}
         />
       </BayWorkspacePanel>
 
@@ -378,6 +385,7 @@ export function Mechbay({
       </BayWorkspacePanel>
 
       <BayWorkspacePanel tab="review" active={workspace === 'review'}>
+        <BuildCompare catalog={catalog} design={design} />
         <BuildReview
           catalog={catalog}
           design={design}

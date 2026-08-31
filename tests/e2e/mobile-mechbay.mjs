@@ -1,10 +1,16 @@
+import {
+  explainerState,
+  fitTrainingStored,
+  quietLocationState,
+  targetingLayerState,
+} from './mechbay-accessibility.mjs';
+
 async function overflowOf(page, selector) {
   return page.locator(selector).evaluate((element) => ({
     clientWidth: element.clientWidth,
     scrollWidth: element.scrollWidth,
   }));
 }
-
 async function fullyInViewport(page, selector) {
   return page.locator(selector).evaluate((element) => {
     const rect = element.getBoundingClientRect();
@@ -12,7 +18,6 @@ async function fullyInViewport(page, selector) {
       rect.right <= innerWidth + 1 && rect.bottom <= innerHeight + 1;
   });
 }
-
 async function renderedTextIncludes(locator, expected) {
   return (await locator.innerText()).toLowerCase().includes(expected.toLowerCase());
 }
@@ -54,39 +59,51 @@ export async function runMobileMechbayJourney({
     `${bay.scrollWidth}/${bay.clientWidth}`,
   );
   const workspaceTabs = page.locator('[data-testid="bay-workspace-tabs"] [role="tab"]');
+  const initialExplainers = await explainerState(page);
   check(
-    `${prefix} workspace tabs are reachable touch targets`,
+    `${prefix} workspace tabs and explainer disclosures are reachable touch targets`,
     (await workspaceTabs.count()) === 3 &&
       await workspaceTabs.evaluateAll((tabs) => tabs.every((tab) => {
         const bounds = tab.getBoundingClientRect();
         return bounds.height >= 44 && bounds.left >= 0 && bounds.right <= innerWidth;
-      })),
+      })) && initialExplainers.controls === 2 && initialExplainers.touchSized &&
+      initialExplainers.workbenchExpanded === 'true' &&
+      initialExplainers.cultureExpanded === 'true',
   );
   check(
     `${prefix} opens one visible Loadout workspace`,
     (await page.locator('[data-workspace-tab="loadout"]').getAttribute('aria-selected')) === 'true' &&
       await page.locator('[data-workspace-panel="loadout"]').isVisible() &&
       !(await page.locator('[data-workspace-panel="armour"]').isVisible()) &&
-      !(await page.locator('[data-workspace-panel="review"]').isVisible()),
+      !(await page.locator('[data-workspace-panel="review"]').isVisible()) &&
+      !(await page.locator('[data-testid="build-compare"]').isVisible()),
   );
+  const restingLocations = await quietLocationState(page);
+  check(
+    `${prefix} location cards show only their quiet resting information`,
+    restingLocations.count === 8 && restingLocations.quiet === 8,
+    JSON.stringify(restingLocations),
+  );
+  const comparisonHiddenFromLoadout = !(await page.locator('[data-testid="build-compare"]').isVisible());
+  await selectWorkspace(page, 'review');
   const comparison = await overflowOf(page, '[data-testid="build-compare"]');
   const comparisonStart = await comparisonDirections(page);
   check(
-    `${prefix} stock comparison is ordered before the workspace without overflow`,
-    comparison.scrollWidth <= comparison.clientWidth + 1 &&
+    `${prefix} stock comparison is contained in Review without overflow`,
+    comparisonHiddenFromLoadout && comparison.scrollWidth <= comparison.clientWidth + 1 &&
       Object.keys(comparisonStart).length === 7 &&
       Object.values(comparisonStart).every((direction) => direction === 'neutral') &&
       await page.locator('[data-testid="build-compare"]').evaluate((strip) => {
         const tabs = document.querySelector('[data-testid="bay-workspace-tabs"]');
-        const panel = document.querySelector('[data-workspace-panel="loadout"]');
+        const panel = strip.closest('[data-workspace-panel="review"]');
         return tabs !== null && panel !== null &&
-          tabs.getBoundingClientRect().top < strip.getBoundingClientRect().top &&
-          strip.getBoundingClientRect().top < panel.getBoundingClientRect().top;
+          tabs.getBoundingClientRect().bottom <= strip.getBoundingClientRect().top;
       }),
     `${comparison.scrollWidth}/${comparison.clientWidth} ${JSON.stringify(comparisonStart)}`,
   );
   await page.locator('[data-testid="build-compare"]').scrollIntoViewIfNeeded();
   await page.screenshot({ path: `${shots}/14-mobile-${shotLabel}-build-compare.png` });
+  await selectWorkspace(page, 'loadout');
   const panelOrder = await page.evaluate(() => ({
     hardpoints: document.querySelector('.bay-grid')?.getBoundingClientRect().top ?? Infinity,
     shelf: document.querySelector('.bay-side')?.getBoundingClientRect().top ?? -Infinity,
@@ -197,12 +214,19 @@ export async function runMobileMechbayJourney({
   );
   await selectWorkspace(page, 'loadout');
   await page.screenshot({ path: `${shots}/14-mobile-${shotLabel}-mechbay-preview.png` });
+  await page.locator('[data-testid="bay-location-head"]').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: `${shots}/14-mobile-${shotLabel}-mechbay-rest.png` });
 
   const beforeFit = await page.locator('[data-testid="free-tonnage"]').innerText();
-  await page.locator('[data-testid="bay-location-right_torso"] .bay-location-name').tap();
+  const locationTarget = page.locator('[data-testid="bay-location-right_torso"] .bay-location-name');
+  const locationTargetBounds = await locationTarget.boundingBox();
+  await locationTarget.tap();
+  const selectedLocations = await quietLocationState(page, true);
   check(
     `${prefix} mechbay hardpoint selection filters the shelf`,
-    (await page.locator('[data-testid="bay-location-filter"]').count()) === 1,
+    (await page.locator('[data-testid="bay-location-filter"]').count()) === 1 &&
+      (locationTargetBounds?.height ?? 0) >= 44 &&
+      selectedLocations.count === 8 && selectedLocations.quiet === 8,
   );
   const mobileWeapon = page.locator('[data-testid="stock-weapon-medium_laser"]');
   await mobileWeapon.scrollIntoViewIfNeeded();
@@ -211,7 +235,10 @@ export async function runMobileMechbayJourney({
     await fullyInViewport(page, '[data-testid="stock-weapon-medium_laser"]'),
   );
   await page.screenshot({ path: `${shots}/14-mobile-${shotLabel}-mechbay-shelf.png` });
+  const priorFitStatus = (await page.locator('[data-testid="bay-fit-status"]').innerText()).trim();
+  const priorLiveRegions = await page.locator('[data-testid="mechbay"] [aria-live]').count();
   await mobileWeapon.tap();
+  const targeting = await targetingLayerState(page, priorFitStatus, priorLiveRegions);
   await page.waitForFunction(
     () => document.activeElement?.closest('[data-testid="bay-location-right_torso"]') !== null,
   );
@@ -219,26 +246,46 @@ export async function runMobileMechbayJourney({
     `${prefix} mechbay shelf arms only a compatible target`,
     (await page.locator('[data-testid="bay-armed"]').count()) === 1 &&
       (await page.locator('.bay-location.armed-target').count()) === 1 &&
-      (await page.locator('[data-testid="bay-location-right_torso"].armed-target').count()) === 1,
+      (await page.locator('[data-testid="bay-location-right_torso"].armed-target').count()) === 1 &&
+      targeting.count === 8 && targeting.complete && targeting.refusals > 0 &&
+      targeting.uniqueStatus && targeting.statusChanged && targeting.namesHeldPart &&
+      targeting.sameLiveRegionCount,
+    JSON.stringify(targeting),
   );
   check(
     `${prefix} placement banner spans the location workbench`,
     await page.locator('[data-testid="bay-armed"]').evaluate((banner) => {
       const bannerBounds = banner.getBoundingClientRect();
       const gridBounds = banner.parentElement?.getBoundingClientRect();
-      return gridBounds !== undefined && Math.abs(bannerBounds.width - gridBounds.width) <= 2;
+      const controls = [...banner.querySelectorAll('button')];
+      return gridBounds !== undefined && Math.abs(bannerBounds.width - gridBounds.width) <= 2 &&
+        controls.length === 2 && controls.every((control) => control.getBoundingClientRect().height >= 44);
     }),
   );
   await page.screenshot({ path: `${shots}/14-mobile-${shotLabel}-mechbay-placement.png` });
   await page
     .locator('[data-testid="bay-location-right_torso"] .bay-location-name')
     .tap();
+  const snapPhase = await page.locator(
+    '[data-testid="bay-location-right_torso"]',
+  ).getAttribute('data-snap-phase');
   const afterFit = await page.locator('[data-testid="free-tonnage"]').innerText();
   check(
     `${prefix} mechbay location accepts the armed item`,
-    beforeFit !== afterFit && (await page.locator('[data-testid="bay-armed"]').count()) === 0,
+    beforeFit !== afterFit &&
+      (await page.locator('[data-testid="bay-armed"]').count()) === 0 &&
+      (snapPhase === '1' || snapPhase === '2'),
     `${beforeFit} → ${afterFit}`,
   );
+  const foldedExplainers = await explainerState(page);
+  check(
+    `${prefix} first fit folds both explanations without shrinking their disclosures`,
+    foldedExplainers.workbenchExpanded === 'false' &&
+      foldedExplainers.cultureExpanded === 'false' &&
+      foldedExplainers.touchSized && await fitTrainingStored(page),
+    JSON.stringify(foldedExplainers),
+  );
+  await selectWorkspace(page, 'review');
   const comparisonAfterFit = await comparisonDirections(page);
   check(
     `${prefix} comparison updates live after the fitted weapon`,
@@ -251,6 +298,7 @@ export async function runMobileMechbayJourney({
       comparisonAfterFit.dps_long === 'good',
     JSON.stringify(comparisonAfterFit),
   );
+  await selectWorkspace(page, 'loadout');
 
   const inspect = page.locator(
     '[data-testid="bay-location-right_torso"] [data-testid^="inspect-weapon-"]',
@@ -270,6 +318,7 @@ export async function runMobileMechbayJourney({
       await renderedTextIncludes(page.locator('#bay-shelf-inspector'), 'Medium Laser'),
   );
   await remove.tap();
+  await selectWorkspace(page, 'review');
   const comparisonAfterRemove = await comparisonDirections(page);
   check(
     `${prefix} explicit Remove restores the starting loadout`,
@@ -278,6 +327,7 @@ export async function runMobileMechbayJourney({
       Object.values(comparisonAfterRemove).every((direction) => direction === 'neutral'),
     JSON.stringify(comparisonAfterRemove),
   );
+  await selectWorkspace(page, 'loadout');
 
   await page.locator('[data-testid="bay-save"]').scrollIntoViewIfNeeded();
   check(
