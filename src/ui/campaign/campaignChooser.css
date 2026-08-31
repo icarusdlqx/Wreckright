@@ -1,0 +1,117 @@
+.campaign-chooser-backdrop {
+  position: fixed;
+  z-index: 40;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(3, 7, 9, 0.78);
+}
+
+.campaign-chooser {
+  width: min(560px, 100%);
+  padding: clamp(22px, 5vw, 38px);
+  border: 1px solid rgba(140, 224, 255, 0.4);
+  border-top-color: var(--accent);
+  color: var(--text);
+  background: #10191d;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.62);
+}
+
+.campaign-chooser h3 {
+  margin: 7px 0 14px;
+  color: var(--accent);
+  font-size: clamp(20px, 4vw, 28px);
+}
+
+.campaign-chooser p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.campaign-chooser p strong {
+  color: var(--text);
+}
+
+.campaign-chooser-kicker {
+  margin: 0;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.campaign-chooser label {
+  display: grid;
+  gap: 7px;
+  margin-top: 22px;
+  color: var(--accent);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.campaign-chooser select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--edge);
+  border-radius: 4px;
+  color: var(--text);
+  background: var(--panel);
+  font: inherit;
+  font-size: 13px;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.campaign-chooser-selection {
+  min-height: 19px;
+  margin: 9px 0 0;
+}
+
+.campaign-chooser-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.campaign-chooser-actions button {
+  padding: 8px 12px;
+  border: 1px solid var(--edge);
+  border-radius: 4px;
+  color: var(--text);
+  background: var(--panel);
+  font: inherit;
+}
+
+.campaign-chooser-actions button:last-child:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.campaign-chooser-actions button:disabled {
+  opacity: 0.35;
+}
+
+@media (max-width: 520px) {
+  .campaign-chooser-backdrop {
+    place-items: end center;
+    padding: 0;
+  }
+
+  .campaign-chooser {
+    max-height: 92vh;
+    overflow: auto;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+  }
+
+  .campaign-chooser-actions {
+    flex-direction: column-reverse;
+  }
+
+  .campaign-chooser-actions button {
+    min-height: 44px;
+  }
+}

@@ -17,6 +17,7 @@ export interface CampaignHeaderProps {
   onExport: () => void;
   onExportRecovery: () => void;
   onImport: (text: string) => void;
+  onChooseCampaign: () => void;
   onRestart: () => void;
   onToggleManual: () => void;
   onToggleMuted: () => void;
@@ -38,6 +39,7 @@ export function CampaignHeader({
   onExport,
   onExportRecovery,
   onImport,
+  onChooseCampaign,
   onRestart,
   onToggleManual,
   onToggleMuted,
@@ -88,6 +90,9 @@ export function CampaignHeader({
           }}
         />
       </label>
+      <button type="button" onClick={onChooseCampaign} data-testid="camp-campaigns">
+        Campaigns
+      </button>
       <button type="button" onClick={onRestart} data-testid="camp-restart">
         Restart
       </button>

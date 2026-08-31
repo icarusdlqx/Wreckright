@@ -1,0 +1,87 @@
+{
+  "id": "aurelian_recall",
+  "name": "The Great Recall: Custodians",
+  "startingCbills": 1600000,
+  "startingDay": 0,
+  "startingDesignIds": [
+    "votive_picket",
+    "sentinel_brawler",
+    "falchion_duellist",
+    "halberd_prime"
+  ],
+  "startingPilotIds": [
+    "petra_lindqvist",
+    "silas_okonkwo",
+    "teodor_krysa",
+    "arne_gedde"
+  ],
+  "hiringPoolPilotIds": [
+    "bo_ferrant",
+    "cato_ferrin",
+    "juno_reyes",
+    "yusra_demir"
+  ],
+  "victoryNodeId": "sarn_inventory",
+  "alternateVictoryNodeIds": [],
+  "employers": [
+    {
+      "id": "continuance_tender",
+      "name": "Continuance Custody Tender"
+    }
+  ],
+  "sideWork": {
+    "missionIds": [],
+    "employerIds": []
+  },
+  "nodes": [
+    {
+      "id": "first_warrant",
+      "name": "First Warrant",
+      "missionId": "raid_ridge",
+      "employerId": "continuance_tender",
+      "brief": "The Recall Authority has attested three Linewrought roots moving through the ridge pass under foundry marks. Break the militia screen and hold the warrant ground long enough for the custody readers to record the machines. The Tender pays for compliance, not wreckage.",
+      "requires": [],
+      "basePayout": 650000,
+      "maxSalvageShare": 0.1,
+      "deadlineDays": 18,
+      "position": {
+        "x": 0.18,
+        "y": 0.72
+      }
+    },
+    {
+      "id": "cutbank_attestation",
+      "name": "Custody Posts",
+      "missionId": "base_capture_ridge",
+      "employerId": "continuance_tender",
+      "brief": "Cutbank's two custody posts carry contradictory root rolls written during the Foundry Winter. Take both intact and hold while the Authority resolves them against the Compact archive. The local garrison is fielding rebuilds; every sealed repair remains your own account.",
+      "requires": [
+        "first_warrant"
+      ],
+      "basePayout": 850000,
+      "maxSalvageShare": 0.1,
+      "deadlineDays": 22,
+      "position": {
+        "x": 0.5,
+        "y": 0.45
+      }
+    },
+    {
+      "id": "sarn_inventory",
+      "name": "Sarn Inventory",
+      "missionId": "switchyard_watch",
+      "employerId": "continuance_tender",
+      "brief": "Sarn Foundry has opened three gates against the attestation node and called every serviceable rebuild in the district. Keep the registry under Tender control until its root list is sealed. Salvage has no standing in the warrant; custody and a solvent company do.",
+      "requires": [
+        "cutbank_attestation"
+      ],
+      "basePayout": 1100000,
+      "maxSalvageShare": 0.1,
+      "deadlineDays": 26,
+      "position": {
+        "x": 0.82,
+        "y": 0.22
+      }
+    }
+  ]
+}

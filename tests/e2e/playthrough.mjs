@@ -971,6 +971,57 @@ async function main() {
         (await page.locator('[data-testid="camp-cbills"]').innerText()).replace(/[^0-9-]/g, ''),
       );
 
+    await page.locator('[data-testid="camp-campaigns"]').click();
+    await page.waitForSelector('[data-testid="campaign-chooser"]');
+    const campaignChoices = await page.locator('[data-testid="campaign-choice"] option')
+      .evaluateAll((options) => options.map((option) => ({
+        id: option.value,
+        name: option.textContent?.trim() ?? '',
+      })));
+    check(
+      'returning players can choose either side of the Great Recall',
+      campaignChoices.length === 2 &&
+        campaignChoices.some((choice) => choice.id === 'border_dispute') &&
+        campaignChoices.some((choice) => choice.id === 'aurelian_recall'),
+      JSON.stringify(campaignChoices),
+    );
+    await page.screenshot({ path: `${SHOTS}/06a-campaign-chooser.png` });
+    await page.locator('[data-testid="campaign-choice"]').selectOption('aurelian_recall');
+    await page.locator('[data-testid="campaign-choice-start"]').click();
+    await page.waitForSelector('[data-testid="camp-node-first_warrant"]');
+    const aurelianState = await page.evaluate(() =>
+      JSON.parse(localStorage.getItem('ironline.campaign')).state,
+    );
+    check(
+      'the Aurelian campaign opens with its sealed roster and three-node route',
+      (await page.locator('.camp-title h2').innerText()) === 'The Great Recall: Custodians' &&
+        (await page.locator('.camp-node').count()) === 3 &&
+        (await page.locator('.camp-node.available').count()) === 1 &&
+        aurelianState.campaignId === 'aurelian_recall' &&
+        aurelianState.mechs.map((mech) => mech.design.id).join(',') ===
+          'votive_picket,sentinel_brawler,falchion_duellist,halberd_prime',
+      JSON.stringify({
+        campaignId: aurelianState.campaignId,
+        mechs: aurelianState.mechs.map((mech) => mech.design.id),
+      }),
+    );
+    const aurelianSeed = aurelianState.seed;
+    await page.locator('[data-testid="camp-restart"]').click();
+    const restartedAurelian = await page.evaluate(() =>
+      JSON.parse(localStorage.getItem('ironline.campaign')).state,
+    );
+    check(
+      'restart stays on the selected campaign and persists a fresh run',
+      restartedAurelian.campaignId === 'aurelian_recall' &&
+        restartedAurelian.seed !== aurelianSeed,
+      restartedAurelian.seed,
+    );
+    await page.screenshot({ path: `${SHOTS}/06b-aurelian-campaign.png` });
+    await page.locator('[data-testid="camp-campaigns"]').click();
+    await page.locator('[data-testid="campaign-choice"]').selectOption('border_dispute');
+    await page.locator('[data-testid="campaign-choice-start"]').click();
+    await page.waitForSelector('[data-testid="camp-node-militia_raid"]');
+
     const campaignNodeIds = await page.locator('.camp-node').evaluateAll((nodes) =>
       nodes.map((node) => node.getAttribute('data-testid')?.replace('camp-node-', '') ?? ''),
     );

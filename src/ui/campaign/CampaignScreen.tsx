@@ -19,6 +19,7 @@ import { assessSolvency, retireCompany } from '../../campaign/solvency';
 import { employerHistories } from '../../campaign/employers';
 import type { BayCommission } from '../mechbay/Mechbay';
 import { CampaignHeader } from './CampaignHeader';
+import { CampaignChooser } from './CampaignChooser';
 import { CampaignMap, type NodeState } from './CampaignMap';
 import { CampaignPostBattle } from './CampaignPostBattle';
 import { resolveCurrentEmployer } from './campaignEmployer';
@@ -39,29 +40,24 @@ import { firstDropStage, type FirstDropPrep } from './firstDropGuide';
 import { useCampaignScore } from './useCampaignScore';
 
 const catalog = getCatalog();
-const CAMPAIGN_ID = 'border_dispute';
-
+const DEFAULT_CAMPAIGN_ID = 'border_dispute';
 export function CampaignScreen({ onExit }: { onExit: () => void }) {
-  const [initial] = useState(() => openCampaignSession(catalog, CAMPAIGN_ID, resetDebriefed));
+  const [initial] = useState(() => openCampaignSession(catalog, DEFAULT_CAMPAIGN_ID, resetDebriefed));
   const [state, setState] = useState<CampaignState>(initial.state);
   const [persistence, setPersistence] = useState(initial.persistence);
   const [manualOpen, setManualOpen] = useState(false);
   const [guideDismissed, setGuideDismissed] = useState(false);
-  /**
-   * Where the drop preparation stands: the hangar first, then the manifest.
-   * Prep is a corridor, not a pop-up — campaign map → mechbay → deployment →
-   * battle — so the bay stops being a side door most players never find.
-   */
+  // Prep is a corridor: campaign map → mechbay → deployment → battle.
   const [prep, setPrep] = useState<FirstDropPrep>(null);
   const [refitting, setRefitting] = useState<string | null>(null);
   const [debriefed, setDebriefed] = useState(() => debriefedCount());
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [selectedTerms, setSelectedTerms] = useState<ContractTermsId>('standard');
   const [status, setStatus] = useState<string | null>(null);
+  const [choosingCampaign, setChoosingCampaign] = useState(false);
   const enterBattle = useGame((game) => game.enterBattle);
   const { record } = usePlaytest();
   const score = useCampaignScore(catalog, state);
-
   const campaign = campaignOf(catalog, state);
   const employers = useMemo(
     () => employerHistories(
@@ -120,8 +116,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
           },
         };
 
-  // A change may say what happened. What it says wins over the caller's
-  // caption: a refusal knows more than the button that hoped it would work.
+  // A refusal knows more than the button that hoped it would work.
   const mutate = (
     change: (draft: CampaignState) => string | null | void,
     message?: string,
@@ -142,8 +137,28 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
     setStatus(saved.ok ? message : 'Campaign opened in memory; the save was not written.');
   };
 
-  // Deploying walks the prep corridor rather than launching: the hangar for
-  // repairs and refits first, then the manifest for who flies what.
+  const startNewCampaign = (campaignId: string): void => {
+    resetDebriefed();
+    setDebriefed(0);
+    let saved = campaignPersistenceStatus();
+    let stored = false;
+    const fresh = startFreshCampaign(catalog, campaignId, createCampaignSeed, (next) => {
+      const result = saveCampaign(next, { recover: true });
+      saved = result.status;
+      stored = result.ok;
+    });
+    setPrep(null);
+    setGuideDismissed(false);
+    setRefitting(null);
+    setSelectedNode(null);
+    setSelectedTerms('standard');
+    setChoosingCampaign(false);
+    setState(fresh);
+    setPersistence(saved);
+    setStatus(stored ? `New campaign. Run ${fresh.seed}.` : `New campaign opened in memory. Run ${fresh.seed}.`);
+  };
+
+  // Deploying enters the hangar first, then the manifest.
   const onDeploy = (): void => {
     if (state.finished) {
       setStatus('This campaign is over.');
@@ -222,29 +237,8 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
           if (loaded.state === null) setStatus(loaded.error ?? 'bad save');
           else restore(loaded.state, 'Save imported.', true);
         }}
-        onRestart={() => {
-          resetDebriefed();
-          setDebriefed(0);
-          let saved = campaignPersistenceStatus();
-          let stored = false;
-          const fresh = startFreshCampaign(catalog, CAMPAIGN_ID, createCampaignSeed, (next) => {
-            const result = saveCampaign(next, { recover: true });
-            saved = result.status;
-            stored = result.ok;
-          });
-          setPrep(null);
-          setGuideDismissed(false);
-          setRefitting(null);
-          setSelectedNode(null);
-          setSelectedTerms('standard');
-          setState(fresh);
-          setPersistence(saved);
-          setStatus(
-            stored
-              ? `New campaign. Run ${fresh.seed}.`
-              : `New campaign opened in memory. Run ${fresh.seed}.`,
-          );
-        }}
+        onChooseCampaign={() => setChoosingCampaign(true)}
+        onRestart={() => startNewCampaign(state.campaignId)}
         onToggleManual={() => setManualOpen((open) => !open)}
         onToggleMuted={score.toggleMuted}
         onExit={() => {
@@ -257,6 +251,14 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
           onExit();
         }}
       />
+      {!choosingCampaign ? null : (
+        <CampaignChooser
+          campaigns={[...catalog.campaigns.values()]}
+          currentId={state.campaignId}
+          onClose={() => setChoosingCampaign(false)}
+          onStart={startNewCampaign}
+        />
+      )}
       {!manualOpen ? null : (
         <FieldManual
           lore={visibleCampaignLore([...catalog.lore.values()], state.completedNodes)}
