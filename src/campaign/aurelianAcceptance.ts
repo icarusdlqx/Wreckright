@@ -15,7 +15,21 @@ import { deserialiseCampaign, serialiseCampaign } from './save';
 import { isPilotAvailable, type CampaignState } from './types';
 
 const CAMPAIGN_ID = 'aurelian_recall';
-const ROUTE = ['first_warrant', 'cutbank_attestation', 'sarn_inventory'] as const;
+const ROUTE = [
+  'first_warrant',
+  'cutbank_attestation',
+  'sarn_inventory',
+  'root_exchange',
+  'quarry_receipt',
+  'conduit_injunction',
+  'barrow_warrant',
+] as const;
+const ADDED_LIVE_CONTRACTS = [
+  { nodeId: 'root_exchange', seed: 'aurelian-live-root_exchange' },
+  { nodeId: 'quarry_receipt', seed: 'aurelian-live-quarry_receipt' },
+  { nodeId: 'conduit_injunction', seed: 'aurelian-live-conduit_injunction' },
+  { nodeId: 'barrow_warrant', seed: 'barrow-live-a' },
+] as const;
 
 function resolveWithoutCombat(state: CampaignState, won: boolean): void {
   const contract = state.contract;
@@ -81,7 +95,7 @@ export function registerAurelianAcceptance(): void {
           .toEqual(next === undefined ? [] : [next]);
       });
 
-      expect(campaignOutcomeCount(state)).toBe(4);
+      expect(campaignOutcomeCount(state)).toBe(8);
       expect(state.history.at(-1)?.nodeId).toBe(ROUTE.at(-1));
       expect(state).toMatchObject({ campaignId: CAMPAIGN_ID, finished: true, won: true });
       expect(acceptContract(catalog, state, ROUTE[0], 'fee_first')).toEqual({
@@ -119,5 +133,21 @@ export function registerAurelianAcceptance(): void {
         expect(availableNodes(catalog, state).map((node) => node.id)).toContain(last.nodeId);
       }
     });
+
+    it.each(ADDED_LIVE_CONTRACTS)(
+      'wins the added $nodeId contract through live campaign resolution',
+      ({ nodeId, seed }) => {
+        const state = startCampaign(catalog, CAMPAIGN_ID, seed);
+        const routeIndex = ROUTE.indexOf(nodeId);
+        state.completedNodes.push(...ROUTE.slice(0, routeIndex));
+
+        expect(availableNodes(catalog, state).map((node) => node.id)).toEqual([nodeId]);
+        sign(state, nodeId);
+        const result = runMission(catalog, state);
+
+        expect(result.outcome).toMatchObject({ nodeId, won: true });
+        expect(state.completedNodes).toContain(nodeId);
+      },
+    );
   });
 }

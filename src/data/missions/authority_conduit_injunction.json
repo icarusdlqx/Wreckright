@@ -1,0 +1,208 @@
+{
+  "id": "authority_conduit_injunction",
+  "name": "Injunction — Cold Conduit",
+  "type": "base_capture",
+  "mapId": "shale_steps",
+  "briefing": "The Blackglass receipts identify a service conduit feeding unlicensed rebuilds into the foundry district. Open both isolators and hold them while the Tender's custody clerks attest every root on the spur. The line must go cold without destroying the machines it serves.",
+  "maxDurationSeconds": 480,
+  "startingResourcePoints": 600,
+  "dropTonnage": 205,
+  "lances": [
+    {
+      "team": 0,
+      "name": "Continuance Injunction Detail",
+      "units": [
+        {
+          "designId": "votive_picket",
+          "pilotId": "petra_lindqvist",
+          "spawn": { "x": 36, "y": 636 },
+          "facingDegrees": -45
+        },
+        {
+          "designId": "sentinel_brawler",
+          "pilotId": "silas_okonkwo",
+          "spawn": { "x": 108, "y": 636 },
+          "facingDegrees": -45
+        },
+        {
+          "designId": "falchion_duellist",
+          "pilotId": "teodor_krysa",
+          "spawn": { "x": 180, "y": 636 },
+          "facingDegrees": -45
+        },
+        {
+          "designId": "halberd_prime",
+          "pilotId": "arne_gedde",
+          "spawn": { "x": 252, "y": 636 },
+          "facingDegrees": -45
+        }
+      ]
+    },
+    {
+      "team": 1,
+      "name": "Foundry Rebuild Guard",
+      "units": [
+        {
+          "designId": "hornet_spotter",
+          "pilotId": "kessa_vale",
+          "spawn": { "x": 636, "y": 36 },
+          "facingDegrees": 135
+        },
+        {
+          "designId": "drover_carrier",
+          "pilotId": "dorn_hess",
+          "spawn": { "x": 708, "y": 36 },
+          "facingDegrees": 135
+        },
+        {
+          "designId": "redoubt_emplacement",
+          "pilotId": "ilse_brant",
+          "spawn": { "x": 780, "y": 36 },
+          "facingDegrees": 135
+        },
+        {
+          "designId": "courser_patrol",
+          "pilotId": "marek_sud",
+          "spawn": { "x": 852, "y": 36 },
+          "facingDegrees": 135
+        }
+      ]
+    }
+  ],
+  "reserves": [],
+  "zones": [
+    {
+      "id": "west_isolator",
+      "name": "West Conduit Isolator",
+      "x": 300,
+      "y": 684,
+      "radius": 72,
+      "owner": 1,
+      "captureSeconds": 10,
+      "resourcePoints": 100
+    },
+    {
+      "id": "east_isolator",
+      "name": "East Conduit Isolator",
+      "x": 684,
+      "y": 300,
+      "radius": 72,
+      "owner": 1,
+      "captureSeconds": 10,
+      "resourcePoints": 100
+    }
+  ],
+  "objectives": [
+    {
+      "id": "isolate_rebuild_line",
+      "label": "Open both conduit isolators",
+      "type": "capture_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": ["west_isolator", "east_isolator"],
+      "resourcePoints": 200
+    },
+    {
+      "id": "attest_cold_line",
+      "label": "Hold both isolators for 60 seconds",
+      "type": "hold_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": ["west_isolator", "east_isolator"],
+      "holdSeconds": 60,
+      "resourcePoints": 250
+    },
+    {
+      "id": "lance_survives",
+      "label": "Keep at least one machine operational",
+      "type": "survive",
+      "team": 0,
+      "required": true
+    }
+  ],
+  "triggers": [
+    {
+      "id": "injunction_read",
+      "when": { "type": "elapsed", "seconds": 4 },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Custody clerk: west isolator, then east. Open both and keep the conduit cold while we bind every root on the spur to this attestation."
+        },
+        {
+          "type": "reveal",
+          "x": 492,
+          "y": 492,
+          "radius": 300,
+          "seconds": 28
+        }
+      ]
+    },
+    {
+      "id": "first_isolator_open",
+      "when": { "type": "zone_captured", "zoneId": "west_isolator", "team": 0 },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "West feed is open. Pressure is falling across the spur; the east isolator is still carrying the rebuild line."
+        },
+        {
+          "type": "reveal",
+          "x": 684,
+          "y": 300,
+          "radius": 180,
+          "seconds": 24
+        }
+      ]
+    },
+    {
+      "id": "foundry_counterclaim",
+      "when": { "type": "objective_complete", "objectiveId": "isolate_rebuild_line" },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Both feeds are cold. Two Linewrought contacts are bringing the foundry's counterclaim up the south road. Hold the isolators until the clerks seal the record."
+        },
+        {
+          "type": "spawn",
+          "team": 1,
+          "units": [
+            {
+              "designId": "drover_carrier",
+              "pilotId": "nadia_ostrow",
+              "spawn": { "x": 852, "y": 852 },
+              "facingDegrees": -135
+            },
+            {
+              "designId": "courser_patrol",
+              "pilotId": "roz_havel",
+              "spawn": { "x": 780, "y": 852 },
+              "facingDegrees": -135
+            }
+          ]
+        },
+        {
+          "type": "reveal",
+          "x": 816,
+          "y": 852,
+          "radius": 220,
+          "seconds": 28
+        }
+      ]
+    },
+    {
+      "id": "conduit_attested",
+      "when": { "type": "objective_complete", "objectiveId": "attest_cold_line" },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Attestation sealed. Every root on this spur now has a named claimant, and their controlling warrant is filed at Barrow Reach."
+        }
+      ]
+    }
+  ]
+}

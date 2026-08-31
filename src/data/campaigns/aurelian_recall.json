@@ -21,7 +21,7 @@
     "juno_reyes",
     "yusra_demir"
   ],
-  "victoryNodeId": "sarn_inventory",
+  "victoryNodeId": "barrow_warrant",
   "alternateVictoryNodeIds": [],
   "employers": [
     {
@@ -46,7 +46,7 @@
       "deadlineDays": 18,
       "position": {
         "x": 0.18,
-        "y": 0.72
+        "y": 0.78
       }
     },
     {
@@ -62,8 +62,8 @@
       "maxSalvageShare": 0.1,
       "deadlineDays": 22,
       "position": {
-        "x": 0.5,
-        "y": 0.45
+        "x": 0.29,
+        "y": 0.48
       }
     },
     {
@@ -79,8 +79,76 @@
       "maxSalvageShare": 0.1,
       "deadlineDays": 26,
       "position": {
-        "x": 0.82,
-        "y": 0.22
+        "x": 0.46,
+        "y": 0.72
+      }
+    },
+    {
+      "id": "root_exchange",
+      "name": "Root Exchange",
+      "missionId": "authority_root_exchange",
+      "employerId": "continuance_tender",
+      "brief": "The Sarn inventory exposed a relay chain trading service-reader records between foundries. Key the four readers and hold them while the Authority follows each borrowed serial back to its root. Destroying the patrol proves nothing; the copied route is the warrant.",
+      "requires": [
+        "sarn_inventory"
+      ],
+      "basePayout": 1250000,
+      "maxSalvageShare": 0.1,
+      "deadlineDays": 30,
+      "position": {
+        "x": 0.61,
+        "y": 0.43
+      }
+    },
+    {
+      "id": "quarry_receipt",
+      "name": "Quarry Receipt",
+      "missionId": "authority_quarry_receipt",
+      "employerId": "continuance_tender",
+      "brief": "Blackglass Quarry is cutting counterfeit serial plates from condemned castings and matching them to the exchanged records. Seize the weigh ledger, lift manifest and serial punch, then preserve them for civil proof. The Tender cannot attest fragments.",
+      "requires": [
+        "root_exchange"
+      ],
+      "basePayout": 1400000,
+      "maxSalvageShare": 0.1,
+      "deadlineDays": 34,
+      "position": {
+        "x": 0.77,
+        "y": 0.69
+      }
+    },
+    {
+      "id": "conduit_injunction",
+      "name": "Conduit Injunction",
+      "missionId": "authority_conduit_injunction",
+      "employerId": "continuance_tender",
+      "brief": "The quarry receipts lead to a live rebuild conduit under a disputed service injunction. Hold its breaker while the custody clerks attest the line and sever the false roots from the foundry grid. Repairs after contact remain charged to the company.",
+      "requires": [
+        "quarry_receipt"
+      ],
+      "basePayout": 1550000,
+      "maxSalvageShare": 0.1,
+      "deadlineDays": 38,
+      "position": {
+        "x": 0.8,
+        "y": 0.35
+      }
+    },
+    {
+      "id": "barrow_warrant",
+      "name": "Barrow Warrant",
+      "missionId": "authority_barrow_warrant",
+      "employerId": "continuance_tender",
+      "brief": "Barrow Yard holds the master warrant, the counterfeit ledger and the local compact that kept the rebuild line alive. Secure the archive intact while the final attestation is made. What the Tender does with that proof will decide the Recall here.",
+      "requires": [
+        "conduit_injunction"
+      ],
+      "basePayout": 1750000,
+      "maxSalvageShare": 0.1,
+      "deadlineDays": 42,
+      "position": {
+        "x": 0.66,
+        "y": 0.14
       }
     }
   ]
