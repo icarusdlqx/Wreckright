@@ -504,9 +504,88 @@ battles, and the acceptance suite still finishes both.
 
 ---
 
+# Tier 8 — The first hour `[ui/campaign/data]`
+
+Findings from a full guided playthrough of the opening contract, verified
+against the live flow. Two facts to hold while working here: the economic
+loop already works — resolving a contract pays automatically and unlocks the
+next nodes — and the weapon mechanics are verified correct (ammo bins deplete
+and dry weapons stop firing, unit-tested; energy weapons are heat-gated with
+forced shutdown tested). **Neither needs changing.** What needs changing is
+the ceremony wrapped around a loop that already functions.
+
+## 8.1 The five-click first drop (M)
+
+**Files:** `src/ui/campaign/CampaignScreen.tsx`, `CampaignPrep.tsx`,
+`Hangar.tsx`, `LanceManifest.tsx`, `firstDropGuide.ts` + its tests,
+`tests/e2e/campaign-*.mjs` updated alongside.
+
+Signing the first contract funnels a stranger through five clicks and two
+expert dialogs before the first shot: Sign → Prepare drop → the Hangar —
+whose headline says "Repair what is broken, refit what is mis-armed" over
+four pristine machines all reading Ready — → the Manifest with per-machine
+Hold back / Refit choices → Launch. On day 0 every one of those decisions is
+empty.
+
+Wanted: when **every assigned machine is Ready and legally armed**, the
+signed contract offers **Launch the drop** directly, with "Review machines
+first" as the quiet secondary path into the existing Hangar/Manifest dialogs
+— which remain unchanged for the day they are needed (damaged machines, a
+short roster, a mis-armed refit). When something genuinely needs attention,
+the direct launch is withheld and the current flow stands. The first-drop
+guide copy follows the new shape. Repair/refit stop being a toll gate and
+become what they are: workshop tools for a company that has been hurt.
+
+**Done when:** a fresh campaign goes sign → launch in two clicks; a campaign
+with a damaged or missing machine still routes through prep; the guide
+never tells a pristine company to repair anything; e2e counts do not drop.
+
+## 8.2 Names without serial numbers (M) `[data]`
+
+**Files:** `src/data/chassis/*.json` (`name`), `src/data/designs/*.json`
+(`name`), every UI surface that prints them, e2e/unit tests that assert the
+old strings.
+
+"Gadfly GAD-2 'Spotter'" spends its width on a serial number nobody uses.
+Displayed names drop the designation everywhere: the machine is **Gadfly**,
+and its identity line is carried by the systems that already exist —
+`designLabel` (name — tonnage, class), the `role` tag, and the culture
+badge. Where a single line must carry everything (pickers, manifest rows,
+battle cards), the format is:
+`Gadfly — 35t Light · Forward spotter · Linewrought`.
+
+Rules: every `id` stays exactly as it is — ids are load-bearing in saves,
+missions and campaigns. Design *names* may keep their callsign quote
+("Gadfly 'Spotter'") where two designs share a chassis and need telling
+apart; the serial designation goes everywhere. This is a data change under
+the balance-gate rule — run the pair and say so in the PR (name fields feed
+no simulation number, so expect a trivial pass, but the rule is the rule).
+
+**Done when:** no visible surface prints a serial designation; weight class,
+role and faction are readable wherever a machine is offered; saves from
+before the rename still load (they reference ids, not names — verify with an
+exported save round-trip).
+
+## 8.3 The one-line ledger (S)
+
+**Files:** `src/ui/campaign/Debrief.tsx`, `src/ui/campaign/salvageFacts.ts`
+presentation only.
+
+Salvage already defaults to the three best picks with a re-choose option —
+the machinery is right and stays. The presentation buries the two facts a
+player wants: what did I earn, what did I take home. Wanted: the debrief
+leads with one line — "Contract complete · +850,000 C · salvaged: Longshot
+10, ammunition ×2" — and the full salvage report (chances, provenance,
+part facts) folds behind an "adjust picks" disclosure that opens the
+existing picker. The pilot XP table stays as is; it earned its place.
+
+**Done when:** the post-battle screen answers "what did I get" in one glance
+and everything that exists today remains reachable one click deeper.
+
 ## Sequencing advice
 
-Presentation tasks (tiers 1, 3, 4, 5, 6) parallelise freely. `[sim]` tasks
+Presentation tasks (tiers 1, 3, 4, 5, 6, 8) parallelise freely — though 8.1
+and 8.3 both touch the campaign screens, so run those two in sequence. `[sim]` tasks
 (tier 2) go **one at a time**, cheapest first: 2.2 → 2.1 → 2.3 → 2.4 → 2.5.
 The two showpieces (2.5 fire, 5.1 score) are worth doing after a few smaller
 wins in their areas — they lean on pooling and audio-graph discipline that the
