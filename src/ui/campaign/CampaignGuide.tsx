@@ -3,6 +3,7 @@ import './campaignGuide.css';
 
 const LABELS: Record<Exclude<FirstDropStage, 'done'>, string> = {
   choose: '1 · Choose the job',
+  launch: '2 · Launch the drop',
   prepare: '2 · Prepare the drop',
   bay: '3 · Check the machines',
   manifest: '4 · Launch the lance',

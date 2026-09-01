@@ -22,6 +22,7 @@ interface ContractPanelProps {
   selectedTerms: ContractTermsId;
   salvageRules: SalvageRules;
   readyMechs: number;
+  directLaunch: boolean;
   finished: boolean;
   won: boolean;
   employer: EmployerHistory | null;
@@ -30,6 +31,7 @@ interface ContractPanelProps {
   onSelectTerms: (termsId: ContractTermsId) => void;
   onAccept: (termsId: ContractTermsId) => void;
   onDeploy: () => void;
+  onLaunch: () => void;
   onAbandon: () => void;
 }
 
@@ -42,6 +44,7 @@ export function ContractPanel({
   selectedTerms,
   salvageRules,
   readyMechs,
+  directLaunch,
   finished,
   won,
   employer,
@@ -50,6 +53,7 @@ export function ContractPanel({
   onSelectTerms,
   onAccept,
   onDeploy,
+  onLaunch,
   onAbandon,
 }: ContractPanelProps) {
   const selected =
@@ -88,9 +92,27 @@ export function ContractPanel({
           />
           <p className="camp-brief">{signedNode?.brief ?? signedMission?.briefing ?? ''}</p>
           <div className="camp-buttons">
-            <button type="button" onClick={onDeploy} disabled={finished} data-testid="camp-deploy">
-              Prepare drop ({readyMechs} mech{readyMechs === 1 ? '' : 's'} ready)
+            <button
+              type="button"
+              onClick={directLaunch ? onLaunch : onDeploy}
+              disabled={finished}
+              data-testid="camp-deploy"
+            >
+              {directLaunch
+                ? 'Launch the drop'
+                : `Prepare drop (${readyMechs} mech${readyMechs === 1 ? '' : 's'} ready)`}
             </button>
+            {directLaunch ? (
+              <button
+                type="button"
+                className="secondary"
+                onClick={onDeploy}
+                disabled={finished}
+                data-testid="camp-review-machines"
+              >
+                Review machines first
+              </button>
+            ) : null}
             <button type="button" onClick={onAbandon} disabled={finished} data-testid="camp-abandon">
               Withdraw
             </button>
