@@ -2,7 +2,40 @@ import { describe, expect, it } from 'vitest';
 import { startCampaign } from '../../campaign/campaign';
 import { addToStore } from '../../campaign/types';
 import { catalog } from '../../../tests/support';
-import { salvageItemFacts } from './salvageFacts';
+import { salvageItemFacts, salvageSummary } from './salvageFacts';
+
+describe('salvage summary', () => {
+  it('names recovered hulls, weapons, and equipment with their counts', () => {
+    expect(
+      salvageSummary(catalog, ['sentinel_brawler'], [
+        { kind: 'weapon', itemId: 'medium_laser', count: 2 },
+        { kind: 'equipment', itemId: 'heat_sink', count: 1 },
+      ]),
+    ).toBe("Sentinel SNL-2 'Brawler', Medium Laser ×2, Heat Sink");
+  });
+
+  it('coalesces duplicate display names without changing first-seen order', () => {
+    expect(
+      salvageSummary(catalog, ['sentinel_brawler', 'sentinel_brawler'], [
+        { kind: 'weapon', itemId: 'medium_laser', count: 1 },
+        { kind: 'weapon', itemId: 'medium_laser', count: 2 },
+      ]),
+    ).toBe("Sentinel SNL-2 'Brawler' ×2, Medium Laser ×3");
+  });
+
+  it('falls back to raw ids for unknown catalogue entries', () => {
+    expect(
+      salvageSummary(catalog, ['unknown_hull'], [
+        { kind: 'weapon', itemId: 'unknown_weapon', count: 1 },
+        { kind: 'equipment', itemId: 'unknown_equipment', count: 2 },
+      ]),
+    ).toBe('unknown_hull, unknown_weapon, unknown_equipment ×2');
+  });
+
+  it('calls an empty haul nothing', () => {
+    expect(salvageSummary(catalog, [], [])).toBe('nothing');
+  });
+});
 
 describe('salvage item facts', () => {
   it('states a weapon mount, owned matches, and pre-haul count', () => {

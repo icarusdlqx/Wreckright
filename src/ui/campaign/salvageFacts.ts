@@ -40,6 +40,29 @@ function ownedChassisNames(
   return [...names].sort((a, b) => a.localeCompare(b));
 }
 
+/** A compact, ordered receipt of everything recovered from the field. */
+export function salvageSummary(
+  catalog: Catalog,
+  chassisIds: readonly string[],
+  items: readonly StoreItem[],
+): string {
+  const counts = new Map<string, number>();
+  const add = (name: string, count: number): void => {
+    counts.set(name, (counts.get(name) ?? 0) + count);
+  };
+
+  for (const chassisId of chassisIds) {
+    add(catalog.designs.get(chassisId)?.name ?? chassisId, 1);
+  }
+  for (const item of items) {
+    const collection = item.kind === 'weapon' ? catalog.weapons : catalog.equipment;
+    add(collection.get(item.itemId)?.name ?? item.itemId, item.count);
+  }
+
+  if (counts.size === 0) return 'nothing';
+  return [...counts].map(([name, count]) => `${name}${count > 1 ? ` ×${count}` : ''}`).join(', ');
+}
+
 export function salvageItemFacts(
   catalog: Catalog,
   state: CampaignState,
