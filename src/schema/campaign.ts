@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { IdSchema, NameSchema } from './common';
+import { FactionSchema } from './faction';
 
 export const CampaignNodeSchema = z.strictObject({
   id: IdSchema,
@@ -45,6 +46,24 @@ export const CampaignSchema = z
         employerIds: z.array(IdSchema).max(20),
       })
       .prefault({ missionIds: [], employerIds: [] }),
+    /**
+     * Suppliers only this campaign's parts counter can reach, and what they
+     * charge against the authored price. The machine yard is not widened: a
+     * Sealed company can order a Sealed spare through its patron, but nobody
+     * sells it a whole machine.
+     */
+    market: z
+      .strictObject({
+        partSuppliers: z
+          .array(
+            z.strictObject({
+              faction: FactionSchema,
+              priceFactor: z.number().positive().max(10),
+            }),
+          )
+          .max(4),
+      })
+      .prefault({ partSuppliers: [] }),
     nodes: z.array(CampaignNodeSchema).min(1).max(40),
   })
   .superRefine((campaign, ctx) => {

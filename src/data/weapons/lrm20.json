@@ -8,7 +8,7 @@
   "damage": 2.05,
   "projectiles": 20,
   "heat": 6,
-  "cooldown": 4.0,
+  "cooldown": 5.2,
   "velocity": 200,
   "range": {
     "min": 60,
@@ -27,7 +27,7 @@
     "width": 2.0,
     "arc": 58
   },
-  "summary": "Twenty tubes. Empties two tonnes of ammunition in under a minute and is worth every gram while it lasts.",
+  "summary": "Twenty tubes. Empties two tonnes of ammunition in about a minute and is worth every gram while it lasts.",
   "tags": [
     "spread",
     "indirect_fire"

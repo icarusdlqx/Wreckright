@@ -201,7 +201,15 @@ export function estimateRepair(
     chassis === undefined
       ? rules.factionFactors.linewrought
       : rules.factionFactors[chassis.faction];
-  const cost = Math.round(baseCost * factors.cost);
+  // A wreck's whole quote is held under the chassis price new. The flat
+  // rebuild, the replaced locations and the missing plate could otherwise add
+  // up past what the yard asks for a fresh machine of the same pattern, which
+  // made salvage a trap; the calendar still runs its full course.
+  const cap =
+    mech.rebuildCost > 0 && chassis !== undefined
+      ? Math.round(chassisCost * catalog.rules.salvage.hulkRebuildCostCap)
+      : Number.POSITIVE_INFINITY;
+  const cost = Math.min(Math.round(baseCost * factors.cost), cap);
   const days = baseDays === 0 ? 0 : Math.ceil(baseDays * factors.days);
 
   return {

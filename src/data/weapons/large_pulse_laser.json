@@ -7,7 +7,7 @@
   "slots": 3,
   "damage": 17,
   "projectiles": 1,
-  "heat": 15,
+  "heat": 12,
   "cooldown": 4.0,
   "velocity": null,
   "range": {
@@ -27,5 +27,5 @@
     "width": 3.8,
     "arc": 0
   },
-  "summary": "The brawler's energy weapon. Cycles hard enough to stay on a running target and hot enough that you feel every burst; past two hundred metres it is dead weight."
+  "summary": "The brawler's energy weapon. Cycles hard enough to stay on a running target and runs warm rather than scalding; past two hundred metres it is dead weight."
 }

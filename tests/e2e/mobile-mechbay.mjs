@@ -227,7 +227,10 @@ export async function runMobileMechbayJourney({
   );
   await selectWorkspace(page, 'loadout');
   await page.screenshot({ path: `${shots}/14-mobile-${shotLabel}-mechbay-preview.png` });
-  await page.locator('[data-testid="bay-location-head"]').scrollIntoViewIfNeeded();
+  await page
+    .locator('[data-testid="bay-location-head"], [data-testid="bay-location-compact-head"]')
+    .first()
+    .scrollIntoViewIfNeeded();
   await page.screenshot({ path: `${shots}/14-mobile-${shotLabel}-mechbay-rest.png` });
 
   const beforeFit = await page.locator('[data-testid="free-tonnage"]').innerText();

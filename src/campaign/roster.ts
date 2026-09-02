@@ -7,7 +7,7 @@ import type { CampaignState, PilotRecord } from './types';
 export type Skill = 'gunnery' | 'piloting' | 'sensors';
 export const SKILLS: readonly Skill[] = ['gunnery', 'piloting', 'sensors'];
 
-const MAX_SKILL = 5;
+export const MAX_SKILL = 5;
 
 export function asPilot(record: PilotRecord): Pilot {
   return {

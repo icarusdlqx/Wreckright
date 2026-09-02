@@ -20,7 +20,7 @@ describe('campaign machine identity presentation', () => {
   it('uses the current complete identity in owned-machine decision rows', () => {
     const state = legacyCampaign();
     const mutate = () => undefined;
-    const identity = 'Gadfly — 35t Light · Forward spotter · Linewrought';
+    const identity = 'Gadfly (mark I) — 35t Light · Forward spotter · Linewrought';
     const views = [
       renderToStaticMarkup(createElement(MechBayPanel, { state, mutate })),
       renderToStaticMarkup(createElement(BarracksPanel, { state, mutate })),
@@ -59,7 +59,7 @@ describe('campaign machine identity presentation', () => {
     }));
 
     expect(html).toContain(
-      'Gadfly — 35t Light · Forward spotter · Linewrought',
+      'Gadfly (mark I) — 35t Light · Forward spotter · Linewrought',
     );
     expect(html).not.toContain('GAD-2');
     expect(html).toContain('aria-label="Gadfly integrity"');

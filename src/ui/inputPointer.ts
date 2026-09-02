@@ -135,6 +135,7 @@ export function createPointerHandlers(options: PointerHandlerOptions): PointerHa
       state.orderedAt = event.timeStamp;
       const target = pickAt(pointerToScreen(canvas, event));
       if (target !== null && target.team !== game.playerTeam && isOperational(target)) {
+        game.patch({ inspectedId: target.id });
         engine.orderAttack(target.id, null);
       } else {
         engine.orderMove(world, false, { queued: event.shiftKey });
@@ -153,6 +154,7 @@ export function createPointerHandlers(options: PointerHandlerOptions): PointerHa
       } else {
         const target = pickAt(pointerToScreen(canvas, event));
         if (target !== null && target.team !== game.playerTeam) {
+          game.patch({ inspectedId: target.id });
           engine.orderAttack(
             target.id,
             game.orderMode === 'called_shot' ? game.calledShotLocation : null,
@@ -171,6 +173,10 @@ export function createPointerHandlers(options: PointerHandlerOptions): PointerHa
       game.patch({ marquee: null });
       return;
     }
+
+    // Any click on a hostile is also a look: the sidebar keeps its damage
+    // readable while the lance works on it.
+    if (picked.team !== game.playerTeam) game.patch({ inspectedId: picked.id });
 
     if (
       picked.team !== game.playerTeam &&

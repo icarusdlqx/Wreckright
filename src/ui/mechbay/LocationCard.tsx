@@ -4,6 +4,7 @@ import type { Design } from '../../schema/design';
 import type { Catalog } from '../../schema/load';
 import { armourFacesForDesign } from '../../sim/designArmour';
 import { weaponSizeLabel, type LocationUsage } from '../../sim/loadout';
+import { locationCapacityLine } from './locationLayout';
 import { buildLocationOccupants, type LocationOccupant } from './locationOccupants';
 
 export const MECH_LOCATION_NAMES: Record<MechLocation, string> = {
@@ -77,6 +78,8 @@ interface Props {
   onRemoveMount: (index: number) => void;
   onRemoveAmmo: (index: number) => void;
   onRemoveEquipment: (index: number) => void;
+  /** Opens the shelf on guns that could take this mount's place in one edit. */
+  onSwapMount?: (index: number) => void;
   onInspect?: (payload: DropPayload) => void;
   onSelect?: (location: MechLocation) => void;
   onHover?: (location: MechLocation | null) => void;
@@ -101,6 +104,7 @@ export function LocationCard({
   onRemoveMount,
   onRemoveAmmo,
   onRemoveEquipment,
+  onSwapMount,
   onInspect,
   onSelect,
   onHover,
@@ -212,6 +216,9 @@ export function LocationCard({
           {locationName}
         </button>
       </header>
+      <p className="bay-location-capacity" data-testid={`capacity-${location}`}>
+        {locationCapacityLine(catalog, hardpoints)}
+      </p>
 
       {target === null ? null : (
         <div className="bay-location-flags">
@@ -264,7 +271,7 @@ export function LocationCard({
         {occupants.map((item) => (
           <li
             key={item.key}
-            className={`slot-block tone-${item.tone}${item.oversized ? ' too-big' : ''}${item.key === snapOccupantKey ? ' snap-target' : ''}`}
+            className={`slot-block tone-${item.tone}${item.oversized ? ' too-big' : ''}${item.key === snapOccupantKey ? ' snap-target' : ''}${item.kind === 'weapon' && onSwapMount !== undefined ? ' slot-block--swappable' : ''}`}
             title={
               item.oversized
                 ? `${item.label} — too large for this mount`
@@ -286,6 +293,21 @@ export function LocationCard({
               <RackCells count={item.slots} />
               <small>{item.kind === 'ammo' ? 'Ammo' : item.kind === 'equipment' ? 'Gear' : 'Weapon'} · {item.slots} slot{item.slots === 1 ? '' : 's'}</small>
             </button>
+            {item.kind !== 'weapon' || onSwapMount === undefined ? null : (
+              <button
+                type="button"
+                className="slot-block__swap"
+                data-testid={`swap-weapon-${item.index}`}
+                aria-label={`Swap ${item.label} in ${locationName}`}
+                title={`Swap ${item.label} for another weapon that fits here`}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onSwapMount(item.index);
+                }}
+              >
+                Swap
+              </button>
+            )}
             <button
               type="button"
               className="slot-block__remove"

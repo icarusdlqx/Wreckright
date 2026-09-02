@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ChassisSchema } from './chassis';
+import { ChassisSchema, type Chassis } from './chassis';
 import { LOCATIONS } from './common';
 import { EquipmentSchema } from './equipment';
 import { FactionSchema } from './faction';
@@ -62,6 +62,27 @@ describe('content catalog', () => {
           ]),
         ),
       ).toEqual({ light: 2, medium: 2, heavy: 2, assault: 2 });
+    }
+  });
+
+  it('scales weapon mounts with the weight class', () => {
+    // Carrying capacity is what tonnage buys. A flat seven-to-nine mounts from
+    // thirty to a hundred tonnes made the assault hulls slow lights.
+    const floors = { light: 4, medium: 6, heavy: 8, assault: 10 } as const;
+    const mountsOf = (chassis: Chassis) =>
+      Object.values(chassis.hardpoints).reduce(
+        (sum, location) => sum + location.energy + location.ballistic + location.missile,
+        0,
+      );
+    const mechs = [...catalog.chassis.values()].filter((chassis) => chassis.frame === 'mech');
+    for (const chassis of mechs) {
+      expect(mountsOf(chassis), chassis.id).toBeGreaterThanOrEqual(floors[chassis.class]);
+    }
+    const heaviest = Math.max(
+      ...mechs.filter((chassis) => chassis.class === 'heavy').map(mountsOf),
+    );
+    for (const chassis of mechs.filter((entry) => entry.class === 'assault')) {
+      expect(mountsOf(chassis), chassis.id).toBeGreaterThan(heaviest);
     }
   });
 

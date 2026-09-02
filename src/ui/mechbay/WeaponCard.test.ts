@@ -35,11 +35,23 @@ describe('weapon card', () => {
   it('keeps only the three quick comparison numbers in the repeated row', () => {
     const html = render('lrm20');
     expect(html).toContain('aria-label="Weapon summary"');
-    expect(html).toContain('10.25/s damage');
+    expect(html).toContain('7.88/s damage');
     expect(html).toContain('540m reach');
-    expect(html).toContain('1.5/s heat');
+    expect(html).toContain('1.15/s heat');
     expect(html).not.toContain('role="meter"');
     expect(html).not.toContain('weapon-range-strip');
+  });
+
+  it('says what the gun is for and its verdict in one short line', () => {
+    const html = render('gauss_rifle');
+    expect(html).toContain('data-testid="weapon-profile-gauss_rifle"');
+    expect(html).toContain('<span class="weapon-card__role">Long-range sniper</span>');
+    expect(html).toContain('<em class="is-strength">Runs cold</em>');
+    expect(html).toContain('<em class="is-weakness">Explodes if the mount is breached</em>');
+
+    const lrm = render('lrm10');
+    expect(lrm).toContain('Indirect artillery');
+    expect(lrm).toContain('Fires over cover');
   });
 
   it('uses faction text as well as tint and marks foreign-pattern equipment', () => {

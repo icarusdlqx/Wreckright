@@ -62,7 +62,13 @@ export function Battle(props: BattleProps = {}) {
         .sort((left, right) =>
           left.id === TRAINING_MISSION_ID ? -1 : right.id === TRAINING_MISSION_ID ? 1 : 0,
         )
-        .map((mission) => ({ id: mission.id, name: mission.name })),
+        .map((mission) => ({
+          id: mission.id,
+          name: mission.name,
+          type: mission.type,
+          mapName: catalog.maps.get(mission.mapId)?.name ?? mission.mapId,
+          minutes: Math.round(mission.maxDurationSeconds / 60),
+        })),
     [catalog],
   );
   const difficulties = useMemo(() => difficultyChoices(catalog.rules.difficulty), [catalog]);
@@ -206,6 +212,8 @@ export function Battle(props: BattleProps = {}) {
     setup.selectMission(nextMissionId);
   };
 
+  // Settling the contract and leaving used to be two clicks, with nothing on
+  // the first to show for it; the debrief is where the ledger is read anyway.
   const onReturnToCampaign = (): void => {
     const engine = engineRef.current;
     if (engine !== null && !resolved) {
@@ -222,7 +230,6 @@ export function Battle(props: BattleProps = {}) {
         saveCampaign(saved);
       }
       setResolved(true);
-      return;
     }
     strategicScore.prepare();
     state.patch({ campaignPending: false, screen: 'campaign' });
@@ -350,10 +357,7 @@ export function Battle(props: BattleProps = {}) {
           missionName={state.missionName}
           campaignPending={state.campaignPending}
           campaignResolved={resolved}
-          missions={[...catalog.missions.values()].map((mission) => ({
-            id: mission.id,
-            name: mission.name,
-          }))}
+          missions={missions}
           selectedMissionId={missionId}
           onSameField={restartBattle}
           onNewField={newField}

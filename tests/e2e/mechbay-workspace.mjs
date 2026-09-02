@@ -387,8 +387,12 @@ export async function runCampaignRefitMechbayJourney({ page, check }) {
   );
   check(
     'every resting campaign location exposes a quiet accessible rack summary',
-    (await page.locator('[data-testid^="free-slots-"]').count()) === 8 &&
-      (await quietLocationState(page)).quiet === 8,
+    // Locations without a weapon mount fold into the strip, so a machine
+    // shows between five and eight full cards; every one of them rests quiet.
+    (await page.locator('[data-testid^="free-slots-"]').count()) >= 5 &&
+      (await page.locator('[data-testid^="free-slots-"]').count()) <= 8 &&
+      (await quietLocationState(page)).quiet ===
+        (await page.locator('[data-testid^="free-slots-"]').count()),
   );
 
   const flamerRow = page.locator('[data-testid="stock-weapon-flamer"]');

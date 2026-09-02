@@ -1,5 +1,6 @@
 import { CommandPalette, type Command } from './CommandPalette';
 import { CentreSelectionButton } from './CentreSelectionButton';
+import { centreOnSelection } from './cameraNavigation';
 import { CommanderToggle } from './CommanderToggle';
 import { CommanderView } from './CommanderView';
 import { selectedTargetIds } from './ContactsBar';
@@ -49,6 +50,10 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
       engine.toggleHoldFire();
       return;
     }
+    if (command.id === 'stop') {
+      engine.orderStop();
+      return;
+    }
     if (command.id === 'hold_position') {
       engine.setPosture(command.id);
       return;
@@ -96,7 +101,10 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
           hasSelection={state.units.some(
             (entry) => state.selection.includes(entry.id) && entry.alive,
           )}
-          onTarget={(id) => engine?.orderAttack(id, null)}
+          onTarget={(id) => {
+            state.patch({ inspectedId: id });
+            engine?.orderAttack(id, null);
+          }}
           onContact={(contact) => engine?.engageContact(contact.id, contact.position)}
         />
       ) : null}
@@ -111,7 +119,14 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
           <LanceBar
             units={state.units}
             selection={state.selection}
-            onSelect={(id) => state.setSelection([id])}
+            onSelect={(id) => {
+              // A second click on the card you already hold is "take me there".
+              if (state.selection.length === 1 && state.selection[0] === id) {
+                centreOnSelection(engine);
+                return;
+              }
+              state.setSelection([id]);
+            }}
           />
         </div>
         {fullHud || visibleCommands === null || visibleCommands.size > 0 ? (

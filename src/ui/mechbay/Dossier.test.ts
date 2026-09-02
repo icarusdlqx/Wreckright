@@ -47,7 +47,16 @@ describe('mechbay catalog inspector', () => {
     expect(html).toContain('Foreign pattern — origin only');
     expect(html).toContain('Right Torso has no free missile hardpoint.');
     expect(html).toContain('1 ton of ammo lasts 48s at full cycle.');
+    expect(html).toContain('arcs onto a live sensor track without line of sight');
+    expect(html).toContain('<p class="dossier-role" data-testid="dossier-role">Indirect artillery</p>');
+    expect(html).toContain('<em class="is-strength">Fires over cover</em>');
+    expect(html).toContain('<em class="is-weakness">Struggles inside 60m</em>');
+  });
+
+  it('keeps direct-fire missiles honest about needing a line of sight', () => {
+    const html = render({ kind: 'weapon', id: 'srm6' });
     expect(html).toContain('line of sight is still required');
+    expect(html).toContain('Close-range missile spread');
   });
 
   it('describes the selected ammunition bin rather than the weapon chassis cost', () => {

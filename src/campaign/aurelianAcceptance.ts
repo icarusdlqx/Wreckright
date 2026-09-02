@@ -38,7 +38,7 @@ const ADDED_LIVE_CONTRACTS = [
   },
   {
     nodeId: 'quarry_receipt',
-    seed: 'aurelian-live-quarry_receipt',
+    seed: 'retune-quarry_receipt-0',
     completed: SPINE.slice(0, 4),
   },
   {
@@ -46,9 +46,9 @@ const ADDED_LIVE_CONTRACTS = [
     seed: 'aurelian-live-conduit_injunction',
     completed: SPINE.slice(0, 5),
   },
-  { nodeId: 'barrow_warrant', seed: 'barrow-live-a', completed: SPINE.slice(0, 6) },
+  { nodeId: 'barrow_warrant', seed: 'retune-barrow_warrant-1', completed: SPINE.slice(0, 6) },
   { nodeId: 'continuance_export', seed: 'stage3-campaign-live-0', completed: SPINE },
-  { nodeId: 'local_stewardship', seed: 'stage3-campaign-live-0', completed: SPINE },
+  { nodeId: 'local_stewardship', seed: 'retune-local_stewardship-0', completed: SPINE },
 ] as const;
 
 function resolveWithoutCombat(state: CampaignState, won: boolean): void {

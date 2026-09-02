@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { catalog } from '../../tests/support';
 import type { Catalog } from '../schema/load';
-import { buyPart, partMarketListings, pruneMarket } from './market';
+import { buyPart, marketListings, partMarketListings, pruneMarket } from './market';
+import { partPriceCeiling, partSupplierFactor } from './marketAccess';
 import { startCampaign } from './campaign';
 
 function freshState() {
@@ -45,6 +46,77 @@ describe('the parts counter', () => {
       expect(listing.price).toBeGreaterThan(0);
       expect(listing.price % catalog.rules.economy.market.partPriceRounding).toBe(0);
     }
+  });
+
+  it('keeps the dear crates back until the company has standing', () => {
+    const state = freshState();
+    const tiers = catalog.rules.economy.market.partPriceUnlocks;
+    const opening = partPriceCeiling(catalog, state);
+    expect(opening).not.toBeNull();
+    if (opening === null) return;
+    const authoredCost = (listing: { kind: string; itemId: string }) =>
+      listing.kind === 'weapon'
+        ? catalog.weapons.get(listing.itemId)?.cost ?? 0
+        : catalog.equipment.get(listing.itemId)?.cost ?? 0;
+    for (let week = 0; week < 8; week += 1) {
+      for (const listing of partMarketListings(catalog, state)) {
+        expect(authoredCost(listing), listing.itemId).toBeLessThanOrEqual(opening);
+      }
+      state.day += catalog.rules.economy.market.refreshDays;
+    }
+
+    const last = tiers[tiers.length - 1];
+    if (last === undefined) throw new Error('no part price tiers');
+    const nodeIds = catalog.campaigns.get(state.campaignId)?.nodes.map((node) => node.id) ?? [];
+    state.completedNodes.push(...nodeIds.slice(0, last.minCompleted));
+    expect(partPriceCeiling(catalog, state)).toBe(last.maxPrice);
+    const dearest = Math.max(
+      ...[...catalog.weapons.values()]
+        .filter((weapon) => weapon.faction === 'linewrought')
+        .map((weapon) => weapon.cost),
+    );
+    expect(dearest).toBeGreaterThan(opening);
+    let seenDearest = false;
+    for (let week = 0; week < 24 && !seenDearest; week += 1) {
+      seenDearest = partMarketListings(catalog, state).some(
+        (listing) => authoredCost(listing) === dearest,
+      );
+      state.day += catalog.rules.economy.market.refreshDays;
+    }
+    expect(seenDearest).toBe(true);
+  });
+
+  it('sells the Custodians Sealed spares at their patron\'s markup, and nobody else', () => {
+    const border = freshState();
+    expect(partSupplierFactor(catalog, border, 'aurelian')).toBeNull();
+    expect(partSupplierFactor(catalog, border, 'linewrought')).toBe(1);
+
+    const recall = startCampaign(catalog, 'aurelian_recall', 'parts-recall');
+    const markup = partSupplierFactor(catalog, recall, 'aurelian');
+    expect(markup).toBe(2);
+    if (markup === null) return;
+    const nodeIds = catalog.campaigns.get(recall.campaignId)?.nodes.map((node) => node.id) ?? [];
+    recall.completedNodes.push(...nodeIds.slice(0, 4));
+    expect(partPriceCeiling(catalog, recall)).toBeNull();
+
+    const priced = fixedPartPrices();
+    const rounding = priced.rules.economy.market.partPriceRounding;
+    let sealed = 0;
+    for (let week = 0; week < 12; week += 1) {
+      for (const listing of partMarketListings(priced, recall)) {
+        const weapon = catalog.weapons.get(listing.itemId);
+        if (listing.kind !== 'weapon' || weapon?.faction !== 'aurelian') continue;
+        sealed += 1;
+        const raw = weapon.cost * markup;
+        expect(listing.price).toBe(Math.round(raw / rounding) * rounding);
+      }
+      // The yard itself stays Linewrought: a patron sells spares, not machines.
+      for (const listing of marketListings(catalog, recall)) {
+        expect(catalog.chassis.get(listing.design.chassisId)?.faction).toBe('linewrought');
+      }
+      recall.day += catalog.rules.economy.market.refreshDays;
+    }
+    expect(sealed).toBeGreaterThan(0);
   });
 
   it('offers the same crates at the same prices however often the player looks', () => {

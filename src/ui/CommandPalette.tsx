@@ -23,6 +23,13 @@ export const COMMANDS: readonly Command[] = [
     title: 'Advance to a point, stopping to fight whatever shows itself (A)',
   },
   { id: 'attack', label: 'Attack', key: 'F', mode: 'attack' },
+  {
+    id: 'stop',
+    label: 'Stop',
+    key: 'S',
+    mode: null,
+    title: 'Halt where it stands and drop the current orders; weapons stay live (S)',
+  },
   { id: 'called_shot', label: 'Called Shot', key: 'C', mode: 'called_shot' },
   { id: 'hold_fire', label: 'Hold Fire', key: 'H', mode: null },
   {

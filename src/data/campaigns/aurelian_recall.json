@@ -35,6 +35,14 @@
     "missionIds": [],
     "employerIds": []
   },
+  "market": {
+    "partSuppliers": [
+      {
+        "faction": "aurelian",
+        "priceFactor": 2
+      }
+    ]
+  },
   "nodes": [
     {
       "id": "first_warrant",
@@ -44,7 +52,7 @@
       "brief": "The Recall Authority has attested three Linewrought roots moving through the ridge pass under foundry marks. Break the militia screen and hold the warrant ground long enough for the custody readers to record the machines. The Tender pays for compliance, not wreckage.",
       "requires": [],
       "basePayout": 650000,
-      "maxSalvageShare": 0.1,
+      "maxSalvageShare": 0.35,
       "deadlineDays": 18,
       "position": {
         "x": 0.18,
@@ -61,7 +69,7 @@
         "first_warrant"
       ],
       "basePayout": 850000,
-      "maxSalvageShare": 0.1,
+      "maxSalvageShare": 0.35,
       "deadlineDays": 22,
       "position": {
         "x": 0.29,
@@ -78,7 +86,7 @@
         "cutbank_attestation"
       ],
       "basePayout": 1100000,
-      "maxSalvageShare": 0.1,
+      "maxSalvageShare": 0.4,
       "deadlineDays": 26,
       "position": {
         "x": 0.46,
@@ -95,7 +103,7 @@
         "sarn_inventory"
       ],
       "basePayout": 1250000,
-      "maxSalvageShare": 0.1,
+      "maxSalvageShare": 0.4,
       "deadlineDays": 30,
       "position": {
         "x": 0.61,
@@ -112,7 +120,7 @@
         "root_exchange"
       ],
       "basePayout": 1400000,
-      "maxSalvageShare": 0.1,
+      "maxSalvageShare": 0.45,
       "deadlineDays": 34,
       "position": {
         "x": 0.77,
@@ -129,7 +137,7 @@
         "quarry_receipt"
       ],
       "basePayout": 1550000,
-      "maxSalvageShare": 0.1,
+      "maxSalvageShare": 0.45,
       "deadlineDays": 38,
       "position": {
         "x": 0.8,
@@ -146,7 +154,7 @@
         "conduit_injunction"
       ],
       "basePayout": 1750000,
-      "maxSalvageShare": 0.1,
+      "maxSalvageShare": 0.5,
       "deadlineDays": 42,
       "position": {
         "x": 0.5,
@@ -163,7 +171,7 @@
         "barrow_warrant"
       ],
       "basePayout": 2100000,
-      "maxSalvageShare": 0.1,
+      "maxSalvageShare": 0.5,
       "deadlineDays": 46,
       "position": {
         "x": 0.25,
@@ -180,7 +188,7 @@
         "barrow_warrant"
       ],
       "basePayout": 2100000,
-      "maxSalvageShare": 0.1,
+      "maxSalvageShare": 0.5,
       "deadlineDays": 46,
       "position": {
         "x": 0.78,

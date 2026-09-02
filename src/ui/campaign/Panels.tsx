@@ -14,7 +14,7 @@ import {
 import { isMechAvailable, type CampaignState } from '../../campaign/types';
 import { getCatalog } from '../../schema/load';
 import { computeLoadout } from '../../sim/loadout';
-import { authoredDesignName, designIdentityLabel } from '../designLabel';
+import { authoredDesignName, companyMachineLabel, designIdentityLabel } from '../designLabel';
 import { workshopFactionLine, yardStockLine } from './factionEconomy';
 
 const catalog = getCatalog();
@@ -63,7 +63,7 @@ export function MechBayPanel({ state, mutate }: PanelProps) {
             return (
               <li key={mech.id} data-testid={`camp-mech-${mech.id}`}>
                 <span className="bay-mech-name">
-                  {designIdentityLabel(catalog, mech.design)}
+                  {companyMachineLabel(catalog, state.mechs, mech)}
                 </span>
                 <span className="bay-mech-state">
                   {chassis === undefined ? null : (
@@ -167,7 +167,7 @@ export function StoresPanel({ state, mutate }: PanelProps) {
                       .filter((mech) => mech.status === 'ready')
                       .map((mech) => (
                         <option key={mech.id} value={mech.id}>
-                          {designIdentityLabel(catalog, mech.design)}
+                          {companyMachineLabel(catalog, state.mechs, mech)}
                         </option>
                       ))}
                   </select>
@@ -183,7 +183,7 @@ export function StoresPanel({ state, mutate }: PanelProps) {
             .filter((mech) => mech.status === 'ready')
             .map((mech) => (
               <li key={mech.id}>
-                <span>{designIdentityLabel(catalog, mech.design)}</span>
+                <span>{companyMachineLabel(catalog, state.mechs, mech)}</span>
                 <select
                   value=""
                   onChange={(event) => {
@@ -315,7 +315,7 @@ export function MarketPanel({ state, mutate }: PanelProps) {
           return (
             <li key={mech.id} data-testid={`market-sell-row-${mech.id}`}>
               <span className="market-name">
-                {designIdentityLabel(catalog, mech.design)}
+                {companyMachineLabel(catalog, state.mechs, mech)}
                 <small>
                   {mech.status === 'hulk'
                     ? 'wreck'

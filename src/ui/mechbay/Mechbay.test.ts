@@ -81,7 +81,8 @@ describe('mechbay presentation', () => {
     );
 
     expect(html).toContain('data-testid="mech-preview"');
-    expect(html.match(/class="bay-location-name"/g)).toHaveLength(8);
+    expect(html.match(/class="bay-location-name"/g)).toHaveLength(5);
+    expect(html).toContain('data-testid="bay-location-strip"');
     expect(html).toContain('Long-Range Missiles');
     expect(html).toContain('Machine Guns');
     expect(html).toContain('Lasers');

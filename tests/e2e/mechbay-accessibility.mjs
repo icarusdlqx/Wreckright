@@ -262,9 +262,11 @@ export async function verifyOutfitDialogRerender({ page, check }) {
   await page.keyboard.press('Enter');
   await page.waitForSelector('[data-testid="outfit-bay"] [role="dialog"]');
 
-  const head = page.locator(
-    '[data-testid="outfit-bay"] [data-testid="bay-location-head"] .bay-location-name',
-  );
+  const head = page
+    .locator(
+      '[data-testid="outfit-bay"] :is([data-testid="bay-location-head"] .bay-location-name, [data-testid="bay-location-compact-head"])',
+    )
+    .first();
   await head.focus();
   const priorError = await page.evaluate(async () => {
     const { useGame } = await import('/src/ui/store.ts');

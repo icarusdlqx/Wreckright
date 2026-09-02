@@ -26,13 +26,13 @@
     "left_torso": {
       "energy": 0,
       "ballistic": 0,
-      "missile": 2,
+      "missile": 3,
       "slots": 10,
       "size": 4
     },
     "right_torso": {
       "energy": 0,
-      "ballistic": 0,
+      "ballistic": 1,
       "missile": 2,
       "slots": 10,
       "size": 4

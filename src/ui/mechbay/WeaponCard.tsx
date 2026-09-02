@@ -10,12 +10,17 @@ import {
   weaponCategory,
   weaponCategoryLabel,
   weaponMetrics,
+  weaponProfile,
+  type WeaponMedians,
 } from './weaponPresentation';
+import './weaponProfile.css';
 
 export interface WeaponCardProps {
   catalog: Catalog;
   weapon: Weapon;
   mountedWeapons?: readonly Weapon[];
+  /** Shared across a shelf so every card is judged against the same middle. */
+  medians?: WeaponMedians;
   chassisFaction?: Faction;
   stock?: number;
   selected?: boolean;
@@ -34,6 +39,7 @@ export interface WeaponCardProps {
 export function WeaponCard({
   catalog,
   weapon,
+  medians,
   chassisFaction,
   stock,
   selected = false,
@@ -61,6 +67,7 @@ export function WeaponCard({
   const statusId = `weapon-card-${weapon.id}-fit`;
   const detailId = `weapon-card-${weapon.id}-fit-detail`;
   const metrics = weaponMetrics(weapon);
+  const profile = weaponProfile(catalog, weapon, medians);
   const classes = [
     'weapon-card',
     'weapon-card--compact',
@@ -135,6 +142,15 @@ export function WeaponCard({
           )}
         </span>
 
+        <span className="weapon-card__profile" data-testid={`weapon-profile-${weapon.id}`}>
+          <span className="weapon-card__role">{profile.role}</span>
+          {profile.strengths.map((strength) => (
+            <em key={strength} className="is-strength">{strength}</em>
+          ))}
+          {profile.weakness === null ? null : (
+            <em className="is-weakness">{profile.weakness}</em>
+          )}
+        </span>
         <span className="weapon-card__quick-stats" aria-label="Weapon summary">
           <span>
             {formatWeaponNumber(weapon.tonnage)}t · {weapon.slots} slot

@@ -1,6 +1,7 @@
 import type { DifficultyChoice } from './battleSetupState';
 import type { MissionChoice } from './BattleSetup';
 import { BattleMenu } from './BattleMenu';
+import { KeyCard } from './KeyCard';
 import type { Engine } from './engine';
 import { formatMissionClock, missionClockUrgency } from './missionClock';
 import { MobileBattleTopbar } from './MobileBattleTopbar';
@@ -48,7 +49,7 @@ export function BattleTopbar(props: BattleTopbarProps) {
         <span
           className={`clock clock-${clockUrgency}`}
           data-testid="clock"
-          title="Mission time remaining"
+          title="Contract clock — the drop is recalled when it reaches zero, and the objectives stand as they are"
           aria-label={`Mission time remaining ${formatMissionClock(remainingSeconds)}`}
         >
           TIME {formatMissionClock(remainingSeconds)}
@@ -80,6 +81,7 @@ export function BattleTopbar(props: BattleTopbarProps) {
           ))}
         </span>
       ) : null}
+      {fullHud ? <KeyCard /> : null}
       <BattleMenu {...props} fullHud={fullHud} variant="desktop" />
     </header>
   );

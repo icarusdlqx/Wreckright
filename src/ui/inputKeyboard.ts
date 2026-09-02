@@ -83,6 +83,9 @@ export function attachBattleKeyboard(
       case 'KeyG':
         engine.setPosture('hold_position');
         return;
+      case 'KeyS':
+        engine.orderStop();
+        return;
       case 'KeyV':
         engine.useAbilities();
         return;
@@ -112,6 +115,7 @@ export function attachBattleKeyboard(
         state.setOrderMode(null);
         state.setSupportMode(null);
         state.setSelection([]);
+        state.patch({ inspectedId: null });
         return;
       case 'KeyE':
         state.setSelection(state.units.filter((unit) => unit.alive).map((unit) => unit.id));

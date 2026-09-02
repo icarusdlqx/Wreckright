@@ -8,7 +8,7 @@
   "damage": 1.75,
   "projectiles": 20,
   "heat": 6,
-  "cooldown": 3.5,
+  "cooldown": 4.5,
   "velocity": 190,
   "range": {
     "min": 0,

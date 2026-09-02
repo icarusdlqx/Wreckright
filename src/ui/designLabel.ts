@@ -78,3 +78,50 @@ export function designIdentityLabel(catalog: Catalog, design: DesignIdentity): s
   const culture = machineCulturePresentation(chassis.faction);
   return `${compact} · ${chassis.role} · ${culture.originLabel}`;
 }
+
+const SHOP_MARKS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+
+interface CompanyMachine {
+  id: string;
+  design: DesignIdentity;
+}
+
+/**
+ * The shop mark that tells two company machines of one chassis apart.
+ *
+ * A company that starts with two of the same light reads "Gadfly, Gadfly" in
+ * every dropdown, and after a battle one of them is the wreck. The setting
+ * already gives each walker a mark counting its trips through the gantry, so
+ * the mark is what the roster shows — and only when there is a twin to
+ * confuse it with.
+ */
+export function machineMark(mechs: readonly CompanyMachine[], mech: CompanyMachine): string | null {
+  const twins = mechs.filter((entry) => entry.design.chassisId === mech.design.chassisId);
+  if (twins.length < 2) return null;
+  const index = twins.findIndex((entry) => entry.id === mech.id);
+  return SHOP_MARKS[Math.max(0, index)] ?? String(index + 1);
+}
+
+/** The machine's short name with its shop mark when a twin shares the roster. */
+export function companyMachineName(
+  catalog: Catalog,
+  mechs: readonly CompanyMachine[],
+  mech: CompanyMachine,
+): string {
+  const name = machineDisplayName(catalog, mech.design);
+  const mark = machineMark(mechs, mech);
+  return mark === null ? name : `${name} (mark ${mark})`;
+}
+
+/** `designIdentityLabel` for a company machine, marked when a twin shares the roster. */
+export function companyMachineLabel(
+  catalog: Catalog,
+  mechs: readonly CompanyMachine[],
+  mech: CompanyMachine,
+): string {
+  const label = designIdentityLabel(catalog, mech.design);
+  const mark = machineMark(mechs, mech);
+  if (mark === null) return label;
+  const name = machineDisplayName(catalog, mech.design);
+  return label.startsWith(name) ? `${name} (mark ${mark})${label.slice(name.length)}` : `${label} · mark ${mark}`;
+}

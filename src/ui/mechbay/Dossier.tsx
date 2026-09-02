@@ -16,8 +16,10 @@ import { WeaponMeters } from './WeaponMeters';
 import {
   weaponCostLine,
   weaponOperatingLine,
+  weaponProfile,
   weaponTraitLines,
 } from './weaponPresentation';
+import './weaponProfile.css';
 
 export interface Inspected {
   kind: 'weapon' | 'ammo' | 'equipment';
@@ -169,6 +171,7 @@ export function Dossier({
   const heatPerSecond = weapon.heat / weapon.cooldown;
   const sinks = Math.ceil(heatPerSecond / dissipationPerSink(catalog, heatSinkId));
   const traits = weaponTraitLines(catalog, weapon);
+  const profile = weaponProfile(catalog, weapon);
   // A ton of ammunition, spent as fast as the weapon will fire it.
   const seconds = weapon.ammoPerTon === null ? null : weapon.ammoPerTon * weapon.cooldown;
 
@@ -184,6 +187,15 @@ export function Dossier({
         <WeaponGlyph catalog={catalog} weapon={weapon} />
         <h4>{weapon.name}</h4>
       </div>
+      <p className="dossier-role" data-testid="dossier-role">{profile.role}</p>
+      <ul className="dossier-profile" aria-label="Strengths and weaknesses">
+        {profile.strengths.map((strength) => (
+          <li key={strength}><em className="is-strength">{strength}</em></li>
+        ))}
+        {profile.weakness === null ? null : (
+          <li><em className="is-weakness">{profile.weakness}</em></li>
+        )}
+      </ul>
       <p className="dossier-line">
         {weaponSizeLabel(catalog, weaponSize(catalog, weapon))} {weapon.type} · {weapon.tonnage}t ·{' '}
         {weapon.slots} slot{weapon.slots === 1 ? '' : 's'}

@@ -226,6 +226,43 @@ describe('location workbench card', () => {
     expect(html).toContain('data-invalid="true"');
   });
 
+  it('says what each location takes, in shelf words', () => {
+    const torso = renderToStaticMarkup(createElement(LocationCard, fixtureProps('right_torso')));
+    expect(torso).toContain('data-testid="capacity-right_torso"');
+    expect(torso).toContain('Takes 2 energy · 1 ballistic, up to medium');
+
+    const arm = renderToStaticMarkup(createElement(LocationCard, fixtureProps('right_arm')));
+    expect(arm).toContain('Takes 1 ballistic, up to heavy');
+  });
+
+  it('offers a swap beside removal only on fitted weapons, and only when asked', () => {
+    const onSwapMount = vi.fn();
+    const html = renderToStaticMarkup(createElement(LocationCard, fixtureProps('right_torso', {
+      onSwapMount,
+    })));
+    expect(html).not.toContain('slot-block__swap');
+
+    const arm = LocationCard(fixtureProps('right_arm', { onSwapMount }));
+    const swap = descendants(arm).find(
+      (button) => button.props['data-testid'] === 'swap-weapon-0',
+    );
+    if (swap === undefined) throw new Error('missing swap control');
+    const event = {
+      stopPropagation: vi.fn(),
+      currentTarget: { closest: () => null },
+    };
+    swap.props.onClick?.(event);
+    expect(onSwapMount).toHaveBeenCalledWith(0);
+    expect(event.stopPropagation).toHaveBeenCalledOnce();
+
+    const markup = renderToStaticMarkup(createElement(LocationCard, fixtureProps('right_arm', {
+      onSwapMount,
+    })));
+    expect(markup).toContain('slot-block--swappable');
+    expect(markup).toContain('aria-label="Swap Field Autocannon in Right Arm"');
+    expect(markup).toContain('aria-label="Remove Field Autocannon from Right Arm"');
+  });
+
   it('renders separate, plainly named inspect and remove controls', () => {
     const html = renderToStaticMarkup(createElement(LocationCard, fixtureProps('right_torso')));
 

@@ -272,7 +272,17 @@ describe('company solvency', () => {
     wreck.rebuildCost = listing.price + 1;
     state.cbills = listing.price;
 
-    expect(assessSolvency(catalog, state)).toMatchObject({
+    // The authored cap holds a rebuild under the chassis price new, which is
+    // exactly the case this test is not about: switch it off so the rebuild
+    // really does cost more than the posted machine.
+    const uncapped = {
+      ...catalog,
+      rules: {
+        ...catalog.rules,
+        salvage: { ...catalog.rules.salvage, hulkRebuildCostCap: Number.POSITIVE_INFINITY },
+      },
+    };
+    expect(assessSolvency(uncapped, state)).toMatchObject({
       state: 'fundable',
       plan: { mechName: listing.design.name, mechSource: 'yard', needsSale: false },
     });

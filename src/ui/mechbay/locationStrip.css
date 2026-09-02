@@ -1,0 +1,148 @@
+/*
+ * Mount-less locations sit in one quiet line under the grid. They stay real
+ * targets — a jump jet dragged onto a leg lands — but they no longer cost a
+ * card's worth of attention each while nothing is in them.
+ */
+.location-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  align-self: start;
+  padding: 6px 8px;
+  border: 1px dashed var(--edge);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.location-strip__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.location-strip__item {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  min-height: 28px;
+  padding: 3px 8px;
+  border: 1px solid var(--edge);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+}
+
+.location-strip__item strong {
+  color: var(--text);
+  font-size: 10px;
+}
+
+.location-strip__item:hover:not(:disabled),
+.location-strip__item:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.location-strip__item.is-compatible {
+  border-color: #8fd49a;
+  color: #8fd49a;
+  cursor: copy;
+}
+
+.location-strip__item:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.location-strip__note {
+  font-style: italic;
+}
+
+.location-strip__toggle {
+  margin-left: auto;
+  padding: 3px 8px;
+  border: 1px solid var(--edge);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 10px;
+}
+
+.location-strip__toggle:hover,
+.location-strip__toggle:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  cursor: pointer;
+}
+
+/* Every location card says what its mounts were built for, in shelf words. */
+.bay-location-capacity {
+  margin: -2px 0 0;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+/* A fitted gun offers a swap beside its removal, so replacing it is one pick. */
+.location-overview .slot-block--swappable {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.location-overview .slot-block__swap {
+  width: auto;
+  height: auto;
+  min-width: 0;
+  padding: 4px 6px;
+  border: 0;
+  border-left: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.16);
+  color: var(--muted);
+  font: inherit;
+  font-size: 10px;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.location-overview .slot-block__swap:hover,
+.location-overview .slot-block__swap:focus-visible {
+  background: rgba(140, 224, 255, 0.12);
+  color: var(--accent);
+}
+
+.location-overview .slot-block__swap:focus-visible {
+  position: relative;
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+  .location-strip,
+  .location-strip__item strong,
+  .location-strip__toggle,
+  .bay-location-capacity {
+    font-size: 11px;
+  }
+
+  .location-strip__item,
+  .location-strip__toggle {
+    min-height: 44px;
+  }
+
+  .location-overview .slot-block__swap {
+    min-width: 50px;
+    min-height: 44px;
+    padding-right: 5px;
+    padding-left: 5px;
+    font-size: 11px;
+  }
+}

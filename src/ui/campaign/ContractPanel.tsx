@@ -7,7 +7,7 @@ import type { EmployerHistory } from '../../campaign/employers';
 import type { Catalog } from '../../schema/load';
 import { EmployerLedger, employerHistoryText } from './EmployerLedger';
 import { ContractBriefing } from './ContractBriefing';
-import { SalvageTerms } from './SalvageTerms';
+import { hullRecoveryOdds, SalvageTerms } from './SalvageTerms';
 
 function cbills(value: number): string {
   return `${Math.round(value).toLocaleString('en-GB')} C`;
@@ -162,6 +162,18 @@ export function ContractPanel({
               </label>
             ))}
           </fieldset>
+          {selected === null ? null : (
+            <p className="contract-odds-line" data-testid="camp-odds-line">
+              Hull recovery under these terms:{' '}
+              {hullRecoveryOdds(salvageRules, selected.salvageShare)
+                .filter((row) => row.outcome !== 'ammo_explosion')
+                .map((row) =>
+                  `${row.outcome === 'legged' ? 'leg it' : row.outcome === 'head' ? 'head shot' : 'core it'} ${row.package}`,
+                )
+                .join(' · ')}
+              . Legging keeps the root; coring usually destroys it.
+            </p>
+          )}
           {selected === null ? null : (
             <details className="contract-salvage-detail">
               <summary>Recovery odds for {selected.name.toLowerCase()} terms</summary>
