@@ -1,6 +1,7 @@
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
+import type { Design } from '../../schema/design';
 import { catalog } from '../../../tests/support';
 import { BayChrome } from './BayChrome';
 
@@ -11,10 +12,13 @@ function renderHistory(
     onUndo?: () => void;
     onRedo?: () => void;
     commissionTitle?: string;
+    stored?: readonly { id: string; label: string }[];
+    design?: Design;
   } = {},
 ): string {
-  const design = catalog.designs.get('sentinel_brawler');
-  if (design === undefined) throw new Error('missing Sentinel design');
+  const stock = catalog.designs.get('sentinel_brawler');
+  if (stock === undefined) throw new Error('missing Sentinel design');
+  const design = history.design ?? stock;
 
   return renderToStaticMarkup(
     createElement(BayChrome, {
@@ -97,9 +101,38 @@ describe('mechbay history controls', () => {
   it('selects authored mech loadouts without offering vehicles or emplacements', () => {
     const standalone = renderHistory();
 
-    expect(standalone).toContain('Gadfly GAD-2 &#x27;Spotter&#x27;');
-    expect(standalone).toContain('Sentinel SNL-2 &#x27;Brawler&#x27;');
-    expect(standalone).not.toContain('Courser CRS-1 &#x27;Patrol&#x27;');
-    expect(standalone).not.toContain('Redoubt RDT-1 &#x27;Emplacement&#x27;');
+    expect(standalone).toContain('Gadfly — 35t Light · Forward spotter · Linewrought');
+    expect(standalone).toContain('Sentinel — 45t Medium · Line brawler · Aurelian Stock');
+    expect(standalone).not.toContain('GAD-2');
+    expect(standalone).not.toContain('SNL-2');
+    expect(standalone).not.toContain('Courser —');
+    expect(standalone).not.toContain('Redoubt —');
+  });
+
+  it('keeps saved-loadout ids as values while presenting complete machine identity', () => {
+    const standalone = renderHistory({
+      stored: [{
+        id: 'legacy_scout',
+        label: 'Gadfly — 35t Light · Forward spotter · Linewrought',
+      }],
+    });
+
+    expect(standalone).toContain(
+      '<option value="legacy_scout">Gadfly — 35t Light · Forward spotter · Linewrought</option>',
+    );
+    expect(standalone).not.toContain('GAD-2');
+  });
+
+  it('keeps a custom loadout distinguishable with the same complete picker identity', () => {
+    const stock = catalog.designs.get('sentinel_brawler');
+    if (stock === undefined) throw new Error('missing Sentinel design');
+    const standalone = renderHistory({
+      design: { ...structuredClone(stock), id: 'field_sparrow', name: 'Field Sparrow' },
+    });
+
+    expect(standalone).toMatch(
+      /<option value="" selected="">Field Sparrow — 45t Medium · Line brawler · Aurelian Stock \(edited loadout\)<\/option>/,
+    );
+    expect(standalone).not.toContain('SNL-2');
   });
 });

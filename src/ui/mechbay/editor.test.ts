@@ -5,7 +5,9 @@ import { DesignSchema } from '../../schema/design';
 import {
   addAmmo,
   addMount,
+  currentStockDesign,
   designIssues,
+  exportDesign,
   fitCooling,
   idFromName,
   InvalidBuildError,
@@ -14,6 +16,7 @@ import {
   parseDesign,
   removeMount,
   saveToStorage,
+  serialiseDesign,
   setName,
   spreadArmour,
 } from './editor';
@@ -128,6 +131,36 @@ describe('saving to storage', () => {
 
     globalThis.localStorage.setItem(`ironline.design.${legacy.id}`, JSON.stringify(legacy));
     expect(loadFromStorage(legacy.id).design).toEqual(imported);
+  });
+
+  it('uses a keyed stock design current name when an old export or browser save reloads', async () => {
+    const legacy = stock('sentinel_brawler');
+    legacy.name = "Sentinel SNL-2 'Brawler'";
+    const legacyId = legacy.id;
+
+    const imported = parseDesign(serialiseDesign(legacy), catalog).design;
+    expect(imported).toMatchObject({
+      id: legacyId,
+      name: 'Sentinel',
+    });
+
+    globalThis.localStorage.setItem(`ironline.design.${legacyId}`, serialiseDesign(legacy));
+    expect(loadFromStorage(legacyId, catalog).design).toMatchObject({
+      id: legacyId,
+      name: 'Sentinel',
+    });
+
+    const exported = JSON.parse(await exportDesign(catalog, legacy).text()) as Design;
+    expect(exported).toMatchObject({
+      id: legacyId,
+      name: 'Sentinel',
+    });
+
+    const unkeyed = { ...legacy, id: 'custom_sentinel' };
+    expect(currentStockDesign(catalog, unkeyed)).toMatchObject({
+      id: 'custom_sentinel',
+      name: "Sentinel SNL-2 'Brawler'",
+    });
   });
 
   it('preserves the selected fire mode in a stored build', () => {

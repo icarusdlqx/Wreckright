@@ -13,6 +13,17 @@ function hideAll(world: ReturnType<typeof playerWorld>): void {
 }
 
 describe('privacy-safe battle snapshots', () => {
+  it('resolves a legacy entity name into the complete current battle identity', () => {
+    const world = playerWorld('current-battle-identity');
+    const unit = spawnDesign(world, 'hornet_spotter', 0);
+    unit.name = "Gadfly GAD-2 'Spotter'";
+
+    expect(snapshotUnit(world, unit)).toMatchObject({
+      name: 'Gadfly',
+      identity: 'Gadfly — 35t Light · Forward spotter · Linewrought',
+    });
+  });
+
   it('resolves the current and next fire mode cyclically from the live mount', () => {
     const world = playerWorld('fire-mode-snapshot');
     const unit = spawnDesign(world, 'redoubt_emplacement', 0);
@@ -147,7 +158,8 @@ describe('privacy-safe battle snapshots', () => {
     vision.visible.add(enemy.id);
     const sighted = snapshotUnit(world, friendly);
     expect(sighted.targetId).toBe(enemy.id);
-    expect(sighted.targetName).toBe('SECRET LOST TARGET');
+    expect(sighted.targetName).toBe(world.catalog.designs.get(enemy.designId)?.name);
+    expect(sighted.targetName).not.toBe('SECRET LOST TARGET');
     expect(sighted.targetRange).not.toBeNull();
   });
 

@@ -24,6 +24,7 @@ import {
 } from '../sim/types';
 import { setWeaponMode, weaponMode } from '../sim/weaponModes';
 import type { AudioDirector } from './audio';
+import { authoredDesignName } from './designLabel';
 import { formationDestinations } from './formation';
 import { prepareInvestigation } from './investigationOrder';
 import { useGame } from './store';
@@ -143,7 +144,9 @@ export function attackSelection(
   else if (ordered === 0) push('Optical contact is required before that target can be engaged.');
   else if (target !== null) {
     context.audio.order();
-    const label = isSightedBy(context.world.vision, target) ? target.name : 'sensor contact';
+    const label = isSightedBy(context.world.vision, target)
+      ? authoredDesignName(context.world.catalog, { id: target.designId, name: target.name })
+      : 'sensor contact';
     push(`${ordered} mech${ordered === 1 ? '' : 's'} targeting ${label}.`);
   }
 }

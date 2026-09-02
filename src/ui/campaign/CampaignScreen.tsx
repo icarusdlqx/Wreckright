@@ -18,6 +18,7 @@ import { campaignOutcomeCount } from '../../campaign/history';
 import { assessSolvency, retireCompany } from '../../campaign/solvency';
 import { employerHistories } from '../../campaign/employers';
 import type { BayCommission } from '../mechbay/Mechbay';
+import { authoredDesignName } from '../designLabel';
 import { CampaignHeader } from './CampaignHeader';
 import { CampaignChooser } from './CampaignChooser';
 import { CampaignMap, type NodeState } from './CampaignMap';
@@ -95,7 +96,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
     refitMech === null
       ? null
       : {
-          title: refitMech.design.name,
+          title: authoredDesignName(catalog, refitMech.design),
           cancelLabel: prep === 'bay' ? 'Back to hangar' : 'Back to manifest',
           design: refitMech.design,
           inventory: refitAvailability(state, refitMech),
@@ -112,7 +113,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
             });
             if (outcome.ok) {
               setRefitting(null);
-              setStatus(`${next.name} refitted.`);
+              setStatus(`${authoredDesignName(catalog, next)} refitted.`);
             }
             return outcome;
           },

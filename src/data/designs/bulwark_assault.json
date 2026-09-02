@@ -1,6 +1,6 @@
 {
   "id": "bulwark_assault",
-  "name": "Bulwark BWK-3 'Assault'",
+  "name": "Bulwark",
   "chassisId": "bulwark_bwk3",
   "armour": {
     "head": 17,

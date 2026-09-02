@@ -12,6 +12,7 @@ import type {
   SalvageProvenance,
   StoreItem,
 } from '../../campaign/types';
+import { stripSerialDesignation } from '../designLabel';
 import { useDialogFocus } from '../useDialogFocus';
 import { salvageItemFacts, salvageSummary } from './salvageFacts';
 import './salvage.css';
@@ -80,16 +81,17 @@ function chance(value: number): string {
 }
 
 function sourceName(catalog: Catalog, source: SalvageProvenance): string {
-  const designName = catalog.designs.get(source.sourceDesignId)?.name;
   const mech =
-    designName === undefined || designName === source.sourceMechName
-      ? source.sourceMechName
-      : `${source.sourceMechName} / ${designName}`;
+    catalog.designs.get(source.sourceDesignId)?.name
+    ?? stripSerialDesignation(source.sourceMechName);
   return `${mech}, ${LOCATION_NAMES[source.location]}`;
 }
 
 function candidateName(catalog: Catalog, candidate: SalvageCandidate): string {
-  return candidate.name || catalog.designs.get(candidate.designId)?.name || candidate.designId;
+  return (
+    catalog.designs.get(candidate.designId)?.name
+    ?? stripSerialDesignation(candidate.name || candidate.designId)
+  );
 }
 
 /**
@@ -295,7 +297,9 @@ export function Debrief({
               >
                 <div className="manifest-pilot">
                   <span className="pilot-name">{report.name}</span>
-                  <small className="manifest-status">{report.mech}</small>
+                  <small className="manifest-status">
+                    {stripSerialDesignation(report.mech)}
+                  </small>
                 </div>
 
                 <dl className="manifest-skills">
@@ -342,7 +346,9 @@ export function Debrief({
         )}
 
         {outcome.mechsLost.length === 0 ? null : (
-          <p className="debrief-losses">Lost: {outcome.mechsLost.join(', ')}.</p>
+          <p className="debrief-losses">
+            Lost: {outcome.mechsLost.map(stripSerialDesignation).join(', ')}.
+          </p>
         )}
 
         <footer className="manifest-actions">

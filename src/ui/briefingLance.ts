@@ -1,6 +1,7 @@
 import { dropTonnageFor } from '../campaign/campaign';
 import type { Catalog } from '../schema/load';
 import type { BriefingLance } from './Briefing';
+import { designIdentityLabel } from './designLabel';
 import { berthDesign, lanceTonnage, type SkirmishBerth } from './lance';
 import { listStoredDesigns, loadFromStorage } from './mechbay/editor';
 
@@ -12,24 +13,35 @@ export function briefingLanceFor(
   onCustomise: (index: number) => void,
 ): BriefingLance {
   return {
-    berths: lance.map((berth, index) => ({
-      index,
-      designValue: berth.empty === true ? 'empty' : (berth.designId ?? 'custom'),
-      customLabel: berth.designId === null ? (berth.design?.name ?? 'Edited loadout') : null,
-      pilotId: berth.pilotId,
-      tonnage: catalog.chassis.get(berthDesign(catalog, berth)?.chassisId ?? '')?.tonnage ?? 0,
-      pilot: catalog.pilots.get(berth.pilotId) ?? null,
-    })),
+    berths: lance.map((berth, index) => {
+      const design = berthDesign(catalog, berth);
+      return {
+        index,
+        designValue: berth.empty === true ? 'empty' : (berth.designId ?? 'custom'),
+        customLabel:
+          berth.designId === null && design !== null
+            ? designIdentityLabel(catalog, design)
+            : null,
+        pilotId: berth.pilotId,
+        tonnage: catalog.chassis.get(design?.chassisId ?? '')?.tonnage ?? 0,
+        pilot: catalog.pilots.get(berth.pilotId) ?? null,
+      };
+    }),
     // A dropship berth is for something that walks; vehicles and emplacements
     // remain opposition even when their cards share the design catalogue.
     designs: [...catalog.designs.values()]
       .filter((design) => catalog.chassis.get(design.chassisId)?.frame === 'mech')
       .map((design) => ({
         value: design.id,
-        label: design.name,
-        tonnage: catalog.chassis.get(design.chassisId)?.tonnage ?? 0,
+        label: designIdentityLabel(catalog, design),
       })),
-    saved: listStoredDesigns().map((id) => ({ value: `saved:${id}`, label: id })),
+    saved: listStoredDesigns().map((id) => {
+      const stored = loadFromStorage(id).design;
+      return {
+        value: `saved:${id}`,
+        label: stored === null ? id : designIdentityLabel(catalog, stored),
+      };
+    }),
     pilots: [...catalog.pilots.values()].map((pilot) => ({ id: pilot.id, name: pilot.name })),
     total: lanceTonnage(catalog, lance),
     allowance: dropTonnageFor(catalog, missionId),

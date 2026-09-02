@@ -491,6 +491,14 @@ async function main() {
     await sleep(1200);
     const running = await sim(page);
     check('deploying starts the clock', running.tick > beforeBriefing, `${beforeBriefing} → ${running.tick}`);
+    const lanceIdentities = await page.locator('[data-testid="lance-bar"] .lance-chassis').allInnerTexts();
+    check(
+      'battle lance cards carry complete machine identity without serial designations',
+      lanceIdentities.length === 4 && lanceIdentities.every((label) =>
+        /^[^—]+ — \d+t (Light|Medium|Heavy|Assault) · [^·]+ · (Linewrought|Aurelian Stock)$/.test(label) &&
+        !/\b[A-Z]{3}-\d+\b/.test(label)),
+      lanceIdentities.join(' | '),
+    );
     check(
       'typing then tapping deploy locks the normalized Battle code',
       (await page.evaluate(() => globalThis.__wreckright.useGame.getState().battleCode)) ===
@@ -1353,6 +1361,18 @@ async function main() {
       (await page.locator('.manifest-row').count()) >= 4 &&
         (await rated.locator('li').count()) === 5 &&
         (await rated.innerText()).includes('Gunnery'),
+    );
+    const manifestMachineLabels = await page
+      .locator('[data-testid^="manifest-seat-"]')
+      .first()
+      .locator('option:not([value=""])')
+      .allInnerTexts();
+    check(
+      'the manifest offers weight, class, authored role and culture without serials',
+      manifestMachineLabels.length > 0 && manifestMachineLabels.every((label) =>
+        /^[^—]+ — \d+t (Light|Medium|Heavy|Assault) · [^·]+ · (Linewrought|Aurelian Stock)( \([^)]+\))?$/.test(label) &&
+        !/\b[A-Z]{3}-\d+\b/.test(label)),
+      manifestMachineLabels.join(' | '),
     );
     check(
       'the manifest marks who is actually dropping',

@@ -184,6 +184,21 @@
     flex: 1 1 100%;
     min-width: 0;
   }
+  .bay-top select,
+  .briefing-berth select:first-child {
+    -webkit-appearance: none;
+    appearance: none;
+    padding-right: 18px;
+    font-size: 10px;
+    background-image:
+      linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+      linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+    background-position:
+      calc(100% - 10px) 50%,
+      calc(100% - 6px) 50%;
+    background-repeat: no-repeat;
+    background-size: 4px 4px;
+  }
   .bay-machine {
     order: 1;
     overflow-y: visible;

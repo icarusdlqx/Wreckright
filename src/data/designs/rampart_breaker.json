@@ -1,6 +1,6 @@
 {
   "id": "rampart_breaker",
-  "name": "Rampart RMP-4 'Breaker'",
+  "name": "Rampart",
   "chassisId": "rampart_rmp4",
   "armour": {
     "head": 26,

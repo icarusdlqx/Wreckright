@@ -1,6 +1,6 @@
 {
   "id": "cairn_battery",
-  "name": "Cairn CRN-3 'Battery'",
+  "name": "Cairn",
   "chassisId": "cairn_crn3",
   "armour": {
     "head": 20,

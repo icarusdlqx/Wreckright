@@ -4,11 +4,13 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { catalog } from '../../../tests/support';
 import { startCampaign } from '../../campaign/campaign';
+import { campaignBlob, deserialiseCampaign } from '../../campaign/save';
 import type { MissionOutcome } from '../../campaign/types';
+import { CampaignPostBattle } from './CampaignPostBattle';
 import { Debrief } from './Debrief';
 
 describe('campaign debrief recovery ledger', () => {
-  it('shows final hull rolls and the field source of each offered part', () => {
+  it('shows final hull rolls and the field source of each offered part', async () => {
     const state = startCampaign(catalog, 'border_dispute', 'debrief-ledger');
     const outcome: MissionOutcome = {
       nodeId: 'militia_raid',
@@ -41,7 +43,7 @@ describe('campaign debrief recovery ledger', () => {
         },
         {
           designId: 'carrier_apc',
-          name: 'Field Carrier',
+          name: "Field Carrier FCR-7 'Mule'",
           outcome: 'centre_torso',
           chassisChance: 0,
           recovered: false,
@@ -62,14 +64,21 @@ describe('campaign debrief recovery ledger', () => {
           sourceMechName: "Sentinel SNL-2 'Brawler'",
           location: 'centre_torso',
         },
+        {
+          kind: 'weapon',
+          itemId: 'medium_laser',
+          sourceDesignId: 'carrier_apc',
+          sourceMechName: "Field Carrier FCR-7 'Mule'",
+          location: 'right_arm',
+        },
       ],
       pilotCasualties: [],
-      mechsLost: [],
+      mechsLost: ["Sentinel SNL-2 'Brawler'"],
       pilotReports: [
         {
           pilotId: 'rook',
           name: 'Rook',
-          mech: 'Sentinel',
+          mech: "Sentinel SNL-2 'Brawler'",
           kills: 1,
           damage: 40,
           xp: 9,
@@ -80,6 +89,14 @@ describe('campaign debrief recovery ledger', () => {
       ],
     };
     state.history.push(outcome);
+    state.log.unshift({
+      day: 4,
+      text: "Sentinel SNL-2 'Brawler' returned; AC/5 intact.",
+    });
+    const savedMech = state.mechs[0];
+    if (savedMech === undefined) throw new Error('missing campaign mech fixture');
+    const savedMechId = savedMech.design.id;
+    savedMech.design.name = "Gadfly GAD-2 'Spotter'";
 
     const html = renderToStaticMarkup(
       createElement(Debrief, {
@@ -104,8 +121,12 @@ describe('campaign debrief recovery ledger', () => {
     expect(html).toContain('hull recovered');
     expect(html).toContain('not recovered');
     expect(html).toContain('not eligible');
-    expect(html).toContain("Field source: Sentinel SNL-2 &#x27;Brawler&#x27;, left arm");
-    expect(html).toContain("Sentinel SNL-2 &#x27;Brawler&#x27;, centre torso");
+    expect(html).toContain('Field source: Sentinel, left arm');
+    expect(html).toContain('Sentinel, centre torso');
+    expect(html).toContain("Field Carrier &#x27;Mule&#x27;, right arm");
+    expect(html).toContain("Field Carrier &#x27;Mule&#x27;");
+    expect(html).toContain("Lost: Sentinel &#x27;Brawler&#x27;.");
+    expect(html).not.toMatch(/(?:SNL|FCR)-\d+/);
     expect(html).toContain('Recovered hulls are already in the yard');
     expect(html).toContain('carrying their field damage and no mounted');
     expect(html).toContain('weapons or equipment');
@@ -153,6 +174,35 @@ describe('campaign debrief recovery ledger', () => {
       }),
     );
     expect(legacy).toContain('Medium Laser ×2');
+
+    const exportedSave = await campaignBlob(state).text();
+    const restoredState = deserialiseCampaign(exportedSave, catalog).state;
+    if (restoredState === null) throw new Error('legacy campaign export did not reload');
+    expect(restoredState.mechs[0]?.design.id).toBe(savedMechId);
+    expect(restoredState.history[0]?.salvageCandidates[0]?.designId).toBe(
+      'sentinel_brawler',
+    );
+    expect(restoredState.history[0]?.salvageProvenance[0]?.sourceDesignId).toBe(
+      'sentinel_brawler',
+    );
+
+    const restoredPresentation = renderToStaticMarkup(
+      createElement(CampaignPostBattle, {
+        catalog,
+        state: restoredState,
+        status: null,
+        outcomeCount: 1,
+        debriefed: 0,
+        mutate: () => undefined,
+        onDebriefed: () => undefined,
+      }),
+    );
+    expect(restoredPresentation).toContain(
+      "day 4: Sentinel &#x27;Brawler&#x27; returned; AC/5 intact.",
+    );
+    expect(restoredPresentation).toContain("Sentinel &#x27;Brawler&#x27;");
+    expect(restoredPresentation).toContain("Field Carrier &#x27;Mule&#x27;");
+    expect(restoredPresentation).not.toMatch(/(?:GAD|SNL|FCR)-\d+/);
   });
 
   it('traps dialog focus without making Escape finalize the report', () => {

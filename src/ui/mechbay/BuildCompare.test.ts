@@ -21,7 +21,7 @@ describe('build comparison strip', () => {
 
     expect(html).toContain('aria-labelledby="build-compare-title"');
     expect(html).toContain('Compared with stock');
-    expect(html).toContain('Colossus CLS-1 &#x27;Siege&#x27;');
+    expect(html).toContain('Colossus');
     expect(html).toContain('<dl class="build-compare__metrics"');
     expect(html.match(/data-direction="neutral"/g)).toHaveLength(7);
     expect(html).toContain('<dt>Heat margin</dt>');

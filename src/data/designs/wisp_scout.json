@@ -1,6 +1,6 @@
 {
   "id": "wisp_scout",
-  "name": "Vesper VES-1 'Scout'",
+  "name": "Vesper",
   "chassisId": "wisp_wsp1",
   "armour": {
     "head": 10,

@@ -71,13 +71,13 @@ export function HostileBar({
             className={`hostile ${targetIds.has(enemy.id) ? 'targeted' : ''}`}
             disabled={!hasSelection}
             title={hasSelection
-              ? `Target ${enemy.name}`
+              ? `Target ${enemy.identity}`
               : 'Select one of your mechs first, then choose an optical contact'}
-            aria-label={`Optical contact: ${enemy.name}, ${range}. ${hasSelection ? 'Target contact' : 'Select a friendly mech before targeting'}.`}
+            aria-label={`Optical contact: ${enemy.identity}, ${range}. ${hasSelection ? 'Target contact' : 'Select a friendly mech before targeting'}.`}
             onClick={() => onTarget(enemy.id)}
             data-testid={`hostile-${enemy.id}`}
           >
-            <span className="hostile-name">{enemy.name}</span>
+            <span className="hostile-name">{enemy.identity}</span>
             <span className="hostile-range">
               {enemy.rangeToLance === null ? '—' : `${Math.round(enemy.rangeToLance)}m`}
             </span>

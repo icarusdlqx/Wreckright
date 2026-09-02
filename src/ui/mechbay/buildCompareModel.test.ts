@@ -23,7 +23,7 @@ function colossusLongshotTrade(): { baseline: Design; current: Design } {
   const baseline = stock('colossus_siege');
   const current = structuredClone(baseline);
   current.id = 'colossus_longshot_trade';
-  current.name = "Colossus CLS-1 'Long Reach'";
+  current.name = "Colossus 'Long Reach'";
 
   const gauss = current.mounts.findIndex(
     (mount) => mount.weaponId === 'gauss_rifle' && mount.location === 'right_torso',

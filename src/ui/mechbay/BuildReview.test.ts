@@ -24,6 +24,15 @@ function render(design: Design, withNavigation = false): string {
 }
 
 describe('build review presentation', () => {
+  it('resolves the current short authored name for a legacy stock design', () => {
+    const design = stock();
+    design.name = "Sentinel SNL-2 'Brawler'";
+    const html = render(design);
+
+    expect(html).toContain('<h3 id="build-review-title">Sentinel</h3>');
+    expect(html).not.toContain('SNL-2');
+  });
+
   it('shows one concise legal verdict and all requested build summaries', () => {
     const html = render(stock());
 

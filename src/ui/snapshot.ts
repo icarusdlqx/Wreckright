@@ -18,6 +18,7 @@ import {
   reactorReadout,
   stabilityReadout,
 } from './combatTelemetry';
+import { authoredDesignName, designIdentityLabel } from './designLabel';
 
 function locationsOf(entity: MechEntity): Record<MechLocation, LocationSnapshot> {
   const entries = LOCATIONS.map((location) => {
@@ -98,10 +99,12 @@ export function snapshotUnit(world: World, entity: MechEntity): UnitSnapshot {
       ? target.id
       : null);
   const chassis = world.catalog.chassis.get(entity.chassisId);
+  const design = { id: entity.designId, name: entity.name, chassisId: entity.chassisId };
   return {
     id: entity.id,
     team: entity.team,
-    name: entity.name,
+    identity: designIdentityLabel(world.catalog, design),
+    name: authoredDesignName(world.catalog, design),
     pilotName: entity.pilot.name,
     pilotSkills: {
       gunnery: entity.pilot.gunnery,
@@ -120,7 +123,13 @@ export function snapshotUnit(world: World, entity: MechEntity): UnitSnapshot {
     staggered: isStaggered(entity, world.rules.stability.staggerThreshold),
     motion: entity.motion,
     targetId: presentedTargetId,
-    targetName: presentedTarget === null ? null : presentedTarget.name,
+    targetName:
+      presentedTarget === null
+        ? null
+        : authoredDesignName(world.catalog, {
+            id: presentedTarget.designId,
+            name: presentedTarget.name,
+          }),
     targetRange:
       presentedTarget === null
         ? null

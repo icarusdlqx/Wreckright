@@ -1,6 +1,6 @@
 {
   "id": "hornet_spotter",
-  "name": "Gadfly GAD-2 'Spotter'",
+  "name": "Gadfly",
   "chassisId": "hornet_hnt2",
   "armour": {
     "head": 12,

@@ -1,6 +1,6 @@
 {
   "id": "colossus_siege",
-  "name": "Colossus CLS-1 'Siege'",
+  "name": "Colossus",
   "chassisId": "colossus_cls1",
   "armour": {
     "head": 29,

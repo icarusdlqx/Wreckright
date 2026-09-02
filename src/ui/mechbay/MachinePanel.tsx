@@ -4,6 +4,7 @@ import type { Design } from '../../schema/design';
 import type { DesignIssue } from '../../schema/designValidation';
 import type { Catalog } from '../../schema/load';
 import type { HeatProfile, Loadout } from '../../sim/loadout';
+import { replaceSerialDesignation } from '../designLabel';
 import { MachineCultureBadge } from './MachineCultureBadge';
 import { designWalkSpeed } from './buildCompareModel';
 import { designUsesForeignComponents } from './machineCulturePresentation';
@@ -145,7 +146,12 @@ export function MachinePanel({
           })}
         </ul>
       )}
-      <p className="dossier-summary" title={chassis.lore}>{chassis.summary}</p>
+      <p
+        className="dossier-summary"
+        title={replaceSerialDesignation(chassis.lore, chassis.name)}
+      >
+        {chassis.summary}
+      </p>
 
       <ul className="bay-issues" data-testid="bay-issues">
         {issues.map((issue, index) => (

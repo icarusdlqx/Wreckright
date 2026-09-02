@@ -51,7 +51,7 @@ describe('mechbay presentation', () => {
       },
     }));
 
-    expect(html).toMatch(/Halberd HLB-4[\s\S]{0,200}15\.2[\s\S]{0,50}m\/s/);
+    expect(html).toMatch(/Halberd[\s\S]{0,200}15\.2[\s\S]{0,50}m\/s/);
     expect(html.match(/15\.2/g)?.length).toBeGreaterThanOrEqual(3);
   });
 

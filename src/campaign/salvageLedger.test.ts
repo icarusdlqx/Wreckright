@@ -87,7 +87,7 @@ function outcome(): MissionOutcome {
     salvageCandidates: [
       {
         designId: 'sentinel_brawler',
-        name: "Sentinel SNL-2 'Brawler'",
+        name: 'Sentinel',
         outcome: 'head',
         chassisChance: 0.225,
         recovered: true,
@@ -98,21 +98,21 @@ function outcome(): MissionOutcome {
         kind: 'weapon',
         itemId: 'medium_laser',
         sourceDesignId: 'sentinel_brawler',
-        sourceMechName: "Sentinel SNL-2 'Brawler'",
+        sourceMechName: 'Sentinel',
         location: 'left_arm',
       },
       {
         kind: 'weapon',
         itemId: 'medium_laser',
         sourceDesignId: 'sentinel_brawler',
-        sourceMechName: "Sentinel SNL-2 'Brawler'",
+        sourceMechName: 'Sentinel',
         location: 'left_arm',
       },
       {
         kind: 'weapon',
         itemId: 'medium_laser',
         sourceDesignId: 'sentinel_brawler',
-        sourceMechName: "Sentinel SNL-2 'Brawler'",
+        sourceMechName: 'Sentinel',
         location: 'centre_torso',
       },
     ],
@@ -129,7 +129,7 @@ describe('salvage field ledger', () => {
     expect(report.candidates).toEqual([
       {
         designId: 'sentinel_brawler',
-        name: "Sentinel SNL-2 'Brawler'",
+        name: 'Sentinel',
         outcome: 'head',
         chassisChance: 0.225,
         recovered: true,

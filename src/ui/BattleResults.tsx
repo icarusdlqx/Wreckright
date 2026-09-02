@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
+import { getCatalog } from '../schema/load';
 import type { BattleResult } from '../sim/world';
-import { viewBattleResult } from './battleResultView';
+import { battleResultWithCurrentNames, viewBattleResult } from './battleResultView';
 import { SalvageDrillResults } from './SalvageDrillResults';
 import { useDialogFocus } from './useDialogFocus';
 import './battleResults.css';
@@ -50,7 +51,9 @@ export function BattleResults({
   onReturnToCampaign,
   trainingActions,
 }: BattleResultsProps) {
-  const report = viewBattleResult(result, playerTeam);
+  const catalog = getCatalog();
+  const presentedResult = battleResultWithCurrentNames(result, catalog);
+  const report = viewBattleResult(presentedResult, playerTeam, catalog);
   const [nextMissionId, setNextMissionId] = useState(selectedMissionId);
   const dialogRef = useRef<HTMLElement>(null);
   useDialogFocus(dialogRef, dialogRef, undefined, () =>
@@ -111,7 +114,7 @@ export function BattleResults({
         </div>
 
         {campaignPending ? null : (
-          <SalvageDrillResults result={result} playerTeam={playerTeam} />
+          <SalvageDrillResults result={presentedResult} playerTeam={playerTeam} />
         )}
 
         <section className="battle-results-lance" aria-labelledby="lance-report-title">
@@ -125,7 +128,7 @@ export function BattleResults({
             </div>
             {report.lance.map((unit) => (
               <div className="battle-results-row" role="row" key={unit.id}>
-                <strong role="cell">{unit.name}</strong>
+                <strong role="cell">{unit.identity}</strong>
                 <span role="cell" className={`unit-result ${unit.status.toLowerCase()}`}>
                   {unit.status}
                   {unit.pilotLost ? <small>Pilot lost</small> : null}

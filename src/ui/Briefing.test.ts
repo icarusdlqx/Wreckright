@@ -55,4 +55,38 @@ describe('briefing deployment gate', () => {
     expect(html).not.toContain('Resource Points');
     expect(html).not.toContain('Refit loadout');
   });
+
+  it('prints complete machine identity options without appending duplicate tonnage', () => {
+    const identity = 'Gadfly — 35t Light · Forward spotter · Linewrought';
+    const html = renderToStaticMarkup(
+      createElement(Briefing, {
+        name: 'Ridge Pass',
+        text: 'Hold the road.',
+        objectives: [],
+        resourcePoints: 80,
+        lance: {
+          berths: [{
+            index: 0,
+            designValue: 'hornet_spotter',
+            customLabel: null,
+            pilotId: 'kessa_vale',
+            tonnage: 35,
+            pilot: null,
+          }],
+          designs: [{ value: 'hornet_spotter', label: identity }],
+          saved: [],
+          pilots: [{ id: 'kessa_vale', name: 'Kessa Vale' }],
+          total: 35,
+          allowance: 180,
+          onDesign: () => undefined,
+          onPilot: () => undefined,
+          onCustomise: () => undefined,
+        },
+        onDeploy: () => undefined,
+      }),
+    );
+
+    expect(html).toContain(identity);
+    expect(html).not.toContain(`${identity} — 35t`);
+  });
 });

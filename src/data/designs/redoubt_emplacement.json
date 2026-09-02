@@ -1,6 +1,6 @@
 {
   "id": "redoubt_emplacement",
-  "name": "Redoubt RDT-1 'Emplacement'",
+  "name": "Redoubt",
   "chassisId": "redoubt_rdt1",
   "armour": {
     "head": 16,

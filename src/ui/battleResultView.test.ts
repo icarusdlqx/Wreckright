@@ -7,7 +7,7 @@ function unit(overrides: Partial<UnitResult> = {}): UnitResult {
   return {
     id: 1,
     team: 0,
-    name: 'Sentinel',
+    name: "Sentinel SNL-2 'Brawler'",
     designId: 'sentinel_brawler',
     pilotId: 'rook',
     alive: true,
@@ -89,6 +89,11 @@ describe('battle result view', () => {
       accuracy: 40,
     });
     expect(view.lance[1]?.accuracy).toBeNull();
+    expect(view.lance[0]).toMatchObject({
+      name: 'Sentinel',
+      identity: 'Sentinel — 45t Medium · Line brawler · Aurelian Stock',
+    });
+    expect(view.lance[0]?.identity).not.toContain('SNL-2');
   });
 
   it('calls an unresolved clock ending a timeout without inventing a cause', () => {

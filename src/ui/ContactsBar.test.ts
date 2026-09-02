@@ -1,7 +1,9 @@
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
+import { playerWorld, spawnDesign } from '../../tests/support';
 import { HostileBar, investigationPoint, selectedTargetIds } from './ContactsBar';
+import { snapshotUnit } from './snapshot';
 import type { ContactSnapshot } from './store';
 
 const CONTACT: ContactSnapshot = {
@@ -33,6 +35,24 @@ function contactButton(html: string): string {
 }
 
 describe('sensor contact controls', () => {
+  it('presents an optical hostile with its complete current identity', () => {
+    const world = playerWorld('optical-identity-card');
+    const entity = spawnDesign(world, 'hornet_spotter');
+    entity.name = "Gadfly GAD-2 'Spotter'";
+    const enemy = snapshotUnit(world, entity);
+    const html = renderToStaticMarkup(createElement(HostileBar, {
+      enemies: [enemy],
+      contacts: [],
+      targetIds: new Set<number>(),
+      hasSelection: true,
+      onTarget: () => undefined,
+      onContact: () => undefined,
+    }));
+
+    expect(html).toContain('Gadfly — 35t Light · Forward spotter · Linewrought');
+    expect(html).not.toContain('GAD-2');
+  });
+
   it('offers indirect guidance or investigation without presenting an optical target', () => {
     const html = markup(true);
     const button = contactButton(html);

@@ -1,6 +1,6 @@
 {
   "id": "warden_lancer",
-  "name": "Warden WRD-5 'Lancer'",
+  "name": "Warden",
   "chassisId": "warden_wrd5",
   "armour": {
     "head": 20,

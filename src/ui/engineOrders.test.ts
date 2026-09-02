@@ -136,6 +136,29 @@ describe('sensor contact orders', () => {
     expect(useGame.getState().log.join(' ')).not.toContain('SECRET SENSOR CHASSIS');
     expect(shooter.calledShot).toBeNull();
   });
+
+  it('resolves a sighted legacy target name through its stable design id', () => {
+    const world = playerWorld('current-optical-order-log');
+    const shooter = unitOf(world, 'bulwark_assault');
+    const target = world.entities.find((entity) => entity.team !== shooter.team);
+    if (target === undefined) throw new Error('need hostile contact');
+    target.name = "Sentinel SNL-2 'Brawler'";
+    const vision = visionFor(world, shooter.team);
+    if (vision === null) throw new Error('need team vision');
+    vision.visible.add(target.id);
+    const context: EngineOrderContext = {
+      world,
+      audio: { order: vi.fn() } as unknown as AudioDirector,
+      selectedEntities: () => [shooter.id],
+    };
+
+    attackSelection(context, target.id, null);
+
+    const currentName = world.catalog.designs.get(target.designId)?.name;
+    expect(currentName).toBeDefined();
+    expect(useGame.getState().log[0]).toBe(`1 mech targeting ${currentName}.`);
+    expect(useGame.getState().log.join(' ')).not.toContain('SNL-2');
+  });
 });
 
 describe('weapon mode orders', () => {

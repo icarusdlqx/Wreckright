@@ -13,6 +13,7 @@ import { isMechAvailable, type CampaignState } from '../../campaign/types';
 import { cbills } from './Panels';
 import { ContractBriefing } from './ContractBriefing';
 import { workshopFactionLine } from './factionEconomy';
+import { authoredDesignName, designIdentityLabel } from '../designLabel';
 import { useDialogFocus } from '../useDialogFocus';
 
 interface Props {
@@ -79,6 +80,7 @@ export function Hangar({ catalog, state, mutate, onRefit, onContinue, onCancel }
 
         <ul className="manifest-list">
           {state.mechs.map((mech) => {
+            const designName = authoredDesignName(catalog, mech.design);
             const estimate = estimateRepair(catalog, mech);
             const chassis = catalog.chassis.get(mech.design.chassisId);
             const ready = isMechAvailable(state, mech) && mech.status !== 'hulk';
@@ -108,7 +110,7 @@ export function Hangar({ catalog, state, mutate, onRefit, onContinue, onCancel }
             return (
               <li key={mech.id} className="manifest-row" data-testid={`hangar-${mech.id}`}>
                 <div className="manifest-pilot">
-                  <span className="pilot-name">{mech.design.name}</span>
+                  <span className="pilot-name">{designIdentityLabel(catalog, mech.design)}</span>
                   {chassis === undefined ? null : (
                     <small className="faction-economy" data-faction={chassis.faction}>
                       {workshopFactionLine(catalog, chassis.faction)}
@@ -122,7 +124,7 @@ export function Hangar({ catalog, state, mutate, onRefit, onContinue, onCancel }
                     className="manifest-health"
                     title={`${Math.round(health * 100)}% intact · ${integrity.current}/${integrity.maximum} armour and structure`}
                     role="progressbar"
-                    aria-label={`${mech.design.name} integrity`}
+                    aria-label={`${designName} integrity`}
                     aria-valuemin={0}
                     aria-valuemax={integrity.maximum}
                     aria-valuenow={integrity.current}
@@ -139,7 +141,7 @@ export function Hangar({ catalog, state, mutate, onRefit, onContinue, onCancel }
                             if (target === undefined) return null;
                             const result = rebuildHulk(catalog, draft, target);
                             return result.ok
-                              ? `${target.design.name} booked; ready day ${target.readyOnDay}.`
+                              ? `${authoredDesignName(catalog, target.design)} booked; ready day ${target.readyOnDay}.`
                               : result.reason;
                           })
                         }
@@ -158,7 +160,7 @@ export function Hangar({ catalog, state, mutate, onRefit, onContinue, onCancel }
                               if (target === undefined) return null;
                               const result = startRepair(catalog, draft, target);
                               return result.ok
-                                ? `${target.design.name} booked; ready day ${target.readyOnDay}.`
+                                ? `${authoredDesignName(catalog, target.design)} booked; ready day ${target.readyOnDay}.`
                                 : result.reason;
                             })
                           }
