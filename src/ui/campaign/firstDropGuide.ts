@@ -1,11 +1,12 @@
 export type FirstDropPrep = null | 'bay' | 'manifest';
 
-export type FirstDropStage = 'choose' | 'prepare' | 'bay' | 'manifest' | 'done';
+export type FirstDropStage = 'choose' | 'launch' | 'prepare' | 'bay' | 'manifest' | 'done';
 
 interface FirstDropState {
   outcomeCount: number;
   finished: boolean;
   contractActive: boolean;
+  directLaunch: boolean;
   prep: FirstDropPrep;
 }
 
@@ -14,12 +15,15 @@ export function firstDropStage(state: FirstDropState): FirstDropStage {
   if (!state.contractActive) return 'choose';
   if (state.prep === 'bay') return 'bay';
   if (state.prep === 'manifest') return 'manifest';
-  return 'prepare';
+  return state.directLaunch ? 'launch' : 'prepare';
 }
 
 export function firstDropInstruction(stage: FirstDropStage): string | null {
   if (stage === 'choose') {
     return 'Read the opening job, choose the terms, then sign the contract.';
+  }
+  if (stage === 'launch') {
+    return 'The job is signed. Launch the drop, or review the machines first.';
   }
   if (stage === 'prepare') {
     return 'The job is signed. Open Prepare drop to inspect the machines.';

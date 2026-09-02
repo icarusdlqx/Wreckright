@@ -57,6 +57,7 @@
 }
 
 .camp[data-first-drop-stage='choose'] .camp-contract,
+.camp[data-first-drop-stage='launch'] .camp-contract,
 .camp[data-first-drop-stage='prepare'] .camp-contract {
   outline: 2px solid color-mix(in srgb, var(--accent) 76%, white);
   outline-offset: 3px;

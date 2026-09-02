@@ -133,7 +133,7 @@ async function checkCampaignAndNestedRefit({ browser, url, check }) {
 
     await page.locator('[data-testid="camp-node-militia_raid"]').click();
     await page.locator('[data-testid="camp-accept"]').click();
-    await page.locator('[data-testid="camp-deploy"]').click();
+    await page.locator('[data-testid="camp-review-machines"]').click();
     await page.waitForSelector('[data-testid="hangar-stage"]');
     await advanceAudioClock(page);
     const beforeRefit = (await audioProbe(page))[0];

@@ -37,6 +37,7 @@ import { usePlaytest } from '../playtest';
 import { CampaignGuide } from './CampaignGuide';
 import { CampaignPrep } from './CampaignPrep';
 import { firstDropStage, type FirstDropPrep } from './firstDropGuide';
+import { canLaunchFirstDropDirectly } from './firstDropLaunch';
 import { useCampaignScore } from './useCampaignScore';
 
 const catalog = getCatalog();
@@ -47,7 +48,6 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
   const [persistence, setPersistence] = useState(initial.persistence);
   const [manualOpen, setManualOpen] = useState(false);
   const [guideDismissed, setGuideDismissed] = useState(false);
-  // Prep is a corridor: campaign map → mechbay → deployment → battle.
   const [prep, setPrep] = useState<FirstDropPrep>(null);
   const [refitting, setRefitting] = useState<string | null>(null);
   const [debriefed, setDebriefed] = useState(() => debriefedCount());
@@ -73,6 +73,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
   const node = open.find((entry) => entry.id === selectedNode) ?? open[0] ?? null;
   const options = node === null ? [] : negotiationOptions(catalog, node);
   const lance = deployableLance(state);
+  const directLaunch = canLaunchFirstDropDirectly(catalog, state);
   const solvency = useMemo(() => assessSolvency(catalog, state), [state]);
   const outcomeCount = campaignOutcomeCount(state);
   const employer = resolveCurrentEmployer(campaign, state.contract, node, employers);
@@ -80,6 +81,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
     outcomeCount,
     finished: state.finished,
     contractActive: state.contract !== null,
+    directLaunch,
     prep,
   });
   const guidedFirstDrop = guideDismissed ? 'done' : firstDrop;
@@ -158,7 +160,6 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
     setStatus(stored ? `New campaign. Run ${fresh.seed}.` : `New campaign opened in memory. Run ${fresh.seed}.`);
   };
 
-  // Deploying enters the hangar first, then the manifest.
   const onDeploy = (): void => {
     if (state.finished) {
       setStatus('This campaign is over.');
@@ -288,6 +289,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         selectedTerms={selectedTerms}
         salvageRules={catalog.rules.salvage}
         readyMechs={lance.length}
+        directLaunch={directLaunch}
         finished={state.finished}
         won={state.won}
         employer={employer}
@@ -325,6 +327,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
           }
         }}
         onDeploy={onDeploy}
+        onLaunch={onLaunch}
         onAbandon={() =>
           mutate(
             (draft) => draft.finished ? 'the campaign is over' : abandonContract(catalog, draft),
@@ -335,9 +338,6 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
 
       {state.finished || guidedFirstDrop !== 'done' ? null : (
         <>
-          {/* The map draws the war. Side work is posted on a board, so it gets a
-              list — and it is marked as side work, because taking it is a decision
-              about the calendar rather than about the campaign. */}
           {state.contract !== null ? null : (
             <HiringHall
               catalog={catalog}

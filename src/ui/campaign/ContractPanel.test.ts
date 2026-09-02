@@ -36,6 +36,7 @@ describe('contract panel', () => {
         selectedTerms: 'standard',
         salvageRules: catalog.rules.salvage,
         readyMechs: 4,
+        directLaunch: false,
         finished: false,
         won: false,
         employer: employers.find((record) => record.id === node.employerId) ?? null,
@@ -43,6 +44,7 @@ describe('contract panel', () => {
         onSelectTerms: () => undefined,
         onAccept: () => undefined,
         onDeploy: () => undefined,
+        onLaunch: () => undefined,
         onAbandon: () => undefined,
       }),
     );
@@ -105,6 +107,7 @@ describe('contract panel', () => {
         selectedTerms: 'standard',
         salvageRules: catalog.rules.salvage,
         readyMechs: 4,
+        directLaunch: true,
         finished: false,
         won: false,
         employer: employers.find((record) => record.id === node.employerId) ?? null,
@@ -112,6 +115,7 @@ describe('contract panel', () => {
         onSelectTerms: () => undefined,
         onAccept: () => undefined,
         onDeploy: () => undefined,
+        onLaunch: () => undefined,
         onAbandon: () => undefined,
       }),
     );
@@ -120,6 +124,55 @@ describe('contract panel', () => {
     expect(html).toContain('on success only');
     expect(html).toContain(`${Math.round(terms.salvageShare * 100)}% salvage`);
     expect(html).toContain('Kestrel Combine');
+    expect(html).toContain('data-testid="camp-deploy">Launch the drop</button>');
+    expect(html).toContain('data-testid="camp-review-machines">Review machines first</button>');
+    expect(html.indexOf('Launch the drop')).toBeLessThan(html.indexOf('Review machines first'));
+    expect(html).not.toContain('Prepare drop');
+  });
+
+  it('retains the preparation corridor when direct launch is unavailable', () => {
+    if (node === undefined) throw new Error('missing opening contract');
+    const campaign = catalog.campaigns.get('border_dispute');
+    if (campaign === undefined) throw new Error('missing campaign');
+    const terms = negotiationOptions(catalog, node)[1];
+    if (terms === undefined) throw new Error('missing standard package');
+    const identity = employerById(campaign, node.employerId);
+    const state = startCampaign(catalog, campaign.id, 'prep-required-contract');
+
+    const html = renderToStaticMarkup(createElement(ContractPanel, {
+      catalog,
+      state,
+      contract: {
+        nodeId: node.id,
+        missionId: node.missionId,
+        employerId: identity.id,
+        employerName: identity.name,
+        termsId: terms.id,
+        payout: terms.payout,
+        salvageShare: terms.salvageShare,
+        acceptedOnDay: 0,
+        deadlineDay: node.deadlineDays,
+      },
+      node: null,
+      options: [],
+      selectedTerms: 'standard',
+      salvageRules: catalog.rules.salvage,
+      readyMechs: 3,
+      directLaunch: false,
+      finished: false,
+      won: false,
+      employer: null,
+      employers: [],
+      onSelectTerms: () => undefined,
+      onAccept: () => undefined,
+      onDeploy: () => undefined,
+      onLaunch: () => undefined,
+      onAbandon: () => undefined,
+    }));
+
+    expect(html).toContain('data-testid="camp-deploy">Prepare drop (3 mechs ready)</button>');
+    expect(html).not.toContain('camp-review-machines');
+    expect(html).not.toContain('Launch the drop');
   });
 
   it('keeps long factual rows wrappable at a 390px phone width', () => {
@@ -183,6 +236,7 @@ describe('contract panel', () => {
       selectedTerms: 'standard',
       salvageRules: catalog.rules.salvage,
       readyMechs: 4,
+      directLaunch: false,
       finished: true,
       won: false,
       employer: employers.find((record) => record.id === node.employerId) ?? null,
@@ -190,6 +244,7 @@ describe('contract panel', () => {
       onSelectTerms: () => undefined,
       onAccept: () => undefined,
       onDeploy: () => undefined,
+      onLaunch: () => undefined,
       onAbandon: () => undefined,
     }));
     expect(html.match(/disabled=""/g)).toHaveLength(2);

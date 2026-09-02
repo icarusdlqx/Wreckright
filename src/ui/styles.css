@@ -1480,7 +1480,13 @@ button {
 
 .camp-buttons {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
+}
+
+.camp-contract button.secondary {
+  background: transparent;
+  color: var(--muted);
 }
 
 .camp-bay ul,
