@@ -239,6 +239,7 @@ export async function engageTrainingOpticalContact({ page, check, prefix = '', t
   const hostile = page.locator(`[data-testid="hostile-${optical.targetId}"]`);
   await hostile.waitFor({ state: 'visible' });
   const opticalLabel = await hostile.getAttribute('aria-label');
+  const hostileIdentity = await hostile.locator('.hostile-name').innerText();
   const lessonBeforeOrder = await page.locator('[data-testid="training-coach"]').innerText();
   check(
     labelled(prefix, 'force stepping reaches a real optical hostile card'),
@@ -246,6 +247,13 @@ export async function engageTrainingOpticalContact({ page, check, prefix = '', t
       (optical.triggerFired === 0 ||
         (optical.gateOwner === optical.playerTeam && optical.revealed)),
     JSON.stringify(optical),
+  );
+  check(
+    labelled(prefix, 'optical hostile card carries complete machine identity without a serial'),
+    /^[^—]+ — \d+t (Light|Medium|Heavy|Assault) · [^·]+ · (Linewrought|Aurelian Stock)$/.test(
+      hostileIdentity,
+    ) && !/\b[A-Z]{3}-\d+\b/.test(hostileIdentity),
+    hostileIdentity,
   );
   check(
     labelled(prefix, 'automatic fire control does not complete the explicit Engage lesson'),

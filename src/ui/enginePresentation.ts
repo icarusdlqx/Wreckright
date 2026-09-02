@@ -16,6 +16,7 @@ import {
 } from '../sim/types';
 import { stepWorld } from '../sim/world';
 import type { AudioDirector } from './audio';
+import { authoredDesignName } from './designLabel';
 import { eventLogLine } from './eventLogPresentation';
 import type { IncomingFireDirections } from './incomingFireDirections';
 import { crossedMissionClockWarnings } from './missionClock';
@@ -358,7 +359,10 @@ export class EnginePresentation {
     return {
       shooterId: shooter.id,
       targetId: target.id,
-      targetName: target.name,
+      targetName: authoredDesignName(this.world.catalog, {
+        id: target.designId,
+        name: target.name,
+      }),
       range: preview.range,
       hover: hovered !== null,
       weapons: preview.weapons.map((weapon) => ({

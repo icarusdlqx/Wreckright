@@ -1,10 +1,15 @@
 import type { Design } from '../../schema/design';
 import type { Catalog } from '../../schema/load';
-import { designLabel } from '../designLabel';
+import { designIdentityLabel } from '../designLabel';
 
 export interface BayStatus {
   tone: 'ok' | 'error';
   text: string;
+}
+
+export interface StoredLoadoutOption {
+  id: string;
+  label: string;
 }
 
 interface Props {
@@ -12,7 +17,7 @@ interface Props {
   design: Design;
   commissionTitle?: string;
   commissionCancelLabel?: string;
-  stored: readonly string[];
+  stored: readonly StoredLoadoutOption[];
   saveable: boolean;
   status: BayStatus | null;
   muted: boolean;
@@ -83,13 +88,13 @@ export function BayChrome({
               aria-label="Stock design"
             >
               {catalog.designs.has(design.id) ? null : (
-                <option value="">{design.name} (edited loadout)</option>
+                <option value="">{designIdentityLabel(catalog, design)} (edited loadout)</option>
               )}
               {[...catalog.designs.values()]
                 .filter((entry) => catalog.chassis.get(entry.chassisId)?.frame === 'mech')
                 .map((entry) => (
                   <option key={entry.id} value={entry.id}>
-                    {designLabel(catalog, entry)}
+                    {designIdentityLabel(catalog, entry)}
                   </option>
                 ))}
             </select>
@@ -171,9 +176,9 @@ export function BayChrome({
               aria-label="Saved loadouts"
             >
               <option value="">Saved loadouts…</option>
-              {stored.map((id) => (
-                <option key={id} value={id}>
-                  {id}
+              {stored.map((entry) => (
+                <option key={entry.id} value={entry.id}>
+                  {entry.label}
                 </option>
               ))}
             </select>

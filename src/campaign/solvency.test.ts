@@ -106,6 +106,23 @@ describe('company solvency', () => {
     expect(report.plan?.pilotName).not.toBeNull();
   });
 
+  it('resolves an imported recovery hull name through its stable stock id', () => {
+    const legacy = campaign('legacy-recovery-name');
+    const mech = legacy.mechs[0];
+    if (mech === undefined) throw new Error('campaign has no mech');
+    const currentName = catalog.designs.get(mech.design.id)?.name;
+    if (currentName === undefined) throw new Error('campaign mech is not a stock design');
+    legacy.mechs = [mech];
+    mech.status = 'hulk';
+    mech.rebuildCost = 125_000;
+    mech.design.name = `${currentName} SNL-2 'Brawler'`;
+    legacy.cbills = 125_000;
+
+    const restored = imported(legacy);
+    expect(restored.mechs[0]?.design.name).toContain('SNL-2');
+    expect(assessSolvency(catalog, restored).plan?.mechName).toBe(currentName);
+  });
+
   it('loads a zero-mech import and uses only the yard that is actually posted', () => {
     const state = campaign('zero-mech');
     state.mechs = [];

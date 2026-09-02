@@ -21,7 +21,7 @@ describe('combat log visibility', () => {
     expect(eventLogLine(world, { ...event, team: event.team + 1 })).toBeNull();
   });
 
-  it('omits hidden damage and death until an observed hulk justifies the exact name', () => {
+  it('omits hidden damage and resolves an observed stock hulk through its stable id', () => {
     const world = playerWorld('private-combat-log');
     const vision = world.vision;
     if (vision === null) throw new Error('player world has no vision');
@@ -40,7 +40,37 @@ describe('combat log visibility', () => {
     };
     expect(eventLogLine(world, event)).toBeNull();
     vision.observedHulks.add(enemy.id);
-    expect(eventLogLine(world, event)).toContain('SECRET HIDDEN ENEMY');
+    const currentName = world.catalog.designs.get(enemy.designId)?.name;
+    expect(currentName).toBeDefined();
+    expect(eventLogLine(world, event)).toBe(`${currentName} destroyed — centre_torso`);
+    expect(eventLogLine(world, event)).not.toContain('SECRET HIDDEN ENEMY');
+  });
+
+  it('ignores a stale spawn-event name when the stable design id is known', () => {
+    const world = playerWorld('current-spawn-name');
+    const entity = world.entities[0];
+    if (entity === undefined) throw new Error('mission has no unit');
+    entity.name = 'LEGACY SERIAL NAME';
+    const currentName = world.catalog.designs.get(entity.designId)?.name;
+    if (currentName === undefined) throw new Error('unit has no authored design');
+
+    expect(eventLogLine(world, {
+      type: 'unit_spawned',
+      tick: world.tick,
+      entityId: entity.id,
+      team: entity.team,
+      name: 'STALE EVENT NAME',
+    })).toBe(`${currentName} arrives on the field`);
+  });
+
+  it('removes a legacy serial from an unkeyed mission message without touching weapon text', () => {
+    const world = playerWorld('current-mission-message-name');
+
+    expect(eventLogLine(world, {
+      type: 'mission_message',
+      tick: world.tick,
+      text: "Sentinel SNL-2 'Brawler' has no route; AC/5 intact.",
+    })).toBe("Sentinel 'Brawler' has no route; AC/5 intact.");
   });
 
   it('reports enemy support only when its target ground is optically visible', () => {

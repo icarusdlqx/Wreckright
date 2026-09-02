@@ -1,11 +1,16 @@
 import { canPresentEntity } from '../render3d/visibilityPresentation';
 import type { SimEvent } from '../sim/events';
 import { tileVisible } from '../sim/sensors';
-import { findEntity, type World } from '../sim/types';
+import { findEntity, type MechEntity, type World } from '../sim/types';
+import { authoredDesignName, stripSerialDesignation } from './designLabel';
 
 function namedEntity(world: World, id: number) {
   if (!canPresentEntity(world, id)) return null;
   return findEntity(world, id);
+}
+
+function entityName(world: World, entity: MechEntity): string {
+  return authoredDesignName(world.catalog, { id: entity.designId, name: entity.name });
 }
 
 function supportWasObserved(world: World, team: number, x: number, y: number): boolean {
@@ -21,42 +26,46 @@ export function eventLogLine(world: World, event: SimEvent): string | null {
   switch (event.type) {
     case 'mech_destroyed': {
       const entity = namedEntity(world, event.entityId);
-      return entity === null ? null : `${entity.name} destroyed — ${event.method}`;
+      return entity === null ? null : `${entityName(world, entity)} destroyed — ${event.method}`;
     }
     case 'ammo_explosion': {
       const entity = namedEntity(world, event.entityId);
-      return entity === null ? null : `${entity.name} ammo detonation in ${event.location}`;
+      return entity === null
+        ? null
+        : `${entityName(world, entity)} ammo detonation in ${event.location}`;
     }
     case 'critical_hit': {
       const entity = namedEntity(world, event.entityId);
       if (entity === null) return null;
       const where = event.location.replace(/_/g, ' ');
       return event.component === null
-        ? `Critical hit on ${entity.name} — ${where}`
-        : `Critical hit on ${entity.name} — ${where} ${event.component} wrecked`;
+        ? `Critical hit on ${entityName(world, entity)} — ${where}`
+        : `Critical hit on ${entityName(world, entity)} — ${where} ${event.component} wrecked`;
     }
     case 'location_destroyed': {
       const entity = namedEntity(world, event.entityId);
-      return entity === null ? null : `${entity.name} lost its ${event.location.replace(/_/g, ' ')}`;
+      return entity === null
+        ? null
+        : `${entityName(world, entity)} lost its ${event.location.replace(/_/g, ' ')}`;
     }
     case 'shutdown': {
       const entity = namedEntity(world, event.entityId);
-      return entity === null ? null : `${entity.name} shut down from heat`;
+      return entity === null ? null : `${entityName(world, entity)} shut down from heat`;
     }
     case 'knocked_down': {
       const entity = namedEntity(world, event.entityId);
-      return entity === null ? null : `${entity.name} goes down`;
+      return entity === null ? null : `${entityName(world, entity)} goes down`;
     }
     case 'stood_up': {
       const entity = namedEntity(world, event.entityId);
-      return entity === null ? null : `${entity.name} back on its feet`;
+      return entity === null ? null : `${entityName(world, entity)} back on its feet`;
     }
     case 'pilot_injured': {
       const entity = namedEntity(world, event.entityId);
       return entity === null ? null : `${entity.pilot.name} hurt in the fall`;
     }
     case 'mission_message':
-      return event.text;
+      return stripSerialDesignation(event.text);
     case 'zone_captured': {
       const zone = world.zones.find((entry) => entry.id === event.zoneId);
       return `${zone?.name ?? 'Zone'} taken by team ${event.team} (+${event.resourcePoints} RP)`;
@@ -65,8 +74,10 @@ export function eventLogLine(world: World, event: SimEvent): string | null {
       const objective = world.objectives.find((entry) => entry.id === event.objectiveId);
       return `${objective?.label ?? 'Objective'}: ${event.status}`;
     }
-    case 'unit_spawned':
-      return namedEntity(world, event.entityId) === null ? null : `${event.name} arrives on the field`;
+    case 'unit_spawned': {
+      const entity = namedEntity(world, event.entityId);
+      return entity === null ? null : `${entityName(world, entity)} arrives on the field`;
+    }
     case 'support_resolved': {
       if (event.call === 'sensor_probe') {
         if (world.vision !== null && event.team !== world.vision.team) return null;

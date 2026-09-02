@@ -2,7 +2,9 @@ import { readFileSync } from 'node:fs';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
+import { playerWorld, spawnDesign } from '../../tests/support';
 import { LOCATIONS } from '../schema/common';
+import { toResult } from '../sim/world';
 import type { BattleResult } from '../sim/world';
 import { BattleResults } from './BattleResults';
 
@@ -37,6 +39,23 @@ const COMMON = {
 };
 
 describe('battle results screen', () => {
+  it('renders the complete current identity for a legacy-named result row', () => {
+    const world = playerWorld('current-result-identity');
+    const gadfly = spawnDesign(world, 'hornet_spotter', 0);
+    gadfly.name = "Gadfly GAD-2 'Spotter'";
+    const currentResult = toResult(world, 'current-result-identity', 20_000);
+    const markup = renderToStaticMarkup(
+      createElement(BattleResults, {
+        ...COMMON,
+        result: currentResult,
+        campaignPending: false,
+      }),
+    );
+
+    expect(markup).toContain('Gadfly — 35t Light · Forward spotter · Linewrought');
+    expect(markup).not.toContain('GAD-2');
+  });
+
   it('covers the compact navigation while the result is modal', () => {
     const resultsCss = readFileSync(new URL('./battleResults.css', import.meta.url), 'utf8');
     const mobileCss = readFileSync(new URL('./mobileBattle.css', import.meta.url), 'utf8');

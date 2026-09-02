@@ -14,6 +14,7 @@ import {
 import { isMechAvailable, type CampaignState } from '../../campaign/types';
 import { getCatalog } from '../../schema/load';
 import { computeLoadout } from '../../sim/loadout';
+import { authoredDesignName, designIdentityLabel } from '../designLabel';
 import { workshopFactionLine, yardStockLine } from './factionEconomy';
 
 const catalog = getCatalog();
@@ -61,7 +62,9 @@ export function MechBayPanel({ state, mutate }: PanelProps) {
                 : `starts day ${projected.startsOnDay} · ready day ${projected.readyOnDay}`;
             return (
               <li key={mech.id} data-testid={`camp-mech-${mech.id}`}>
-                <span className="bay-mech-name">{mech.design.name}</span>
+                <span className="bay-mech-name">
+                  {designIdentityLabel(catalog, mech.design)}
+                </span>
                 <span className="bay-mech-state">
                   {chassis === undefined ? null : (
                     <small className="faction-economy" data-faction={chassis.faction}>
@@ -93,7 +96,7 @@ export function MechBayPanel({ state, mutate }: PanelProps) {
                         if (target === undefined) return null;
                         const result = rebuildHulk(catalog, draft, target);
                         return result.ok
-                          ? `${target.design.name} booked; ready day ${target.readyOnDay}.`
+                          ? `${authoredDesignName(catalog, target.design)} booked; ready day ${target.readyOnDay}.`
                           : result.reason;
                       })
                     }
@@ -109,7 +112,7 @@ export function MechBayPanel({ state, mutate }: PanelProps) {
                         if (target === undefined) return null;
                         const result = startRepair(catalog, draft, target);
                         return result.ok
-                          ? `${target.design.name} booked; ready day ${target.readyOnDay}.`
+                          ? `${authoredDesignName(catalog, target.design)} booked; ready day ${target.readyOnDay}.`
                           : result.reason;
                       })
                     }
@@ -153,7 +156,7 @@ export function StoresPanel({ state, mutate }: PanelProps) {
                         if (target === undefined) return null;
                         const result = fitFromStore(catalog, draft, target, item.itemId);
                         return result.ok
-                          ? `Fitted to ${target.design.name} ${result.location}.`
+                          ? `Fitted to ${authoredDesignName(catalog, target.design)} ${result.location}.`
                           : result.reason;
                       });
                     }}
@@ -164,7 +167,7 @@ export function StoresPanel({ state, mutate }: PanelProps) {
                       .filter((mech) => mech.status === 'ready')
                       .map((mech) => (
                         <option key={mech.id} value={mech.id}>
-                          {mech.design.name}
+                          {designIdentityLabel(catalog, mech.design)}
                         </option>
                       ))}
                   </select>
@@ -180,7 +183,7 @@ export function StoresPanel({ state, mutate }: PanelProps) {
             .filter((mech) => mech.status === 'ready')
             .map((mech) => (
               <li key={mech.id}>
-                <span>{mech.design.name}</span>
+                <span>{designIdentityLabel(catalog, mech.design)}</span>
                 <select
                   value=""
                   onChange={(event) => {
@@ -190,7 +193,9 @@ export function StoresPanel({ state, mutate }: PanelProps) {
                       const target = draft.mechs.find((entry) => entry.id === mech.id);
                       if (target === undefined) return null;
                       const result = stripToStore(catalog, draft, target, index);
-                      return result.ok ? `Stripped from ${target.design.name}.` : result.reason;
+                      return result.ok
+                        ? `Stripped from ${authoredDesignName(catalog, target.design)}.`
+                        : result.reason;
                     });
                   }}
                 >
@@ -234,36 +239,36 @@ export function MarketPanel({ state, mutate }: PanelProps) {
         {listings.length === 0 ? (
           <li className="empty">Nothing on the lot this week.</li>
         ) : (
-          listings.map((listing) => (
-            <li key={listing.id} data-testid={`market-${listing.id}`}>
-              <span className="market-name">
-                {listing.design.name}
-                <small>
-                  {catalog.chassis.get(listing.design.chassisId)?.tonnage ?? 0}t
-                  {listing.worn ? ' · sold as seen' : ''}
-                </small>
-              </span>
-              <span className="market-price">{cbills(listing.price)}</span>
-              <button
-                type="button"
-                disabled={state.cbills < listing.price}
-                title={
-                  state.cbills < listing.price
-                    ? `${cbills(listing.price - state.cbills)} short`
-                    : `Buy the ${listing.design.name}`
-                }
-                onClick={() =>
-                  mutate((draft) => {
-                    const result = buyMech(catalog, draft, listing.id);
-                    return result.ok ? `Bought a ${listing.design.name}.` : result.reason;
-                  })
-                }
-                data-testid={`market-buy-${listing.id}`}
-              >
-                Buy
-              </button>
-            </li>
-          ))
+          listings.map((listing) => {
+            const designName = authoredDesignName(catalog, listing.design);
+            return (
+              <li key={listing.id} data-testid={`market-${listing.id}`}>
+                <span className="market-name">
+                  {designIdentityLabel(catalog, listing.design)}
+                  {listing.worn ? <small>sold as seen</small> : null}
+                </span>
+                <span className="market-price">{cbills(listing.price)}</span>
+                <button
+                  type="button"
+                  disabled={state.cbills < listing.price}
+                  title={
+                    state.cbills < listing.price
+                      ? `${cbills(listing.price - state.cbills)} short`
+                      : `Buy the ${designName}`
+                  }
+                  onClick={() =>
+                    mutate((draft) => {
+                      const result = buyMech(catalog, draft, listing.id);
+                      return result.ok ? `Bought a ${designName}.` : result.reason;
+                    })
+                  }
+                  data-testid={`market-buy-${listing.id}`}
+                >
+                  Buy
+                </button>
+              </li>
+            );
+          })
         )}
       </ul>
 
@@ -306,10 +311,11 @@ export function MarketPanel({ state, mutate }: PanelProps) {
       <ul className="market-sell">
         {state.mechs.map((mech) => {
           const booked = mech.status === 'repairing';
+          const designName = authoredDesignName(catalog, mech.design);
           return (
             <li key={mech.id} data-testid={`market-sell-row-${mech.id}`}>
               <span className="market-name">
-                {mech.design.name}
+                {designIdentityLabel(catalog, mech.design)}
                 <small>
                   {mech.status === 'hulk'
                     ? 'wreck'
@@ -331,7 +337,7 @@ export function MarketPanel({ state, mutate }: PanelProps) {
                   mutate((draft) => {
                     const result = sellMech(catalog, draft, mech.id);
                     return result.ok
-                      ? `Sold the ${mech.design.name} for ${cbills(saleValueOf(catalog, mech))}.`
+                      ? `Sold the ${designName} for ${cbills(saleValueOf(catalog, mech))}.`
                       : result.reason;
                   })
                 }

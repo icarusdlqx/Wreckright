@@ -11,7 +11,7 @@ describe('salvage summary', () => {
         { kind: 'weapon', itemId: 'medium_laser', count: 2 },
         { kind: 'equipment', itemId: 'heat_sink', count: 1 },
       ]),
-    ).toBe("Sentinel SNL-2 'Brawler', Medium Laser ×2, Heat Sink");
+    ).toBe('Sentinel, Medium Laser ×2, Heat Sink');
   });
 
   it('coalesces duplicate display names without changing first-seen order', () => {
@@ -20,7 +20,7 @@ describe('salvage summary', () => {
         { kind: 'weapon', itemId: 'medium_laser', count: 1 },
         { kind: 'weapon', itemId: 'medium_laser', count: 2 },
       ]),
-    ).toBe("Sentinel SNL-2 'Brawler' ×2, Medium Laser ×3");
+    ).toBe('Sentinel ×2, Medium Laser ×3');
   });
 
   it('falls back to raw ids for unknown catalogue entries', () => {
@@ -48,7 +48,7 @@ describe('salvage item facts', () => {
     expect(facts.name).toBe('Medium Laser');
     expect(facts.kind).toBe('Weapon');
     expect(facts.specification).toBe('light energy hardpoint · 1t · 1 slot');
-    expect(facts.fit).toContain('Bulwark BWK-3');
+    expect(facts.fit).toContain('Bulwark');
     expect(facts.ownedBefore).toBe(1);
     expect(facts.buildValue).toBe(80_000);
     expect(facts.saleBasis).toBe(36_000);
@@ -63,7 +63,7 @@ describe('salvage item facts', () => {
     expect(facts.kind).toBe('Equipment');
     expect(facts.specification).toBe('jump gear · 1t · 1 slot');
     expect(facts.fit).toMatch(/^Jump-capable owned chassis:/);
-    expect(facts.fit).not.toContain('Sentinel SNL-2');
+    expect(facts.fit).not.toContain('Sentinel');
   });
 
   it('keeps a damaged-save item visible without inventing facts', () => {

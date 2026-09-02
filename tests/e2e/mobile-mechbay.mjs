@@ -48,6 +48,19 @@ export async function runMobileMechbayJourney({
   shots,
   shotLabel,
 }) {
+  const stockPicker = page.locator('[data-testid="design-picker"]');
+  const stockIdentity = await stockPicker.locator('option:checked').innerText();
+  const stockOptions = await stockPicker.locator('option').allInnerTexts();
+  check(
+    `${prefix} stock picker carries complete machine identity without serial designations`,
+    stockIdentity === 'Sentinel — 45t Medium · Line brawler · Aurelian Stock' &&
+      stockOptions.every((label) => !/\b[A-Z]{3}-\d+\b/.test(label)) &&
+      stockOptions.every((label) => label.includes(' — ') && label.split(' · ').length === 3),
+    stockOptions.join(' | '),
+  );
+  await stockPicker.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: `${shots}/14-mobile-${shotLabel}-machine-identity.png` });
+
   const bay = await overflowOf(page, '[data-testid="mechbay"]');
   const outerColumns = await page.locator('[data-testid="mechbay"]').evaluate(
     (element) => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length,

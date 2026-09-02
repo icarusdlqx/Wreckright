@@ -2,7 +2,7 @@ import type { MechLocation } from '../../schema/common';
 import { LOCATIONS } from '../../schema/common';
 import { DesignSchema, type Design } from '../../schema/design';
 import { validateDesign } from '../../schema/designValidation';
-import type { Catalog } from '../../schema/load';
+import { getCatalog, type Catalog } from '../../schema/load';
 import { migrateDesignWeaponIds } from '../../schema/weaponMigration';
 import { maximiseArmour as fitArmour } from '../../sim/loadout';
 import { weaponFireProfile } from '../../sim/weaponModes';
@@ -175,7 +175,15 @@ export interface ParseResult {
   error: string | null;
 }
 
-export function parseDesign(text: string): ParseResult {
+/** Stock ids are durable; their authored display names are not save data. */
+export function currentStockDesign(catalog: Catalog, design: Design): Design {
+  const currentName = catalog.designs.get(design.id)?.name;
+  return currentName === undefined || currentName === design.name
+    ? design
+    : { ...design, name: currentName };
+}
+
+export function parseDesign(text: string, catalog?: Catalog): ParseResult {
   let raw: unknown;
   try {
     raw = JSON.parse(text);
@@ -192,7 +200,10 @@ export function parseDesign(text: string): ParseResult {
     };
   }
 
-  return { design: parsed.data, error: null };
+  return {
+    design: catalog === undefined ? parsed.data : currentStockDesign(catalog, parsed.data),
+    error: null,
+  };
 }
 
 export class InvalidBuildError extends Error {
@@ -224,11 +235,12 @@ function checkOrThrow(catalog: Catalog, design: Design): void {
  * instead of quietly discarding the earlier build.
  */
 export function saveToStorage(catalog: Catalog, design: Design): { replaced: boolean } {
-  checkOrThrow(catalog, design);
+  const current = currentStockDesign(catalog, design);
+  checkOrThrow(catalog, current);
 
-  const key = `${STORAGE_PREFIX}${design.id}`;
+  const key = `${STORAGE_PREFIX}${current.id}`;
   const replaced = globalThis.localStorage?.getItem(key) != null;
-  globalThis.localStorage?.setItem(key, serialiseDesign(design));
+  globalThis.localStorage?.setItem(key, serialiseDesign(current));
   return { replaced };
 }
 
@@ -244,13 +256,14 @@ export function listStoredDesigns(): string[] {
   return ids.sort();
 }
 
-export function loadFromStorage(id: string): ParseResult {
+export function loadFromStorage(id: string, catalog: Catalog = getCatalog()): ParseResult {
   const text = globalThis.localStorage?.getItem(`${STORAGE_PREFIX}${id}`);
   if (text === null || text === undefined) return { design: null, error: `no saved design "${id}"` };
-  return parseDesign(text);
+  return parseDesign(text, catalog);
 }
 
 export function exportDesign(catalog: Catalog, design: Design): Blob {
-  checkOrThrow(catalog, design);
-  return new Blob([serialiseDesign(design)], { type: 'application/json' });
+  const current = currentStockDesign(catalog, design);
+  checkOrThrow(catalog, current);
+  return new Blob([serialiseDesign(current)], { type: 'application/json' });
 }

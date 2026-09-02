@@ -14,7 +14,7 @@ export interface BriefingBerth {
 
 export interface BriefingLance {
   berths: BriefingBerth[];
-  designs: { value: string; label: string; tonnage: number }[];
+  designs: { value: string; label: string }[];
   saved: { value: string; label: string }[];
   pilots: { id: string; name: string }[];
   total: number;
@@ -106,7 +106,7 @@ export function Briefing({
                 <option value="empty">— empty berth —</option>
                 {lance.designs.map((design) => (
                   <option key={design.value} value={design.value}>
-                    {design.label} — {design.tonnage}t
+                    {design.label}
                   </option>
                 ))}
                 {lance.saved.length === 0 ? null : (

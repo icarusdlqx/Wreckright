@@ -1,6 +1,6 @@
 {
   "id": "halberd_prime",
-  "name": "Halberd HLB-4 'Halberdier'",
+  "name": "Halberd",
   "chassisId": "halberd_hlb4",
   "armour": {
     "head": 22,

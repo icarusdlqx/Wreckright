@@ -6,6 +6,7 @@ import { mechIntegrity } from '../../campaign/integrity';
 import { assign } from '../../campaign/roster';
 import { isPilotAvailable, type CampaignState, type PilotRecord } from '../../campaign/types';
 import { PilotStats } from '../PilotStats';
+import { authoredDesignName, designIdentityLabel } from '../designLabel';
 import { ContractBriefing } from './ContractBriefing';
 import { useDialogFocus } from '../useDialogFocus';
 
@@ -125,6 +126,8 @@ export function LanceManifest({ catalog, state, mutate, onLaunch, onCancel, onRe
             const drops = order >= 0 && order < slots;
             const available = isPilotAvailable(state, pilot);
             const seated = state.mechs.find((mech) => mech.id === pilot.mechId) ?? null;
+            const seatedName =
+              seated === null ? null : authoredDesignName(catalog, seated.design);
             const integrity = seated === null ? null : mechIntegrity(catalog, seated);
             const health = integrity?.fraction ?? 0;
 
@@ -177,7 +180,7 @@ export function LanceManifest({ catalog, state, mutate, onLaunch, onCancel, onRe
                     <option value="">— no mech —</option>
                     {state.mechs.map((mech) => (
                       <option key={mech.id} value={mech.id}>
-                        {mech.design.name}
+                        {designIdentityLabel(catalog, mech.design)}
                         {mech.status === 'ready' ? '' : ` (${mech.status})`}
                       </option>
                     ))}
@@ -187,7 +190,7 @@ export function LanceManifest({ catalog, state, mutate, onLaunch, onCancel, onRe
                       className="manifest-health"
                       title={`${Math.round(health * 100)}% intact · ${integrity?.current ?? 0}/${integrity?.maximum ?? 0} armour and structure`}
                       role="progressbar"
-                      aria-label={`${seated.design.name} integrity`}
+                      aria-label={`${seatedName ?? 'Mech'} integrity`}
                       aria-valuemin={0}
                       aria-valuemax={integrity?.maximum ?? 0}
                       aria-valuenow={integrity?.current ?? 0}

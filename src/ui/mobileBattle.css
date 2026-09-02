@@ -3,7 +3,7 @@
 @media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
   .app {
     --mobile-top: calc(52px + var(--safe-top));
-    --mobile-dock: 210px;
+    --mobile-dock: 250px;
     --tap-size: 44px;
   }
 
@@ -107,7 +107,7 @@
     bottom: calc(8px + var(--safe-bottom));
     height: var(--mobile-dock);
     display: grid;
-    grid-template-rows: 58px 44px minmax(0, 1fr);
+    grid-template-rows: 96px 44px minmax(0, 1fr);
     gap: 5px;
     pointer-events: none;
   }
@@ -130,15 +130,16 @@
   }
 
   .mobile-lance-row .lance-card {
-    min-width: 106px;
-    min-height: 58px;
+    flex: 0 0 100%;
+    min-width: 0;
+    min-height: 96px;
     padding: 5px 7px;
   }
 
   .mobile-lance-action {
     flex: none;
     min-width: 52px;
-    min-height: 58px;
+    min-height: 96px;
     padding: 4px 6px;
     border: 1px solid var(--edge);
     border-radius: 4px;
@@ -361,7 +362,8 @@
   }
 
   .mobile-lance-row .lance-card {
-    min-width: 98px;
+    flex: 0 0 100%;
+    min-width: 0;
     min-height: 100%;
   }
 

@@ -80,7 +80,7 @@ function ownedMechPlans(catalog: Catalog, state: CampaignState): MechPlan[] {
         ? Math.max(state.day, mech.readyOnDay)
         : state.day;
     return [{
-      name: mech.design.name,
+      name: catalog.designs.get(mech.design.id)?.name ?? mech.design.name,
       id: mech.id,
       cost: rebuild?.cost ?? 0,
       source: 'owned',

@@ -1,6 +1,6 @@
 {
   "id": "sentinel_brawler",
-  "name": "Sentinel SNL-2 'Brawler'",
+  "name": "Sentinel",
   "chassisId": "sentinel_snl2",
   "armour": {
     "head": 18,

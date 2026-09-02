@@ -1,6 +1,6 @@
 {
   "id": "courser_patrol",
-  "name": "Courser CRS-1 'Patrol'",
+  "name": "Courser",
   "chassisId": "courser_crs1",
   "armour": {
     "head": 8,

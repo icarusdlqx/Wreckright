@@ -48,17 +48,27 @@ async function verifySavedLoadoutJourney({ page, check }) {
       (await page.locator('[data-testid="machine-culture-primary"]').getAttribute('data-faction')) === 'linewrought' &&
       (await page.locator('[data-testid="linewrought-builder-open"]').count()) === 0,
   );
+  const loreTitle = await page.locator('.dossier-summary').getAttribute('title');
+  check(
+    'authored chassis lore remains readable without exposing a serial designation',
+    loreTitle?.includes('Gadfly') === true && !loreTitle.includes('GAD-2'),
+    loreTitle ?? 'missing chassis lore',
+  );
 
   const loadoutName = 'E2E Workshop Scout';
   const loadoutId = 'e2e_workshop_scout';
   await page.locator('[data-testid="design-name"]').fill(loadoutName);
   await page.waitForFunction((expected) =>
     document.querySelector('[data-testid="design-name"]')?.value === expected, loadoutName);
+  const editedOptionLabel = await picker.locator('option[value=""]').textContent();
   check(
     'renaming the stock machine creates an edited loadout without changing chassis',
     (await picker.inputValue()) === '' &&
-      await renderedTextIncludes(picker.locator('option[value=""]'), 'edited loadout') &&
+      editedOptionLabel?.trim() ===
+        'E2E Workshop Scout — 35t Light · Forward spotter · Linewrought (edited loadout)' &&
+      !/\b[A-Z]{3}-\d+\b/.test(editedOptionLabel) &&
       (await page.locator('[data-testid="machine-culture-primary"]').getAttribute('data-faction')) === 'linewrought',
+    editedOptionLabel ?? 'missing edited-loadout option',
   );
 
   await selectWorkspace(page, 'review');
@@ -77,6 +87,16 @@ async function verifySavedLoadoutJourney({ page, check }) {
       return stored.id === id && stored.name === name && stored.chassisId === 'hornet_hnt2';
     }, { id: loadoutId, name: loadoutName }),
   );
+  const savedOptionLabel = await page
+    .locator(`[data-testid="bay-stored"] option[value="${loadoutId}"]`)
+    .textContent();
+  check(
+    'the saved-loadout picker keeps its stable id behind a complete machine identity',
+    savedOptionLabel?.trim() ===
+      'E2E Workshop Scout — 35t Light · Forward spotter · Linewrought' &&
+      !/\b[A-Z]{3}-\d+\b/.test(savedOptionLabel),
+    savedOptionLabel ?? 'missing saved-loadout option',
+  );
 
   await page.locator('[data-testid="bay-exit"]').click();
   await page.waitForSelector('[data-testid="briefing"]');
@@ -84,6 +104,19 @@ async function verifySavedLoadoutJourney({ page, check }) {
   check(
     'the briefing exposes the saved loadout through the existing picker',
     (await berth.locator(`option[value="saved:${loadoutId}"]`).count()) === 1,
+  );
+  const authoredBerthLabels = await berth.locator('option').evaluateAll((options) =>
+    options
+      .filter((option) => option.value !== 'empty' && option.value !== 'custom' &&
+        !option.value.startsWith('saved:'))
+      .map((option) => option.textContent?.trim() ?? ''),
+  );
+  check(
+    'the briefing picker offers weight, class, authored role and culture without serials',
+    authoredBerthLabels.length > 0 && authoredBerthLabels.every((label) =>
+      /^[^—]+ — \d+t (Light|Medium|Heavy|Assault) · [^·]+ · (Linewrought|Aurelian Stock)$/.test(label) &&
+      !/\b[A-Z]{3}-\d+\b/.test(label)),
+    authoredBerthLabels.join(' | '),
   );
 
   await berth.selectOption(`saved:${loadoutId}`);
@@ -122,6 +155,19 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
   await page.waitForSelector('[data-testid="mechbay"]');
   await verifyQuietBayOpening({ page, check, selectWorkspace, comparisonDirections });
 
+  const stockIdentity = await page
+    .locator('[data-testid="design-picker"] option:checked')
+    .innerText();
+  const stockOptions = await page
+    .locator('[data-testid="design-picker"] option')
+    .allInnerTexts();
+  check(
+    'the desktop stock picker carries complete machine identity without serial designations',
+    stockIdentity === 'Sentinel — 45t Medium · Line brawler · Aurelian Stock' &&
+      stockOptions.every((label) => !/\b[A-Z]{3}-\d+\b/.test(label)) &&
+      stockOptions.every((label) => label.includes(' — ') && label.split(' · ').length === 3),
+    stockOptions.join(' | '),
+  );
   await selectWorkspace(page, 'armour');
   check(
     'Armour & Cooling contains the two focused systems workbenches',

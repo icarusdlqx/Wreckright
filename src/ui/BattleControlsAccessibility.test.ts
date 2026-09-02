@@ -20,6 +20,7 @@ const LOCATION: LocationSnapshot = {
 const UNIT: UnitSnapshot = {
   id: 7,
   team: 0,
+  identity: 'Halberd — 75t Heavy · Heavy striker · Aurelian Stock',
   name: 'Halberd',
   pilotName: 'Kessa Vale',
   pilotSkills: { gunnery: 3, piloting: 3, sensors: 3 },
@@ -257,6 +258,7 @@ describe('battle control state semantics', () => {
     expect(buttonTag(weapons, 'group-2')).toContain('aria-pressed="false"');
     expect(buttonTag(lance, 'lance-card-7')).toContain('aria-pressed="true"');
     expect(buttonTag(lance, 'lance-card-8')).toContain('aria-pressed="false"');
+    expect(lance).toContain('Halberd — 75t Heavy · Heavy striker · Aurelian Stock');
   });
 
   it('presents a friendly fire mode as an action and a hostile mode as read-only', () => {

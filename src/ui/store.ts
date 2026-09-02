@@ -89,6 +89,8 @@ export interface LocationSnapshot {
 export interface UnitSnapshot {
   id: EntityId;
   team: number;
+  /** Complete current catalogue identity for compact battle cards. */
+  identity: string;
   name: string;
   pilotName: string;
   /** What the pilot brings, so their skills are visible where the mech is. */

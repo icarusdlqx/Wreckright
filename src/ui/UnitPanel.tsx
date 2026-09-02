@@ -19,6 +19,11 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
     unit !== null && state.hitPreview !== null && state.hitPreview.shooterId === unit.id
       ? state.hitPreview
       : null;
+  const previewTargetName =
+    preview === null
+      ? null
+      : [...state.units, ...state.enemies].find((candidate) => candidate.id === preview.targetId)
+          ?.name ?? preview.targetName;
   const playerControlled = unit !== null && unit.team === state.playerTeam && unit.alive;
 
   const onSelectLocation = (location: MechLocation): void => {
@@ -39,7 +44,7 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
         <>
           <h2>
             {unit.pilotName}
-            <small>{unit.name}</small>
+            <small>{unit.identity}</small>
           </h2>
           {playerControlled ? (
             <p className="pilot-hand" data-testid="pilot-hand">
@@ -64,7 +69,7 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
               </>
             ) : (
               <>
-                {preview.hover ? 'Sizing up' : 'Target'}: <strong>{preview.targetName}</strong>
+                {preview.hover ? 'Sizing up' : 'Target'}: <strong>{previewTargetName}</strong>
                 <span className="target-range">{Math.round(preview.range)}m</span>
               </>
             )}

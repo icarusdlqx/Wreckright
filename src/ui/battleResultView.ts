@@ -1,10 +1,13 @@
+import { getCatalog, type Catalog } from '../schema/load';
 import type { BattleResult, UnitResult } from '../sim/world';
+import { authoredDesignName, designIdentityLabel } from './designLabel';
 
 export type ResultTone = 'victory' | 'defeat' | 'timeout' | 'draw';
 
 export interface LanceResultRow {
   id: number;
   name: string;
+  identity: string;
   status: 'Operational' | 'Withdrew' | 'Ejected' | 'Lost';
   pilotLost: boolean;
   kills: number;
@@ -92,9 +95,33 @@ function accuracy(hits: number, shots: number): number | null {
   return shots === 0 ? null : Math.round((hits / shots) * 100);
 }
 
-export function viewBattleResult(result: BattleResult, playerTeam: number): BattleResultView {
-  const player = result.units.filter((unit) => unit.team === playerTeam);
-  const hostiles = result.units.filter((unit) => unit.team !== playerTeam);
+/** Result payloads can outlive authored names; presentation follows their stable design ids. */
+export function battleResultWithCurrentNames(
+  result: BattleResult,
+  catalog: Catalog = getCatalog(),
+): BattleResult {
+  return {
+    ...result,
+    units: result.units.map((unit) => ({
+      ...unit,
+      name: authoredDesignName(catalog, { id: unit.designId, name: unit.name }),
+    })),
+  };
+}
+
+function resultIdentity(catalog: Catalog, unit: UnitResult): string {
+  const design = catalog.designs.get(unit.designId);
+  return design === undefined ? unit.name : designIdentityLabel(catalog, design);
+}
+
+export function viewBattleResult(
+  result: BattleResult,
+  playerTeam: number,
+  catalog: Catalog = getCatalog(),
+): BattleResultView {
+  const presented = battleResultWithCurrentNames(result, catalog);
+  const player = presented.units.filter((unit) => unit.team === playerTeam);
+  const hostiles = presented.units.filter((unit) => unit.team !== playerTeam);
   const shotsFired = sum(player, (unit) => unit.shotsFired);
   const shotsHit = sum(player, (unit) => unit.shotsHit);
   const tone = toneFor(result, playerTeam);
@@ -124,6 +151,7 @@ export function viewBattleResult(result: BattleResult, playerTeam: number): Batt
     lance: player.map((unit) => ({
       id: unit.id,
       name: unit.name,
+      identity: resultIdentity(catalog, unit),
       status: statusFor(unit),
       pilotLost: unit.pilotDead,
       kills: round(unit.kills),

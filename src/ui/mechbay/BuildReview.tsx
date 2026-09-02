@@ -1,6 +1,7 @@
 import type { Design } from '../../schema/design';
 import type { Catalog } from '../../schema/load';
 import type { HeatProfile, Loadout } from '../../sim/loadout';
+import { authoredDesignName } from '../designLabel';
 import {
   bayWorkspacePanelId,
   bayWorkspaceTabId,
@@ -79,7 +80,7 @@ export function BuildReview({
       <header className="build-review__header">
         <div>
           <p className="build-review__eyebrow">Final inspection</p>
-          <h3 id="build-review-title">{design.name}</h3>
+          <h3 id="build-review-title">{authoredDesignName(catalog, design)}</h3>
         </div>
         <div
           className={`build-review__verdict ${review.legal ? 'is-legal' : 'is-blocked'}`}

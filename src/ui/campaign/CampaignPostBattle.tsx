@@ -2,6 +2,7 @@ import { rechooseSalvage } from '../../campaign/salvage';
 import { finalizeLatestDebrief } from '../../campaign/history';
 import type { CampaignState } from '../../campaign/types';
 import type { Catalog } from '../../schema/load';
+import { stripSerialDesignation } from '../designLabel';
 import { Debrief, markDebriefed } from './Debrief';
 
 interface CampaignPostBattleProps {
@@ -37,7 +38,7 @@ export function CampaignPostBattle({
         <ul>
           {state.log.slice(0, 6).map((entry, index) => (
             <li key={`${entry.day}-${index}`}>
-              day {entry.day}: {entry.text}
+              day {entry.day}: {stripSerialDesignation(entry.text)}
             </li>
           ))}
         </ul>

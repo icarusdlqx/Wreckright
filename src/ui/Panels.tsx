@@ -227,7 +227,7 @@ export function LanceBar({
             data-testid={`lance-card-${unit.id}`}
           >
             <span className="lance-name">{unit.pilotName}</span>
-            <span className="lance-chassis">{unit.name}</span>
+            <span className="lance-chassis" title={unit.identity}>{unit.identity}</span>
             <span className="lance-health">
               <span style={{ width: `${health * 100}%` }} />
             </span>

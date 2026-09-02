@@ -1,6 +1,6 @@
 {
   "id": "drover_carrier",
-  "name": "Drover DVR-2 'Carrier'",
+  "name": "Drover",
   "chassisId": "drover_dvr2",
   "armour": {
     "head": 12,
