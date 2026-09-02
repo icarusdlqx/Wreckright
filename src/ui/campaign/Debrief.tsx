@@ -1,5 +1,5 @@
 import type { Catalog } from '../../schema/load';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { termsName } from '../../campaign/contractTerms';
 import { storeItemValueOf } from '../../campaign/market';
 import { SALVAGE_PICKS } from '../../campaign/salvage';
@@ -12,7 +12,8 @@ import type {
   SalvageProvenance,
   StoreItem,
 } from '../../campaign/types';
-import { salvageItemFacts } from './salvageFacts';
+import { useDialogFocus } from '../useDialogFocus';
+import { salvageItemFacts, salvageSummary } from './salvageFacts';
 import './salvage.css';
 
 const DEBRIEFED_KEY = 'ironline.campaign.debriefed';
@@ -110,6 +111,10 @@ export function Debrief({
   /** Swaps what came home for a different pick out of the same offer. */
   onChooseSalvage?: (picks: StoreItem[]) => StoreItem[] | void;
 }) {
+  const dialogRef = useRef<HTMLElement>(null);
+  useDialogFocus(dialogRef, dialogRef, undefined, () =>
+    document.querySelector<HTMLElement>('[data-testid="camp-manual-toggle"]'),
+  );
   const mission = catalog.missions.get(outcome.missionId);
   const campaign = catalog.campaigns.get(state.campaignId);
   const employer =
@@ -129,6 +134,11 @@ export function Debrief({
   const [picks, setPicks] = useState<string[]>(() =>
     outcome.salvagedItems.map((item) => `${item.kind}:${item.itemId}`),
   );
+  const receiptItems =
+    offered.length === 0
+      ? outcome.salvagedItems
+      : offered.filter((item) => picks.includes(`${item.kind}:${item.itemId}`));
+  const receipt = salvageSummary(catalog, outcome.salvagedChassis, receiptItems);
   const selectedValue = offered
     .filter((item) => picks.includes(`${item.kind}:${item.itemId}`))
     .reduce((total, item) => total + storeItemValueOf(catalog, item), 0);
@@ -147,17 +157,23 @@ export function Debrief({
 
   return (
     <div className="manifest-backdrop" data-testid="debrief">
-      <section className="manifest debrief">
+      <section
+        className="manifest debrief"
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="debrief-title"
+        aria-describedby="debrief-context"
+        tabIndex={-1}
+      >
         <header>
-          <h3>
-            {outcome.won ? 'Contract complete' : 'Contract failed'} — {mission?.name ?? outcome.missionId}
+          <h3 className="debrief-ledger" id="debrief-title" data-testid="debrief-ledger">
+            {outcome.won ? `Contract complete · +${cbills(outcome.payout)}` : 'Contract failed · no payment'}
+            {' · salvaged: '}
+            {receipt}
           </h3>
-          <p>
-            {termsName(outcome.termsId)} · Day {outcome.day}.{' '}
-            {outcome.won ? `${cbills(outcome.payout)} paid.` : 'No payment.'}
-            {outcome.salvagedItems.length + outcome.salvagedChassis.length > 0
-              ? ` ${outcome.salvagedChassis.length} hull(s) and ${outcome.salvagedItems.length} crate(s) recovered.`
-              : ''}
+          <p id="debrief-context">
+            {mission?.name ?? outcome.missionId} · {termsName(outcome.termsId)} · Day {outcome.day}
           </p>
           {employer === null ? null : (
             <p className="employer-facts" data-testid="debrief-employer">
@@ -167,96 +183,104 @@ export function Debrief({
           )}
         </header>
 
-        {candidates.length === 0 ? null : (
-          <div className="debrief-recovery" data-testid="debrief-recovery">
-            <h4>Field recovery ledger</h4>
-            <p>
-              Eligible hull odds include the signed package. Ineligible hulls remain on the record without a roll.
-            </p>
-            <ul>
-              {candidates.map((candidate, index) => (
-                <li
-                  key={`${candidate.designId}-${candidate.name}-${index}`}
-                  data-testid={`debrief-recovery-${index}`}
-                >
-                  <span className="recovery-name">{candidateName(catalog, candidate)}</span>
-                  <span className="recovery-outcome">{OUTCOME_NAMES[candidate.outcome]}</span>
-                  <span className="recovery-chance">{chance(candidate.chassisChance)}</span>
-                  <span className={candidate.recovered ? 'recovery-result recovered' : 'recovery-result'}>
-                    {candidate.recovered
-                      ? 'hull recovered'
-                      : candidate.chassisChance > 0
-                        ? 'not recovered'
-                        : 'not eligible'}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        {candidates.length === 0 && offered.length === 0 ? null : (
+          <details className="debrief-salvage-report" data-testid="debrief-salvage-report">
+            <summary tabIndex={0} data-testid="debrief-adjust-picks">
+              {outcome.salvageFinalized ? 'Review salvage report' : 'Adjust picks'}
+            </summary>
 
-        {offered.length === 0 ? null : (
-          <div className="debrief-salvage" data-testid="debrief-salvage">
-            <h4>
-              Salvage — {picks.length}/{SALVAGE_PICKS} picks · {cbills(selectedValue)} build value
-            </h4>
-            <p className="salvage-note">
-              {outcome.salvageFinalized
-                ? 'Salvage manifest finalized. This restored report is read-only. '
-                : ''}
-              Recovered hulls are already in the yard, carrying their field damage and no mounted
-              weapons or equipment. When the field yields more than five crate types, weapons and
-              equipment alternate; each list rotates from one field to the next.
-              {outcome.salvageFinalized
-                ? ' The aboard and left marks record what came home. '
-                : ' Choose what comes home; one pick takes the full listed crate. '}
-              Loose crates cannot be sold.
-              Mounted sale basis is what a part adds to an intact mech's yard valuation.
-            </p>
-            <ul className="salvage-offer">
-              {offered.map((item) => {
-                const key = `${item.kind}:${item.itemId}`;
-                const taken = picks.includes(key);
-                const takenCount =
-                  outcome.salvagedItems.find(
-                    (held) => held.kind === item.kind && held.itemId === item.itemId,
-                  )?.count ?? 0;
-                const facts = salvageItemFacts(catalog, state, item, takenCount);
-                const sources = provenance.filter(
-                  (source) => source.kind === item.kind && source.itemId === item.itemId,
-                );
-                return (
-                  <li key={key}>
-                    <button
-                      type="button"
-                      className={taken ? 'taken' : ''}
-                      disabled={outcome.salvageFinalized}
-                      onClick={() => toggle(key)}
-                      aria-pressed={taken}
-                      data-testid={`salvage-pick-${item.itemId}`}
+            {candidates.length === 0 ? null : (
+              <div className="debrief-recovery" data-testid="debrief-recovery">
+                <h4>Field recovery ledger</h4>
+                <p>
+                  Eligible hull odds include the signed package. Ineligible hulls remain on the record without a roll.
+                </p>
+                <ul>
+                  {candidates.map((candidate, index) => (
+                    <li
+                      key={`${candidate.designId}-${candidate.name}-${index}`}
+                      data-testid={`debrief-recovery-${index}`}
                     >
-                      <span className="salvage-name">
-                        {facts.name} {item.count > 1 ? `× ${item.count}` : ''}
+                      <span className="recovery-name">{candidateName(catalog, candidate)}</span>
+                      <span className="recovery-outcome">{OUTCOME_NAMES[candidate.outcome]}</span>
+                      <span className="recovery-chance">{chance(candidate.chassisChance)}</span>
+                      <span className={candidate.recovered ? 'recovery-result recovered' : 'recovery-result'}>
+                        {candidate.recovered
+                          ? 'hull recovered'
+                          : candidate.chassisChance > 0
+                            ? 'not recovered'
+                            : 'not eligible'}
                       </span>
-                      <span className="salvage-kind">{facts.kind}</span>
-                      <span className="salvage-mark">{taken ? 'aboard' : 'left'}</span>
-                      <span className="salvage-spec">{facts.specification}</span>
-                      <span className="salvage-fit">{facts.fit}</span>
-                      <span className="salvage-owned">Owned before this haul: {facts.ownedBefore}</span>
-                      {sources.length === 0 ? null : (
-                        <span className="salvage-source">
-                          Field source: {sources.map((source) => sourceName(catalog, source)).join('; ')}
-                        </span>
-                      )}
-                      <span className="salvage-value">
-                        {cbills(facts.buildValue)} build · {cbills(facts.saleBasis)} mounted sale basis
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {offered.length === 0 ? null : (
+              <div className="debrief-salvage" data-testid="debrief-salvage">
+                <h4>
+                  Salvage — {picks.length}/{SALVAGE_PICKS} picks · {cbills(selectedValue)} build value
+                </h4>
+                <p className="salvage-note">
+                  {outcome.salvageFinalized
+                    ? 'Salvage manifest finalized. This restored report is read-only. '
+                    : ''}
+                  Recovered hulls are already in the yard, carrying their field damage and no mounted
+                  weapons or equipment. When the field yields more than five crate types, weapons and
+                  equipment alternate; each list rotates from one field to the next.
+                  {outcome.salvageFinalized
+                    ? ' The aboard and left marks record what came home. '
+                    : ' Choose what comes home; one pick takes the full listed crate. '}
+                  Loose crates cannot be sold.
+                  Mounted sale basis is what a part adds to an intact mech's yard valuation.
+                </p>
+                <ul className="salvage-offer">
+                  {offered.map((item) => {
+                    const key = `${item.kind}:${item.itemId}`;
+                    const taken = picks.includes(key);
+                    const takenCount =
+                      outcome.salvagedItems.find(
+                        (held) => held.kind === item.kind && held.itemId === item.itemId,
+                      )?.count ?? 0;
+                    const facts = salvageItemFacts(catalog, state, item, takenCount);
+                    const sources = provenance.filter(
+                      (source) => source.kind === item.kind && source.itemId === item.itemId,
+                    );
+                    return (
+                      <li key={key}>
+                        <button
+                          type="button"
+                          className={taken ? 'taken' : ''}
+                          disabled={outcome.salvageFinalized}
+                          onClick={() => toggle(key)}
+                          aria-pressed={taken}
+                          data-testid={`salvage-pick-${item.itemId}`}
+                        >
+                          <span className="salvage-name">
+                            {facts.name} {item.count > 1 ? `× ${item.count}` : ''}
+                          </span>
+                          <span className="salvage-kind">{facts.kind}</span>
+                          <span className="salvage-mark">{taken ? 'aboard' : 'left'}</span>
+                          <span className="salvage-spec">{facts.specification}</span>
+                          <span className="salvage-fit">{facts.fit}</span>
+                          <span className="salvage-owned">Owned before this haul: {facts.ownedBefore}</span>
+                          {sources.length === 0 ? null : (
+                            <span className="salvage-source">
+                              Field source: {sources.map((source) => sourceName(catalog, source)).join('; ')}
+                            </span>
+                          )}
+                          <span className="salvage-value">
+                            {cbills(facts.buildValue)} build · {cbills(facts.saleBasis)} mounted sale basis
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+          </details>
         )}
 
         {outcome.pilotReports.length === 0 ? (

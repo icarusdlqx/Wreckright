@@ -1417,8 +1417,78 @@ async function main() {
     // Coming home opens the debrief: what the drop earned each pilot.
     await page.waitForSelector('[data-testid="debrief"]');
     check(
+      'the campaign debrief receives focus as a modal report',
+      await page.locator('[data-testid="debrief"] .debrief').evaluate(
+        (element) => element === document.activeElement,
+      ),
+    );
+
+    await page.screenshot({ path: `${SHOTS}/07-campaign-debrief-desktop.png` });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.screenshot({ path: `${SHOTS}/07-campaign-debrief-mobile.png` });
+    const mobileDebrief = await page.locator('[data-testid="debrief"] .debrief').evaluate(
+      (element) => ({
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth,
+        viewportWidth: window.innerWidth,
+      }),
+    );
+    check(
+      'the campaign debrief does not overflow the mobile viewport',
+      mobileDebrief.scrollWidth <= mobileDebrief.clientWidth + 1 &&
+        mobileDebrief.clientWidth <= mobileDebrief.viewportWidth,
+      JSON.stringify(mobileDebrief),
+    );
+    const mobileDebriefAction = page
+      .locator('[data-testid="debrief-adjust-picks"], [data-testid="debrief-close"]')
+      .first();
+    const mobileDebriefActionBox = await mobileDebriefAction.boundingBox();
+    check(
+      'the mobile debrief action keeps a 44px touch target',
+      mobileDebriefActionBox !== null &&
+        mobileDebriefActionBox.width >= 44 &&
+        mobileDebriefActionBox.height >= 44,
+      JSON.stringify(mobileDebriefActionBox),
+    );
+    await page.setViewportSize({ width: 1440, height: 900 });
+
+    const debriefOutcome = await page.evaluate(() => {
+      const saved = JSON.parse(localStorage.getItem('ironline.campaign'));
+      const latest = saved.state.history.at(-1);
+      return {
+        won: latest.won,
+        payout: latest.payout,
+        salvagedChassis: latest.salvagedChassis,
+        salvagedItems: latest.salvagedItems,
+        salvageCandidates: latest.salvageCandidates ?? [],
+        salvageOffered: latest.salvageOffered ?? [],
+        pilotReportCount: latest.pilotReports.length,
+      };
+    });
+    const debriefLedger = await page.locator('[data-testid="debrief-ledger"]').innerText();
+    const expectedPayment = debriefOutcome.won
+      ? `+${Math.round(debriefOutcome.payout).toLocaleString('en-GB')} C`
+      : 'no payment';
+    const tookSalvage =
+      debriefOutcome.salvagedChassis.length > 0 || debriefOutcome.salvagedItems.length > 0;
+    check(
+      'the one-line ledger answers outcome, payment and salvage at a glance',
+      !debriefLedger.includes('\n') &&
+        debriefLedger.startsWith(
+          debriefOutcome.won ? 'Contract complete · ' : 'Contract failed · ',
+        ) &&
+        debriefLedger.includes(`· ${expectedPayment} · salvaged: `) &&
+        (tookSalvage ? !debriefLedger.endsWith('nothing') : debriefLedger.endsWith('nothing')),
+      debriefLedger,
+    );
+    check(
       'the debrief accounts for every pilot who dropped',
       (await page.locator('[data-testid^="debrief-fate-"]').count()) > 0,
+    );
+    check(
+      'the pilot XP rows stay visible beside the compact ledger',
+      (await page.locator('[data-testid^="debrief-fate-"]:visible').count()) ===
+        debriefOutcome.pilotReportCount,
     );
     const debriefText = await page.locator('[data-testid="debrief"]').innerText();
     check('the debrief reports experience earned', debriefText.includes('+') && debriefText.includes('XP'));
@@ -1427,7 +1497,96 @@ async function main() {
       'the debrief names the signed package',
       (await page.locator('[data-testid="debrief"] header').innerText()).includes('Salvage first'),
     );
+
+    const hasDetailedSalvage =
+      debriefOutcome.salvageCandidates.length > 0 || debriefOutcome.salvageOffered.length > 0;
+    const salvageReport = page.locator('[data-testid="debrief-salvage-report"]');
+    if (hasDetailedSalvage) {
+      check(
+        'the recovery ledger and picker begin folded behind the salvage disclosure',
+        (await salvageReport.count()) === 1 &&
+          (await salvageReport.getAttribute('open')) === null &&
+          (await page.locator('[data-testid="debrief-recovery"]').isVisible()) === false &&
+          (await page.locator('[data-testid="debrief-salvage"]').isVisible()) === false,
+      );
+
+      const adjustPicks = page.locator('[data-testid="debrief-adjust-picks"]');
+      await adjustPicks.focus();
+      check(
+        'the editable salvage disclosure is named Adjust picks',
+        (await adjustPicks.innerText()) === 'Adjust picks',
+      );
+      await page.keyboard.press('Enter');
+      check(
+        'the keyboard opens the full salvage report one click deeper',
+        (await salvageReport.getAttribute('open')) !== null &&
+          (debriefOutcome.salvageCandidates.length === 0 ||
+            (await page.locator('[data-testid="debrief-recovery"]').isVisible())) &&
+          (debriefOutcome.salvageOffered.length === 0 ||
+            (await page.locator('[data-testid="debrief-salvage"]').isVisible())),
+      );
+      if (debriefOutcome.salvageOffered.length > 0) {
+        check(
+          'the existing salvage picker remains visible and reachable',
+          (await page.locator('[data-testid^="salvage-pick-"]:visible').count()) ===
+            debriefOutcome.salvageOffered.length,
+        );
+      }
+
+      const namedRecoveredHull = await page
+        .locator('[data-testid^="debrief-recovery-"]')
+        .filter({ has: page.locator('.recovery-result.recovered') })
+        .locator('.recovery-name')
+        .allInnerTexts();
+      const namedTakenCrates = await page
+        .locator('[data-testid="debrief-salvage"] .salvage-offer button.taken .salvage-name')
+        .allInnerTexts();
+      check(
+        'the compact ledger names everything shown as recovered or aboard',
+        [...namedRecoveredHull, ...namedTakenCrates].every((name) =>
+          debriefLedger.includes(name.trim().replace(/×\s+/g, '×')),
+        ),
+        `${debriefLedger} vs ${[...namedRecoveredHull, ...namedTakenCrates].join(', ')}`,
+      );
+
+      await page.locator('[data-testid="debrief-close"]').focus();
+      await page.keyboard.press('Tab');
+      check(
+        'the campaign debrief traps forward focus',
+        (await page.evaluate(() => document.activeElement?.getAttribute('data-testid'))) ===
+          'debrief-adjust-picks',
+      );
+      await page.keyboard.press('Shift+Tab');
+      check(
+        'the campaign debrief traps reverse focus',
+        (await page.evaluate(() => document.activeElement?.getAttribute('data-testid'))) ===
+          'debrief-close',
+      );
+    } else {
+      check(
+        'an empty field report does not expose an empty salvage disclosure',
+        (await salvageReport.count()) === 0,
+      );
+    }
     await page.locator('[data-testid="debrief-close"]').click();
+    const debriefFocusRestored = await page
+      .waitForFunction(
+        () =>
+          ['camp-manual-toggle', 'feedback-link'].includes(
+            document.activeElement?.getAttribute('data-testid') ?? '',
+          ),
+        undefined,
+        { timeout: 1_000 },
+      )
+      .then(
+        () => true,
+        () => false,
+      );
+    check(
+      'closing the campaign debrief restores focus to its previous or fallback control',
+      debriefFocusRestored,
+      await page.evaluate(() => document.activeElement?.getAttribute('data-testid') ?? 'no focus'),
+    );
 
     check(
       'first-drop guidance retires after the opening outcome',
