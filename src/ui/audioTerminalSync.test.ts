@@ -19,7 +19,10 @@ import { AudioDirector } from './audio';
 
 function activeAudio(): AudioDirector {
   const audio = new AudioDirector();
-  (audio as unknown as { graph: AudioGraph }).graph = { close: vi.fn() } as unknown as AudioGraph;
+  (audio as unknown as { graph: AudioGraph }).graph = {
+    close: vi.fn(),
+    duckScore: vi.fn(),
+  } as unknown as AudioGraph;
   return audio;
 }
 

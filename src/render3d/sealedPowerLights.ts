@@ -14,11 +14,16 @@ interface PowerChannel {
   mesh: Mesh;
 }
 
+/**
+ * A sealed hull hides its wounds in the shell, so its lamps are what tell the
+ * story: a heavily worn channel runs dim and unsteady instead of blacking out.
+ */
 export function createSealedPowerLights(
   plan: Blueprint,
   scale: number,
   failed: ReadonlySet<MechLocation>,
   ownedMaterials: Material[],
+  worn: ReadonlySet<MechLocation> = new Set(),
 ): StartupLightRig | null {
   const head = plan.parts.find((part) => part.location === 'head');
   if (head === undefined) return null;
@@ -30,11 +35,17 @@ export function createSealedPowerLights(
     roughness: 0.22,
   });
   ownedMaterials.push(material);
+  const dimmed = worn.size === 0 ? material : material.clone();
+  if (dimmed !== material) {
+    dimmed.emissiveIntensity = 1.1;
+    ownedMaterials.push(dimmed);
+  }
   const lights: Mesh[] = [];
   const enabled: boolean[] = [];
+  const flicker: boolean[] = [];
   const eyeGeometry = new SphereGeometry(scale * 0.052, 8, 6);
   for (let index = 0; index < 3; index += 1) {
-    const light = new Mesh(eyeGeometry, material);
+    const light = new Mesh(eyeGeometry, worn.has('head') ? dimmed : material);
     light.name = `startup-light:${index}`;
     light.userData.powerChannel = 'head';
     light.position.set(
@@ -45,6 +56,7 @@ export function createSealedPowerLights(
     light.visible = false;
     lights.push(light);
     enabled.push(!failed.has('head'));
+    flicker.push(worn.has('head'));
   }
 
   const seamGeometry = new BoxGeometry(scale * 0.035, scale * 0.2, scale * 0.2);
@@ -52,7 +64,7 @@ export function createSealedPowerLights(
   for (const location of ['left_arm', 'right_arm'] as const) {
     const part = plan.parts.find((candidate) => candidate.location === location);
     if (part === undefined) continue;
-    const seam = new Mesh(seamGeometry, material);
+    const seam = new Mesh(seamGeometry, worn.has(location) ? dimmed : material);
     seam.name = `power-seam:${location}`;
     seam.userData.powerChannel = location;
     seam.position.set(
@@ -66,7 +78,8 @@ export function createSealedPowerLights(
   for (const channel of channels) {
     lights.push(channel.mesh);
     enabled.push(!failed.has(channel.location));
+    flicker.push(worn.has(channel.location));
   }
 
-  return { lights, enabled, elapsed: 0, running: true };
+  return { lights, enabled, flicker, elapsed: 0, running: true };
 }

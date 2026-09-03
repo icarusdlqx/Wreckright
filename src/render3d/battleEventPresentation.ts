@@ -7,7 +7,7 @@ import { canPresentEntity } from './visibilityPresentation';
 type Fired = Extract<SimEvent, { type: 'weapon_fired' }>;
 const INCOMING_CUE_DISTANCE = 54;
 
-interface TargetCueEvent {
+export interface TargetCueEvent {
   tick: number;
   targetId: number;
   weaponId: string;
@@ -24,12 +24,24 @@ export function weaponEventColour(weapon: Weapon | undefined): number {
   return weapon === undefined ? 0xffffff : parseInt(weapon.visual.colour.slice(1), 16);
 }
 
-export function missCueAngle(event: Extract<SimEvent, { type: 'projectile_miss' }>): number {
+/** Keyed by impact tick, so a round in flight and its miss event agree on the point. */
+export function missCueAngle(event: TargetCueEvent): number {
   return targetCueHash(event) / 0xffffffff * Math.PI * 2;
 }
 
-export function missCueDistance(event: Extract<SimEvent, { type: 'projectile_miss' }>): number {
+export function missCueDistance(event: TargetCueEvent): number {
   return 18 + ((targetCueHash(event) >>> 12) & 15);
+}
+
+/** Seconds an authored travelling read needs before its impact may be shown. */
+export function presentedFlightSeconds(
+  weapon: Weapon | undefined,
+  from: Vec2 | null,
+  to: Vec2 | null,
+): number {
+  const speed = weapon?.visual.speed;
+  if (speed === undefined || from === null || to === null) return 0;
+  return Math.hypot(to.x - from.x, to.y - from.y) / speed;
 }
 
 /** A complete trajectory is safe only when both ends are optically accounted for. */

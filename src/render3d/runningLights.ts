@@ -20,9 +20,10 @@ export function createMachinePowerLights(
   sealedFailures: ReadonlySet<MechLocation>,
   runningFailures: ReadonlySet<MechLocation>,
   ownedMaterials: Material[],
+  wornChannels: ReadonlySet<MechLocation> = new Set(),
 ): StartupLightRig | null {
   if (faction === 'aurelian') {
-    return createSealedPowerLights(plan, scale, sealedFailures, ownedMaterials);
+    return createSealedPowerLights(plan, scale, sealedFailures, ownedMaterials, wornChannels);
   }
   return night
     ? createLinewroughtRunningLights(plan, scale, runningFailures, ownedMaterials)

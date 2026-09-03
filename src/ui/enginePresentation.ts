@@ -20,6 +20,7 @@ import { authoredDesignName } from './designLabel';
 import { eventLogLine } from './eventLogPresentation';
 import type { IncomingFireDirections } from './incomingFireDirections';
 import { crossedMissionClockWarnings } from './missionClock';
+import type { OrderFeedback } from './orderFeedback';
 import { stoppedCount } from './objectiveReadout';
 import { snapshotUnits } from './snapshot';
 import { useGame, type HitPreviewView } from './store';
@@ -149,6 +150,7 @@ export class EnginePresentation {
     private readonly audio: AudioDirector,
     private readonly maxTicks: number,
     private readonly incomingFire: IncomingFireDirections | null = null,
+    private readonly orderFeedback: OrderFeedback | null = null,
   ) {
     this.clockSeconds = maxTicks * world.dt;
   }
@@ -163,6 +165,7 @@ export class EnginePresentation {
     this.renderer.consumeEvents(this.world, events);
     this.beginKillingBlow(events);
     this.incomingFire?.consume(this.world, events, useGame.getState().selection);
+    this.orderFeedback?.consume(this.world, events);
     this.audio.listenAt = this.renderer.camera.target;
     this.audio.consume(
       this.world,

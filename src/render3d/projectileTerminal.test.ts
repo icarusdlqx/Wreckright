@@ -71,10 +71,10 @@ describe('terminal projectile presentation', () => {
       2,
     );
 
-    expect(layer.resolveOutstanding(2, new Vector3(300, 24, 60))).toBe(6);
+    expect(layer.resolveOutstanding(2, new Vector3(300, 24, 60))).toBe(20);
     expect(layer.resolveOutstanding(2, new Vector3(900, 24, 60))).toBe(0);
     expect(positionAt(missileMesh(layer), 0).x).toBeCloseTo(291);
-    expect(positionAt(missileMesh(layer), 5).x).toBeCloseTo(309);
+    expect(positionAt(missileMesh(layer), 19).x).toBeCloseTo(309);
 
     const endpointOf = vi.fn(() => true);
     layer.update(0, endpointOf);
@@ -85,7 +85,7 @@ describe('terminal projectile presentation', () => {
 
   it('settles a saturated fixed pool without allocating or double-resolving', () => {
     const layer = new TracerLayer();
-    for (let volley = 0; volley < 20; volley += 1) {
+    for (let volley = 0; volley < 6; volley += 1) {
       layer.fire(
         new Vector3(0, 14, 0),
         { x: 600, y: volley },

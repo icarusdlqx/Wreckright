@@ -96,6 +96,20 @@ describe('battle result view', () => {
     expect(view.lance[0]?.identity).not.toContain('SNL-2');
   });
 
+  it('labels a legged concession as crippled rather than operational or lost', () => {
+    const report = viewBattleResult(
+      result({
+        units: [
+          unit(),
+          unit({ id: 2, team: 1, name: 'Raider', alive: true, legged: true, killMethod: 'legged' }),
+        ],
+      }),
+      0,
+    );
+    expect(report.hostilesStopped).toBe(1);
+    expect(report.lance.find((row) => row.id === 1)?.status).toBe('Operational');
+  });
+
   it('calls an unresolved clock ending a timeout without inventing a cause', () => {
     const view = viewBattleResult(
       result({ decided: false, winner: null, durationSeconds: 600 }),

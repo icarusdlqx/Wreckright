@@ -33,8 +33,8 @@ describe('machine culture presentation', () => {
   });
 
   it('keeps recoil exclusive to the welded hull and returns it to rest', () => {
-    const welded = { kick: 0, travel: 0.2 };
-    const sealed = { kick: 0, travel: 0.2 };
+    const welded = { kick: 0, travel: 0.2, jolt: 0, joltClock: 0 };
+    const sealed = { kick: 0, travel: 0.2, jolt: 0, joltClock: 0 };
 
     triggerHullRecoil(welded, machineCulture('linewrought'), 0.8);
     triggerHullRecoil(sealed, machineCulture('aurelian'), 0.8);

@@ -80,6 +80,7 @@ export function EnemyPanel({
       </div>
       <PaperDoll
         locations={enemy.locations}
+        testIdPrefix="target-doll"
         {...(canOrder && enemy.alive ? { onSelectLocation: onCalledShot } : {})}
       />
       {canOrder && enemy.alive ? (

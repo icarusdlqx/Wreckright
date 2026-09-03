@@ -1,4 +1,5 @@
 import { traceTiles } from './los';
+import { MinHeap } from './pathfindHeap';
 import type { TerrainGrid } from './terrain';
 import type { Vec2 } from './types';
 
@@ -15,67 +16,18 @@ const NEIGHBOURS: readonly (readonly [number, number, number])[] = [
   [-1, -1, DIAGONAL_COST],
 ];
 
-interface OpenNode {
-  cell: number;
-  f: number;
-  g: number;
+/**
+ * Tiles that cost extra to route through, by cell index (row * width +
+ * column). Soft: a corridor of parked lance-mates is still a route, only not
+ * the first one tried. Wrecks are never in here — they are ground.
+ */
+export interface PathOccupancy {
+  readonly cells: ReadonlySet<number>;
+  readonly costFactor: number;
 }
 
-class MinHeap {
-  private readonly items: OpenNode[] = [];
-
-  get size(): number {
-    return this.items.length;
-  }
-
-  clear(): void {
-    this.items.length = 0;
-  }
-
-  push(node: OpenNode): void {
-    this.items.push(node);
-    let child = this.items.length - 1;
-    while (child > 0) {
-      const parent = (child - 1) >> 1;
-      if (!this.lessThan(child, parent)) break;
-      this.swap(child, parent);
-      child = parent;
-    }
-  }
-
-  pop(): OpenNode | undefined {
-    const top = this.items[0];
-    const last = this.items.pop();
-    if (last !== undefined && this.items.length > 0) {
-      this.items[0] = last;
-      let parent = 0;
-      for (;;) {
-        const left = parent * 2 + 1;
-        const right = left + 1;
-        let smallest = parent;
-        if (left < this.items.length && this.lessThan(left, smallest)) smallest = left;
-        if (right < this.items.length && this.lessThan(right, smallest)) smallest = right;
-        if (smallest === parent) break;
-        this.swap(parent, smallest);
-        parent = smallest;
-      }
-    }
-    return top;
-  }
-
-  // Cell index breaks f-score ties so expansion order never depends on insertion timing.
-  private lessThan(a: number, b: number): boolean {
-    const left = this.items[a] as OpenNode;
-    const right = this.items[b] as OpenNode;
-    if (left.f !== right.f) return left.f < right.f;
-    return left.cell < right.cell;
-  }
-
-  private swap(a: number, b: number): void {
-    const held = this.items[a] as OpenNode;
-    this.items[a] = this.items[b] as OpenNode;
-    this.items[b] = held;
-  }
+function crowdFactor(occupancy: PathOccupancy | null, cell: number): number {
+  return occupancy !== null && occupancy.cells.has(cell) ? occupancy.costFactor : 1;
 }
 
 interface Scratch {
@@ -139,6 +91,7 @@ export function findPath(
   start: Vec2,
   goal: Vec2,
   maxNodes: number,
+  occupancy: PathOccupancy | null = null,
 ): Vec2[] | null {
   const startTile = grid.toTile(start);
   // A click past the map edge — the void beside the battlefield is visible
@@ -197,7 +150,7 @@ export function findPath(
       // really on this tile — a clamped click's point is off the map.
       const exact =
         !clamped && rawGoal.column === goalTile.column && rawGoal.row === goalTile.row;
-      return reconstruct(grid, from, startCell, goalCell, start, exact ? goal : null);
+      return reconstruct(grid, from, startCell, goalCell, start, exact ? goal : null, occupancy);
     }
 
     expanded += 1;
@@ -223,7 +176,7 @@ export function findPath(
       const nextCell = nextRow * grid.width + nextColumn;
       const rise = Math.max(0, grid.elevationAt(nextColumn, nextRow) - grid.elevationAt(column, row));
       const pace = grid.moveMultiplierAt(nextColumn, nextRow, rise);
-      const nextCost = currentCost + stepCost / pace;
+      const nextCost = currentCost + (stepCost / pace) * crowdFactor(occupancy, nextCell);
 
       if (stamp[nextCell] === generation && nextCost >= (cost[nextCell] ?? 0)) continue;
 
@@ -244,7 +197,7 @@ export function findPath(
   // what a pilot told "over there" would actually do; refusing outright is
   // reserved for asks that cannot even be approached.
   if (bestCell !== startCell) {
-    return reconstruct(grid, from, startCell, bestCell, start, null);
+    return reconstruct(grid, from, startCell, bestCell, start, null, occupancy);
   }
   return null;
 }
@@ -258,7 +211,12 @@ export function findPath(
  * can be shorter than the sample spacing — and the smoother would then happily
  * shortcut a mech straight into a building it can never walk through.
  */
-export function lineCost(grid: TerrainGrid, from: Vec2, to: Vec2): number | null {
+export function lineCost(
+  grid: TerrainGrid,
+  from: Vec2,
+  to: Vec2,
+  occupancy: PathOccupancy | null = null,
+): number | null {
   const span = Math.hypot(to.x - from.x, to.y - from.y);
   if (span === 0) return 0;
 
@@ -268,9 +226,15 @@ export function lineCost(grid: TerrainGrid, from: Vec2, to: Vec2): number | null
   const end = grid.toTile(to);
   if (!grid.passable(end.column, end.row)) return null;
 
+  // The smoother prices its shortcuts with this, so a parked lance-mate has
+  // to cost the straight line what it cost the search — or the detour the
+  // search chose is pulled straight back through the machine it avoided.
+  const crowd = (column: number, row: number): number =>
+    crowdFactor(occupancy, row * grid.width + column);
+
   let blocked = false;
   let tiles = 1;
-  let cost = 1 / grid.moveMultiplierAt(start.column, start.row);
+  let cost = crowd(start.column, start.row) / grid.moveMultiplierAt(start.column, start.row);
   let lastElevation = grid.elevationAt(start.column, start.row);
 
   traceTiles(grid, from, to, (column, row) => {
@@ -280,7 +244,7 @@ export function lineCost(grid: TerrainGrid, from: Vec2, to: Vec2): number | null
     }
     tiles += 1;
     const elevation = grid.elevationAt(column, row);
-    cost += 1 / grid.moveMultiplierAt(column, row, elevation - lastElevation);
+    cost += crowd(column, row) / grid.moveMultiplierAt(column, row, elevation - lastElevation);
     lastElevation = elevation;
     return true;
   });
@@ -289,7 +253,9 @@ export function lineCost(grid: TerrainGrid, from: Vec2, to: Vec2): number | null
 
   // traceTiles stops short of the end tile, which is already counted above.
   const endElevation = grid.elevationAt(end.column, end.row);
-  cost += 1 / grid.moveMultiplierAt(end.column, end.row, endElevation - lastElevation);
+  cost +=
+    crowd(end.column, end.row) /
+    grid.moveMultiplierAt(end.column, end.row, endElevation - lastElevation);
   tiles += 1;
 
   return (cost / tiles) * (span / grid.tileSize);
@@ -308,7 +274,12 @@ export function walkableLine(grid: TerrainGrid, from: Vec2, to: Vec2): boolean {
  * taken; where A* detoured onto a road to avoid rough going, the straight line
  * costs more and the detour survives — which is the whole reason it was chosen.
  */
-function smooth(grid: TerrainGrid, start: Vec2, waypoints: readonly Vec2[]): Vec2[] {
+function smooth(
+  grid: TerrainGrid,
+  start: Vec2,
+  waypoints: readonly Vec2[],
+  occupancy: PathOccupancy | null,
+): Vec2[] {
   if (waypoints.length < 2) return [...waypoints];
 
   const out: Vec2[] = [];
@@ -324,12 +295,12 @@ function smooth(grid: TerrainGrid, start: Vec2, waypoints: readonly Vec2[]): Vec
     for (let ahead = index; ahead < waypoints.length; ahead += 1) {
       const point = waypoints[ahead];
       if (point === undefined) break;
-      const leg = lineCost(grid, previous, point);
+      const leg = lineCost(grid, previous, point, occupancy);
       if (leg === null) break;
       running += leg;
       previous = point;
 
-      const direct = lineCost(grid, anchor, point);
+      const direct = lineCost(grid, anchor, point, occupancy);
       if (direct !== null && direct <= running + 1e-9) furthest = ahead;
     }
 
@@ -350,6 +321,7 @@ function reconstruct(
   goalCell: number,
   start: Vec2,
   goal: Vec2 | null,
+  occupancy: PathOccupancy | null,
 ): Vec2[] {
   const cells: number[] = [];
   let cell = goalCell;
@@ -368,5 +340,5 @@ function reconstruct(
   if (goal !== null && waypoints.length > 0) {
     waypoints[waypoints.length - 1] = { x: goal.x, y: goal.y };
   }
-  return smooth(grid, start, waypoints);
+  return smooth(grid, start, waypoints, occupancy);
 }

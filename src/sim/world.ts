@@ -1,5 +1,6 @@
 import { LOCATIONS, type MechLocation } from '../schema/common';
 import type { Design } from '../schema/design';
+import type { Deployment } from '../schema/mission';
 import type { Catalog } from '../schema/load';
 import type { Pilot } from '../schema/pilot';
 import { decideBaseline } from './ai/baseline';
@@ -8,6 +9,7 @@ import { buildFrameArcTables } from './arcs';
 import { difficultyTier, resolveDisengagement, runTeamAi } from './ai/tactical';
 import { toResult, type BattleResult } from './battleResult';
 import { separateBodies } from './collision';
+import { updateConcessions } from './concession';
 import { resolveProjectiles, updateWeapons } from './combat';
 import { createMech, type LocationDamage } from './entity';
 import { emit } from './events';
@@ -81,26 +83,13 @@ export function createWorld(catalog: Catalog, options: WorldOptions): World {
 
   for (const lance of mission.lances) {
     const override = lance.team === playerTeam ? options.playerLance : undefined;
-    // The drop is sized by tonnage, not by how many berths the mission author
-    // happened to draw: a lance bigger than the authored one fans its extra
-    // machines out beside the authored spawn points.
-    const slots =
-      override === undefined
-        ? lance.units
-        : override.map((_, index) => {
-            const authored = lance.units[index];
-            if (authored !== undefined) return authored;
-            const anchor = lance.units[index % Math.max(1, lance.units.length)];
-            if (anchor === undefined) throw new Error('a lance cannot spawn with no units');
-            const extra = index - lance.units.length + 1;
-            return {
-              ...anchor,
-              spawn: {
-                x: anchor.spawn.x + 16 * extra * (index % 2 === 0 ? 1 : -1),
-                y: anchor.spawn.y + 12 * extra,
-              },
-            };
-          });
+    // The player's drop is sized by what they brought; an opposing lance is
+    // sized by the difficulty tier, which can add a machine or hold one back.
+    const opposing = playerTeam !== null && lance.team !== playerTeam;
+    const count =
+      override?.length ??
+      Math.max(1, lance.units.length + (opposing ? (tier?.lanceSizeDelta ?? 0) : 0));
+    const slots = lanceSlots(lance.units, count);
 
     slots.forEach((unit, index) => {
       const entry = override?.[index];
@@ -135,7 +124,7 @@ export function createWorld(catalog: Catalog, options: WorldOptions): World {
 
   const hitLocationTable = LOCATIONS.map((location: MechLocation) => ({
     value: location,
-    weight: catalog.rules.combat.hitLocationWeights[location],
+    weight: catalog.rules.combat.supportHitLocationWeights[location],
   })).filter((entry) => entry.weight > 0);
 
   const world: World = {
@@ -191,6 +180,28 @@ export function createWorld(catalog: Catalog, options: WorldOptions): World {
   updateTeamVisions(world);
 
   return world;
+}
+
+/**
+ * Berths for a lance of `count`. A lance bigger than the authored one fans its
+ * extra machines out beside the authored spawn points; a smaller one leaves the
+ * last authored berths empty.
+ */
+function lanceSlots(authored: readonly Deployment[], count: number): Deployment[] {
+  return Array.from({ length: count }, (_, index) => {
+    const unit = authored[index];
+    if (unit !== undefined) return unit;
+    const anchor = authored[index % Math.max(1, authored.length)];
+    if (anchor === undefined) throw new Error('a lance cannot spawn with no units');
+    const extra = index - authored.length + 1;
+    return {
+      ...anchor,
+      spawn: {
+        x: anchor.spawn.x + 16 * extra * (index % 2 === 0 ? 1 : -1),
+        y: anchor.spawn.y + 12 * extra,
+      },
+    };
+  });
 }
 
 function teamsWithSurvivors(world: World): number[] {
@@ -344,6 +355,7 @@ export function stepWorld(world: World, maxTicks: number): void {
 
   resolveProjectiles(world);
   resolveDisengagement(world);
+  updateConcessions(world);
   updateSupport(world);
   updateFire(world);
   rememberObservedStops(world);

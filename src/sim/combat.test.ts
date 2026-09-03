@@ -377,7 +377,7 @@ describe('resolveProjectiles', () => {
 
 describe('hit location table', () => {
   it('matches the weighted distribution in the rules', () => {
-    const weights = world.rules.combat.hitLocationWeights;
+    const weights = world.rules.combat.supportHitLocationWeights;
     const total = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
 
     const counts = new Map<string, number>();

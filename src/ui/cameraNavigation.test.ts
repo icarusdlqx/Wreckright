@@ -1,9 +1,18 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { playerWorld } from '../../tests/support';
 import {
   arrowPanDelta,
   centreOnSelection,
+  edgePanDelta,
+  followSelection,
+  followingSelection,
+  keyPanDelta,
+  readEdgeScroll,
+  resetFollowSelection,
   selectedCentre,
+  setFollowSelection,
+  subscribeFollowSelection,
+  toggleFollowSelection,
   type CameraNavigationEngine,
 } from './cameraNavigation';
 
@@ -58,5 +67,64 @@ describe('camera selection navigation', () => {
     const { engine, centreOn } = harness([]);
     expect(centreOnSelection(engine)).toBe(false);
     expect(centreOn).not.toHaveBeenCalled();
+  });
+});
+
+describe('pan keys', () => {
+  it('lets WASD pan the same way as the arrows', () => {
+    expect(keyPanDelta(new Set(['KeyD']), 12)).toEqual(keyPanDelta(new Set(['ArrowRight']), 12));
+    expect(keyPanDelta(new Set(['KeyW']), 12)).toEqual(keyPanDelta(new Set(['ArrowUp']), 12));
+  });
+
+  it('only pans on A and S once they have been held, since a tap is an order', () => {
+    const tapped = (): boolean => false;
+    expect(keyPanDelta(new Set(['KeyA', 'KeyS']), 12, tapped)).toEqual({ x: 0, y: 0 });
+    expect(keyPanDelta(new Set(['KeyW']), 12, tapped)).toEqual({ x: 0, y: -12 });
+    expect(keyPanDelta(new Set(['KeyA']), 12)).toEqual({ x: 12, y: 0 });
+  });
+
+  it('never doubles the pace when a key and its arrow are both held', () => {
+    expect(keyPanDelta(new Set(['KeyD', 'ArrowRight']), 12)).toEqual({ x: -12, y: 0 });
+  });
+});
+
+describe('edge scrolling', () => {
+  const viewport = { width: 800, height: 600 };
+
+  it('pans toward the edge the pointer rests against', () => {
+    expect(edgePanDelta({ x: 5, y: 300 }, viewport, 10)).toEqual({ x: 10, y: 0 });
+    expect(edgePanDelta({ x: 795, y: 595 }, viewport, 10)).toEqual({ x: -10, y: 10 });
+    expect(edgePanDelta({ x: 400, y: 300 }, viewport, 10)).toEqual({ x: 0, y: 0 });
+    expect(edgePanDelta(null, viewport, 10)).toEqual({ x: 0, y: 0 });
+  });
+
+  it('is off unless the preference says otherwise', () => {
+    expect(readEdgeScroll()).toBe(false);
+  });
+});
+
+describe('following the selection', () => {
+  afterEach(() => resetFollowSelection());
+
+  it('keeps the camera on the selection each frame while on', () => {
+    const { engine, centreOn } = harness([1]);
+    const [first] = engine.world.entities;
+    if (first === undefined) throw new Error('missing selection');
+    first.pos = { x: 50, y: 60 };
+
+    expect(followSelection(engine)).toBe(false);
+    expect(toggleFollowSelection()).toBe(true);
+    expect(followSelection(engine)).toBe(true);
+    expect(centreOn).toHaveBeenCalledWith({ x: 50, y: 60 });
+  });
+
+  it('is released by a pan and tells its subscribers', () => {
+    const heard = vi.fn();
+    const unsubscribe = subscribeFollowSelection(heard);
+    setFollowSelection(true);
+    setFollowSelection(false);
+    expect(heard).toHaveBeenCalledTimes(2);
+    expect(followingSelection()).toBe(false);
+    unsubscribe();
   });
 });

@@ -1,11 +1,15 @@
 import { Scene, Vector3 } from 'three';
-import { LOCATIONS } from '../schema/common';
+import { LOCATIONS, type MechLocation } from '../schema/common';
 import { radiusFor } from '../render/shape';
-import { findEntity, isOperational, type EntityId, type MechEntity, type Vec2, type World } from '../sim/types';
+import { isOperational, type EntityId, type MechEntity, type Vec2, type World } from '../sim/types';
 import type { SimEvent } from '../sim/events';
 import type { TacticalCamera, Viewport } from './camera';
 import { ContactShadowLayer } from './contactShadows';
+import type { DamageSplit } from './damageLedger';
+import { HeatVentPool } from './heatVentPool';
+import { advanceHullSurface } from './hullSurface';
 import { locationWorldAnchor } from './locationAnchors';
+import { flashUnitLocation, presentUnitHeat } from './unitHeatPresentation';
 import { advanceWeaponRecoil, triggerWeaponRecoil } from './weaponModels';
 import { advanceHullRecoil, triggerHullRecoil } from './machineCulture';
 import { advanceStartupSequence } from './startupLights';
@@ -18,6 +22,7 @@ import {
 } from './renderQuality';
 import { setMachineMotionLowFx } from './machineMotion';
 import { DetachedPartPool } from './detachedPartPool';
+import { UnitViewEventRouter, type UnitViewEventHost } from './unitViewEvents';
 import { canPresentEntity } from './visibilityPresentation';
 import { fallbackFallAxis, impactFallAxis, modelDamageSignature,
   sealedTargetOffset, writeInterpolatedPose } from './unitVisualState';
@@ -38,7 +43,7 @@ interface MotionSample {
 }
 
 /** Owns model rebuilds and the two sim samples used for smooth rendering. */
-export class UnitViews {
+export class UnitViews implements UnitViewEventHost {
   private readonly views = new Map<EntityId, EntityView>();
   private readonly samples = new Map<EntityId, MotionSample>();
   private readonly interpolated = new Map<EntityId, Interpolated>();
@@ -47,6 +52,8 @@ export class UnitViews {
   private readonly shadows: ContactShadowLayer;
   private readonly picking: UnitPicking;
   private readonly detachedParts: DetachedPartPool;
+  private readonly vents = new HeatVentPool();
+  private readonly events = new UnitViewEventRouter();
   private readonly fallAxes = new Map<EntityId, ReturnType<typeof fallbackFallAxis>>();
   private readonly presentedPowerEvents = new Map<EntityId, 'shutdown' | 'restart'>();
   private detail: ModelDetail = 'structure';
@@ -55,19 +62,20 @@ export class UnitViews {
   constructor(
     private readonly scene: Scene,
     private readonly heightAt: (x: number, y: number) => number,
-    private readonly reducedMotion = false,
+    readonly reducedMotion = false,
   ) {
     this.shadows = new ContactShadowLayer(heightAt);
     this.picking = new UnitPicking(heightAt, (entity) => this.at(entity),
       (id) => this.placed.has(id) ? this.views.get(id) : undefined);
     this.detachedParts = new DetachedPartPool(scene, heightAt, reducedMotion);
-    scene.add(this.shadows.mesh);
+    scene.add(this.shadows.mesh, this.vents.mesh);
   }
 
   dispose(): void {
     for (const id of [...this.views.keys()]) this.retire(id);
-    this.scene.remove(this.shadows.mesh);
+    this.scene.remove(this.shadows.mesh, this.vents.mesh);
     this.shadows.dispose();
+    this.vents.dispose();
     this.detachedParts.dispose();
     this.samples.clear();
     this.interpolated.clear();
@@ -80,9 +88,11 @@ export class UnitViews {
   beginFrame(deltaSeconds = 0): void {
     this.shadows.begin();
     this.detachedParts.advance(deltaSeconds);
+    this.vents.update(deltaSeconds);
     this.placed.clear();
     for (const view of this.views.values()) {
       advanceHullRecoil(view.model.hullRecoil, deltaSeconds);
+      advanceHullSurface(view.surface, deltaSeconds);
       if (view.model.root.visible) advanceStartupSequence(view.model, deltaSeconds, this.reducedMotion);
       for (const weapon of view.model.weapons) {
         if (weapon.slide.userData.disabledWeapon === true) continue;
@@ -111,48 +121,35 @@ export class UnitViews {
     this.shadows.place(at, radiusFor(entity.tonnage), at.facing, lift, -submergence);
   }
 
+  presentHeat(entity: MechEntity, deltaSeconds: number): void {
+    const view = this.views.get(entity.id);
+    if (view === undefined) return;
+    presentUnitHeat(view, entity, deltaSeconds, this.vents, this.placed.has(entity.id), this.lowFx);
+  }
+
   finishFrame(): void {
     this.shadows.commit();
     this.presentedPowerEvents.clear();
   }
 
   consumeEvents(world: World, events: readonly SimEvent[]): void {
-    for (const event of events) {
-      if (event.type === 'projectile_hit') {
-        if (
-          canPresentEntity(world, event.targetId) &&
-          canPresentEntity(world, event.shooterId)
-        ) this.rememberImpact(event.targetId, event.shooterId);
-      } else if (event.type === 'critical_hit' && event.shooterId !== null) {
-        if (
-          canPresentEntity(world, event.entityId) &&
-          canPresentEntity(world, event.shooterId)
-        ) this.rememberImpact(event.entityId, event.shooterId);
-      } else if (event.type === 'knocked_down' && event.attackerId !== null) {
-        if (
-          canPresentEntity(world, event.entityId) &&
-          canPresentEntity(world, event.attackerId)
-        ) this.rememberImpact(event.entityId, event.attackerId);
-      } else if (event.type === 'location_destroyed') {
-        const view = this.views.get(event.entityId);
-        if (
-          canPresentEntity(world, event.entityId) &&
-          view?.model.faction === 'linewrought' &&
-          this.canLocate(event.entityId)
-        ) {
-          this.detachedParts.spawn(view.model.root, event.location, event.entityId + event.tick);
-        }
-      } else if (event.type === 'shutdown' || event.type === 'restart') {
-        const view = this.views.get(event.entityId);
-        if (canPresentEntity(world, event.entityId) && this.wasPresented(event.entityId)) {
-          presentMachinePowerEvent(view?.model, event.type, this.reducedMotion);
-          this.presentedPowerEvents.set(event.entityId, event.type);
-        } else if (view !== undefined) {
-          const entity = findEntity(world, event.entityId);
-          if (entity !== null) synchronizeMachinePower(view.model, entity.shutdownRemaining <= 0);
-        }
-      }
-    }
+    this.events.consume(this, world, events);
+  }
+
+  viewOf(id: EntityId): EntityView | undefined {
+    return this.views.get(id);
+  }
+
+  shedLocation(view: EntityView, location: MechLocation, seed: number): void {
+    this.detachedParts.spawn(view.model.root, location, seed);
+  }
+
+  notePowerEvent(id: EntityId, event: 'shutdown' | 'restart'): void {
+    this.presentedPowerEvents.set(id, event);
+  }
+
+  flashLocation(view: EntityView, location: MechLocation, split: DamageSplit, damage: number): void {
+    flashUnitLocation(view, location, split, damage);
   }
 
   snapshot(world: World): void {
@@ -369,6 +366,18 @@ export class UnitViews {
     return this.picking.entityAtScreen(world, screen, radiusPixels, camera, viewport, wanted);
   }
 
+  rememberImpact(targetId: EntityId, attackerId: EntityId): void {
+    if (!this.canLocate(targetId) || !this.canLocate(attackerId)) return;
+    const target = this.interpolated.get(targetId) ?? this.samples.get(targetId)?.cur;
+    const attacker = this.interpolated.get(attackerId) ?? this.samples.get(attackerId)?.cur;
+    if (target === undefined || attacker === undefined) return;
+    const axis = impactFallAxis(target, attacker);
+    if (axis === null) return;
+    this.fallAxes.set(targetId, axis);
+    const view = this.views.get(targetId);
+    if (view !== undefined) view.model.terminalFallAxis = axis;
+  }
+
   private shouldTrack(world: World, entity: MechEntity): boolean {
     return this.views.has(entity.id) || canPresentEntity(world, entity.id);
   }
@@ -383,17 +392,5 @@ export class UnitViews {
     }
     this.placed.delete(entity.id);
     this.presentedPowerEvents.delete(entity.id);
-  }
-
-  private rememberImpact(targetId: EntityId, attackerId: EntityId): void {
-    if (!this.canLocate(targetId) || !this.canLocate(attackerId)) return;
-    const target = this.interpolated.get(targetId) ?? this.samples.get(targetId)?.cur;
-    const attacker = this.interpolated.get(attackerId) ?? this.samples.get(attackerId)?.cur;
-    if (target === undefined || attacker === undefined) return;
-    const axis = impactFallAxis(target, attacker);
-    if (axis === null) return;
-    this.fallAxes.set(targetId, axis);
-    const view = this.views.get(targetId);
-    if (view !== undefined) view.model.terminalFallAxis = axis;
   }
 }

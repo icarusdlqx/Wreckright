@@ -53,10 +53,10 @@ describe('armour workbench model', () => {
 
     expect(medians.left_torso).toBe(49.5);
     expect(medians.right_torso).toBe(49.5);
-    expect(medians.left_arm).toBe(35);
-    expect(medians.right_arm).toBe(35);
-    expect(medians.left_leg).toBe(46);
-    expect(medians.right_leg).toBe(46);
+    expect(medians.left_arm).toBe(32);
+    expect(medians.right_arm).toBe(32);
+    expect(medians.left_leg).toBe(42);
+    expect(medians.right_leg).toBe(42);
   });
 
   it('returns null for a location with no active stock cohort', () => {

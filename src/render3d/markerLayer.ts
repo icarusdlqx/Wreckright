@@ -23,15 +23,26 @@ import { RouteMarkerPool, type RouteMarkerStats } from './routeMarkerPool';
 import type { RouteMarkerView } from './routeMarkerTypes';
 import { canPresentEntity, canPresentSupportCall } from './visibilityPresentation';
 
+/** A mark on the ground where an order landed, or where a route was given up. */
+export interface OrderPulseView {
+  at: Vec2;
+  kind: 'order' | 'dropped';
+  /** 0 when fresh, 1 when spent. */
+  progress: number;
+}
+
 export interface MarkerViewState {
   selection: ReadonlySet<EntityId>;
   orderMode: 'move' | 'run' | 'attack' | 'attack_move' | 'called_shot' | 'jump' | null;
   supportRadius: { at: Vec2; radius: number } | null;
   supportRun: { at: Vec2; heading: number; length: number; width: number } | null;
   routes: readonly RouteMarkerView[];
+  pulses?: readonly OrderPulseView[];
 }
 
 const REACHES: number[] = [];
+/** Opacity is quantised so animated fades cannot grow the material cache. */
+const OPACITY_STEPS = 20;
 
 /** Pooled battlefield annotations, kept out of the scene's orchestration. */
 export class MarkerLayer {
@@ -41,6 +52,9 @@ export class MarkerLayer {
   private readonly markerMaterials = new Map<string, MeshBasicMaterial>();
   private readonly ringPool: Mesh[] = [];
   private ringsUsed = 0;
+  private readonly pulseGeometry = new RingGeometry(0.82, 1, 40);
+  private readonly pulsePool: Mesh[] = [];
+  private pulsesUsed = 0;
   private readonly routes: RouteMarkerPool;
   private readonly supportLaneMaterial = new LineBasicMaterial({
     color: UI.attackMarker,
@@ -66,6 +80,7 @@ export class MarkerLayer {
   dispose(): void {
     for (const geometry of this.ringGeometries.values()) geometry.dispose();
     for (const material of this.markerMaterials.values()) material.dispose();
+    this.pulseGeometry.dispose();
     this.routes.dispose();
     this.supportLane.geometry.dispose();
     this.supportLaneMaterial.dispose();
@@ -77,7 +92,10 @@ export class MarkerLayer {
 
   draw(world: World, view: MarkerViewState, deltaSeconds = 0, reducedMotion = false): void {
     this.ringsUsed = 0;
+    this.pulsesUsed = 0;
     this.routes.begin(deltaSeconds, reducedMotion);
+
+    for (const pulse of view.pulses ?? []) this.orderPulse(pulse, world.terrain.tileSize);
 
     for (const zone of world.zones) {
       const colour = zone.owner === null ? UI.ghost : teamColour(zone.owner);
@@ -156,6 +174,43 @@ export class MarkerLayer {
       const ring = this.ringPool[index];
       if (ring !== undefined) ring.visible = false;
     }
+    for (let index = this.pulsesUsed; index < this.pulsePool.length; index += 1) {
+      const ring = this.pulsePool[index];
+      if (ring !== undefined) ring.visible = false;
+    }
+  }
+
+  /**
+   * An order lands as a ring that spreads and fades from the click; a route
+   * given up leaves a tighter, slower double ring in the order colour's
+   * opposite, so "the game dropped it" is written on the ground at the spot.
+   */
+  private orderPulse(pulse: OrderPulseView, tileSize: number): void {
+    const fade = 1 - pulse.progress;
+    if (pulse.kind === 'order') {
+      this.pulseRing(pulse.at, tileSize * (0.2 + 0.7 * pulse.progress), UI.moveMarker, 0.9 * fade);
+      return;
+    }
+    this.pulseRing(pulse.at, tileSize * 0.45, UI.attackMarker, 0.9 * fade);
+    this.pulseRing(pulse.at, tileSize * 0.28, UI.attackMarker, 0.7 * fade);
+  }
+
+  private pulseRing(at: Vec2, radius: number, colour: number, opacity: number): void {
+    let ring = this.pulsePool[this.pulsesUsed];
+    if (ring === undefined) {
+      ring = new Mesh(this.pulseGeometry);
+      ring.rotation.x = -Math.PI / 2;
+      this.group.add(ring);
+      this.pulsePool.push(ring);
+    }
+    this.pulsesUsed += 1;
+
+    const quantised = Math.round(opacity * OPACITY_STEPS) / OPACITY_STEPS;
+    ring.material = this.markerMaterial(colour, quantised, false);
+    ring.scale.set(Math.max(1, radius), Math.max(1, radius), 1);
+    ring.position.set(at.x, this.heightAt(at.x, at.y) + 1.2, at.y);
+    ring.renderOrder = 10;
+    ring.visible = quantised > 0;
   }
 
   private pendingCall(world: World, pending: PendingCall): void {

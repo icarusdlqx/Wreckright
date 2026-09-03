@@ -24,7 +24,18 @@ interface SmokeSlot extends ShotSlot {
   grow: number;
 }
 
+export interface SmokePuffOptions {
+  /** Starting radius relative to the ammunition-cook-off puff. */
+  readonly scale?: number;
+  readonly life?: number;
+  readonly rise?: number;
+  readonly grow?: number;
+  readonly colour?: number;
+}
+
 const INSTANCE = new Object3D();
+const DEFAULT_LIFE = 2.6;
+const DEFAULT_COLOUR = 0x6a6f74;
 
 function smokeMaterial(): MeshBasicMaterial {
   return new MeshBasicMaterial({
@@ -55,16 +66,27 @@ export class SmokeShotPool {
     }));
   }
 
-  spawn(at: Vec2, ground: number, lifeScale: number): void {
+  spawn(at: Vec2, ground: number, lifeScale: number, options: SmokePuffOptions = {}): void {
+    this.spawnAt(at.x, ground + 14, at.y, lifeScale, options);
+  }
+
+  /** A puff at a point already in the air, for a trail behind a travelling round. */
+  spawnAt(x: number, y: number, z: number, lifeScale: number, options: SmokePuffOptions = {}): void {
     const slot = this.core.acquire(SHOT_PRIORITY.decoration);
     if (slot === null) return;
-    slot.x = at.x;
-    slot.y = ground + 14;
-    slot.z = at.y;
-    slot.scale = 1;
-    slot.rise = 13;
-    slot.grow = 2.4;
-    this.core.configure(slot, 2.6 * lifeScale, 1, 0x6a6f74, 1);
+    slot.x = x;
+    slot.y = y;
+    slot.z = z;
+    slot.scale = options.scale ?? 1;
+    slot.rise = options.rise ?? 13;
+    slot.grow = options.grow ?? 2.4;
+    this.core.configure(
+      slot,
+      (options.life ?? DEFAULT_LIFE) * lifeScale,
+      1,
+      options.colour ?? DEFAULT_COLOUR,
+      1,
+    );
     this.writeMatrix(slot, 0);
     this.core.setColour(slot, 0, 1);
     this.core.commit();

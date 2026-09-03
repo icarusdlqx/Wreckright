@@ -77,7 +77,9 @@ export function toResult(world: World, seed: RngSeed, maxTicks: number): BattleR
       name: entity.name,
       designId: entity.designId,
       pilotId: entity.pilot.id,
-      alive: isOperational(entity),
+      // A conceded mech is out of the fight but came through whole: it is
+      // alive here, with `killMethod` 'legged' saying why it stopped.
+      alive: isOperational(entity) || entity.disabled,
       killMethod: entity.killMethod,
       pilotDead: entity.pilot.dead,
       pilotWounds: entity.pilot.wounds,
@@ -94,10 +96,12 @@ export function toResult(world: World, seed: RngSeed, maxTicks: number): BattleR
       condition: Object.fromEntries(
         LOCATIONS.map((location) => [
           location,
+          // Whole points, rounded in the mech's favour: the campaign invoices
+          // repairs off these, and nobody bills for a third of a plate.
           {
-            armour: entity.locations[location].armour,
-            rearArmour: entity.locations[location].rearArmour,
-            internal: entity.locations[location].internal,
+            armour: Math.ceil(entity.locations[location].armour),
+            rearArmour: Math.ceil(entity.locations[location].rearArmour),
+            internal: Math.ceil(entity.locations[location].internal),
             destroyed: entity.locations[location].destroyed,
           },
         ]),

@@ -1,5 +1,12 @@
 import { AudioGraph } from './audioGraph';
-import { readAudioMuted, writeAudioMuted } from './audioPreference';
+import {
+  readAudioLevels,
+  readAudioMuted,
+  writeAudioLevel,
+  writeAudioMuted,
+  type AudioLevelKind,
+  type AudioLevels,
+} from './audioPreference';
 import {
   SCORE_CLOSE_DELAY_MS,
   SCORE_RETARGET_INTERVAL_SECONDS,
@@ -36,10 +43,15 @@ export class StrategicScoreDirector {
   private nextOrder = 0;
   private lastShare = NEUTRAL_CULTURE_SHARE;
   private mutedState = readAudioMuted();
+  private levelsState: AudioLevels = readAudioLevels();
   private destroyed = false;
 
   get muted(): boolean {
     return this.mutedState;
+  }
+
+  get levels(): Readonly<AudioLevels> {
+    return this.levelsState;
   }
 
   get active(): boolean {
@@ -55,6 +67,7 @@ export class StrategicScoreDirector {
   prepare(): void {
     if (this.destroyed) return;
     this.syncMuted();
+    this.syncLevels();
     this.ensureGraph();
     this.graph?.resume();
   }
@@ -101,6 +114,13 @@ export class StrategicScoreDirector {
     return this.mutedState;
   }
 
+  setLevel(kind: AudioLevelKind, value: number): void {
+    this.levelsState = { ...this.levelsState, [kind]: value };
+    writeAudioLevel(kind, value);
+    this.graph?.setLevel(kind, value);
+    this.emit();
+  }
+
   destroy(): void {
     if (this.destroyed) return;
     this.destroyed = true;
@@ -111,13 +131,13 @@ export class StrategicScoreDirector {
 
   private ensureGraph(): void {
     if (this.graph !== null) return;
-    const graph = AudioGraph.create(this.mutedState);
+    const graph = AudioGraph.create(this.mutedState, this.levelsState);
     if (graph === null) return;
     this.graph = graph;
     const chosen = this.chosenLease();
     const share = chosen?.aurelianShare ?? this.lastShare;
     const initialLevel = chosen === null ? 0 : STRATEGIC_SCORE_TREATMENTS[chosen.surface].level;
-    this.score = createProceduralScore(graph, share, initialLevel);
+    this.score = createProceduralScore(graph.scoreBus(), share, initialLevel);
     this.apply();
   }
 
@@ -172,6 +192,20 @@ export class StrategicScoreDirector {
     if (stored === this.mutedState) return;
     this.mutedState = stored;
     this.graph?.setMuted(stored);
+    this.emit();
+  }
+
+  /** The battle menu writes the same keys; a route change is when we catch up. */
+  private syncLevels(): void {
+    const stored = readAudioLevels();
+    let changed = false;
+    for (const kind of ['master', 'effects', 'score'] as const) {
+      if (stored[kind] === this.levelsState[kind]) continue;
+      changed = true;
+      this.graph?.setLevel(kind, stored[kind]);
+    }
+    if (!changed) return;
+    this.levelsState = stored;
     this.emit();
   }
 

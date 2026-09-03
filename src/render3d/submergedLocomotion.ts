@@ -1,4 +1,5 @@
 import type { MechEntity } from '../sim/types';
+import { hullJoltSway } from './machineCulture';
 import type { AnimationState } from './locomotionState';
 import type { MechModel } from './mechModel';
 import type { Interpolated } from './unitViews';
@@ -26,10 +27,11 @@ export function placeMachineRoot(
   const submergence = state.submergence;
   const contact = entity.jump === null && submergence === 0 ? state.contact.body : 0;
   const kick = model.hullRecoil.kick;
+  const sway = hullJoltSway(model.hullRecoil);
   model.root.position.set(
-    at.x - Math.cos(at.facing) * kick,
+    at.x - Math.cos(at.facing) * kick - Math.sin(at.facing) * sway,
     state.ground + lift + contact + submergence,
-    at.y - Math.sin(at.facing) * kick,
+    at.y - Math.sin(at.facing) * kick + Math.cos(at.facing) * sway,
   );
   return submergence;
 }

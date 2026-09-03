@@ -40,12 +40,13 @@ export interface MoveOrderOptions {
   queued?: boolean;
 }
 
+/** Returns how many machines took the order, so the caller can mark the ground. */
 export function moveSelection(
   context: EngineOrderContext,
   to: Vec2,
   run: boolean,
   options: MoveOrderOptions = {},
-): void {
+): number {
   let moved = 0;
   const entities = context
     .selectedEntities()
@@ -64,6 +65,7 @@ export function moveSelection(
   // order given with nothing selected was the commonest way to see one.
   else if (entities.length > 0) useGame.getState().pushLog('No route to that point.');
   else useGame.getState().pushLog('No mech selected to give that order to.');
+  return moved;
 }
 
 export function engageContactSelection(

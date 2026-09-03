@@ -13,8 +13,20 @@ export interface Command {
 }
 
 export const COMMANDS: readonly Command[] = [
-  { id: 'move', label: 'Move', key: 'M', mode: 'move' },
-  { id: 'run', label: 'Run', key: 'R', mode: 'run' },
+  {
+    id: 'move',
+    label: 'Move',
+    key: 'M',
+    mode: 'move',
+    title: 'Walk to a point. Shift-click queues the leg behind the current order, at that order\'s pace (M)',
+  },
+  {
+    id: 'run',
+    label: 'Run',
+    key: 'R',
+    mode: 'run',
+    title: 'Run to a point — Shift + right-click does the same. A leg queued behind a move keeps that move\'s pace (R)',
+  },
   {
     id: 'attack_move',
     label: 'Attack Move',
@@ -38,6 +50,13 @@ export const COMMANDS: readonly Command[] = [
     key: 'G',
     mode: null,
     title: 'Hold this ground and engage at will. Press again to release (G)',
+  },
+  {
+    id: 'keep_facing',
+    label: 'Keep Facing',
+    key: 'K',
+    mode: null,
+    title: 'Move where told with the nose held on the target — crabbing costs pace. Press again to release (K)',
   },
   {
     id: 'ability',
@@ -101,6 +120,7 @@ interface CommandButtonProps {
 const PRIMARY_COMMANDS = new Set(['move', 'attack_move', 'attack', 'hold_position', 'ability', 'jump']);
 const ADVANCED_COMMANDS = new Set([
   'run',
+  'keep_facing',
   'called_shot',
   'hold_fire',
   'alpha_strike',

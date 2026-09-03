@@ -25,7 +25,8 @@
     "style": "bolt",
     "colour": "#b9c8ff",
     "width": 4.4,
-    "arc": 0
+    "arc": 0,
+    "speed": 1000
   },
   "summary": "No minimum-range interlock and four hundred metres of reach. The sealed capacitor bank has no field-service procedure."
 }

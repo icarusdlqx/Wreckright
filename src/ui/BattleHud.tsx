@@ -5,6 +5,7 @@ import { CommanderToggle } from './CommanderToggle';
 import { CommanderView } from './CommanderView';
 import { selectedTargetIds } from './ContactsBar';
 import type { Engine } from './engine';
+import { FollowSelectionButton } from './FollowSelectionButton';
 import { FormationPicker } from './FormationPicker';
 import { Minimap } from './Minimap';
 import { MobileBattleHud } from './MobileBattleHud';
@@ -54,7 +55,7 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
       engine.orderStop();
       return;
     }
-    if (command.id === 'hold_position') {
+    if (command.id === 'hold_position' || command.id === 'keep_facing') {
       engine.setPosture(command.id);
       return;
     }
@@ -115,10 +116,12 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
         ) : null}
         <div className="camera-lance-row">
           <CentreSelectionButton engine={engine} className="command camera-centre" />
+          <FollowSelectionButton engine={engine} className="command camera-centre" />
           <CommanderToggle disabled={engine === null} />
           <LanceBar
             units={state.units}
             selection={state.selection}
+            tick={state.tick}
             onSelect={(id) => {
               // A second click on the card you already hold is "take me there".
               if (state.selection.length === 1 && state.selection[0] === id) {

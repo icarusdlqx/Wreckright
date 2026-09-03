@@ -1,5 +1,6 @@
 import type { MechEntity, Vec2 } from '../sim/types';
 import { isOperational } from '../sim/types';
+import { setFollowSelection } from './cameraNavigation';
 import type { Engine } from './engine';
 import { useGame } from './store';
 import { clearSupportModeOnSuccess, type TouchInput } from './touchInput';
@@ -138,7 +139,9 @@ export function createPointerHandlers(options: PointerHandlerOptions): PointerHa
         game.patch({ inspectedId: target.id });
         engine.orderAttack(target.id, null);
       } else {
-        engine.orderMove(world, false, { queued: event.shiftKey });
+        // Shift on the right button is "run there": a run order on a standing
+        // machine, and a leg behind whatever it is already walking.
+        engine.orderMove(world, event.shiftKey, { queued: event.shiftKey });
       }
       game.setOrderMode(null);
       return;
@@ -253,6 +256,7 @@ export function createPointerHandlers(options: PointerHandlerOptions): PointerHa
     }
 
     if (!state.panning || state.lastPan === null) return;
+    setFollowSelection(false);
     const scale = engine.renderer.camera.distance * PAN_PER_PIXEL;
     engine.renderer.camera.panBy(
       (state.lastPan.x - screen.x) * scale,
@@ -335,7 +339,7 @@ export function createPointerHandlers(options: PointerHandlerOptions): PointerHa
     if (target !== null && target.team !== game.playerTeam && isOperational(target)) {
       engine.orderAttack(target.id, null);
     } else {
-      engine.orderMove(world, false, { queued: event.shiftKey });
+      engine.orderMove(world, event.shiftKey, { queued: event.shiftKey });
     }
     game.setOrderMode(null);
   };

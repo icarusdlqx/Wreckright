@@ -3,9 +3,9 @@
   "default": "regular",
   "tiers": {
     "green": {
-      "skillDelta": -1,
+      "skillDelta": -2,
       "aggression": 0.7,
-      "lanceSizeDelta": -1,
+      "lanceSizeDelta": 0,
       "focusFire": false,
       "flanking": false,
       "coverSeeking": false,
@@ -19,7 +19,7 @@
       "focusFire": true,
       "flanking": false,
       "coverSeeking": true,
-      "calledShots": false,
+      "calledShots": true,
       "usesSupport": false
     },
     "veteran": {

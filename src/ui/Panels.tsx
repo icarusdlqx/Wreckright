@@ -1,3 +1,5 @@
+import { useRef } from 'react';
+import { settleMotionLabel, type MotionLabelMemory } from './lanceStatus';
 import type { HitPreviewView, UnitSnapshot, WeaponSnapshot } from './store';
 export { SupportPalette } from './SupportPalette';
 export { HostileBar } from './ContactsBar';
@@ -198,11 +200,15 @@ export function LanceBar({
   units,
   selection,
   onSelect,
+  tick = null,
 }: {
   units: readonly UnitSnapshot[];
   selection: readonly number[];
   onSelect: (id: number) => void;
+  /** Simulation tick of the snapshot; without it the gait shows unfiltered. */
+  tick?: number | null;
 }) {
+  const gaitMemory = useRef(new Map<number, MotionLabelMemory>()).current;
   return (
     <div className="lance" data-testid="lance-bar">
       {units.map((unit) => {
@@ -241,7 +247,7 @@ export function LanceBar({
                       ? 'STAGGERED'
                       : unit.holdingFire
                         ? 'HOLDING'
-                        : unit.motion.toUpperCase()
+                        : settleMotionLabel(gaitMemory, unit.id, unit.motion, tick).toUpperCase()
                 : (unit.killMethod ?? 'LOST').toUpperCase()}
             </span>
           </button>

@@ -5,8 +5,15 @@ export interface StartupLightRig {
   lights: Mesh[];
   /** Destroyed systems leave corresponding channels permanently dark. */
   enabled: boolean[];
+  /** Heavily worn channels stay lit but stutter; absent means every lamp is steady. */
+  flicker?: boolean[];
   elapsed: number;
   running: boolean;
+}
+
+/** Two unrelated periods make a stutter that never settles into a rhythm. */
+export function lampFlickerLit(elapsed: number, index: number): boolean {
+  return Math.sin(elapsed * 23 + index * 1.7) * Math.sin(elapsed * 7.3 + index) > -0.3;
 }
 
 interface StartupModel {
@@ -35,7 +42,9 @@ export function advanceStartupSequence(
     const light = startup.lights[index];
     if (light === undefined) continue;
     const enabled = startup.enabled[index] === true;
-    light.visible = enabled && enabledIndex < active;
+    const steady = reducedMotion || startup.flicker?.[index] !== true ||
+      lampFlickerLit(startup.elapsed, index);
+    light.visible = enabled && enabledIndex < active && steady;
     if (enabled) enabledIndex += 1;
   }
 }

@@ -331,6 +331,7 @@ export class Renderer {
         entity, shown.model, at, lift, presentationDelta,
       );
       this.units.markPlaced(entity.id, at);
+      this.units.presentHeat(entity, presentationDelta);
       this.units.placeShadow(entity, at, lift, entity.jump === null ? submergence : 0);
 
       shown.ring.position.set(at.x, ground + 1.2, at.y);

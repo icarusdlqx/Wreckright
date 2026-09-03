@@ -3,7 +3,12 @@ import { playerWorld } from '../../tests/support';
 import { AudioDirector } from './audio';
 import type { VoiceBus, VoiceFrame } from './audioGraph';
 import { SCORE_SOURCE_COUNT } from './audioScore';
-import { playSupportResolution, supportAudioCue } from './audioSupport';
+import {
+  playGroundImpact,
+  playSupportAcknowledged,
+  playSupportResolution,
+  supportAudioCue,
+} from './audioSupport';
 
 class FakeParam {
   value = 0;
@@ -139,24 +144,45 @@ afterEach(() => {
 
 describe('support audio voices', () => {
   it('gives each supported call one admitted, finite voice', () => {
-    expect(['sensor_probe', 'air_strike', 'repair_truck'].map(supportAudioCue)).toEqual([
-      'probe',
-      'air',
-      'repair',
+    const calls = [
+      'sensor_probe', 'air_strike', 'repair_truck', 'artillery_strike', 'minelayer', 'reinforcement',
+    ];
+    expect(calls.map(supportAudioCue)).toEqual([
+      'probe', 'air', 'repair', 'artillery', 'mines', 'reinforce',
     ]);
-    expect(supportAudioCue('artillery_strike')).toBeNull();
+    expect(supportAudioCue('orbital_lance')).toBeNull();
 
     const { context, frame } = harness();
     const begin = vi.fn(() => frame);
     const bus: VoiceBus = { begin };
-    for (const call of ['sensor_probe', 'air_strike', 'repair_truck']) {
+    const signatures = new Set<string>();
+    for (const call of calls) {
+      const before = context.sources.length;
       playSupportResolution(bus, call, { level: 0.8, distance: 40 });
+      signatures.add(JSON.stringify(context.sources.slice(before).map((source) => [
+        source instanceof FakeOscillator ? 'oscillator' : 'buffer',
+        source.starts[0],
+        source.stops[0],
+      ])));
     }
-    playSupportResolution(bus, 'artillery_strike', { level: 0.8, distance: 40 });
+    playSupportResolution(bus, 'orbital_lance', { level: 0.8, distance: 40 });
 
-    expect(begin).toHaveBeenCalledTimes(3);
-    expect(context.sources).toHaveLength(9);
+    expect(begin).toHaveBeenCalledTimes(calls.length);
+    expect(signatures.size).toBe(calls.length);
     expect(context.sources.every((source) => source.stops.length === 1)).toBe(true);
+    expect(context.sources.every((source) => Number.isFinite(source.stops[0]))).toBe(true);
+  });
+
+  it('acknowledges a call on the console and lands a shell as one field voice', () => {
+    const { context, frame } = harness();
+    const begin = vi.fn(() => frame);
+    const bus: VoiceBus = { begin };
+    playSupportAcknowledged(bus);
+    expect(begin).toHaveBeenLastCalledWith({ level: 0.09, distance: null });
+    const consoleSources = context.sources.length;
+    playGroundImpact(bus, { level: 0.8, distance: 40 });
+    expect(begin).toHaveBeenCalledTimes(2);
+    expect(context.sources.length).toBeGreaterThan(consoleSources);
     expect(context.sources.every((source) => Number.isFinite(source.stops[0]))).toBe(true);
   });
 

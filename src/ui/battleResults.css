@@ -242,3 +242,7 @@
     order: 4;
   }
 }
+
+.unit-result.crippled {
+  color: #ffd18a;
+}

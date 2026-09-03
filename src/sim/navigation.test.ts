@@ -254,7 +254,11 @@ describe('an order the player can see land', () => {
     const said = world.events.some(
       (event) => event.type === 'mission_message' && String(event.text).includes('cannot find a way'),
     );
+    const marked = world.events.some(
+      (event) => event.type === 'order_dropped' && event.entityId === walker.id,
+    );
     expect(walker.orders.move).toBeNull();
     expect(said, 'the order vanished without telling the player').toBe(true);
+    expect(marked, 'the map was never told where the route was given up').toBe(true);
   });
 });

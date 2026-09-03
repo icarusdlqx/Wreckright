@@ -300,3 +300,41 @@ describe('support placement markers', () => {
     layer.dispose();
   });
 });
+
+describe('order feedback pulses', () => {
+  const groundWorld = { ...emptyWorld, terrain: { tileSize: 24 } } as unknown as World;
+
+  it('draws a spreading ring where an order landed and a double ring where one dropped', () => {
+    const layer = new MarkerLayer(() => 0, () => null);
+    const visible = (): Mesh[] =>
+      layer.group.children.filter(
+        (child): child is Mesh => child instanceof Mesh && child.visible,
+      );
+
+    layer.draw(groundWorld, {
+      ...baseView,
+      pulses: [{ at: { x: 100, y: 200 }, kind: 'order', progress: 0.25 }],
+    });
+    const [order] = visible();
+    expect(visible()).toHaveLength(1);
+    expect(order?.position.x).toBe(100);
+    expect(order?.position.z).toBe(200);
+    const early = order?.scale.x ?? 0;
+
+    layer.draw(groundWorld, {
+      ...baseView,
+      pulses: [{ at: { x: 100, y: 200 }, kind: 'order', progress: 0.75 }],
+    });
+    expect(visible()[0]?.scale.x ?? 0).toBeGreaterThan(early);
+
+    layer.draw(groundWorld, {
+      ...baseView,
+      pulses: [{ at: { x: 10, y: 20 }, kind: 'dropped', progress: 0.1 }],
+    });
+    expect(visible()).toHaveLength(2);
+
+    layer.draw(groundWorld, baseView);
+    expect(visible()).toHaveLength(0);
+    layer.dispose();
+  });
+});

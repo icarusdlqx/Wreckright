@@ -8,6 +8,12 @@ import {
 } from 'three';
 import type { Vec2 } from '../sim/types';
 import {
+  burstProfile,
+  type InternalBurstKind,
+  type ShotBurstFamily,
+  type ShotBurstKind,
+} from './shotBurstProfiles';
+import {
   baseShotSlot,
   safeShotDelta,
   SHOT_PRIORITY,
@@ -16,18 +22,7 @@ import {
   type ShotSlot,
 } from './shotPoolCore';
 
-export type ShotBurstKind = 'hit' | 'miss' | 'critical' | 'ammo' | 'terminal';
-type InternalBurstKind = ShotBurstKind | 'muzzle';
-
-interface BurstProfile {
-  life: number;
-  particles: number;
-  size: number;
-  grow: number;
-  rise: number;
-  spread: number;
-  opacity: number;
-}
+export type { ShotBurstFamily, ShotBurstKind } from './shotBurstProfiles';
 
 interface BurstSlot extends ShotSlot {
   x: number;
@@ -38,18 +33,14 @@ interface BurstSlot extends ShotSlot {
   grow: number;
   rise: number;
   spread: number;
+  core: number;
+  fall: number;
+  /** Seconds the burst waits unseen, so a travelling read can arrive first. */
+  delay: number;
 }
 
-const PROFILES: Readonly<Record<InternalBurstKind, BurstProfile>> = Object.freeze({
-  muzzle: { life: 0.15, particles: 1, size: 1, grow: 1.8, rise: 0, spread: 0, opacity: 0.85 },
-  hit: { life: 0.3, particles: 3, size: 0.9, grow: 2.6, rise: 4, spread: 2.4, opacity: 0.9 },
-  miss: { life: 0.4, particles: 3, size: 0.65, grow: 1.8, rise: 7, spread: 3.2, opacity: 0.7 },
-  critical: { life: 0.62, particles: 6, size: 1.05, grow: 2.8, rise: 9, spread: 5.2, opacity: 1 },
-  ammo: { life: 0.55, particles: 5, size: 0.8, grow: 2.5, rise: 8, spread: 5, opacity: 0.95 },
-  terminal: { life: 1.1, particles: 8, size: 1.35, grow: 3.6, rise: 13, spread: 10, opacity: 1 },
-});
-
 const INSTANCE = new Object3D();
+const CORE_BRIGHTNESS = 0.65;
 
 /** One compact particle batch covers impacts and the two explosion scales. */
 export class ShotBurstPool {
@@ -82,6 +73,9 @@ export class ShotBurstPool {
       grow: 1,
       rise: 0,
       spread: 0,
+      core: 0,
+      fall: 0,
+      delay: 0,
     }));
   }
 
@@ -93,6 +87,8 @@ export class ShotBurstPool {
     scale: number,
     lifeScale: number,
     detailScale: number,
+    family: ShotBurstFamily = 'generic',
+    delay = 0,
   ): void {
     this.spawnAt(
       at.x,
@@ -103,6 +99,8 @@ export class ShotBurstPool {
       scale,
       lifeScale,
       detailScale,
+      family,
+      delay,
     );
   }
 
@@ -113,13 +111,23 @@ export class ShotBurstPool {
     lifeScale: number,
     detailScale: number,
   ): void {
-    this.spawnAt(at.x, at.y, at.z, 'muzzle', colour, scale, lifeScale, detailScale);
+    this.spawnAt(at.x, at.y, at.z, 'muzzle', colour, scale, lifeScale, detailScale, 'generic', 0);
   }
 
   update(deltaSeconds: number): void {
     const delta = safeShotDelta(deltaSeconds);
     for (const slot of this.core.slots) {
       if (!slot.active) continue;
+      if (slot.delay > 0) {
+        slot.delay -= delta;
+        if (slot.delay > 0) continue;
+        slot.delay = 0;
+        this.writeMatrices(slot, 0);
+        for (let index = 0; index < slot.count; index += 1) {
+          this.core.setColour(slot, index, index === 0 && slot.core > 0 ? CORE_BRIGHTNESS : 1);
+        }
+        continue;
+      }
       slot.remaining -= delta;
       if (slot.remaining <= 0) {
         this.core.expire(slot);
@@ -128,7 +136,12 @@ export class ShotBurstPool {
       const spent = 1 - slot.remaining / slot.life;
       this.writeMatrices(slot, spent);
       for (let index = 0; index < slot.count; index += 1) {
-        this.core.setColour(slot, index, 1 - spent);
+        // The glow core is a flash, gone well before the sparks finish, and kept
+        // under full brightness so additive blending leaves the weapon's colour in it.
+        const fade = index === 0 && slot.core > 0
+          ? CORE_BRIGHTNESS * Math.max(0, 1 - spent * 2.2)
+          : 1 - spent;
+        this.core.setColour(slot, index, fade);
       }
     }
     this.core.commit();
@@ -151,9 +164,11 @@ export class ShotBurstPool {
     scale: number,
     lifeScale: number,
     detailScale: number,
+    family: ShotBurstFamily,
+    delay: number,
   ): void {
-    const profile = PROFILES[kind];
-    const priority = kind === 'terminal' || kind === 'ammo'
+    const profile = burstProfile(kind, family);
+    const priority = kind === 'terminal' || kind === 'ammo' || kind === 'shell'
       ? SHOT_PRIORITY.terminal
       : kind === 'critical'
         ? SHOT_PRIORITY.critical
@@ -170,29 +185,51 @@ export class ShotBurstPool {
     slot.grow = profile.grow;
     slot.rise = profile.rise;
     slot.spread = profile.spread;
+    slot.core = profile.core;
+    slot.fall = profile.fall;
+    slot.delay = Math.max(0, delay);
+    const sparks = Math.max(1, Math.ceil(profile.particles * detailScale));
     this.core.configure(
       slot,
       profile.life * lifeScale,
-      Math.max(1, Math.ceil(profile.particles * detailScale)),
+      sparks + (profile.core > 0 ? 1 : 0),
       colour,
       profile.opacity,
     );
+    if (slot.delay > 0) {
+      this.core.commit();
+      return;
+    }
     this.writeMatrices(slot, 0);
-    for (let index = 0; index < slot.count; index += 1) this.core.setColour(slot, index, 1);
+    for (let index = 0; index < slot.count; index += 1) {
+      this.core.setColour(slot, index, index === 0 && profile.core > 0 ? CORE_BRIGHTNESS : 1);
+    }
     this.core.commit();
   }
 
   private writeMatrices(slot: BurstSlot, spent: number): void {
+    const hasCore = slot.core > 0;
     for (let index = 0; index < slot.count; index += 1) {
-      const angle = index * 2.399963;
-      const reach = slot.spread * slot.scale * (0.35 + index / slot.count * 0.65) * spent;
+      if (hasCore && index === 0) {
+        INSTANCE.position.set(slot.x, slot.y, slot.z);
+        INSTANCE.quaternion.identity();
+        INSTANCE.scale.setScalar(slot.scale * slot.size * slot.core * (1 + spent * 0.8));
+        INSTANCE.updateMatrix();
+        this.core.setMatrix(slot, index, INSTANCE.matrix);
+        continue;
+      }
+      const spark = hasCore ? index - 1 : index;
+      const sparks = hasCore ? slot.count - 1 : slot.count;
+      const angle = spark * 2.399963;
+      const reach = slot.spread * slot.scale * (0.35 + spark / sparks * 0.65) * spent;
+      const drop = slot.fall * slot.life * spent * spent;
       INSTANCE.position.set(
         slot.x + Math.cos(angle) * reach,
-        slot.y + slot.rise * slot.life * spent + Math.sin(index * 1.7) * reach * 0.28,
+        slot.y + slot.rise * slot.life * spent - drop + Math.sin(spark * 1.7) * reach * 0.28,
         slot.z + Math.sin(angle) * reach,
       );
       INSTANCE.quaternion.identity();
-      const size = slot.scale * slot.size * (1 + spent * slot.grow) * (1 - index * 0.035);
+      const size = slot.scale * slot.size * (1 + spent * slot.grow) * (1 - spark * 0.035);
       INSTANCE.scale.setScalar(size);
       INSTANCE.updateMatrix();
       this.core.setMatrix(slot, index, INSTANCE.matrix);

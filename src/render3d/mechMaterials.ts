@@ -115,6 +115,21 @@ export function createDamageWearMaterials(
   return worn;
 }
 
+/** A sealed shell never scorches; heavy damage dulls its finish instead. */
+export function createSealedWearMaterials(source: MechMaterials): MechMaterials {
+  const worn = {} as MechMaterials;
+  for (const tone of TONES) {
+    const copy = source[tone].clone();
+    copy.color.multiplyScalar(0.6);
+    copy.emissive.multiplyScalar(0.3);
+    copy.emissiveIntensity *= 0.35;
+    copy.roughness = Math.min(1, copy.roughness + 0.2);
+    copy.metalness *= 0.7;
+    worn[tone] = copy;
+  }
+  return worn;
+}
+
 /** Weapon housings remain readable against painted armour under coloured light. */
 export function createWeaponMaterial(type: WeaponType): MeshStandardMaterial {
   return material(mix(0x343b40, WEAPON_ACCENTS[type], 0.18), 0.4, 0.72);

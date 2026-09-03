@@ -67,14 +67,14 @@
     }
   },
   "armourMax": {
-    "head": 12,
-    "centre_torso": 50,
-    "left_torso": 38,
-    "right_torso": 38,
-    "left_arm": 24,
-    "right_arm": 24,
-    "left_leg": 37,
-    "right_leg": 37
+    "head": 14,
+    "centre_torso": 60,
+    "left_torso": 46,
+    "right_torso": 46,
+    "left_arm": 29,
+    "right_arm": 29,
+    "left_leg": 44,
+    "right_leg": 44
   },
   "internals": {
     "head": 5,

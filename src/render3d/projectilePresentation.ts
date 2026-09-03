@@ -5,6 +5,7 @@ import {
   Mesh,
   MeshBasicMaterial,
   Object3D,
+  SphereGeometry,
   Vector3,
 } from 'three';
 import type { Weapon } from '../schema/weapon';
@@ -29,6 +30,8 @@ const INSTANCE = new Object3D();
 const SHELL_GEOMETRY = new BoxGeometry(4.2, 1.1, 1.1);
 const SLUG_GEOMETRY = new BoxGeometry(7.5, 0.7, 0.7);
 const MISSILE_GEOMETRY = new BoxGeometry(5, 1.4, 1.4);
+// A travelling charge is a ball of light, drawn with the same batch machinery as a shell.
+const BOLT_GEOMETRY = new SphereGeometry(1.7, 7, 5);
 
 export function projectileTrack(
   from: Vector3,
@@ -93,6 +96,18 @@ export function projectileBatch(
   return mesh;
 }
 
+/** Where a round is along its arc, for anything that trails behind it. */
+export function projectilePoint(track: ProjectileTrack, progress: number, out: Vector3): Vector3 {
+  const at = Math.max(0, Math.min(1, progress));
+  out.set(
+    track.fromX + (track.toX - track.fromX) * at,
+    track.fromY + (track.toY - track.fromY) * at,
+    track.fromZ + (track.toZ - track.fromZ) * at,
+  );
+  out.y += Math.sin(at * Math.PI) * track.arc;
+  return out;
+}
+
 export function placeProjectile(
   mesh: Object3D,
   track: ProjectileTrack,
@@ -134,5 +149,6 @@ export function placeProjectileInstance(
 function projectileGeometry(style: ShotStyle): BufferGeometry {
   if (style === 'missile') return MISSILE_GEOMETRY;
   if (style === 'slug') return SLUG_GEOMETRY;
+  if (style === 'bolt') return BOLT_GEOMETRY;
   return SHELL_GEOMETRY;
 }

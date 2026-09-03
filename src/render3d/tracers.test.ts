@@ -194,8 +194,8 @@ describe('authored shot presentation', () => {
       );
 
       expect(layer.group.children).toHaveLength(children);
-      expect(layer.stats().families.shell.active).toBe(6);
-      expect(visibleInstances(pool(layer, 'shell'))).toBe(6);
+      expect(layer.stats().families.shell.active).toBe(12);
+      expect(visibleInstances(pool(layer, 'shell'))).toBe(12);
     }
   });
 

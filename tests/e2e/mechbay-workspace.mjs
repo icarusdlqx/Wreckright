@@ -184,13 +184,16 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
   const firstWeaponRow = page.locator('[data-testid^="stock-weapon-"]').first();
   await firstWeaponRow.focus();
   const inspector = page.locator('#bay-shelf-inspector');
+  // Locations without a weapon mount fold into a strip, so a machine shows
+  // between five and eight full cards; every one of them rests quiet.
+  const restingCards = await quietLocationState(page);
   check(
     'the loadout workspace renders the machine and one visual weapon inspector',
     (await page.locator('[data-testid="mech-preview-canvas"]').count()) === 1 &&
       (await inspector.locator('[role="meter"]').count()) === 3 &&
       (await inspector.locator('.weapon-glyph').count()) === 1 &&
       (await inspector.locator('.weapon-range-strip').count()) === 1 &&
-      (await quietLocationState(page)).quiet === 8,
+      restingCards.count >= 5 && restingCards.quiet === restingCards.count,
   );
 
   const shelfSearch = page.locator('[data-testid="shelf-search"]');
@@ -227,7 +230,8 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
     'selecting a hardpoint filters the shelf to that mount',
     (await page.locator('[data-testid="bay-location-filter"]').innerText()).toLowerCase().includes('right torso') &&
       (await page.locator('.weapon-card.is-unavailable').count()) === 0 &&
-      selectedLocations.count === 8 && selectedLocations.quiet === 8,
+      selectedLocations.count >= 5 && selectedLocations.count <= 8 &&
+      selectedLocations.quiet === selectedLocations.count,
   );
   await page.locator('[data-testid="shelf-show-all"]').check();
   const incompatibleGauss = page.locator('[data-testid="stock-weapon-gauss_rifle"]');
@@ -320,7 +324,8 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
   );
   check(
     'drag-to-hardpoint reveals targeting and uses the same legal mount path',
-    draggedTargeting.count === 8 && draggedTargeting.complete && draggedTargeting.refusals > 0 &&
+    draggedTargeting.count >= 5 && draggedTargeting.count <= 8 &&
+      draggedTargeting.complete && draggedTargeting.refusals > 0 &&
       draggedTargeting.uniqueStatus && draggedTargeting.statusChanged && draggedTargeting.namesHeldPart &&
       draggedTargeting.sameLiveRegionCount && (await freeTonnage(page)) < startingFree,
     JSON.stringify(draggedTargeting),

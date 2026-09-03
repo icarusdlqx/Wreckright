@@ -1,16 +1,9 @@
-import {
-  AdditiveBlending,
-  CylinderGeometry,
-  InstancedMesh,
-  MeshBasicMaterial,
-  Object3D,
-  SphereGeometry,
-  Vector3,
-} from 'three';
+import { InstancedMesh, Vector3 } from 'three';
 import {
   emptyProjectileTrack,
   placeProjectileInstance,
   projectileBatch,
+  projectilePoint,
   writeProjectileTrack,
   type ProjectileTrack,
   type ShotStyle,
@@ -23,6 +16,9 @@ import {
   type ShotPoolSnapshot,
   type ShotSlot,
 } from './shotPoolCore';
+import { shotPoolMaterial } from './shotPoolMaterial';
+
+export { InstantShotPool, type InstantShotStyle } from './instantShotPool';
 
 interface PathSlot extends ShotSlot {
   track: ProjectileTrack;
@@ -31,9 +27,14 @@ interface PathSlot extends ShotSlot {
   targetId: number;
   weaponId: string;
   targetOffsetX: number;
+  targetOffsetY: number;
   targetOffsetZ: number;
   presentationDelay: number;
   resolved: boolean;
+  /** Known at launch to fall short, so it flies at its own dirt instead of the hull. */
+  missed: boolean;
+  trail: boolean;
+  trailClock: number;
 }
 
 export interface ProjectileEngagement {
@@ -43,27 +44,29 @@ export interface ProjectileEngagement {
 }
 export type ProjectileEndpointResolver = (targetId: number, out: Vector3) => boolean;
 
-export type InstantShotStyle = 'beam' | 'pulse' | 'bolt' | 'flame';
-
-const UP = new Vector3(0, 1, 0);
-const FROM = new Vector3();
-const TO = new Vector3();
-const DIRECTION = new Vector3();
-const INSTANCE = new Object3D();
-const LIVE_ENDPOINT = new Vector3();
-const MIN_PROJECTILE_LIFE = 0.05;
-
-function poolMaterial(opacity = 1): MeshBasicMaterial {
-  return new MeshBasicMaterial({
-    color: 0xffffff,
-    // Enabling geometry colours would multiply these instance-only colours by black.
-    vertexColors: false,
-    transparent: true,
-    opacity,
-    blending: AdditiveBlending,
-    depthWrite: false,
-  });
+export interface ProjectileSpawn {
+  readonly arc: number;
+  readonly velocity: number;
+  readonly width: number;
+  readonly colour: number;
+  readonly engagement?: ProjectileEngagement | null;
+  readonly targetOffsetX?: number;
+  readonly targetOffsetY?: number;
+  readonly targetOffsetZ?: number;
+  readonly flightSeconds?: number | null;
+  readonly visibleFlightSeconds?: number | null;
+  readonly missed?: boolean;
+  readonly trail?: boolean;
 }
+
+export interface TrailEmitter {
+  readonly interval: number;
+  emit(x: number, y: number, z: number, width: number): void;
+}
+
+const LIVE_ENDPOINT = new Vector3();
+const TRAIL_POINT = new Vector3();
+const MIN_PROJECTILE_LIFE = 0.05;
 
 function pathSlot(start: number): PathSlot {
   return {
@@ -74,139 +77,14 @@ function pathSlot(start: number): PathSlot {
     targetId: -1,
     weaponId: '',
     targetOffsetX: 0,
+    targetOffsetY: 0,
     targetOffsetZ: 0,
     presentationDelay: 0,
     resolved: true,
+    missed: false,
+    trail: false,
+    trailClock: 0,
   };
-}
-
-function pathPoint(track: ProjectileTrack, progress: number): void {
-  INSTANCE.position.set(
-    track.fromX + (track.toX - track.fromX) * progress,
-    track.fromY + (track.toY - track.fromY) * progress,
-    track.fromZ + (track.toZ - track.fromZ) * progress,
-  );
-}
-
-/** Instant reads share one batch per authored family. */
-export class InstantShotPool {
-  readonly mesh: InstancedMesh;
-  private readonly core: ShotPoolCore<PathSlot>;
-
-  constructor(
-    readonly style: InstantShotStyle,
-    capacity: number,
-    instancesPerSlot: number,
-  ) {
-    const geometry = style === 'beam' || style === 'pulse'
-      ? new CylinderGeometry(1, 1, 1, 6)
-      : new SphereGeometry(1, 7, 5);
-    this.mesh = new InstancedMesh(geometry, poolMaterial(), capacity * instancesPerSlot);
-    this.mesh.name = `shot-${style}`;
-    this.core = new ShotPoolCore(this.mesh, capacity, instancesPerSlot, (index) => (
-      pathSlot(index * instancesPerSlot)
-    ));
-  }
-
-  spawn(
-    from: Vector3,
-    toX: number,
-    toY: number,
-    toZ: number,
-    colour: number,
-    width: number,
-    life: number,
-    detailScale: number,
-  ): void {
-    const slot = this.core.acquire(SHOT_PRIORITY.standard);
-    if (slot === null) return;
-    writeProjectileTrack(slot.track, from, toX, toY, toZ, 0, 1);
-    slot.width = width;
-    const count = this.style === 'beam'
-      ? 1
-      : Math.max(1, Math.ceil(this.core.instancesPerSlot * detailScale));
-    const opacity = this.style === 'flame' ? 0.78 : this.style === 'bolt' ? 0.95 : 0.92;
-    this.core.configure(slot, life, count, colour, opacity);
-    this.writeMatrices(slot);
-    for (let index = 0; index < slot.count; index += 1) this.core.setColour(slot, index, 1);
-    this.core.commit();
-  }
-
-  update(deltaSeconds: number): void {
-    const delta = safeShotDelta(deltaSeconds);
-    for (const slot of this.core.slots) {
-      if (!slot.active) continue;
-      slot.remaining -= delta;
-      if (slot.remaining <= 0) {
-        this.core.expire(slot);
-        continue;
-      }
-      const fade = slot.remaining / slot.life;
-      for (let index = 0; index < slot.count; index += 1) this.core.setColour(slot, index, fade);
-    }
-    this.core.commit();
-  }
-
-  snapshot(): ShotPoolSnapshot {
-    return this.core.snapshot();
-  }
-
-  clear(): void {
-    this.core.clear();
-  }
-
-  private writeMatrices(slot: PathSlot): void {
-    if (this.style === 'beam') {
-      FROM.set(slot.track.fromX, slot.track.fromY, slot.track.fromZ);
-      TO.set(slot.track.toX, slot.track.toY, slot.track.toZ);
-      DIRECTION.subVectors(TO, FROM);
-      const length = DIRECTION.length();
-      INSTANCE.position.addVectors(FROM, TO).multiplyScalar(0.5);
-      INSTANCE.quaternion.setFromUnitVectors(UP, DIRECTION.multiplyScalar(1 / Math.max(0.001, length)));
-      INSTANCE.scale.set(slot.width * 0.32, length, slot.width * 0.32);
-      INSTANCE.updateMatrix();
-      this.core.setMatrix(slot, 0, INSTANCE.matrix);
-      return;
-    }
-
-    const distance = Math.hypot(
-      slot.track.toX - slot.track.fromX,
-      slot.track.toY - slot.track.fromY,
-      slot.track.toZ - slot.track.fromZ,
-    );
-    for (let index = 0; index < slot.count; index += 1) {
-      const progress = this.style === 'pulse'
-        ? (index + 0.5) / slot.count
-        : (index + 1) / slot.count;
-      pathPoint(slot.track, progress);
-      if (this.style === 'pulse') {
-        DIRECTION.set(
-          slot.track.toX - slot.track.fromX,
-          slot.track.toY - slot.track.fromY,
-          slot.track.toZ - slot.track.fromZ,
-        ).normalize();
-        INSTANCE.quaternion.setFromUnitVectors(UP, DIRECTION);
-        INSTANCE.scale.set(slot.width * 0.38, distance * 0.1, slot.width * 0.38);
-      } else if (this.style === 'bolt') {
-        const envelope = Math.sin(progress * Math.PI);
-        INSTANCE.position.y += Math.sin(index * 2.3) * slot.width * 0.7 * envelope;
-        INSTANCE.position.z += Math.cos(index * 1.7) * slot.width * 0.45 * envelope;
-        INSTANCE.quaternion.identity();
-        INSTANCE.scale.setScalar(slot.width * 0.44);
-      } else {
-        INSTANCE.position.y += Math.sin(index * 1.9) * slot.width * 0.22 * progress;
-        INSTANCE.position.z += Math.cos(index * 1.4) * slot.width * 0.18 * progress;
-        INSTANCE.quaternion.identity();
-        INSTANCE.scale.set(
-          slot.width * 0.24 * (1 + progress * 1.5),
-          slot.width * 0.24 * (0.7 + progress),
-          slot.width * 0.24 * (0.7 + progress),
-        );
-      }
-      INSTANCE.updateMatrix();
-      this.core.setMatrix(slot, index, INSTANCE.matrix);
-    }
-  }
 }
 
 export class ProjectileShotPool {
@@ -214,29 +92,17 @@ export class ProjectileShotPool {
   private readonly core: ShotPoolCore<PathSlot>;
 
   constructor(name: string, style: ShotStyle, capacity: number) {
-    this.mesh = projectileBatch(style, poolMaterial(), capacity);
+    this.mesh = projectileBatch(style, shotPoolMaterial(), capacity);
     this.mesh.name = `shot-${name}`;
     this.core = new ShotPoolCore(this.mesh, capacity, 1, pathSlot);
   }
 
-  spawn(
-    from: Vector3,
-    toX: number,
-    toY: number,
-    toZ: number,
-    arc: number,
-    velocity: number,
-    width: number,
-    colour: number,
-    engagement: ProjectileEngagement | null = null,
-    targetOffsetX = 0,
-    targetOffsetZ = 0,
-    flightSeconds: number | null = null,
-    visibleFlightSeconds: number | null = null,
-  ): void {
+  spawn(from: Vector3, toX: number, toY: number, toZ: number, shot: ProjectileSpawn): void {
     const slot = this.core.acquire(SHOT_PRIORITY.standard);
     if (slot === null) return;
-    writeProjectileTrack(slot.track, from, toX, toY, toZ, arc, velocity);
+    writeProjectileTrack(slot.track, from, toX, toY, toZ, shot.arc, shot.velocity);
+    const flightSeconds = shot.flightSeconds ?? null;
+    const visibleFlightSeconds = shot.visibleFlightSeconds ?? null;
     const totalFlight = flightSeconds === null
       ? slot.track.duration
       : Math.max(0.001, flightSeconds);
@@ -244,23 +110,31 @@ export class ProjectileShotPool {
       ? totalFlight
       : Math.min(totalFlight, Math.max(0.001, visibleFlightSeconds));
     slot.track.duration = visibleFlight;
-    slot.width = width;
-    slot.shooterId = engagement?.shooterId ?? -1;
-    slot.targetId = engagement?.targetId ?? -1;
-    slot.weaponId = engagement?.weaponId ?? '';
-    slot.targetOffsetX = targetOffsetX;
-    slot.targetOffsetZ = targetOffsetZ;
+    slot.width = shot.width;
+    slot.shooterId = shot.engagement?.shooterId ?? -1;
+    slot.targetId = shot.engagement?.targetId ?? -1;
+    slot.weaponId = shot.engagement?.weaponId ?? '';
+    slot.targetOffsetX = shot.targetOffsetX ?? 0;
+    slot.targetOffsetY = shot.targetOffsetY ?? 0;
+    slot.targetOffsetZ = shot.targetOffsetZ ?? 0;
     slot.presentationDelay = totalFlight - visibleFlight;
     slot.resolved = false;
-    this.core.configure(slot, Math.max(MIN_PROJECTILE_LIFE, totalFlight), 1, colour, 1);
+    slot.missed = shot.missed === true;
+    slot.trail = shot.trail === true;
+    slot.trailClock = 0;
+    this.core.configure(slot, Math.max(MIN_PROJECTILE_LIFE, totalFlight), 1, shot.colour, 1);
     if (slot.presentationDelay <= 0) {
-      placeProjectileInstance(this.mesh, slot.start, slot.track, 0, width);
+      placeProjectileInstance(this.mesh, slot.start, slot.track, 0, slot.width);
       this.core.setColour(slot, 0, 1);
     }
     this.core.commit();
   }
 
-  update(deltaSeconds: number, endpointOf?: ProjectileEndpointResolver): void {
+  update(
+    deltaSeconds: number,
+    endpointOf?: ProjectileEndpointResolver,
+    trail?: TrailEmitter,
+  ): void {
     const delta = safeShotDelta(deltaSeconds);
     for (const slot of this.core.slots) {
       if (!slot.active) continue;
@@ -269,7 +143,7 @@ export class ProjectileShotPool {
         endpointOf(slot.targetId, LIVE_ENDPOINT)
       ) {
         slot.track.toX = LIVE_ENDPOINT.x + slot.targetOffsetX;
-        slot.track.toY = LIVE_ENDPOINT.y;
+        slot.track.toY = LIVE_ENDPOINT.y + slot.targetOffsetY;
         slot.track.toZ = LIVE_ENDPOINT.z + slot.targetOffsetZ;
       }
       slot.remaining -= delta;
@@ -283,13 +157,16 @@ export class ProjectileShotPool {
         continue;
       }
       if (!slot.resolved) {
-        placeProjectileInstance(
-          this.mesh,
-          slot.start,
-          slot.track,
-          (elapsed - slot.presentationDelay) / slot.track.duration,
-          slot.width,
-        );
+        const progress = (elapsed - slot.presentationDelay) / slot.track.duration;
+        placeProjectileInstance(this.mesh, slot.start, slot.track, progress, slot.width);
+        if (trail !== undefined && slot.trail) {
+          slot.trailClock += delta;
+          if (slot.trailClock >= trail.interval) {
+            slot.trailClock = 0;
+            projectilePoint(slot.track, progress, TRAIL_POINT);
+            trail.emit(TRAIL_POINT.x, TRAIL_POINT.y, TRAIL_POINT.z, slot.width);
+          }
+        }
       }
       const fadeLife = slot.presentationDelay > 0 ? slot.track.duration : slot.life;
       this.core.setColour(slot, 0, Math.min(1, slot.remaining / fadeLife));
@@ -299,8 +176,15 @@ export class ProjectileShotPool {
 
   snapshot(): ShotPoolSnapshot { return this.core.snapshot(); }
   clear(): void { this.core.clear(); }
-  resolve(engagement: ProjectileEngagement, endpoint: Vector3): boolean {
+
+  /**
+   * A hit lands its oldest hull-bound round on the struck plate. A miss retires
+   * its oldest dirt-bound round where it was already heading; only a round with
+   * no known outcome is dragged to the event's point.
+   */
+  resolve(engagement: ProjectileEngagement, endpoint: Vector3, missed = false): boolean {
     let found: PathSlot | null = null;
+    let fallback: PathSlot | null = null;
     for (const slot of this.core.slots) {
       if (
         !slot.active || slot.resolved ||
@@ -308,10 +192,19 @@ export class ProjectileShotPool {
         slot.targetId !== engagement.targetId ||
         slot.weaponId !== engagement.weaponId
       ) continue;
-      if (found === null || slot.generation < found.generation) found = slot;
+      if (slot.missed === missed) {
+        if (found === null || slot.generation < found.generation) found = slot;
+      } else if (!slot.missed && (fallback === null || slot.generation < fallback.generation)) {
+        fallback = slot;
+      }
     }
-    if (found === null) return false;
-    this.finish(found, endpoint, false);
+    if (found !== null) {
+      this.finish(found, found.missed ? undefined : endpoint, false);
+    } else if (fallback !== null) {
+      this.finish(fallback, endpoint, false);
+    } else {
+      return false;
+    }
     this.core.commit();
     return true;
   }
@@ -322,7 +215,7 @@ export class ProjectileShotPool {
     for (const slot of this.core.slots) {
       if (!slot.active || slot.resolved) continue;
       if (targetId !== null && slot.targetId !== targetId) continue;
-      this.finish(slot, endpoint, endpoint !== undefined);
+      this.finish(slot, slot.missed ? undefined : endpoint, endpoint !== undefined);
       resolved += 1;
     }
     if (resolved > 0) this.core.commit();

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { catalog, makeGrid, OPEN_LEGEND } from '../../tests/support';
-import { findPath, nearestPassable } from './pathfind';
+import { findPath, lineCost, nearestPassable } from './pathfind';
 import { createTerrainGrid } from './terrain';
 
 const MAX_NODES = 4000;
@@ -122,5 +122,50 @@ describe('nearestPassable', () => {
   it('returns null when nothing is passable within the radius', () => {
     const solid = makeGrid({ legend: OPEN_LEGEND, tiles: ['###', '###', '###'] });
     expect(nearestPassable(solid, 1, 1, 4)).toBeNull();
+  });
+});
+
+describe('routes through parked lance-mates', () => {
+  const corridor = makeGrid({
+    legend: OPEN_LEGEND,
+    tiles: ['.......', '.......', '.......'],
+  });
+  const start = { x: 5, y: 15 };
+  const goal = { x: 65, y: 15 };
+  const parked = 1 * corridor.width + 3;
+
+  it('walks straight through open ground when nobody is in the way', () => {
+    const path = findPath(corridor, start, goal, MAX_NODES);
+    expect(path).not.toBeNull();
+    for (const point of path ?? []) expect(corridor.toTile(point).row).toBe(1);
+  });
+
+  it('steps round a tile a stationary friendly is standing on', () => {
+    const occupancy = { cells: new Set([parked]), costFactor: 2.5 };
+    const path = findPath(corridor, start, goal, MAX_NODES, occupancy);
+    expect(path).not.toBeNull();
+
+    const rows = (path ?? []).map((point) => corridor.toTile(point).row);
+    expect(rows.some((row) => row !== 1), 'the route never left the parked machine\'s row').toBe(true);
+    for (const point of path ?? []) {
+      const tile = corridor.toTile(point);
+      expect(tile.row * corridor.width + tile.column).not.toBe(parked);
+    }
+  });
+
+  it('still finds a route when the only way through is occupied', () => {
+    const lane = makeGrid({ legend: OPEN_LEGEND, tiles: ['#######', '.......', '#######'] });
+    const occupancy = { cells: new Set([1 * lane.width + 3]), costFactor: 2.5 };
+    const path = findPath(lane, start, goal, MAX_NODES, occupancy);
+    expect(path).not.toBeNull();
+    expect(path?.at(-1)).toEqual(goal);
+  });
+
+  it('prices the straight line the same way the search did', () => {
+    const occupancy = { cells: new Set([parked]), costFactor: 2.5 };
+    const clear = lineCost(corridor, start, goal);
+    const crowded = lineCost(corridor, start, goal, occupancy);
+    expect(clear).not.toBeNull();
+    expect(crowded ?? 0).toBeGreaterThan(clear ?? 0);
   });
 });

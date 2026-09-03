@@ -223,12 +223,15 @@ describe('equipment and cooling edit previews', () => {
       { kind: 'equipment', itemId: 'active_probe', count: 1 },
     ]));
     expect(replaced.status).toBe('applied');
+    // The stock Sentinel carries a blowout cell in each side torso; only the
+    // first is replaced, and removing it leaves the other where it was.
     expect(replaced.nextDesign.equipment).toEqual([
       { equipmentId: 'active_probe', location: 'right_torso' },
+      { equipmentId: 'case', location: 'left_torso' },
     ]);
     expect(evaluateEdit(catalog, replaced.nextDesign, {
       type: 'remove_equipment', index: 0,
-    }).nextDesign.equipment).toEqual([]);
+    }).nextDesign.equipment).toEqual([{ equipmentId: 'case', location: 'left_torso' }]);
 
     expect(evaluateEdit(catalog, original, {
       type: 'install_equipment', equipmentId: 'jump_jet', location: 'left_leg',

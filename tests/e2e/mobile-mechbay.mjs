@@ -94,7 +94,8 @@ export async function runMobileMechbayJourney({
   const restingLocations = await quietLocationState(page);
   check(
     `${prefix} location cards show only their quiet resting information`,
-    restingLocations.count === 8 && restingLocations.quiet === 8,
+    restingLocations.count >= 5 && restingLocations.count <= 8 &&
+      restingLocations.quiet === restingLocations.count,
     JSON.stringify(restingLocations),
   );
   const comparisonHiddenFromLoadout = !(await page.locator('[data-testid="build-compare"]').isVisible());
@@ -242,7 +243,8 @@ export async function runMobileMechbayJourney({
     `${prefix} mechbay hardpoint selection filters the shelf`,
     (await page.locator('[data-testid="bay-location-filter"]').count()) === 1 &&
       (locationTargetBounds?.height ?? 0) >= 44 &&
-      selectedLocations.count === 8 && selectedLocations.quiet === 8,
+      selectedLocations.count >= 5 && selectedLocations.count <= 8 &&
+      selectedLocations.quiet === selectedLocations.count,
   );
   const mobileWeapon = page.locator('[data-testid="stock-weapon-medium_laser"]');
   await mobileWeapon.scrollIntoViewIfNeeded();
@@ -263,7 +265,7 @@ export async function runMobileMechbayJourney({
     (await page.locator('[data-testid="bay-armed"]').count()) === 1 &&
       (await page.locator('.bay-location.armed-target').count()) === 1 &&
       (await page.locator('[data-testid="bay-location-right_torso"].armed-target').count()) === 1 &&
-      targeting.count === 8 && targeting.complete && targeting.refusals > 0 &&
+      targeting.count >= 5 && targeting.count <= 8 && targeting.complete && targeting.refusals > 0 &&
       targeting.uniqueStatus && targeting.statusChanged && targeting.namesHeldPart &&
       targeting.sameLiveRegionCount,
     JSON.stringify(targeting),

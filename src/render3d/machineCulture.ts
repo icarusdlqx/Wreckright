@@ -17,7 +17,12 @@ export interface MachineCultureProfile {
 export interface HullRecoil {
   kick: number;
   travel: number;
+  /** Sideways lurch left by a stagger, decaying as the hull finds its feet. */
+  jolt: number;
+  joltClock: number;
 }
+
+const JOLT_RATE = 24;
 
 const LINEWROUGHT: Readonly<MachineCultureProfile> = Object.freeze({
   faction: 'linewrought',
@@ -98,9 +103,31 @@ export function triggerPowerShudder(
   recoil.kick = Math.max(recoil.kick, recoil.travel * (event === 'shutdown' ? 2.4 : 1.8));
 }
 
+/** Both cultures lurch when the ground is taken from under them; the sealed hull less. */
+export function triggerStaggerJolt(
+  recoil: HullRecoil,
+  profile: Readonly<MachineCultureProfile>,
+): void {
+  const reach = recoil.travel * (profile.faction === 'aurelian' ? 4.5 : 7);
+  recoil.jolt = Math.max(recoil.jolt, reach);
+  recoil.joltClock = 0;
+}
+
+export function hullJoltSway(recoil: HullRecoil): number {
+  return recoil.jolt === 0 ? 0 : Math.sin(recoil.joltClock * JOLT_RATE) * recoil.jolt;
+}
+
+export function hullJoltRoll(recoil: HullRecoil): number {
+  return recoil.jolt === 0 ? 0 : Math.sin(recoil.joltClock * JOLT_RATE + 0.6) * recoil.jolt * 0.05;
+}
+
 export function advanceHullRecoil(recoil: HullRecoil, deltaSeconds: number): void {
-  recoil.kick *= Math.exp(-Math.max(0, deltaSeconds) * 10);
+  const delta = Math.max(0, deltaSeconds);
+  recoil.kick *= Math.exp(-delta * 10);
   if (recoil.kick < 0.003) recoil.kick = 0;
+  recoil.joltClock += delta;
+  recoil.jolt *= Math.exp(-delta * 4.2);
+  if (recoil.jolt < 0.003) recoil.jolt = 0;
 }
 
 export function activeStartupLights(
