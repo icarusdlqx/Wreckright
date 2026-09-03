@@ -1,10 +1,13 @@
-import { LOCATIONS, type MechLocation } from '../../schema/common';
+import { useState } from 'react';
+import type { MechLocation } from '../../schema/common';
 import type { Chassis } from '../../schema/chassis';
 import type { Design } from '../../schema/design';
 import type { Catalog } from '../../schema/load';
 import type { Loadout } from '../../sim/loadout';
 import type { LocationFit } from './autoFit';
 import { LocationCard, MECH_LOCATION_NAMES, type DropPayload } from './LocationCard';
+import { partitionLocations } from './locationLayout';
+import { LocationStrip } from './LocationStrip';
 import './locationWorkbench.css';
 
 interface Props {
@@ -29,6 +32,7 @@ interface Props {
   onRemoveMount: (index: number) => void;
   onRemoveAmmo: (index: number) => void;
   onRemoveEquipment: (index: number) => void;
+  onSwapMount?: (index: number) => void;
   onInspect: (payload: DropPayload) => void;
   onSelectLocation: (location: MechLocation) => void;
   onHoverLocation: (location: MechLocation | null) => void;
@@ -56,10 +60,18 @@ export function LoadoutGrid({
   onRemoveMount,
   onRemoveAmmo,
   onRemoveEquipment,
+  onSwapMount,
   onInspect,
   onSelectLocation,
   onHoverLocation,
 }: Props) {
+  const [showAllLocations, setShowAllLocations] = useState(false);
+  const layout = partitionLocations(chassis, design, {
+    selected: selectedLocation,
+    targeting: (targeting ?? armed) !== null,
+    compatible: compatibleLocations,
+    showAll: showAllLocations,
+  });
   const targetName =
     targeting?.kind === 'equipment'
       ? (catalog.equipment.get(targeting.id)?.name ?? targeting.id)
@@ -154,7 +166,7 @@ export function LoadoutGrid({
         </div>
       )}
       <div className="location-overview" aria-label="Machine locations">
-        {LOCATIONS.map((location) => (
+        {layout.full.map((location) => (
           <LocationCard
             key={location}
             catalog={catalog}
@@ -166,6 +178,7 @@ export function LoadoutGrid({
             onRemoveMount={onRemoveMount}
             onRemoveAmmo={onRemoveAmmo}
             onRemoveEquipment={onRemoveEquipment}
+            onSwapMount={onSwapMount}
             onInspect={onInspect}
             onSelect={onSelectLocation}
             onHover={onHoverLocation}
@@ -180,6 +193,21 @@ export function LoadoutGrid({
           />
         ))}
       </div>
+      <LocationStrip
+        chassis={chassis}
+        design={design}
+        loadout={loadout}
+        locations={layout.compact}
+        armed={armed}
+        targeting={targeting}
+        compatibleLocations={compatibleLocations}
+        locationFits={locationFits}
+        showAll={showAllLocations}
+        onShowAllChange={setShowAllLocations}
+        onSelect={onSelectLocation}
+        onDrop={onDrop}
+        onHover={onHoverLocation}
+      />
     </section>
   );
 }

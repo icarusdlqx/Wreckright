@@ -100,7 +100,13 @@ describe('Aurelian Recall campaign', () => {
     expect(campaign.victoryNodeId).toBe('continuance_export');
     expect(campaign.alternateVictoryNodeIds).toEqual(['local_stewardship']);
     expect(campaign.sideWork).toEqual({ missionIds: [], employerIds: [] });
-    expect(campaign.nodes.every((node) => node.maxSalvageShare === 0.1)).toBe(true);
+    // Salvage is the only way a Sealed company replaces what it loses; the
+    // share opens up as the Tender's warrant widens.
+    const shares = campaign.nodes.map((node) => node.maxSalvageShare);
+    expect(Math.min(...shares)).toBeGreaterThanOrEqual(0.35);
+    expect(shares[0]).toBe(0.35);
+    expect(shares.at(-1)).toBe(0.5);
+    expect(campaign.market.partSuppliers).toEqual([{ faction: 'aurelian', priceFactor: 2 }]);
 
     const originalMissions = campaign.nodes.slice(3).map((node) => mission(node.missionId));
     expect(originalMissions.map((entry) => entry.id)).toEqual([
@@ -131,14 +137,14 @@ describe('Aurelian Recall campaign', () => {
       employerId: 'continuance_tender',
       requires: ['barrow_warrant'],
       basePayout: 2_100_000,
-      maxSalvageShare: 0.1,
+      maxSalvageShare: 0.5,
       deadlineDays: 46,
     });
     expect(stewardshipNode).toMatchObject({
       employerId: 'continuance_tender',
       requires: ['barrow_warrant'],
       basePayout: 2_100_000,
-      maxSalvageShare: 0.1,
+      maxSalvageShare: 0.5,
       deadlineDays: 46,
     });
     expect(campaign.nodes.some((node) => node.requires.includes('continuance_export'))).toBe(false);
@@ -178,7 +184,7 @@ describe('Aurelian Recall campaign', () => {
     expect(campaign.startingCbills).toBe(1_600_000);
     expect(campaign.startingCbills).toBe((linewrought?.startingCbills ?? 0) / 2);
     expect(catalog.rules.economy.repair.factionFactors.aurelian).toEqual({
-      cost: 2.5,
+      cost: 1.6,
       days: 2.5,
     });
     expect(catalog.rules.economy.market.availableFactions).not.toContain('aurelian');

@@ -62,6 +62,34 @@ describe('tactical controller correctness', () => {
     expect(mech.targetId).toBe(target.id);
   });
 
+  it('calls leg shots on a crippled target at regular, and never at green', () => {
+    const called = { regular: new Set<string | null>(), green: new Set<string | null>() };
+    for (const tierId of ['regular', 'green'] as const) {
+      for (const seed of ['cs-a', 'cs-b', 'cs-c', 'cs-d']) {
+        const world = testWorld(`called-${seed}`);
+        const mech = world.entities.find((entity) => entity.team === 0);
+        const target = world.entities.find((entity) => entity.team === 1);
+        if (mech === undefined || target === undefined) throw new Error('need opposing mechs');
+        isolate(world, [mech, target]);
+        const [from, to] = clearLine(world, 2);
+        if (from === undefined || to === undefined) throw new Error('need two positions');
+        mech.pos = from;
+        target.pos = to;
+        for (const state of Object.values(target.locations)) state.internal = state.internalMax * 0.3;
+        updateTeamVisions(world);
+
+        for (let decision = 0; decision < 12; decision += 1) {
+          decideTactical(world, mech, null, difficultyTier(world, tierId));
+          expect(mech.targetId).toBe(target.id);
+          called[tierId].add(mech.calledShot);
+        }
+      }
+    }
+
+    expect(called.green).toEqual(new Set([null]));
+    expect([...called.regular].some((shot) => shot === 'left_leg' || shot === 'right_leg')).toBe(true);
+  });
+
   it('aims an immobile mech at the first ranked target it can personally see', () => {
     const world = testWorld('legged-clear-ranked-target');
     const mech = world.entities.find((entity) => entity.team === 0);

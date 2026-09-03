@@ -12,6 +12,19 @@ function campaign(seed: string): CampaignState {
   return startCampaign(catalog, 'border_dispute', seed);
 }
 
+function withBayCapacity(bayCapacity: number): typeof catalog {
+  return {
+    ...catalog,
+    rules: {
+      ...catalog.rules,
+      economy: {
+        ...catalog.rules.economy,
+        repair: { ...catalog.rules.economy.repair, bayCapacity },
+      },
+    },
+  };
+}
+
 function imported(state: CampaignState): CampaignState {
   const restored = deserialiseCampaign(serialiseCampaign(state)).state;
   if (restored === null) throw new Error('campaign save did not load');
@@ -145,7 +158,9 @@ describe('company solvency workshop paths', () => {
   });
 
   it('uses the queued full rebuild date when checking a signed deadline', () => {
-    const state = campaign('queued-rebuild-deadline');
+    // One lift, so the rebuild has to wait behind the booked machine.
+    const catalog = withBayCapacity(1);
+    const state = startCampaign(catalog, 'border_dispute', 'queued-rebuild-deadline');
     const [booked, hulk] = state.mechs;
     if (booked === undefined || hulk === undefined) throw new Error('campaign needs two mechs');
     state.mechs = [booked, hulk];

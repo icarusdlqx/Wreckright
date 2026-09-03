@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { spawnDesign, testWorld, unitOf } from '../../tests/support';
-import { applyDamage, destroyLocation } from './damage';
+import { applyDamage, destroyLocation, detonateAmmoBin } from './damage';
 import { eventsOfType } from './events';
-import { isImmobile, isOperational, type MechEntity, type World } from './types';
+import { isImmobile, isOperational, type AmmoBin, type MechEntity, type World } from './types';
 
 let world: World;
 let mech: MechEntity;
@@ -146,19 +146,71 @@ describe('location destruction', () => {
 });
 
 describe('ammo explosions', () => {
-  it('detonates unprotected ammo into the centre torso', () => {
-    const bin = mech.ammoBins.find((entry) => !entry.protectedByCase);
-    expect(bin).toBeDefined();
+  /** Strips the blowout cell off the Sentinel's missile bin so it can go up. */
+  function bareBin(entity: MechEntity): AmmoBin {
+    const bin = entity.ammoBins.find((entry) => entry.location === 'left_torso');
+    if (bin === undefined) throw new Error('the Sentinel carries its missiles in the left torso');
+    bin.protectedByCase = false;
+    return bin;
+  }
+
+  it('ships the stock Sentinel and Cairn with every bin in a blowout cell', () => {
+    const cairn = spawnDesign(world, 'cairn_battery');
+    for (const entity of [mech, cairn]) {
+      expect(entity.ammoBins.length).toBeGreaterThan(0);
+      for (const bin of entity.ammoBins) expect(bin.protectedByCase, bin.location).toBe(true);
+    }
+  });
+
+  it('blows through the plate inboard of a breached bin rather than straight into the core', () => {
+    const bin = bareBin(mech);
     mech.pos = pointOnTerrain(world, 'forest');
 
     const core = mech.locations.centre_torso;
-    const before = core.internal;
+    const armourBefore = core.armour;
+    const internalBefore = core.internal;
+    const takenBefore = mech.stats.damageTaken;
 
-    destroyLocation(world, mech, bin?.location ?? 'left_torso');
+    destroyLocation(world, mech, bin.location);
 
-    expect(eventsOfType(world.events, 'ammo_explosion').length).toBeGreaterThan(0);
-    expect(core.internal).toBeLessThan(before);
+    const blasts = eventsOfType(world.events, 'ammo_explosion');
+    expect(blasts).toHaveLength(1);
+    expect(core.armour).toBeLessThan(armourBefore);
+    expect(core.internal).toBe(internalBefore);
+    expect(mech.destroyed).toBe(false);
+    expect(mech.stats.damageTaken - takenBefore).toBeCloseTo(armourBefore - core.armour, 6);
     expect(world.fire.pendingIgnitions.map((request) => request.source)).toContain('ammo_explosion');
+  });
+
+  it('cores the mech by ammo explosion only once the blast gets through, and books only that', () => {
+    const bin = bareBin(mech);
+    const core = mech.locations.centre_torso;
+    core.armour = 0;
+    core.rearArmour = 0;
+    core.internal = 5;
+    const takenBefore = mech.stats.damageTaken;
+
+    destroyLocation(world, mech, bin.location);
+
+    expect(mech.destroyed).toBe(true);
+    expect(mech.killMethod).toBe('ammo_explosion');
+    expect(mech.stats.damageTaken - takenBefore).toBeCloseTo(5, 6);
+  });
+
+  it('strips the plate of an intact location a cooked-off bin sits in first', () => {
+    const bin = bareBin(mech);
+    const side = mech.locations[bin.location];
+    const armourBefore = side.armour;
+    const core = mech.locations.centre_torso;
+    const coreBefore = { armour: core.armour, internal: core.internal };
+
+    detonateAmmoBin(world, mech, bin);
+
+    expect(side.armour).toBeLessThan(armourBefore);
+    expect(core.armour).toBe(coreBefore.armour);
+    expect(core.internal).toBe(coreBefore.internal);
+    expect(bin.destroyed).toBe(true);
+    expect(bin.rounds).toBe(0);
   });
 
   it('contains the blast when CASE is fitted', () => {
@@ -179,10 +231,11 @@ describe('ammo explosions', () => {
   });
 
   it('caps explosion damage at the rules ceiling', () => {
-    const bin = mech.ammoBins.find((entry) => !entry.protectedByCase);
-    destroyLocation(world, mech, bin?.location ?? 'left_torso');
+    const bin = bareBin(mech);
+    destroyLocation(world, mech, bin.location);
 
     const explosions = eventsOfType(world.events, 'ammo_explosion');
+    expect(explosions.length).toBeGreaterThan(0);
     for (const explosion of explosions) {
       expect(explosion.damage).toBeLessThanOrEqual(world.rules.damage.ammoExplosionCap);
     }

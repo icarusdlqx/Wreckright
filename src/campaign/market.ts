@@ -3,6 +3,7 @@ import type { Faction } from '../schema/faction';
 import type { Catalog } from '../schema/load';
 import { createRng } from '../sim/rng';
 import { supplierDiscountFactor } from './events';
+import { partPriceCeiling, partSupplierFactor, weightClassUnlocked } from './marketAccess';
 import { estimateRepair, pristineCondition } from './repair';
 import { addToStore, type CampaignState, type MechRecord, type StoreItem, type StoreKind } from './types';
 
@@ -39,6 +40,17 @@ export function designMarketAvailable(catalog: Catalog, design: Design): boolean
       count: design.heatSinks,
     })
   );
+}
+
+/**
+ * Whether the yard can put this design on the lot. The hull is what it sells;
+ * a foreign gun bolted to it is the buyer's problem, and the bay already
+ * labels a mixed-pattern fit. Emplacements stay off the lot: a yard that sold
+ * them would be selling something the company cannot drop from a dropship.
+ */
+export function designYardAvailable(catalog: Catalog, design: Design): boolean {
+  const chassis = catalog.chassis.get(design.chassisId);
+  return chassis?.frame === 'mech' && factionAvailable(catalog, chassis.faction);
 }
 
 /** Which week of stock the yard is showing. */
@@ -127,23 +139,32 @@ export function marketListings(catalog: Catalog, state: CampaignState): Listing[
   const supplierFactor = supplierDiscountFactor(catalog, state);
 
   // Sorted first so the lot does not depend on the order the content happened
-  // to load in. Mechs only: a yard that sold emplacements would be selling
-  // something the company cannot drop from a dropship.
+  // to load in. Classes the company has not earned are left out of the draw
+  // altogether rather than hidden, so the slots go to machines it can buy.
   const designs = [...catalog.designs.values()]
     .filter((design) => {
       const chassis = catalog.chassis.get(design.chassisId);
-      return chassis?.frame === 'mech' && designMarketAvailable(catalog, design);
+      return (
+        chassis !== undefined &&
+        designYardAvailable(catalog, design) &&
+        weightClassUnlocked(catalog, state, chassis.class)
+      );
     })
     .sort((a, b) => a.id.localeCompare(b.id));
   const pools = CLASSES.map((weight) =>
     rng.shuffle(designs.filter((design) => catalog.chassis.get(design.chassisId)?.class === weight)),
   );
 
+  // The unlocked pool can be thinner than the lot — a first week may have one
+  // light pattern in it — so the draw cycles what it has: the same machine
+  // twice, worn against refurbished, is still a choice, and an empty slot is not.
   const stock: Design[] = [];
-  for (let round = 0; stock.length < rules.listings && round < designs.length; round += 1) {
-    for (const pool of pools) {
-      const next = pool[round];
-      if (next !== undefined && stock.length < rules.listings) stock.push(next);
+  if (designs.length > 0) {
+    for (let round = 0; stock.length < rules.listings; round += 1) {
+      for (const pool of pools) {
+        const next = pool.length === 0 ? undefined : pool[round % pool.length];
+        if (next !== undefined && stock.length < rules.listings) stock.push(next);
+      }
     }
   }
 
@@ -256,22 +277,30 @@ export interface PartListing {
 /**
  * Loose crates on the counter this week. Same seeded weekly draw as the
  * machines and for the same reason; the pool is everything the yard's
- * suppliers make, so what a company cannot salvage it can now simply order.
+ * suppliers make — and whatever a campaign patron adds at its own markup —
+ * held under the price ceiling the company has earned, so what it cannot
+ * salvage it can now simply order once it has the standing to.
  */
 export function partMarketListings(catalog: Catalog, state: CampaignState): PartListing[] {
   const rules = catalog.rules.economy.market;
   const period = marketPeriod(catalog, state.day);
   const rng = createRng(`${state.seed}:market:parts:${period}`);
   const supplierFactor = supplierDiscountFactor(catalog, state);
+  const ceiling = partPriceCeiling(catalog, state);
 
   const pool: { kind: StoreKind; itemId: string; name: string; cost: number }[] = [];
+  const stock = (kind: StoreKind, itemId: string, name: string, cost: number, faction: Faction) => {
+    const factor = partSupplierFactor(catalog, state, faction);
+    if (factor === null) return;
+    const asked = cost * factor;
+    if (ceiling !== null && asked > ceiling) return;
+    pool.push({ kind, itemId, name, cost: asked });
+  };
   for (const weapon of catalog.weapons.values()) {
-    if (!storeItemMarketAvailable(catalog, { kind: 'weapon', itemId: weapon.id, count: 1 })) continue;
-    pool.push({ kind: 'weapon', itemId: weapon.id, name: weapon.name, cost: weapon.cost });
+    stock('weapon', weapon.id, weapon.name, weapon.cost, weapon.faction);
   }
   for (const equipment of catalog.equipment.values()) {
-    if (!storeItemMarketAvailable(catalog, { kind: 'equipment', itemId: equipment.id, count: 1 })) continue;
-    pool.push({ kind: 'equipment', itemId: equipment.id, name: equipment.name, cost: equipment.cost });
+    stock('equipment', equipment.id, equipment.name, equipment.cost, equipment.faction);
   }
 
   const sold = new Set(state.marketBought);

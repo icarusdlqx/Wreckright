@@ -6,9 +6,13 @@ import type { MechEntity, World } from '../sim/types';
 import { AudioDirector } from './audio';
 import {
   AudioGraph,
+  FIELD_QUIET_VOICE_LIMIT,
   FIELD_VOICE_LIMIT,
   TERMINAL_VOICE_RESERVE,
 } from './audioGraph';
+
+/** Full slots plus the quiet overflow: every ordinary voice one window can carry. */
+const ORDINARY_VOICE_CAPACITY = FIELD_VOICE_LIMIT - TERMINAL_VOICE_RESERVE + FIELD_QUIET_VOICE_LIMIT;
 
 class FakeParam {
   value = 0;
@@ -24,6 +28,8 @@ class FakeParam {
   setTargetAtTime(value: number): void {
     this.value = value;
   }
+
+  cancelScheduledValues(): void {}
 }
 
 class FakeNode {
@@ -125,7 +131,8 @@ function saturatedAudio(seed: string): SaturatedAudio {
     damage: 5,
     arc: 'front',
   };
-  const events: SimEvent[] = Array.from({ length: 1_000 }, () => ({ ...hit }));
+  // Distinct ticks keep the thousand hits as a thousand volleys rather than one coalesced plate.
+  const events: SimEvent[] = Array.from({ length: 1_000 }, (_, i) => ({ ...hit, tick: hit.tick + i }));
   events.push({
     type: 'mech_destroyed',
     tick: world.tick,
@@ -156,7 +163,7 @@ describe('terminal voice priority', () => {
     const admittedTerminal = begin.mock.calls.filter((call, index) =>
       call[1] === 'terminal' && begin.mock.results[index]?.value !== null,
     );
-    expect(admittedOrdinary).toHaveLength(FIELD_VOICE_LIMIT - TERMINAL_VOICE_RESERVE);
+    expect(admittedOrdinary).toHaveLength(ORDINARY_VOICE_CAPACITY);
     expect(admittedTerminal).toHaveLength(TERMINAL_VOICE_RESERVE);
     expect(harness.context.sources.every((source) => Number.isFinite(source.stops[0]))).toBe(true);
     harness.audio.destroy();
@@ -176,7 +183,7 @@ describe('terminal voice priority', () => {
     const terminal = begin.mock.calls.filter((call, index) =>
       call[1] === 'terminal' && admitted[index],
     );
-    expect(ordinary).toHaveLength(FIELD_VOICE_LIMIT - TERMINAL_VOICE_RESERVE);
+    expect(ordinary).toHaveLength(ORDINARY_VOICE_CAPACITY);
     expect(terminal).toHaveLength(TERMINAL_VOICE_RESERVE);
 
     const faction = harness.world.catalog.chassis.get(harness.target.chassisId)?.faction
@@ -190,7 +197,7 @@ describe('terminal voice priority', () => {
     expect(harness.context.sources.every((source) => source.stops.length === 1)).toBe(true);
     expect(harness.context.sources.every((source) => Number.isFinite(source.stops[0]))).toBe(true);
     expect(harness.context.sources.length).toBeLessThanOrEqual(
-      FIELD_VOICE_LIMIT * 4,
+      (FIELD_VOICE_LIMIT + FIELD_QUIET_VOICE_LIMIT) * 4,
     );
     harness.audio.destroy();
   });

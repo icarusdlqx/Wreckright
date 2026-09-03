@@ -250,6 +250,19 @@ export class ScarLayer {
   }
 }
 
+/** A shell is seen where it lands: on a visible tile, or anywhere by the side that fired it. */
+export function canPresentGroundImpact(
+  world: World,
+  event: SimEvent,
+): event is Extract<SimEvent, { type: 'ground_impact' }> {
+  if (event.type !== 'ground_impact' || event.kind !== 'artillery') return false;
+  const tile = world.terrain.toTile(event);
+  if (!world.terrain.inBounds(tile.column, tile.row)) return false;
+  const cell = tile.row * world.terrain.width + tile.column;
+  return world.playerTeam === null || event.team === world.playerTeam ||
+    tileVisible(world.vision, cell);
+}
+
 /** Persistent battlefield memory, kept out of the already-full event router. */
 export class BattlefieldWear {
   readonly smoke: SmokeLayer;
@@ -266,13 +279,7 @@ export class BattlefieldWear {
   update(deltaSeconds: number): void { if (!this.disposed) this.smoke.update(deltaSeconds); }
 
   consumeSupport(world: World, event: SimEvent): void {
-    if (this.disposed || event.type !== 'ground_impact' || event.kind !== 'artillery') return;
-    const tile = world.terrain.toTile(event);
-    if (!world.terrain.inBounds(tile.column, tile.row)) return;
-    const cell = tile.row * world.terrain.width + tile.column;
-    const canSeeImpact = world.playerTeam === null || event.team === world.playerTeam ||
-      tileVisible(world.vision, cell);
-    if (!canSeeImpact) return;
+    if (this.disposed || !canPresentGroundImpact(world, event)) return;
     this.artillery(event);
   }
 

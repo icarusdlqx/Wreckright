@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AudioDirector } from './audio';
-import { PENDING_AUDIO_CLOSE_LIMIT } from './audioGraph';
+import { GRAPH_BUS_GAIN_COUNT, PENDING_AUDIO_CLOSE_LIMIT } from './audioGraph';
 import {
   SCORE_CLOSE_DELAY_MS,
   SCORE_FILTER_COUNT,
@@ -120,9 +120,9 @@ describe('fixed score lifetime in the audio director', () => {
       audio.unlock();
       const context = latestContext();
       expect(context.sources).toHaveLength(SCORE_SOURCE_COUNT);
-      expect(context.gains).toHaveLength(SCORE_GAIN_COUNT + 1);
+      expect(context.gains).toHaveLength(SCORE_GAIN_COUNT + GRAPH_BUS_GAIN_COUNT);
       expect(context.filters).toHaveLength(SCORE_FILTER_COUNT);
-      expect(context.sources.length + context.gains.length - 1 + context.filters.length)
+      expect(context.sources.length + context.gains.length - GRAPH_BUS_GAIN_COUNT + context.filters.length)
         .toBe(SCORE_NODE_COUNT);
       audio.destroy();
       audio.destroy();

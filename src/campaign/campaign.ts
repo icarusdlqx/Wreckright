@@ -11,7 +11,7 @@ import { availableXp, awardXp, resolveCasualty, returnedFromField } from './rost
 import { applySalvage, resolveSalvage, type SalvageReport } from './salvage';
 import { recoveredHulk } from './salvagedHull';
 import { negotiationOptions } from './contractTerms';
-import { dailyPayroll } from './ledger';
+import { dailyPayroll, debtInterest } from './ledger';
 import { employerById, recordEmployerFailure } from './employers';
 import { emptyHistoryArchive, pruneCampaignHistory } from './history';
 import { fillEmptySeats, PLAYER_TEAM, prepareDeployment, type DeployablePair } from './deployment';
@@ -342,6 +342,7 @@ export function resolveMission(
 export function advanceDays(catalog: Catalog, state: CampaignState, days: number): void {
   let remaining = days;
   let payrollPaid = 0;
+  let interestCharged = 0;
 
   while (remaining > 0) {
     remaining -= 1;
@@ -350,6 +351,10 @@ export function advanceDays(catalog: Catalog, state: CampaignState, days: number
     const payroll = dailyPayroll(catalog, state);
     state.cbills -= payroll;
     payrollPaid += payroll;
+
+    const interest = debtInterest(catalog, state);
+    state.cbills -= interest;
+    interestCharged += interest;
 
     for (const mech of state.mechs) {
       if (mech.status === 'repairing' && mech.readyOnDay <= state.day) {
@@ -375,6 +380,7 @@ export function advanceDays(catalog: Catalog, state: CampaignState, days: number
     pruneCampaignHistory(catalog, state);
   }
 
+  if (interestCharged > 0) logCampaign(state, `Interest on debt: ${interestCharged} credits.`);
   if (payrollPaid > 0) logCampaign(state, `Payroll: ${payrollPaid} credits.`);
 
   // Casualties and finished repairs both leave hulls without a pilot; seat them

@@ -19,12 +19,14 @@ export function ShelfToolbar({
   categories,
   showAll,
   selectedName,
+  swapLabel = null,
   resultLabel,
   onShelfChange,
   onQueryChange,
   onCategoryChange,
   onShowAllChange,
   onClearLocation,
+  onCancelSwap,
 }: {
   faction: Faction;
   shelf: Shelf;
@@ -33,12 +35,15 @@ export function ShelfToolbar({
   categories: readonly { id: WeaponCategory; label: string }[];
   showAll: boolean;
   selectedName: string | null;
+  /** "Field Autocannon in right torso" while a fitted gun is being replaced. */
+  swapLabel?: string | null;
   resultLabel: string;
   onShelfChange: (shelf: Shelf) => void;
   onQueryChange: (query: string) => void;
   onCategoryChange: (category: WeaponCategoryFilter) => void;
   onShowAllChange: (show: boolean) => void;
   onClearLocation: () => void;
+  onCancelSwap?: () => void;
 }) {
   const searchNoun = shelf === 'weapons' ? 'weapons' : shelf === 'ammo' ? 'ammo bins' : 'gear';
   const activate = (next: Shelf) => {
@@ -90,7 +95,12 @@ export function ShelfToolbar({
         testId="machine-culture-shelf"
       />
 
-      {selectedName === null ? null : (
+      {swapLabel !== null ? (
+        <div className="bay-location-filter" data-testid="bay-swap-filter">
+          <span>Swapping {swapLabel}</span>
+          <button type="button" onClick={onCancelSwap}>Keep it</button>
+        </div>
+      ) : selectedName === null ? null : (
         <div className="bay-location-filter" data-testid="bay-location-filter">
           <span>Fitting {selectedName}</span>
           <button type="button" onClick={onClearLocation}>Clear filter</button>

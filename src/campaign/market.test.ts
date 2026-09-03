@@ -5,6 +5,7 @@ import { acceptContract, advanceDays, startCampaign } from './campaign';
 import {
   buyMech,
   designMarketAvailable,
+  designYardAvailable,
   marketListings,
   marketPeriod,
   saleValueOf,
@@ -29,6 +30,19 @@ let state: CampaignState;
 beforeEach(() => {
   state = startCampaign(catalog, 'border_dispute', 'market');
 });
+
+/** Marks enough story contracts complete that every class of machine is on offer. */
+function establishCompany(current: CampaignState): void {
+  const unlocks = catalog.rules.economy.market.weightClassUnlocks;
+  const needed = Math.max(unlocks.light, unlocks.medium, unlocks.heavy, unlocks.assault);
+  const nodeIds = catalog.campaigns.get(current.campaignId)?.nodes.map((node) => node.id) ?? [];
+  current.completedNodes.push(...nodeIds.slice(0, needed));
+}
+
+function classOf(designId: string) {
+  const design = catalog.designs.get(designId);
+  return design === undefined ? undefined : catalog.chassis.get(design.chassisId)?.class;
+}
 
 function firstListing(current: CampaignState) {
   const listing = marketListings(catalog, current)[0];
@@ -60,12 +74,26 @@ function fixedMachinePrices(): Catalog {
 }
 
 describe('the yard', () => {
-  it('offers only machines whose hull and fitted parts can be sourced locally', () => {
+  it('offers only hulls the yard can source, whatever is bolted to them', () => {
     expect(catalog.rules.economy.market.availableFactions).toEqual(['linewrought']);
+    establishCompany(state);
     expect(marketListings(catalog, state)).not.toHaveLength(0);
     expect(marketListings(catalog, state).every((listing) =>
-      designMarketAvailable(catalog, listing.design),
+      designYardAvailable(catalog, listing.design),
     )).toBe(true);
+
+    // The Bulwark carries Sealed lasers on a Linewrought hull: the parts are
+    // not locally sourceable, the machine is, and the bay labels the mix.
+    const bulwark = catalog.designs.get('bulwark_assault');
+    if (bulwark === undefined) throw new Error('missing the Bulwark stock design');
+    expect(designMarketAvailable(catalog, bulwark)).toBe(false);
+    expect(designYardAvailable(catalog, bulwark)).toBe(true);
+    const offered = new Set<string>();
+    for (let week = 0; week < 12; week += 1) {
+      for (const listing of marketListings(catalog, state)) offered.add(listing.design.id);
+      state.day += catalog.rules.economy.market.refreshDays;
+    }
+    expect(offered).toContain('bulwark_assault');
 
     expect(
       storeItemMarketAvailable(catalog, { kind: 'weapon', itemId: 'gauss_rifle', count: 1 }),
@@ -191,14 +219,38 @@ describe('the yard', () => {
     );
   });
 
+  it('keeps the heavier classes off the lot until the company has earned them', () => {
+    const unlocks = catalog.rules.economy.market.weightClassUnlocks;
+    expect(unlocks.light).toBe(0);
+    expect(unlocks.heavy).toBeGreaterThan(0);
+    expect(unlocks.assault).toBeGreaterThan(unlocks.heavy);
+    const nodeIds = catalog.campaigns.get(state.campaignId)?.nodes.map((node) => node.id) ?? [];
+
+    const classes = () => new Set(marketListings(catalog, state).map((l) => classOf(l.design.id)));
+    // A first-week lot is still a full lot: the one light pattern, priced and
+    // worn differently per slot, rather than three empty bays.
+    expect(marketListings(catalog, state)).toHaveLength(catalog.rules.economy.market.listings);
+    expect(classes()).toEqual(new Set(['light']));
+
+    state.completedNodes.push(...nodeIds.slice(0, unlocks.heavy));
+    expect(classes()).toEqual(new Set(['light', 'heavy']));
+
+    state.completedNodes.push(...nodeIds.slice(unlocks.heavy, unlocks.assault));
+    expect(classes()).toEqual(new Set(['light', 'heavy', 'assault']));
+
+    // Side work is filler, not standing: a posting id never counts.
+    const fresh = startCampaign(catalog, 'border_dispute', 'market-side');
+    fresh.completedNodes.push('side_0_0', 'side_1_0', 'side_2_0');
+    expect(new Set(marketListings(catalog, fresh).map((l) => classOf(l.design.id))))
+      .toEqual(new Set(['light']));
+  });
+
   it('spreads the lot across the weight classes', () => {
-    const availableFactions = new Set(catalog.rules.economy.market.availableFactions);
+    establishCompany(state);
     const availableClasses = new Set(
       [...catalog.designs.values()]
-        .filter((design) => designMarketAvailable(catalog, design))
-        .map((design) => catalog.chassis.get(design.chassisId))
-        .filter((chassis) => chassis?.frame === 'mech' && availableFactions.has(chassis.faction))
-        .map((chassis) => chassis?.class),
+        .filter((design) => designYardAvailable(catalog, design))
+        .map((design) => catalog.chassis.get(design.chassisId)?.class),
     );
 
     // The yard has no Linewrought medium mech to sell. It still shows every

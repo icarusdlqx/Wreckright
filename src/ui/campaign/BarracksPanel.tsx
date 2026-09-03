@@ -22,7 +22,7 @@ import {
   skillTraining,
   traitEffects,
 } from '../pilotProgression';
-import { designIdentityLabel } from '../designLabel';
+import { companyMachineLabel } from '../designLabel';
 import './progression.css';
 
 const catalog = getCatalog();
@@ -162,7 +162,7 @@ function PilotCard({ pilot, state, mutate }: { pilot: PilotRecord; state: Campai
           <option value="">— no mech —</option>
           {state.mechs.map((mech) => (
             <option key={mech.id} value={mech.id}>
-              {designIdentityLabel(catalog, mech.design)}
+              {companyMachineLabel(catalog, state.mechs, mech)}
               {mech.status === 'ready' ? '' : ` (${mech.status})`}
             </option>
           ))}

@@ -7,10 +7,10 @@
     "centre_torso": 70,
     "left_torso": 52,
     "right_torso": 52,
-    "left_arm": 38,
-    "right_arm": 38,
-    "left_leg": 46,
-    "right_leg": 46
+    "left_arm": 32,
+    "right_arm": 32,
+    "left_leg": 42,
+    "right_leg": 42
   },
   "heatSinkId": "heat_sink",
   "heatSinks": 10,
@@ -52,6 +52,10 @@
     {
       "equipmentId": "case",
       "location": "right_torso"
+    },
+    {
+      "equipmentId": "case",
+      "location": "left_torso"
     }
   ]
 }

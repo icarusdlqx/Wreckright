@@ -5,6 +5,7 @@ import { teamColour, UI } from '../render/palette';
 import { DEFAULT_SILHOUETTE, radiusFor } from '../render/shape';
 import type { MechEntity, World } from '../sim/types';
 import { damageWearTier } from './damageLedger';
+import { createHullSurface, type HullSurfaceRig } from './hullSurface';
 import { collectLocationAnchors, type LocationAnchors } from './locationAnchors';
 import { buildMechModel, disposeModel, type MechModel } from './mechModel';
 import { setMachineMotionLowFx } from './machineMotion';
@@ -20,6 +21,9 @@ export interface EntityView {
   ring: Mesh;
   hoverRing: Mesh;
   anchors: LocationAnchors;
+  surface: HullSurfaceRig;
+  /** Accumulated steam budget, so venting is a rate rather than a per-frame roll. */
+  vent: { clock: number; count: number };
 }
 
 const DEFAULT_VISUAL: Weapon['visual'] = {
@@ -109,6 +113,8 @@ export function createEntityView(
     ring,
     hoverRing,
     anchors: collectLocationAnchors(model.root),
+    surface: createHullSurface(),
+    vent: { clock: 0, count: 0 },
   };
 }
 

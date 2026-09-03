@@ -66,20 +66,34 @@ describe('the hiring hall', () => {
     expect(nextOfferDay(catalog, 7)).toBe(14);
   });
 
-  it('takes a signed posting off the board, and leaves the others alone', () => {
-    const posted = sideContracts(catalog, state);
-    const taken = posted[0];
-    const other = posted[1];
+  it('posts one job a week, so filler cannot outpay the war', () => {
+    expect(catalog.rules.economy.sideContracts.offersPerPeriod).toBe(1);
+    expect(sideContracts(catalog, state)).toHaveLength(1);
+  });
+
+  it('takes a signed posting off the board, and leaves next week’s alone', () => {
+    const taken = sideContracts(catalog, state)[0];
     expect(taken).toBeDefined();
-    expect(other).toBeDefined();
-    if (taken === undefined || other === undefined) return;
+    if (taken === undefined) return;
+    const nextWeek = { ...state, day: nextOfferDay(catalog, state.day) };
+    const later = sideContracts(catalog, nextWeek);
 
     expect(acceptContract(catalog, state, taken.id, 'fee_first').ok).toBe(true);
 
-    const after = sideContracts(catalog, state);
-    expect(after.map((offer) => offer.id)).not.toContain(taken.id);
-    // Terms are drawn per slot, so consuming one does not shift its neighbours.
-    expect(after.find((offer) => offer.id === other.id)).toEqual(other);
+    expect(sideContracts(catalog, state)).toEqual([]);
+    // Boards are drawn per week, so signing this one does not shift the next.
+    expect(sideContracts(catalog, { ...state, day: nextWeek.day })).toEqual(later);
+  });
+
+  it('pays well under a story contract of the same weight', () => {
+    // The hall is filler between authored jobs. Priced above them, a company
+    // would farm the board and never take the war; this pins the discount.
+    const campaign = catalog.campaigns.get(CAMPAIGN_ID);
+    const opening = campaign?.nodes.find((node) => node.id === 'militia_raid');
+    if (opening === undefined) throw new Error('campaign has no opening contract');
+    const rules = catalog.rules.economy.sideContracts;
+    const storyPerTon = opening.basePayout / oppositionTonnage(catalog, opening.missionId);
+    expect(rules.payoutPerOpposingTon * rules.payoutVariance[1]).toBeLessThan(storyPerTon * 0.5);
   });
 
   it('forgets last week’s signings rather than remembering them forever', () => {

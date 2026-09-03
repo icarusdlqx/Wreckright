@@ -1,10 +1,20 @@
 import type { MechEntity, Vec2 } from '../sim/types';
 import { isOperational } from '../sim/types';
-import { arrowPanDelta } from './cameraNavigation';
+import {
+  edgePanDelta,
+  followSelection,
+  followingSelection,
+  keyPanDelta,
+  ORDER_KEY_PAN_HOLD_MS,
+  readEdgeScroll,
+  resetFollowSelection,
+  setFollowSelection,
+} from './cameraNavigation';
 import { commanderViewActive } from './commanderViewState';
 import type { Engine } from './engine';
 import { attachBattleKeyboard } from './inputKeyboard';
 import { createPointerGestureState, createPointerHandlers } from './inputPointer';
+import { OffscreenUnitArrows } from './offscreenUnitArrows';
 import { useGame } from './store';
 import { TouchInput } from './touchInput';
 
@@ -20,6 +30,20 @@ export function attachInput(engine: Engine, canvas: HTMLCanvasElement): () => vo
   let lastHoverTick = -1;
   let lastCameraKey = '';
   let lastCursorStyle = '';
+  let pointerInside = false;
+  const edgeScroll = readEdgeScroll();
+  resetFollowSelection();
+  // The arrows live beside the canvas, over it; a canvas with no parent has
+  // nowhere to put them, which is also how the input harness runs headless.
+  const host = canvas.parentElement ?? null;
+  const arrows = host === null
+    ? null
+    : new OffscreenUnitArrows(
+        host,
+        (entity) => engine.renderer.screenBodyOf(entity),
+        (entity, out) => engine.renderer.camera.screenDirection(entity.pos, viewport(), out),
+        viewport,
+      );
 
   /** Selects the friendly hulls touched by the box drawn in screen space. */
   const selectWithin = (a: Vec2, b: Vec2, add: boolean): void => {
@@ -130,10 +154,24 @@ export function attachInput(engine: Engine, canvas: HTMLCanvasElement): () => vo
     const commanderActive = commanderViewActive();
     if (battleFinished() || commanderActive) keyboard.held.clear();
     const speed = PAN_SPEED * delta * (engine.renderer.camera.distance / 620);
-    const pan = arrowPanDelta(keyboard.held, speed);
-    if (!battleFinished() && !commanderActive && (pan.x !== 0 || pan.y !== 0)) {
-      engine.renderer.camera.panBy(pan.x, pan.y);
+    const heldLongEnough = (code: string): boolean =>
+      now - (keyboard.pressedAt.get(code) ?? now) >= ORDER_KEY_PAN_HOLD_MS;
+    const pan = keyPanDelta(keyboard.held, speed, heldLongEnough);
+    if (edgeScroll && pointerInside && !pointerState.panning) {
+      const edge = edgePanDelta(pointerState.lastPointer, viewport(), speed);
+      pan.x += edge.x;
+      pan.y += edge.y;
     }
+    if (!battleFinished() && !commanderActive) {
+      if (pan.x !== 0 || pan.y !== 0) {
+        // Any pan by hand releases the follow; the camera never argues.
+        setFollowSelection(false);
+        engine.renderer.camera.panBy(pan.x, pan.y);
+      } else if (followingSelection()) {
+        followSelection(engine);
+      }
+    }
+    arrows?.update(engine.world, !commanderActive && !battleFinished());
 
     // Expensive terrain raycasts and entity picks happen at most once a frame.
     const busy =
@@ -160,10 +198,19 @@ export function attachInput(engine: Engine, canvas: HTMLCanvasElement): () => vo
   let cameraRunning = true;
   requestAnimationFrame(cameraFrame);
 
+  const onPointerEnter = (): void => {
+    pointerInside = true;
+  };
+  const onPointerLeave = (): void => {
+    pointerInside = false;
+  };
+
   canvas.addEventListener('pointerdown', pointer.down);
   canvas.addEventListener('pointermove', pointer.move);
   canvas.addEventListener('pointerup', pointer.up);
   canvas.addEventListener('pointercancel', pointer.cancel);
+  canvas.addEventListener('pointerenter', onPointerEnter);
+  canvas.addEventListener('pointerleave', onPointerLeave);
   canvas.addEventListener('wheel', pointer.wheel, { passive: false });
   canvas.addEventListener('contextmenu', pointer.contextMenu);
 
@@ -173,8 +220,12 @@ export function attachInput(engine: Engine, canvas: HTMLCanvasElement): () => vo
     canvas.removeEventListener('pointermove', pointer.move);
     canvas.removeEventListener('pointerup', pointer.up);
     canvas.removeEventListener('pointercancel', pointer.cancel);
+    canvas.removeEventListener('pointerenter', onPointerEnter);
+    canvas.removeEventListener('pointerleave', onPointerLeave);
     canvas.removeEventListener('wheel', pointer.wheel);
     canvas.removeEventListener('contextmenu', pointer.contextMenu);
+    arrows?.destroy();
+    resetFollowSelection();
     keyboard.detach();
   };
 }

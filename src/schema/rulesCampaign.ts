@@ -165,6 +165,13 @@ export const SalvageRulesSchema = z.strictObject({
   destroyedLocationRecovery: Probability,
   hulkRebuildCostFraction: z.number().positive().max(1),
   hulkRebuildDays: z.number().int().positive(),
+  /**
+   * Ceiling on a wreck's whole rebuild quote, as a fraction of the chassis
+   * price new. The flat rebuild fee, the replaced locations and the missing
+   * plate could otherwise add up past a new machine, at which point salvage
+   * was a trap rather than a prize.
+   */
+  hulkRebuildCostCap: z.number().positive().max(1),
 });
 
 export const EconomyRulesSchema = z.strictObject({
@@ -203,6 +210,17 @@ export const EconomyRulesSchema = z.strictObject({
     injuryChanceOnMechLoss: Probability,
     deathChanceOnMechLoss: Probability,
   }),
+  /**
+   * Running the company on credit. Payroll can push the account below zero
+   * and nothing used to notice; interest is what makes an overdraft a decision
+   * rather than free money.
+   */
+  debt: z.strictObject({
+    /** Charged on the outstanding overdraft every interval. */
+    weeklyInterestRate: z.number().nonnegative().max(1),
+    /** The calendar week the rate is quoted over. */
+    intervalDays: z.number().int().positive().max(60),
+  }),
   xp: z.strictObject({
     perHit: z.number().nonnegative(),
     perDamageDealt: z.number().nonnegative(),
@@ -232,6 +250,30 @@ export const EconomyRulesSchema = z.strictObject({
     wornDiscount: z.number().positive().max(1),
     /** The yard can only source machines and loose parts made by these shops. */
     availableFactions: z.array(FactionSchema).min(1),
+    /**
+     * Story contracts a company must have completed before the yard shows a
+     * class of machine. A first-week lot with an assault hull beside the one
+     * light the company can afford is a row of dead buttons, not a decision.
+     */
+    weightClassUnlocks: z.strictObject({
+      light: z.number().int().nonnegative(),
+      medium: z.number().int().nonnegative(),
+      heavy: z.number().int().nonnegative(),
+      assault: z.number().int().nonnegative(),
+    }),
+    /**
+     * The dearest crate the counter will put out, by story contracts
+     * completed. Ordered by threshold; the last tier a company qualifies for
+     * applies, and a null price means anything the suppliers make.
+     */
+    partPriceUnlocks: z
+      .array(
+        z.strictObject({
+          minCompleted: z.number().int().nonnegative(),
+          maxPrice: z.number().int().positive().nullable(),
+        }),
+      )
+      .min(1),
   }),
   /**
    * Work the hiring hall is posting this week. Side contracts exist so a

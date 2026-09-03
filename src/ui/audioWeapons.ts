@@ -13,7 +13,10 @@ import {
 export interface ImpactVoiceProfile {
   type: Weapon['type'];
   style: Weapon['visual']['style'];
+  /** Summed across the volley; a cluster on one plate is one heavier impact. */
   damage: number;
+  /** Rounds in the volley; above one, the plate patters before it rings. */
+  count?: number;
 }
 
 export type DestructionVoiceProfile =
@@ -186,6 +189,10 @@ export function playImpact(
   if (frame === null) return;
   const weight = bounded(profile.damage / 24, 0.08, 1.25);
   const heavy = profile.damage >= 12;
+  const patter = Math.min(3, (profile.count ?? 1) - 1);
+  for (let i = 1; i <= patter; i += 1) {
+    crack(frame, frame.now + i * (0.022 + frame.random() * 0.012), 0.1 + weight * 0.08, 1_900);
+  }
 
   if (profile.type === 'energy') {
     if (profile.style === 'flame') {

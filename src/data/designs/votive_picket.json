@@ -3,17 +3,17 @@
   "name": "Votive",
   "chassisId": "votive_vtv2",
   "armour": {
-    "head": 12,
-    "centre_torso": 42,
-    "left_torso": 32,
-    "right_torso": 32,
-    "left_arm": 20,
-    "right_arm": 20,
-    "left_leg": 31,
-    "right_leg": 31
+    "head": 14,
+    "centre_torso": 50,
+    "left_torso": 38,
+    "right_torso": 38,
+    "left_arm": 24,
+    "right_arm": 24,
+    "left_leg": 37,
+    "right_leg": 37
   },
   "heatSinkId": "heat_sink",
-  "heatSinks": 15,
+  "heatSinks": 14,
   "mounts": [
     {
       "weaponId": "er_medium_laser",

@@ -10,8 +10,8 @@
     "left_leg": "left_torso",
     "right_leg": "right_torso"
   },
-  "ammoExplosionDamagePerRound": 1.0,
-  "ammoExplosionCap": 180,
+  "ammoExplosionDamagePerRound": 0.25,
+  "ammoExplosionCap": 40,
   "headDestroyedEjectionChance": 0.4,
   "volatileExplosionFactor": 1.0,
   "critical": {

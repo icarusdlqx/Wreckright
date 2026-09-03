@@ -147,6 +147,46 @@ describe('createWorld', () => {
     expect(eliteEnemy.sightRange).toBeGreaterThan(greenEnemy.sightRange);
   });
 
+  it('sizes an opposing lance by the difficulty tier, and never the player\'s', () => {
+    const mission = catalog.missions.get('skirmish_ridge');
+    if (mission === undefined) throw new Error('need the fixture mission');
+    const authored = (team: number): number =>
+      mission.lances.filter((lance) => lance.team === team).reduce((n, l) => n + l.units.length, 0);
+    const opposingLances = mission.lances.filter((lance) => lance.team !== 0).length;
+    const count = (world: ReturnType<typeof createWorld>, team: number): number =>
+      world.entities.filter((entity) => entity.team === team).length;
+
+    const regular = catalog.rules.difficulty.tiers.regular;
+    if (regular === undefined) throw new Error('need the regular tier');
+    const sized = {
+      ...catalog,
+      rules: {
+        ...catalog.rules,
+        difficulty: {
+          ...catalog.rules.difficulty,
+          tiers: {
+            ...catalog.rules.difficulty.tiers,
+            bigger: { ...regular, lanceSizeDelta: 1 },
+            smaller: { ...regular, lanceSizeDelta: -1 },
+          },
+        },
+      },
+    };
+
+    const bigger = createWorld(sized, { seed: 'sized', missionId: 'skirmish_ridge', playerTeam: 0, difficulty: 'bigger' });
+    expect(count(bigger, 1)).toBe(authored(1) + opposingLances);
+    expect(count(bigger, 0)).toBe(authored(0));
+    expect(new Set(bigger.entities.map((entity) => entity.id)).size).toBe(bigger.entities.length);
+
+    const smaller = createWorld(sized, { seed: 'sized', missionId: 'skirmish_ridge', playerTeam: 0, difficulty: 'smaller' });
+    expect(count(smaller, 1)).toBe(authored(1) - opposingLances);
+    expect(count(smaller, 0)).toBe(authored(0));
+
+    // Nobody at the controls means nobody is the opposition.
+    const headless = createWorld(sized, { seed: 'sized', missionId: 'skirmish_ridge', difficulty: 'bigger' });
+    expect(count(headless, 1)).toBe(authored(1));
+  });
+
   it('rejects an unknown mission', () => {
     expect(() => createWorld(catalog, { seed: 'x', missionId: 'nope' })).toThrow(/unknown mission/);
   });
@@ -198,15 +238,18 @@ describe('runBattle', () => {
       expect(result.ticks, seed).toBeLessThan(catalog.rules.simulation.maxBattleTicks);
       // A draw is a real result: both lances can break and quit the field in the
       // same moment. What must not happen is running out the clock.
-      const standing = new Set(result.units.filter((unit) => unit.alive).map((u) => u.team));
+      const standing = new Set(
+        result.units.filter((unit) => unit.alive && unit.killMethod === null).map((u) => u.team),
+      );
       expect(standing.size, seed).toBeLessThanOrEqual(1);
     }
   });
 
   it('leaves exactly one team standing', () => {
     const result = runBattle(catalog, { seed: 'survivors', missionId: 'skirmish_ridge' });
+    // A conceded mech is alive in the ledger but no longer standing.
     const survivingTeams = new Set(
-      result.units.filter((unit) => unit.alive).map((unit) => unit.team),
+      result.units.filter((unit) => unit.alive && unit.killMethod === null).map((unit) => unit.team),
     );
     expect(survivingTeams.size).toBe(1);
     expect([...survivingTeams][0]).toBe(result.winner);
@@ -215,8 +258,10 @@ describe('runBattle', () => {
   it('records a kill method for every destroyed mech', () => {
     const result = runBattle(catalog, { seed: 'methods', missionId: 'skirmish_ridge' });
     for (const unit of result.units) {
-      // Off the field splits three ways: still standing, walked away, or killed.
-      if (unit.alive || unit.withdrew) expect(unit.killMethod, unit.name).toBeNull();
+      // Off the field splits four ways: still standing, walked away, conceded
+      // on its stumps, or killed. Only the conceded one is alive with a method.
+      if (unit.withdrew) expect(unit.killMethod, unit.name).toBeNull();
+      else if (unit.alive) expect([null, 'legged'], unit.name).toContain(unit.killMethod);
       else expect(unit.killMethod, unit.name).not.toBeNull();
     }
   });

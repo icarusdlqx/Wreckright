@@ -532,7 +532,10 @@ async function main() {
     await page.locator('[data-testid="lance-bar"] button').first().click();
     check('lance card selects a mech', (await state(page)).selection.length === 1);
     await page.waitForSelector('[data-testid="paper-doll"]');
-    check('paper doll renders eight locations', (await page.locator('.doll-cell').count()) === 8);
+    check(
+      'paper doll renders eight locations',
+      (await page.locator('[data-testid="paper-doll"] .doll-cell').count()) === 8,
+    );
     check('heat bar renders', (await page.locator('[data-testid="heat-bar"]').count()) === 1);
     check(
       'weapon groups render with cooldown rings',
@@ -1430,7 +1433,7 @@ async function main() {
     await page.waitForSelector('[data-testid="return-to-campaign"]');
     await page.screenshot({ path: `${SHOTS}/07-campaign-battle.png` });
 
-    await page.locator('[data-testid="return-to-campaign"]').click();
+    // One click settles the contract and returns; the debrief shows the ledger.
     await page.locator('[data-testid="return-to-campaign"]').click();
     await page.waitForSelector('[data-testid="campaign"]');
 

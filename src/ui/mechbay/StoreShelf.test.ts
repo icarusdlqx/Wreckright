@@ -134,3 +134,22 @@ describe('compact mechbay catalog', () => {
     expect(css).toContain('overflow-wrap: anywhere;');
   });
 });
+
+describe('swapping a fitted weapon', () => {
+  const swap = { index: 0, location: 'right_arm' as const, weaponId: 'ac5' };
+
+  it('lists only guns that could take the mount and names the swap in the toolbar', () => {
+    const html = render({ swap, selectedLocation: 'right_arm' });
+
+    expect(html).toContain('data-testid="bay-swap-filter"');
+    expect(html).toContain('Swapping Field Autocannon in right arm');
+    expect(html).toContain('Keep it');
+    expect(html).not.toContain('data-testid="bay-location-filter"');
+    expect(html).toContain('swap candidates');
+    expect(html).not.toContain('data-testid="weapon-card-ac5"');
+    expect(html).toContain('data-testid="weapon-card-machine_gun"');
+    expect(html).not.toContain('data-testid="weapon-card-lbx_ac10"');
+    expect(html).not.toContain('data-testid="weapon-card-medium_laser"');
+    expect(html).not.toContain('autofit-stock-weapon-machine_gun');
+  });
+});

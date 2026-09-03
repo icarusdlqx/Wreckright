@@ -18,7 +18,7 @@ import { campaignOutcomeCount } from '../../campaign/history';
 import { assessSolvency, retireCompany } from '../../campaign/solvency';
 import { employerHistories } from '../../campaign/employers';
 import type { BayCommission } from '../mechbay/Mechbay';
-import { authoredDesignName } from '../designLabel';
+import { authoredDesignName, companyMachineName } from '../designLabel';
 import { CampaignHeader } from './CampaignHeader';
 import { CampaignChooser } from './CampaignChooser';
 import { CampaignMap, type NodeState } from './CampaignMap';
@@ -36,6 +36,8 @@ import { downloadCampaignFile } from './campaignDownload';
 import { useGame } from '../store';
 import { usePlaytest } from '../playtest';
 import { CampaignGuide } from './CampaignGuide';
+import { CampaignNext } from './CampaignNext';
+import { campaignNextSteps } from './nextSteps';
 import { CampaignPrep } from './CampaignPrep';
 import { firstDropStage, type FirstDropPrep } from './firstDropGuide';
 import { canLaunchFirstDropDirectly } from './firstDropLaunch';
@@ -86,6 +88,13 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
     prep,
   });
   const guidedFirstDrop = guideDismissed ? 'done' : firstDrop;
+  const nextSteps = useMemo(
+    () =>
+      guidedFirstDrop === 'done' && !state.finished
+        ? campaignNextSteps(catalog, state, (mech) => companyMachineName(catalog, state.mechs, mech))
+        : [],
+    [guidedFirstDrop, state],
+  );
 
   useEffect(() => {
     record({ name: 'campaign_opened' });
@@ -268,6 +277,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         />
       )}
       <CampaignGuide stage={guidedFirstDrop} onDismiss={() => setGuideDismissed(true)} />
+      <CampaignNext steps={nextSteps} />
 
       <CampaignMap
         campaign={campaign}

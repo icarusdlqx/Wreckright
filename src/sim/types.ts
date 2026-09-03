@@ -53,7 +53,8 @@ export interface JumpState {
   duration: number;
 }
 
-export type KillMethod = 'centre_torso' | 'head' | 'ammo_explosion';
+/** `legged` is a concession, not a wreck: both legs gone and nobody left to cover it. */
+export type KillMethod = 'centre_torso' | 'head' | 'ammo_explosion' | 'legged';
 
 export interface LocationState {
   armour: number;
@@ -164,6 +165,12 @@ export interface MechEntity {
   motion: MotionState;
   /** What the controller asked for. Movement restores it once the mech is aligned. */
   intendedMotion: MotionState;
+  /**
+   * Whether the legs were carrying it last tick. The pivot gate that starts a
+   * walk is tighter than the one that keeps it going, so this is the memory
+   * the hysteresis needs.
+   */
+  underway: boolean;
   walkSpeed: number;
   runSpeed: number;
   turnRate: number;
@@ -224,6 +231,10 @@ export interface MechEntity {
   designatedUntilTick: number;
   destroyed: boolean;
   withdrawn: boolean;
+  /** Conceded after being legged: intact, powered down, out of the fight. */
+  disabled: boolean;
+  /** Ticks spent legged with no upright ally in reach; concedes at the rule's limit. */
+  concessionTicks: number;
   killMethod: KillMethod | null;
 
   /** The standing instruction this mech is following between orders. */
@@ -335,48 +346,14 @@ export interface World {
   winner: number | null;
 }
 
-export function isOperational(entity: MechEntity): boolean {
-  return !entity.destroyed && !entity.withdrawn && !entity.pilot.dead && !entity.pilot.ejected;
-}
-
-/**
- * Going nowhere, for either of the two reasons there are. An emplacement was
- * bolted down to begin with; a mech with both legs gone has arrived at the same
- * place by a worse route. Everything downstream — jets, pathing, pace, being
- * shoved aside — asks this one question rather than each asking its own.
- */
-export function isImmobile(entity: MechEntity): boolean {
-  if (!entity.mobile) return true;
-  return entity.locations.left_leg.destroyed && entity.locations.right_leg.destroyed;
-}
-
-/** On the ground: cannot move, turn, twist or shoot, and easy to hit. */
-export function isDown(entity: MechEntity): boolean {
-  return entity.downRemaining > 0;
-}
-
-/** Rocking, but still upright. The next big hit is the one that floors it. */
-export function isStaggered(entity: MechEntity, staggerThreshold: number): boolean {
-  return !isDown(entity) && entity.stability >= staggerThreshold;
-}
-
-export function legPenaltyFactor(entity: MechEntity, singleLegFactor: number): number {
-  if (isImmobile(entity)) return 0;
-  const lost = entity.locations.left_leg.destroyed || entity.locations.right_leg.destroyed;
-  if (!lost) return 1;
-  // Reinforced actuators claw back part of the loss, never more than all of it.
-  return Math.min(1, singleLegFactor * entity.legLossFactor);
-}
-
-export function findEntity(world: World, id: EntityId | null): MechEntity | null {
-  if (id === null) return null;
-  return world.entities.find((entity) => entity.id === id) ?? null;
-}
-
-export function findAmmoBin(entity: MechEntity, weaponId: string): AmmoBin | null {
-  return (
-    entity.ammoBins.find(
-      (bin) => bin.weaponId === weaponId && !bin.destroyed && bin.rounds > 0,
-    ) ?? null
-  );
-}
+// Entity predicates live with the entity, so callers keep one import.
+export {
+  findAmmoBin,
+  findEntity,
+  isDown,
+  isImmobile,
+  isLegged,
+  isOperational,
+  isStaggered,
+  legPenaltyFactor,
+} from './entityState';

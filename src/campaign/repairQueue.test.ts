@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { catalog } from '../../tests/support';
+import { catalog as authored } from '../../tests/support';
 import type { Faction } from '../schema/faction';
 import type { Catalog } from '../schema/load';
 import { EconomyRulesSchema } from '../schema/rules';
@@ -15,21 +15,25 @@ import {
 import { deserialiseCampaign, serialiseCampaign } from './save';
 import type { CampaignState, MechRecord } from './types';
 
-function start(): CampaignState {
-  return startCampaign(catalog, 'border_dispute', 'one-repair-lift');
-}
-
 function withBayCapacity(bayCapacity: number): Catalog {
   return {
-    ...catalog,
+    ...authored,
     rules: {
-      ...catalog.rules,
+      ...authored.rules,
       economy: {
-        ...catalog.rules.economy,
-        repair: { ...catalog.rules.economy.repair, bayCapacity },
+        ...authored.rules.economy,
+        repair: { ...authored.rules.economy.repair, bayCapacity },
       },
     },
   };
+}
+
+// The authored workshop has two lifts. Queue order is only observable when
+// there is one, so these tests pin capacity rather than inherit it.
+const catalog = withBayCapacity(1);
+
+function start(): CampaignState {
+  return startCampaign(catalog, 'border_dispute', 'one-repair-lift');
 }
 
 function withChassisFaction(mech: MechRecord, faction: Faction): Catalog {
@@ -65,13 +69,19 @@ describe('single repair bay', () => {
     const sealed = estimateRepair(withChassisFaction(mech, 'aurelian'), mech);
     const factors = catalog.rules.economy.repair.factionFactors;
 
+    // Sealed work costs more and takes far longer; the calendar, not the bill,
+    // is what makes fielding captured kit a commitment.
     expect(factors.linewrought).toEqual({ cost: 1, days: 1 });
-    expect(factors.aurelian.cost).toBeGreaterThanOrEqual(2);
+    expect(factors.aurelian.cost).toBeGreaterThanOrEqual(1.5);
     expect(factors.aurelian.cost).toBeLessThanOrEqual(3);
     expect(factors.aurelian.days).toBeGreaterThanOrEqual(2);
     expect(factors.aurelian.days).toBeLessThanOrEqual(3);
     expect(sealed.cost).toBe(Math.round(line.cost * factors.aurelian.cost));
     expect(sealed.days).toBe(Math.ceil(line.days * factors.aurelian.days));
+  });
+
+  it('ships two lifts in the authored workshop', () => {
+    expect(authored.rules.economy.repair.bayCapacity).toBe(2);
   });
 
   it('defaults older economy packs to one repair lift', () => {

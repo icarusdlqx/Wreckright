@@ -57,6 +57,7 @@ export async function createEngine(host: HTMLElement, options: EngineOptions = {
   renderer.onFootfall = (at, tonnage, faction) => engine.audio.footfall(at, tonnage, faction);
   engine.audio.setTerrain(mapData);
   engine.audio.setAmbient(world.atmosphere.id);
+  engine.audio.selection = () => useGame.getState().selection;
   engine.perf = new PerfOverlay(host);
   engine.onDestroy(() => engine.perf?.destroy());
   engine.attach(renderer.canvas);

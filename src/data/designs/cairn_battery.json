@@ -7,8 +7,8 @@
     "centre_torso": 88,
     "left_torso": 66,
     "right_torso": 66,
-    "left_arm": 38,
-    "right_arm": 38,
+    "left_arm": 32,
+    "right_arm": 32,
     "left_leg": 58,
     "right_leg": 58
   },
@@ -66,6 +66,10 @@
     {
       "equipmentId": "case",
       "location": "centre_torso"
+    },
+    {
+      "equipmentId": "case",
+      "location": "right_arm"
     }
   ]
 }

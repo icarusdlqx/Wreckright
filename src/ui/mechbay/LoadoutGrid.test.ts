@@ -56,9 +56,45 @@ describe('loadout fitting guide', () => {
     expect(html).toContain('<span>1</span><strong>Pick</strong>');
     expect(html).toContain('<span>3</span><strong>Review</strong>');
     expect(html).not.toContain('aria-current="step"');
-    expect(html.match(/data-testid="bay-location-/g)).toHaveLength(8);
+    expect(html.match(/data-testid="bay-location-(?:head|centre_torso|left_torso|right_torso|left_arm|right_arm|left_leg|right_leg)"/g)).toHaveLength(5);
     expect(html).not.toContain('class="bay-hardpoints"');
     expect(html).not.toContain('class="bay-slots');
+  });
+
+  it('folds the head and legs into one strip that still says its armour', () => {
+    const html = render();
+
+    expect(html).toContain('data-testid="bay-location-strip"');
+    expect(html).not.toContain('data-testid="bay-location-head"');
+    expect(html).not.toContain('data-testid="bay-location-left_leg"');
+    expect(html).toContain('data-testid="bay-location-compact-head"');
+    expect(html).toContain('data-testid="bay-location-compact-right_leg"');
+    expect(html).toMatch(/<strong>Left Leg<\/strong><span>2 slots<\/span><span class="location-strip__armour">Armour \d+\/\d+<\/span>/);
+    expect(html).toContain('Gear and ammo only');
+    expect(html).toContain('data-testid="bay-locations-toggle" aria-pressed="false"');
+    expect(html).toContain('Show all locations');
+    expect(html).toContain('data-testid="capacity-right_torso"');
+    expect(html).toContain('Takes 2 energy · 1 ballistic, up to medium');
+  });
+
+  it('unfolds a leg into a full card while it can take the held part', () => {
+    const html = render({
+      armed: { kind: 'equipment', id: 'jump_jet' },
+      compatibleLocations: new Set<MechLocation>(['left_leg', 'right_leg']),
+    });
+
+    expect(html).toContain('data-testid="bay-location-left_leg"');
+    expect(html).toContain('data-testid="bay-location-right_leg"');
+    expect(html).toContain('data-testid="bay-location-compact-head"');
+    expect(html).toContain('bay-location-compact-head" disabled=""');
+  });
+
+  it('unfolds a selected mount-less location so its filter has a card', () => {
+    const html = render({ selectedLocation: 'head' });
+
+    expect(html).toContain('data-testid="bay-location-head" data-selected="true"');
+    expect(html).toContain('data-testid="capacity-head"');
+    expect(html).toContain('>Gear and ammo only<');
   });
 
   it('folds the stepper to one disclosure line without removing the live status', () => {

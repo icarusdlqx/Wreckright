@@ -1,4 +1,5 @@
 import type { BattleTopbarProps } from './BattleTopbar';
+import { AUDIO_LEVEL_KEYS, type AudioLevelKind } from './audioPreference';
 import { SetupToolbar } from './BattleSetup';
 import { usePlaytest } from './playtest';
 import { useGame } from './store';
@@ -8,6 +9,12 @@ interface BattleMenuProps extends BattleTopbarProps {
   fullHud: boolean;
   variant: 'desktop' | 'mobile';
 }
+
+const LEVEL_LABELS: Readonly<Record<AudioLevelKind, string>> = {
+  master: 'Volume',
+  effects: 'Effects',
+  score: 'Score',
+};
 
 /** Secondary battle chrome stays available without competing with the field. */
 export function BattleMenu({ fullHud, variant, ...props }: BattleMenuProps) {
@@ -19,6 +26,12 @@ export function BattleMenu({ fullHud, variant, ...props }: BattleMenuProps) {
     ? 'The lance is in the field — resolve the contract first.'
     : 'The lance is in the field — choose a mission to leave this run.';
   const prefix = mobile ? 'mobile' : 'desktop';
+  const setLevel = (kind: AudioLevelKind, value: number): void => {
+    // Both directors persist the same key; the battle graph is live, the
+    // strategic one catches up on its next route change.
+    props.engine?.audio.setLevel(kind, value);
+    score.setLevel(kind, value);
+  };
 
   return (
     <details
@@ -95,6 +108,28 @@ export function BattleMenu({ fullHud, variant, ...props }: BattleMenuProps) {
               </button>
             </>
           ) : null}
+        </div>
+        <div className="battle-menu-levels" role="group" aria-label="Volume levels">
+          {(Object.keys(AUDIO_LEVEL_KEYS) as AudioLevelKind[]).map((kind) => {
+            const percent = Math.round(score.levels[kind] * 100);
+            return (
+              <label key={kind} className="battle-menu-level">
+                <span className="battle-menu-level-name">{LEVEL_LABELS[kind]}</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={5}
+                  value={percent}
+                  aria-label={`${LEVEL_LABELS[kind]} volume`}
+                  aria-valuetext={`${percent} percent`}
+                  onChange={(event) => setLevel(kind, Number(event.target.value) / 100)}
+                  data-testid={`volume-${kind}`}
+                />
+                <output className="battle-menu-level-value" aria-hidden="true">{percent}%</output>
+              </label>
+            );
+          })}
         </div>
         {fullHud ? (
           <>

@@ -8,34 +8,38 @@ import {
 } from './audio-probe.mjs';
 
 const SCORE_SOURCE_COUNT = 5;
-const SCORE_SOURCE_IDS = [6, 8, 13, 15, 19];
+const SCORE_SOURCE_IDS = [8, 10, 15, 17, 21];
 const CAMPAIGN_LEVEL = 0.052 * 0.6;
 const MECHBAY_LEVEL = 0.052 * 0.72;
 const CAMPAIGN_PULSE_HZ = 0.72;
 const MECHBAY_PULSE_HZ = 0.72 + 0.3 * 1.45;
 const LINEWROUGHT_PITCHES = [43.65, 65.41, 87.31, 103.83];
 const AURELIAN_PITCHES = [46.25, 69.3, 103.83, 130.81];
+// Master → effects bus and score bus → score level; the five score sources
+// hang off the score level so a slider or a duck never touches the field.
 const FIXED_TOPOLOGY = [
   '0:destination>',
   '1:compressor>node:0',
   '2:gain>node:1',
   '3:gain>node:2',
-  '4:gain>node:3',
-  '5:filter>node:4',
-  '6:oscillator>node:7',
-  '7:gain>node:5',
+  '4:gain>node:2',
+  '5:gain>node:4',
+  '6:gain>node:5',
+  '7:filter>node:6',
   '8:oscillator>node:9',
-  '9:gain>node:5',
-  '10:gain>node:3',
-  '11:filter>node:10',
-  '12:gain>node:11',
-  '13:oscillator>node:14',
-  '14:gain>node:12',
+  '9:gain>node:7',
+  '10:oscillator>node:11',
+  '11:gain>node:7',
+  '12:gain>node:5',
+  '13:filter>node:12',
+  '14:gain>node:13',
   '15:oscillator>node:16',
-  '16:gain>param:gain-12',
-  '17:gain>node:3',
-  '18:filter>node:17',
-  '19:oscillator>node:18',
+  '16:gain>node:14',
+  '17:oscillator>node:18',
+  '18:gain>param:gain-14',
+  '19:gain>node:5',
+  '20:filter>node:19',
+  '21:oscillator>node:20',
 ];
 
 function watchPage(page) {
@@ -117,10 +121,10 @@ async function checkCampaignAndNestedRefit({ browser, url, check }) {
     check('training skip creates the campaign score before any second strategic gesture',
       campaign.state === 'running' && campaign.scoreSources.length === SCORE_SOURCE_COUNT);
     check('campaign route owns one fixed strategic score graph',
-      campaign.counts.nodes === 20 && campaign.counts.sources === SCORE_SOURCE_COUNT
-        && campaign.counts.gains === 10 && campaign.counts.filters === 3
+      campaign.counts.nodes === 22 && campaign.counts.sources === SCORE_SOURCE_COUNT
+        && campaign.counts.gains === 12 && campaign.counts.filters === 3
         && fixedScoreGraph(campaign)
-        && includesTarget(campaign.automation, 'gain-3', CAMPAIGN_LEVEL),
+        && includesTarget(campaign.automation, 'gain-5', CAMPAIGN_LEVEL),
       JSON.stringify({ counts: campaign.counts, topology: fixedTopology(campaign) }));
 
     await page.locator('[data-testid="campaign-mute-button"]').click();
@@ -146,8 +150,8 @@ async function checkCampaignAndNestedRefit({ browser, url, check }) {
     check('campaign refit borrows the strategic graph and applies the mechbay treatment',
       (await audioProbe(page)).length === 1 && sameFixedGraph(beforeRefit, refit)
         && JSON.stringify(beforeRefit.counts) === JSON.stringify(refit.counts)
-        && includesTarget(refitTargets, 'gain-3', MECHBAY_LEVEL)
-        && includesTarget(refitTargets, 'source-15-frequency', MECHBAY_PULSE_HZ),
+        && includesTarget(refitTargets, 'gain-5', MECHBAY_LEVEL)
+        && includesTarget(refitTargets, 'source-17-frequency', MECHBAY_PULSE_HZ),
       JSON.stringify(refitTargets));
 
     await advanceAudioClock(page);
@@ -160,8 +164,8 @@ async function checkCampaignAndNestedRefit({ browser, url, check }) {
     const returnTargets = newTargets(beforeReturn, returned);
     check('closing campaign refit restores the map treatment on the same sources',
       sameFixedGraph(refit, returned)
-        && includesTarget(returnTargets, 'gain-3', CAMPAIGN_LEVEL)
-        && includesTarget(returnTargets, 'source-15-frequency', CAMPAIGN_PULSE_HZ),
+        && includesTarget(returnTargets, 'gain-5', CAMPAIGN_LEVEL)
+        && includesTarget(returnTargets, 'source-17-frequency', CAMPAIGN_PULSE_HZ),
       JSON.stringify(returnTargets));
 
     await page.locator('[data-testid="hangar-cancel"]').click();
@@ -190,8 +194,8 @@ async function checkStandaloneMechbay({ browser, url, check }) {
     await page.waitForFunction(() => globalThis.__audioProbe.snapshot().length === 1);
     const bay = (await audioProbe(page))[0];
     check('standalone mechbay owns one fixed strategic score graph',
-      fixedScoreGraph(bay) && includesTarget(bay.automation, 'gain-3', MECHBAY_LEVEL)
-        && includesTarget(bay.automation, 'source-15-frequency', MECHBAY_PULSE_HZ),
+      fixedScoreGraph(bay) && includesTarget(bay.automation, 'gain-5', MECHBAY_LEVEL)
+        && includesTarget(bay.automation, 'source-17-frequency', MECHBAY_PULSE_HZ),
       JSON.stringify({ counts: bay.counts, topology: fixedTopology(bay) }));
 
     await page.locator('[data-testid="bay-mute-button"]').click();
@@ -250,8 +254,8 @@ async function checkBattleOutfitterReuse({ browser, url, check }) {
     await page.waitForFunction(() => globalThis.__audioProbe.snapshot().length === 1);
     const outfit = (await audioProbe(page))[0];
     check('battle briefing outfitter reuses the battle score graph',
-      fixedScoreGraph(outfit) && includesTarget(outfit.automation, 'gain-3', MECHBAY_LEVEL)
-        && includesTarget(outfit.automation, 'source-15-frequency', MECHBAY_PULSE_HZ)
+      fixedScoreGraph(outfit) && includesTarget(outfit.automation, 'gain-5', MECHBAY_LEVEL)
+        && includesTarget(outfit.automation, 'source-17-frequency', MECHBAY_PULSE_HZ)
         && includesValues(outfit.scoreSources.map((source) => source.startFrequency), AURELIAN_PITCHES),
       JSON.stringify({ contexts: (await audioProbe(page)).length, counts: outfit.counts }));
 

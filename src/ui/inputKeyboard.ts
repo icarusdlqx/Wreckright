@@ -6,11 +6,14 @@ import {
   isInteractiveKeyTarget,
   shouldIgnoreBattleKey,
 } from './battleKeyboard';
+import { toggleFollowSelection } from './cameraNavigation';
 import { resetCommanderView, toggleCommanderView } from './commanderViewState';
 import { useGame } from './store';
 
 interface AttachedBattleKeyboard {
   held: Set<string>;
+  /** When each held key went down, so a tap can be told from a hold. */
+  pressedAt: Map<string, number>;
   detach: () => void;
 }
 
@@ -20,6 +23,7 @@ export function attachBattleKeyboard(
 ): AttachedBattleKeyboard {
   resetCommanderView();
   const held = new Set<string>();
+  const pressedAt = new Map<string, number>();
 
   const onKeyDown = (event: KeyboardEvent): void => {
     const state = useGame.getState();
@@ -49,6 +53,7 @@ export function attachBattleKeyboard(
     }
 
     held.add(event.code);
+    if (!pressedAt.has(event.code)) pressedAt.set(event.code, performance.now());
     switch (event.code) {
       case 'Backquote':
         event.preventDefault();
@@ -83,6 +88,20 @@ export function attachBattleKeyboard(
       case 'KeyG':
         engine.setPosture('hold_position');
         return;
+      case 'KeyK':
+        // A toggle: auto-repeat would flip it back before the key came up.
+        if (event.repeat) return;
+        engine.setPosture('keep_facing');
+        return;
+      case 'KeyL': {
+        if (event.repeat) return;
+        const following = toggleFollowSelection();
+        state.pushLog(following ? 'Camera following the selection.' : 'Camera released.');
+        return;
+      }
+      case 'KeyS':
+        engine.orderStop();
+        return;
       case 'KeyV':
         engine.useAbilities();
         return;
@@ -112,6 +131,7 @@ export function attachBattleKeyboard(
         state.setOrderMode(null);
         state.setSupportMode(null);
         state.setSelection([]);
+        state.patch({ inspectedId: null });
         return;
       case 'KeyE':
         state.setSelection(state.units.filter((unit) => unit.alive).map((unit) => unit.id));
@@ -154,10 +174,12 @@ export function attachBattleKeyboard(
 
   const onKeyUp = (event: KeyboardEvent): void => {
     held.delete(event.code);
+    pressedAt.delete(event.code);
   };
 
   const onBlur = (): void => {
     held.clear();
+    pressedAt.clear();
     cancelPointerGesture();
     resetCommanderView();
   };
@@ -168,6 +190,7 @@ export function attachBattleKeyboard(
 
   return {
     held,
+    pressedAt,
     detach: () => {
       resetCommanderView();
       window.removeEventListener('keydown', onKeyDown);

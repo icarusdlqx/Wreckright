@@ -2570,6 +2570,45 @@ button {
   margin-top: 12px;
 }
 
+/* The hangar, manifest and debrief share this frame, and for a long time
+   shared the browser's default button too: light grey behind near-white
+   text, so "Continue to deployment" and "Launch" were on screen but not
+   legible. The primary action carries the accent so the way forward reads
+   before the row of per-machine buttons does. */
+.manifest button,
+.manifest select {
+  padding: 6px 12px;
+  border: 1px solid var(--edge);
+  border-radius: 4px;
+  background: rgba(140, 224, 255, 0.08);
+  color: inherit;
+}
+
+.manifest button:hover:not(:disabled),
+.manifest button:focus-visible {
+  border-color: var(--accent, #8ce0ff);
+  background: rgba(140, 224, 255, 0.16);
+  outline: none;
+}
+
+.manifest button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.manifest-actions > button:first-child {
+  padding: 8px 18px;
+  border-color: var(--accent, #8ce0ff);
+  background: var(--accent, #8ce0ff);
+  color: #0b1218;
+  font-weight: 600;
+}
+
+.manifest-actions > button:first-child:hover:not(:disabled),
+.manifest-actions > button:first-child:focus-visible {
+  background: #b5ebff;
+}
+
 @media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
   .manifest-row {
     grid-template-columns: 1fr;
@@ -3905,4 +3944,161 @@ button {
   .bay-location {
     transition: none;
   }
+}
+
+/* ----------------------------------------------------------- hangar notes */
+/* Marked identities are long; the name column wraps rather than running
+   under the health bar in the next column. */
+.manifest-pilot {
+  min-width: 0;
+}
+
+.manifest-pilot .pilot-name {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.manifest-warning {
+  display: block;
+  color: #ffd18a;
+}
+
+.manifest-grounded {
+  flex-basis: 100%;
+  margin: 4px 0 0;
+  color: #ffd18a;
+  font-size: 13px;
+}
+
+.contract-odds-line {
+  margin: 6px 0 4px;
+  font-size: 12.5px;
+  color: var(--muted, #9fb3c0);
+}
+
+/* ------------------------------------------------------------ enemy panel */
+/* The hostile the player is looking at sits under the selected machine and
+   borrows its paper doll, so the two read as "mine" over "theirs". */
+.enemy-panel {
+  margin-top: 10px;
+  padding: 8px 10px 10px;
+  border: 1px solid rgba(255, 120, 96, 0.35);
+  border-radius: 6px;
+  background: rgba(60, 18, 12, 0.35);
+}
+
+.enemy-panel-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.enemy-panel-label {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ff9c86;
+}
+
+.enemy-panel-head strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.enemy-panel-dismiss {
+  padding: 0 6px;
+  border: 0;
+  background: transparent;
+  color: var(--muted, #9fb3c0);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.enemy-panel-integrity {
+  display: grid;
+  gap: 3px;
+  margin: 6px 0 8px;
+}
+
+.enemy-panel-integrity small {
+  font-size: 11.5px;
+  color: var(--muted, #9fb3c0);
+}
+
+.enemy-panel-state {
+  text-transform: capitalize;
+}
+
+.enemy-panel-bar {
+  display: block;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.enemy-panel-bar > span {
+  display: block;
+  height: 100%;
+  background: #ff8a6e;
+}
+
+.enemy-panel-hint {
+  margin: 6px 0;
+  font-size: 11.5px;
+  color: var(--muted, #9fb3c0);
+}
+
+.enemy-panel-attack {
+  width: 100%;
+}
+
+/* --------------------------------------------------------------- key card */
+.key-card {
+  position: absolute;
+  top: 44px;
+  right: 12px;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 18px;
+  width: min(560px, calc(100vw - 24px));
+  padding: 12px 16px;
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  background: var(--panel);
+  box-shadow: 0 12px 32px #000a;
+  font-size: 12px;
+}
+
+.key-card h4 {
+  margin: 0 0 6px;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.key-card dl {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+}
+
+.key-card dl > div {
+  display: grid;
+  grid-template-columns: 118px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.key-card dt {
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.key-card dd {
+  margin: 0;
+  color: var(--muted, #9fb3c0);
 }

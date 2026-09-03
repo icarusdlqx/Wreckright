@@ -41,6 +41,51 @@ describe('recovered campaign hull', () => {
     expect(mech.rebuildCost).toBeGreaterThan(0);
   });
 
+  it('holds a wreck\'s whole quote under the chassis price new', () => {
+    const mech = recoveredHulk(catalog, fieldHull(), 'mech-cap', 0);
+    if (mech === null) throw new Error('the salvage design is missing');
+    for (const location of LOCATIONS) {
+      mech.condition[location] = { armour: 0, rearArmour: 0, internal: 1, destroyed: true };
+    }
+    const chassis = catalog.chassis.get(mech.design.chassisId);
+    if (chassis === undefined) throw new Error('the salvage chassis is missing');
+    const cap = Math.round(chassis.baseCost * catalog.rules.salvage.hulkRebuildCostCap);
+    const uncapped = {
+      ...catalog,
+      rules: {
+        ...catalog.rules,
+        salvage: { ...catalog.rules.salvage, hulkRebuildCostCap: Number.POSITIVE_INFINITY },
+      },
+    };
+
+    const quote = estimateRepair(catalog, mech);
+    expect(estimateRepair(uncapped, mech).cost).toBeGreaterThan(cap);
+    expect(quote.cost).toBe(cap);
+    // The cap is a price, not a shortcut: the calendar still runs its course.
+    expect(quote.days).toBe(estimateRepair(uncapped, mech).days);
+  });
+
+  it('rebuilds a cored light for well under half its price new', () => {
+    const cored: RecoveredHull = {
+      designId: 'hornet_spotter',
+      condition: Object.fromEntries(
+        LOCATIONS.map((location) => [
+          location,
+          { armour: 0, rearArmour: 0, internal: 1, destroyed: location === 'centre_torso' },
+        ]),
+      ) as RecoveredHull['condition'],
+    };
+    const mech = recoveredHulk(catalog, cored, 'mech-cored', 0);
+    if (mech === null) throw new Error('the salvage design is missing');
+    const chassis = catalog.chassis.get(mech.design.chassisId);
+    if (chassis === undefined) throw new Error('the salvage chassis is missing');
+
+    const quote = estimateRepair(catalog, mech);
+    expect(quote.cost).toBeLessThan(chassis.baseCost * 0.5);
+    // A cored light used to sit in the bay for most of six weeks.
+    expect(quote.days).toBeLessThan(30);
+  });
+
   it('does not invent a hull for an unknown recovered design', () => {
     expect(recoveredHulk(catalog, { ...fieldHull(), designId: 'missing' }, 'mech-x', 0)).toBeNull();
   });

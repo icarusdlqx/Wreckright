@@ -8,7 +8,7 @@ export interface LanceResultRow {
   id: number;
   name: string;
   identity: string;
-  status: 'Operational' | 'Withdrew' | 'Ejected' | 'Lost';
+  status: 'Operational' | 'Crippled' | 'Withdrew' | 'Ejected' | 'Lost';
   pilotLost: boolean;
   kills: number;
   damageDealt: number;
@@ -79,6 +79,9 @@ function reasonFor(result: BattleResult, playerTeam: number): string {
 function statusFor(unit: UnitResult): LanceResultRow['status'] {
   if (unit.withdrew) return 'Withdrew';
   if (unit.pilotEjected) return 'Ejected';
+  // A legged machine that conceded is still alive and still towable; it is
+  // not operational and must not read as though it fought to the end.
+  if (unit.alive && unit.killMethod === 'legged') return 'Crippled';
   if (unit.alive) return 'Operational';
   return 'Lost';
 }

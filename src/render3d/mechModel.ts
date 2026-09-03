@@ -13,11 +13,8 @@ import { chassisBlueprint, type HardpointMap } from '../render/blueprint';
 import type { Silhouette } from '../render/shape';
 import { radiusFor } from '../render/shape';
 import type { DamageWearTier } from './damageLedger';
-import {
-  createDamageWearMaterials,
-  createMechMaterials,
-  createWeaponMaterial,
-} from './mechMaterials';
+import { planMechFinish } from './mechFinish';
+import { createMechMaterials, createWeaponMaterial } from './mechMaterials';
 import {
   motionProfileFor,
   OPEN_STRIDE_TERRAIN,
@@ -125,33 +122,18 @@ export function buildMechModel(
   const plan = chassisBlueprint(shape, traits, fit, identity);
   const motion = motionProfileFor(shape.form, tonnage);
   const culture = machineCulture(faction);
-  const shownWear = culture.revealsFieldDamage ? wear : {};
-  const shownLost = culture.revealsFieldDamage ? lost : new Set<MechLocation>();
-  const sealedFailures = new Set<MechLocation>();
-  if (faction === 'aurelian') {
-    for (const location of lost) sealedFailures.add(location);
-    for (const mount of mounts) if (mount.destroyed === true) sealedFailures.add(mount.location);
-  }
   const tones = createMechMaterials(identity, team, destroyed);
-  const burnt = createMechMaterials(identity, team, true);
-  const worn = Object.values(shownWear).some((tier) => tier === 1)
-    ? createDamageWearMaterials(tones, 1)
-    : null;
-  const scorched = Object.values(shownWear).some((tier) => tier === 2)
-    ? createDamageWearMaterials(tones, 2)
-    : null;
+  const finish = planMechFinish(
+    tones, createMechMaterials(identity, team, true), wear, lost, mounts, faction, culture,
+  );
+  const { sealedFailures, shownLost } = finish;
 
   const root = new Group();
   const torso = new Group();
   root.rotation.order = 'YXZ';
   torso.rotation.order = 'YXZ';
   const weapons: WeaponRig[] = [];
-  const ownedMaterials: Material[] = [
-    ...Object.values(tones),
-    ...Object.values(burnt),
-    ...(worn === null ? [] : Object.values(worn)),
-    ...(scorched === null ? [] : Object.values(scorched)),
-  ];
+  const ownedMaterials: Material[] = finish.ownedMaterials;
   const boreMaterial = new MeshStandardMaterial({
     color: 0x1d2226,
     roughness: 0.5,
@@ -209,15 +191,10 @@ export function buildMechModel(
       continue;
     }
 
-    const tier = part.location === null ? 0 : (shownWear[part.location] ?? 0);
-    const finish = tier === 2 && scorched !== null
-      ? scorched
-      : tier === 1 && worn !== null
-        ? worn
-        : tones;
+    const tier = part.location === null ? 0 : (wear[part.location] ?? 0);
     const mesh = new Mesh(
       geometryForBlueprintPart(part, scale, options.geometry),
-      gone || sealedFailure ? burnt[part.tone] : finish[part.tone],
+      finish.finishFor(part.location, part.tone),
     );
     mesh.userData.damageLocation = part.location;
     mesh.userData.limbJoint = part.joint;
@@ -232,6 +209,7 @@ export function buildMechModel(
       part.location !== null && lost.has(part.location),
     );
     if (
+      finish.loosensPanels &&
       tier === 2 &&
       part.location !== null &&
       part.location !== 'left_leg' &&
@@ -287,7 +265,8 @@ export function buildMechModel(
   }
 
   const startup = destroyed ? null : createMachinePowerLights(
-    faction, nightRunningLights, plan, scale, sealedFailures, lost, ownedMaterials);
+    faction, nightRunningLights, plan, scale, sealedFailures, lost, ownedMaterials,
+    finish.wornChannels);
   if (startup !== null) torso.add(...startup.lights);
 
   // --------------------------------------------------------------- weapons
@@ -358,7 +337,7 @@ export function buildMechModel(
     machineMotion,
     faction,
     culture,
-    hullRecoil: { kick: 0, travel: scale * 0.018 },
+    hullRecoil: { kick: 0, travel: scale * 0.018, jolt: 0, joltClock: 0 },
     startup,
     loosePanels,
     terminalFallAxis: null,

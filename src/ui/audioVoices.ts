@@ -219,6 +219,33 @@ export function playHeatWarning(bus: VoiceBus, tier: HeatCue): void {
   if (tier === 3) blip(frame, frame.now + 0.23, base * 1.28, 0.11, 0.08);
 }
 
+export type BattleOutcome = 'success' | 'failure' | 'draw';
+
+/** The score falls silent at the end; the sting says which way it fell. */
+export function playBattleEnd(bus: VoiceBus, outcome: BattleOutcome): void {
+  const frame = bus.begin({ level: 0.16, distance: null });
+  if (frame === null) return;
+  const at = frame.now;
+  if (outcome === 'success') {
+    blip(frame, at, 440, 0.22, 0.08);
+    blip(frame, at + 0.18, 660, 0.24, 0.08);
+    blip(frame, at + 0.36, 880, 0.5, 0.09);
+    noiseSweep(frame, at + 0.3, 0.7, 600, 2_400, 0.06, 'bandpass', 1.4);
+    thump(frame, at + 0.36, 0.5, 70, 40, 0.2);
+    return;
+  }
+  if (outcome === 'failure') {
+    blip(frame, at, 520, 0.24, 0.08);
+    blip(frame, at + 0.22, 390, 0.26, 0.08);
+    blip(frame, at + 0.46, 260, 0.6, 0.09);
+    oscillator(frame, at + 0.4, 1.1, 110, 38, 0.12, 'sawtooth');
+    return;
+  }
+  blip(frame, at, 480, 0.3, 0.08);
+  blip(frame, at + 0.3, 480, 0.5, 0.07);
+  noiseSweep(frame, at, 0.8, 1_200, 300, 0.05, 'lowpass', 0.7);
+}
+
 export function playChime(bus: VoiceBus): void {
   const frame = bus.begin({ level: 0.12, distance: null });
   if (frame === null) return;

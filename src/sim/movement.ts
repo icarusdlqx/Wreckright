@@ -205,6 +205,25 @@ function offAxisFactor(world: World, offset: number): number {
 }
 
 export function updateMovement(world: World, entity: MechEntity): void {
+  stepMovement(world, entity);
+  // Remembered for the pivot gate: a mech that walked this tick may keep
+  // walking through a wider misalignment than one that has to start.
+  entity.underway = entity.motion === 'walk' || entity.motion === 'run';
+}
+
+/**
+ * The angle off the waypoint at which a mech is willing to walk. Two
+ * thresholds, not one: with a single gate a mech tracking a target while it
+ * repositions sat right on the edge of it and flipped between stationary and
+ * walking every tick, which the HUD, the evasion factor and the sound all saw.
+ */
+function pivotGate(world: World, entity: MechEntity): number {
+  const rules = world.rules.movement;
+  const degrees = entity.underway ? rules.facingHoldDegrees : rules.facingResumeDegrees;
+  return degrees * DEGREES_TO_RADIANS;
+}
+
+function stepMovement(world: World, entity: MechEntity): void {
   // Airborne: the arc owns the mech's position until it comes down.
   if (updateJump(world, entity)) return;
 
@@ -264,8 +283,7 @@ export function updateMovement(world: World, entity: MechEntity): void {
     heading = bearing(entity.pos, waypoint);
     pace = offAxisFactor(world, angleDifference(entity.facing, heading));
   } else {
-    const alignment = world.rules.movement.moveAlignmentDegrees * DEGREES_TO_RADIANS;
-    if (Math.abs(misalignment) > alignment) {
+    if (Math.abs(misalignment) > pivotGate(world, entity)) {
       // Pivoting on the spot is not movement. Reporting it as a run handed the
       // mech the running evasion bonus for free and told the HUD it was moving.
       entity.motion = 'stationary';

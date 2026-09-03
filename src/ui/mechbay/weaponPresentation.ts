@@ -138,7 +138,9 @@ export function weaponOperatingLine(weapon: Weapon): string {
     return 'Needs no ammunition; sustained fire is limited by heat.';
   }
   if (weapon.type === 'missile') {
-    return 'Travelling cluster with a finite magazine; line of sight is still required.';
+    return weapon.tags.includes('indirect_fire')
+      ? 'Travelling cluster with a finite magazine; arcs onto a live sensor track without line of sight.'
+      : 'Travelling cluster with a finite magazine; line of sight is still required.';
   }
   return 'Cooler sustained fire with a finite magazine and a vulnerable ammunition bin.';
 }
@@ -171,4 +173,133 @@ export function factionPresentation(faction: Faction): { label: string; classNam
 
 export function isForeignPattern(weapon: Weapon, chassisFaction: Faction | undefined): boolean {
   return chassisFaction !== undefined && weapon.faction !== chassisFaction;
+}
+
+export interface WeaponMedians {
+  damage: number;
+  reach: number;
+  heat: number;
+  criticalChance: number;
+  /** Among guns that kick at all; a beam has no recoil to be compared against. */
+  recoil: number;
+  /** Among magazine-fed guns only. */
+  ammoPerTon: number;
+  tonnage: number;
+}
+
+function median(values: readonly number[]): number {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  if (sorted.length === 0) return 0;
+  const upper = sorted[mid] ?? 0;
+  return sorted.length % 2 === 0 ? ((sorted[mid - 1] ?? 0) + upper) / 2 : upper;
+}
+
+/** The middle of the catalogue, so "hot" and "long" mean hot and long today. */
+export function weaponCatalogMedians(catalog: Catalog): WeaponMedians {
+  const weapons = [...catalog.weapons.values()];
+  const metrics = weapons.map(weaponMetrics);
+  return {
+    damage: median(metrics.map((entry) => entry.damage)),
+    reach: median(metrics.map((entry) => entry.reach)),
+    heat: median(metrics.map((entry) => entry.heat)),
+    criticalChance: median(weapons.map((weapon) => weapon.criticalChance)),
+    recoil: median(weapons.filter((weapon) => weapon.recoil > 0).map((weapon) => weapon.recoil)),
+    ammoPerTon: median(
+      weapons.flatMap((weapon) => (weapon.ammoPerTon === null ? [] : [weapon.ammoPerTon])),
+    ),
+    tonnage: median(weapons.map((weapon) => weapon.tonnage)),
+  };
+}
+
+export interface WeaponProfile {
+  /** What the gun is for, in three or four words. */
+  role: string;
+  strengths: readonly string[];
+  weakness: string | null;
+}
+
+type Standing = 'low' | 'typical' | 'high';
+
+function standing(value: number, middle: number, band: number): Standing {
+  if (value > middle * (1 + band)) return 'high';
+  if (value < middle * (1 - band)) return 'low';
+  return 'typical';
+}
+
+function roleNoun(weapon: Weapon, damage: Standing): string {
+  if (weapon.type === 'missile') {
+    return weapon.projectiles > 1 ? 'missile spread' : 'missile launcher';
+  }
+  if (weapon.type === 'ballistic') {
+    if (weapon.visual.style === 'slug') return 'sniper';
+    if (weapon.projectiles > 1) return 'cluster cannon';
+    return damage === 'high' ? 'hammer' : 'autocannon';
+  }
+  if (weapon.visual.style === 'bolt') return 'energy cannon';
+  if (weapon.visual.style === 'pulse') return 'pulse laser';
+  return damage === 'high' ? 'heavy laser' : 'laser';
+}
+
+/**
+ * The card's one-line verdict, judged against the rest of the catalogue rather
+ * than against fixed numbers, so a rebalance moves the labels with it. The
+ * tolerance is the same band the balance report uses to call a weapon typical.
+ */
+export function weaponProfile(
+  catalog: Catalog,
+  weapon: Weapon,
+  medians: WeaponMedians = weaponCatalogMedians(catalog),
+): WeaponProfile {
+  const band = catalog.rules.balance.weaponBandFraction;
+  const metrics = weaponMetrics(weapon);
+  const reach = standing(metrics.reach, medians.reach, band);
+  const heat = standing(metrics.heat, medians.heat, band);
+  const damage = standing(metrics.damage, medians.damage, band);
+  const crit = standing(weapon.criticalChance, medians.criticalChance, band);
+  const recoil = weapon.recoil > 0 ? standing(weapon.recoil, medians.recoil, band) : 'low';
+  const ammo = weapon.ammoPerTon === null ? null : standing(weapon.ammoPerTon, medians.ammoPerTon, band);
+  const weight = standing(weapon.tonnage, medians.tonnage, band);
+  const indirect = weapon.tags.includes('indirect_fire');
+  const flame = weapon.visual.style === 'flame';
+
+  const rangeWord = reach === 'high' ? 'Long-range' : reach === 'low' ? 'Close-range' : 'Mid-range';
+  const role = flame
+    ? 'Heat weapon'
+    : indirect
+      ? 'Indirect artillery'
+      : `${rangeWord} ${roleNoun(weapon, damage)}`;
+
+  const strengths = [
+    indirect ? 'Fires over cover' : null,
+    heat === 'low' ? 'Runs cold' : null,
+    weapon.ammoPerTon === null && !flame ? 'No ammo' : null,
+    weapon.targetHeat > 0 ? 'Heats the target' : null,
+    weapon.accuracy > 1 ? 'Tracks moving targets' : null,
+    crit === 'high' ? 'Cripples what it hits' : null,
+    recoil === 'high' ? 'Knocks targets' : null,
+    damage === 'high' ? 'Hits hard' : null,
+    weight === 'low' ? 'Weighs little' : null,
+    weapon.projectiles > 1 && weapon.type !== 'missile' ? 'Spreads its hits' : null,
+  ].filter((entry): entry is string => entry !== null).slice(0, 2);
+
+  const weakness = weapon.tags.includes('volatile')
+    ? 'Explodes if the mount is breached'
+    : weapon.range.min > 0
+      ? `Struggles inside ${weapon.range.min}m`
+      : heat === 'high'
+        ? 'Hot'
+        : ammo === 'low'
+          ? `${weapon.ammoPerTon} rounds a ton`
+          : weapon.accuracy < 1
+            ? 'Scatters'
+            : reach === 'low'
+              ? 'Short reach'
+              : damage === 'low'
+                ? 'Weak hitter'
+                : weight === 'high'
+                  ? 'Heavy'
+                  : null;
+
+  return { role, strengths, weakness };
 }

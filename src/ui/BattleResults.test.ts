@@ -98,7 +98,7 @@ describe('battle results screen', () => {
     );
 
     expect(markup).toContain('data-testid="return-to-campaign"');
-    expect(markup).toContain('Resolve contract');
+    expect(markup).toContain('Settle the contract and return');
     expect(markup).not.toContain('data-testid="replay-mission"');
     expect(markup).not.toContain('data-testid="new-field"');
     expect(markup).not.toContain('data-testid="battle-result-code"');

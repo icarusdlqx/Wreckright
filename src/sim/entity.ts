@@ -264,6 +264,7 @@ export function createMech(catalog: Catalog, rules: Rules, params: SpawnParams):
     torsoOffset: 0,
     motion: 'stationary',
     intendedMotion: 'stationary',
+    underway: false,
     walkSpeed,
     runSpeed: walkSpeed * rules.movement.runMultiplier,
     jumpRange,
@@ -312,6 +313,8 @@ export function createMech(catalog: Catalog, rules: Rules, params: SpawnParams):
     outgoingAccuracyFactor,
     destroyed: false,
     withdrawn: false,
+    disabled: false,
+    concessionTicks: 0,
     killMethod: null,
 
     autopilot: params.autopilot ?? true,

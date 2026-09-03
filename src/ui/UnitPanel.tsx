@@ -5,6 +5,7 @@ import { PaperDoll } from './PaperDoll';
 import { getCatalog } from '../schema/load';
 import { selectedUnit, useGame } from './store';
 import { TacticalReadout } from './TacticalReadout';
+import { EnemyPanel } from './EnemyPanel';
 
 
 /** A trait's painted name; the id only if the rules no longer know it. */
@@ -25,6 +26,13 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
       : [...state.units, ...state.enemies].find((candidate) => candidate.id === preview.targetId)
           ?.name ?? preview.targetName;
   const playerControlled = unit !== null && unit.team === state.playerTeam && unit.alive;
+  // The looked-at hostile: the last one clicked, else whatever the selection
+  // is shooting at. Never the selected unit itself, which already has the panel.
+  const inspectedId = state.inspectedId ?? unit?.targetId ?? null;
+  const inspected =
+    inspectedId === null || inspectedId === unit?.id
+      ? null
+      : (state.enemies.find((enemy) => enemy.id === inspectedId) ?? null);
 
   const onSelectLocation = (location: MechLocation): void => {
     state.setCalledShotLocation(location);
@@ -36,10 +44,20 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
       className={compact ? 'mobile-unit-panel' : 'sidebar'}
       data-testid={compact ? 'mobile-unit-panel' : 'sidebar'}
     >
-      {unit === null ? (
+      {unit === null && inspected === null ? (
         <p className="empty">
           {compact ? 'Tap a mech or choose it from the lance.' : 'Select a mech — click it, or press Tab to cycle your lance.'}
         </p>
+      ) : unit === null ? (
+        inspected === null ? null : (
+          <EnemyPanel
+            engine={engine}
+            enemy={inspected}
+            canOrder={false}
+            onDismiss={() => state.patch({ inspectedId: null })}
+            onCalledShot={() => undefined}
+          />
+        )
       ) : (
         <>
           <h2>
@@ -96,12 +114,25 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
               engine?.setWeaponMode(unit.id, mountIndex, modeId)}
             {...(preview === null ? {} : { preview })}
           />
+          {inspected === null ? null : (
+            <EnemyPanel
+              engine={engine}
+              enemy={inspected}
+              canOrder={playerControlled}
+              onDismiss={() => state.patch({ inspectedId: null })}
+              onCalledShot={(location) => {
+                state.setCalledShotLocation(location);
+                engine?.orderAttack(inspected.id, location);
+              }}
+            />
+          )}
           <details className="sidebar-details" open={compact} data-testid="tactical-details">
             <summary>Tactical details</summary>
             <TacticalReadout unit={unit} friendly={unit.team === state.playerTeam} />
           </details>
         </>
       )}
+
       <details className="sidebar-details log-details" open={compact} data-testid="log-details">
         <summary>
           Combat log <span>{Math.min(8, state.log.length)}</span>

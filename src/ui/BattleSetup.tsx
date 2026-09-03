@@ -5,6 +5,65 @@ import './battleSetup.css';
 export interface MissionChoice {
   id: string;
   name: string;
+  /** Mission profile, used to group the picker; optional for callers that only name it. */
+  type?: string;
+  mapName?: string;
+  minutes?: number;
+}
+
+const TYPE_LABELS: Record<string, string> = {
+  skirmish: 'Skirmish',
+  assault: 'Assault',
+  defend: 'Defend',
+  recon: 'Recon',
+  base_capture: 'Base capture',
+  escort: 'Escort',
+  extraction: 'Extraction',
+  ambush: 'Ambush',
+  headhunt: 'Headhunt',
+};
+
+function missionOptionLabel(mission: MissionChoice): string {
+  const parts = [mission.name];
+  // "Skirmish — Ridge Pass · Ridge Pass" says the map twice; only add it when it is news.
+  if (mission.mapName !== undefined && !mission.name.includes(mission.mapName)) parts.push(mission.mapName);
+  if (mission.minutes !== undefined) parts.push(`${mission.minutes} min`);
+  return parts.join(' · ');
+}
+
+/** Twenty-eight bare names in one list is a memory test; grouped by profile it is a menu. */
+export function MissionOptions({ missions }: { missions: readonly MissionChoice[] }) {
+  const groups = new Map<string, MissionChoice[]>();
+  for (const mission of missions) {
+    const key = mission.type ?? '';
+    const held = groups.get(key);
+    if (held === undefined) groups.set(key, [mission]);
+    else held.push(mission);
+  }
+  if (groups.size === 1 && groups.has('')) {
+    return (
+      <>
+        {missions.map((mission) => (
+          <option key={mission.id} value={mission.id}>
+            {missionOptionLabel(mission)}
+          </option>
+        ))}
+      </>
+    );
+  }
+  return (
+    <>
+      {[...groups].map(([type, entries]) => (
+        <optgroup key={type || 'other'} label={TYPE_LABELS[type] ?? (type || 'Other')}>
+          {entries.map((mission) => (
+            <option key={mission.id} value={mission.id}>
+              {missionOptionLabel(mission)}
+            </option>
+          ))}
+        </optgroup>
+      ))}
+    </>
+  );
 }
 
 interface SharedSetupProps {
@@ -40,11 +99,7 @@ export function BriefingSetup(props: BriefingSetupProps) {
               onChange={(event) => props.onMission(event.target.value)}
               data-testid="briefing-mission-picker"
             >
-              {props.missions.map((mission) => (
-                <option key={mission.id} value={mission.id}>
-                  {mission.name}
-                </option>
-              ))}
+              <MissionOptions missions={props.missions} />
             </select>
           ) : (
             <span className="setup-fixed" data-testid="briefing-mission-fixed">
@@ -139,11 +194,7 @@ export function SetupToolbar({
           title={locked ? 'Mission is locked while the lance is deployed.' : 'Choose a skirmish mission.'}
           data-testid="mission-picker"
         >
-          {props.missions.map((mission) => (
-            <option key={mission.id} value={mission.id}>
-              {mission.name}
-            </option>
-          ))}
+          <MissionOptions missions={props.missions} />
         </select>
       ) : (
         <span

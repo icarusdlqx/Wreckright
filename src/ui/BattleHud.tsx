@@ -1,9 +1,11 @@
 import { CommandPalette, type Command } from './CommandPalette';
 import { CentreSelectionButton } from './CentreSelectionButton';
+import { centreOnSelection } from './cameraNavigation';
 import { CommanderToggle } from './CommanderToggle';
 import { CommanderView } from './CommanderView';
 import { selectedTargetIds } from './ContactsBar';
 import type { Engine } from './engine';
+import { FollowSelectionButton } from './FollowSelectionButton';
 import { FormationPicker } from './FormationPicker';
 import { Minimap } from './Minimap';
 import { MobileBattleHud } from './MobileBattleHud';
@@ -49,7 +51,11 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
       engine.toggleHoldFire();
       return;
     }
-    if (command.id === 'hold_position') {
+    if (command.id === 'stop') {
+      engine.orderStop();
+      return;
+    }
+    if (command.id === 'hold_position' || command.id === 'keep_facing') {
       engine.setPosture(command.id);
       return;
     }
@@ -96,7 +102,10 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
           hasSelection={state.units.some(
             (entry) => state.selection.includes(entry.id) && entry.alive,
           )}
-          onTarget={(id) => engine?.orderAttack(id, null)}
+          onTarget={(id) => {
+            state.patch({ inspectedId: id });
+            engine?.orderAttack(id, null);
+          }}
           onContact={(contact) => engine?.engageContact(contact.id, contact.position)}
         />
       ) : null}
@@ -107,11 +116,20 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
         ) : null}
         <div className="camera-lance-row">
           <CentreSelectionButton engine={engine} className="command camera-centre" />
+          <FollowSelectionButton engine={engine} className="command camera-centre" />
           <CommanderToggle disabled={engine === null} />
           <LanceBar
             units={state.units}
             selection={state.selection}
-            onSelect={(id) => state.setSelection([id])}
+            tick={state.tick}
+            onSelect={(id) => {
+              // A second click on the card you already hold is "take me there".
+              if (state.selection.length === 1 && state.selection[0] === id) {
+                centreOnSelection(engine);
+                return;
+              }
+              state.setSelection([id]);
+            }}
           />
         </div>
         {fullHud || visibleCommands === null || visibleCommands.size > 0 ? (

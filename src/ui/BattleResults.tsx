@@ -156,12 +156,12 @@ export function BattleResults({
         {campaignPending ? (
           <div className="battle-results-actions campaign">
             <button type="button" onClick={onReturnToCampaign} data-testid="return-to-campaign">
-              {campaignResolved ? 'Back to campaign' : 'Resolve contract'}
+              {campaignResolved ? 'Back to campaign' : 'Settle the contract and return'}
             </button>
             <small>
               {campaignResolved
                 ? 'The ledger is settled. The field report remains here until you leave.'
-                : 'Resolve the contract before returning to the company.'}
+                : 'Pay, salvage and crew records are settled on the way back; the debrief shows them.'}
             </small>
           </div>
         ) : trainingActions !== undefined ? (

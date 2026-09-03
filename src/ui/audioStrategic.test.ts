@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { GRAPH_BUS_GAIN_COUNT } from './audioGraph';
 import { AUDIO_MUTED_KEY } from './audioPreference';
 import { SCORE_CLOSE_DELAY_MS, SCORE_LEVEL, SCORE_NODE_COUNT } from './audioScoreGraph';
 import {
@@ -41,7 +42,7 @@ describe('strategic score director', () => {
     const context = FakeContext.instances[0]!;
     const params = scoreParams(context);
     expect(context.sources).toHaveLength(5);
-    expect(context.gains.length - 1 + context.filters.length + context.sources.length)
+    expect(context.gains.length - GRAPH_BUS_GAIN_COUNT + context.filters.length + context.sources.length)
       .toBe(SCORE_NODE_COUNT);
     expect(params.level.value).toBeCloseTo(
       SCORE_LEVEL * STRATEGIC_SCORE_TREATMENTS.campaign.level,

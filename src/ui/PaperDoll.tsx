@@ -27,6 +27,11 @@ interface Props {
   locations: Record<MechLocation, LocationSnapshot>;
   onSelectLocation?: (location: MechLocation) => void;
   activeLocation?: MechLocation | null;
+  /**
+   * Two dolls can share the sidebar (the selected machine and its target);
+   * the prefix keeps their test ids and labels apart.
+   */
+  testIdPrefix?: string;
 }
 
 function Cell({
@@ -34,11 +39,13 @@ function Cell({
   state,
   onSelect,
   active,
+  prefix,
 }: {
   location: MechLocation;
   state: LocationSnapshot;
   onSelect?: (location: MechLocation) => void;
   active: boolean;
+  prefix: string;
 }) {
   const armour = state.armourMax === 0 ? 0 : state.armour / state.armourMax;
   const internal = state.internalMax === 0 ? 0 : state.internal / state.internalMax;
@@ -62,14 +69,14 @@ function Cell({
       onClick={() => onSelect?.(location)}
       disabled={onSelect === undefined}
       title={`${SHORT_NAMES[location]} — armour ${Math.ceil(state.armour)}/${state.armourMax}${rearTitle}, structure ${Math.ceil(state.internal)}/${state.internalMax}`}
-      data-testid={`doll-${location}`}
+      data-testid={`${prefix}-${location}`}
     >
       <span className="doll-label">{SHORT_NAMES[location]}</span>
       <span className="doll-bar armour">
         <span style={{ width: `${Math.max(0, armour) * 100}%` }} />
       </span>
       {hasBack ? (
-        <span className="doll-bar rear" data-testid={`doll-rear-${location}`}>
+        <span className="doll-bar rear" data-testid={`${prefix}-rear-${location}`}>
           <span style={{ width: `${Math.max(0, rear) * 100}%` }} />
         </span>
       ) : null}
@@ -80,9 +87,14 @@ function Cell({
   );
 }
 
-export function PaperDoll({ locations, onSelectLocation, activeLocation }: Props) {
+export function PaperDoll({
+  locations,
+  onSelectLocation,
+  activeLocation,
+  testIdPrefix = 'doll',
+}: Props) {
   return (
-    <div className="paper-doll" data-testid="paper-doll">
+    <div className="paper-doll" data-testid={`paper-${testIdPrefix}`}>
       {LOCATIONS.map((location) => (
         <Cell
           key={location}
@@ -90,6 +102,7 @@ export function PaperDoll({ locations, onSelectLocation, activeLocation }: Props
           state={locations[location]}
           {...(onSelectLocation === undefined ? {} : { onSelect: onSelectLocation })}
           active={activeLocation === location}
+          prefix={testIdPrefix}
         />
       ))}
     </div>

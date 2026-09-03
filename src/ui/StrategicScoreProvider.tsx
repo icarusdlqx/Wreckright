@@ -7,7 +7,13 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from 'react';
-import { readAudioMuted } from './audioPreference';
+import {
+  readAudioLevels,
+  readAudioMuted,
+  writeAudioLevel,
+  type AudioLevelKind,
+  type AudioLevels,
+} from './audioPreference';
 import { StrategicScoreDirector, type StrategicScoreLease } from './audioStrategic';
 import type { StrategicScoreSurface } from './audioScoreTreatments';
 
@@ -54,8 +60,10 @@ export function useStrategicScore(
 
 export function useStrategicScoreControls(): {
   muted: boolean;
+  levels: Readonly<AudioLevels>;
   prepare: () => void;
   toggleMuted: () => boolean;
+  setLevel: (kind: AudioLevelKind, value: number) => void;
 } {
   const director = useContext(StrategicScoreContext);
   const muted = useSyncExternalStore(
@@ -63,9 +71,32 @@ export function useStrategicScoreControls(): {
     () => director?.muted ?? readAudioMuted(),
     readAudioMuted,
   );
+  const levels = useSyncExternalStore(
+    director?.subscribe ?? emptySubscribe,
+    () => director?.levels ?? fallbackLevels(),
+    fallbackLevels,
+  );
   return {
     muted,
+    levels,
     prepare: () => director?.prepare(),
     toggleMuted: () => director?.toggleMuted() ?? readAudioMuted(),
+    setLevel: (kind, value) => {
+      if (director === null) writeAudioLevel(kind, value);
+      else director.setLevel(kind, value);
+    },
   };
+}
+
+/** Without a director the snapshot must still be referentially stable between reads. */
+let cachedFallback: Readonly<AudioLevels> | null = null;
+function fallbackLevels(): Readonly<AudioLevels> {
+  const stored = readAudioLevels();
+  if (
+    cachedFallback === null
+    || cachedFallback.master !== stored.master
+    || cachedFallback.effects !== stored.effects
+    || cachedFallback.score !== stored.score
+  ) cachedFallback = stored;
+  return cachedFallback;
 }

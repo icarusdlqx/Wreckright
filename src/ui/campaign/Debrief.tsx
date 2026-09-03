@@ -87,6 +87,17 @@ function sourceName(catalog: Catalog, source: SalvageProvenance): string {
   return `${mech}, ${LOCATION_NAMES[source.location]}`;
 }
 
+/** Why a hull rolled at zero, in the words the field crew would use. */
+function ineligibleReason(catalog: Catalog, candidate: SalvageCandidate): string {
+  const chassisId = catalog.designs.get(candidate.designId)?.chassisId ?? '';
+  const chassis = catalog.chassis.get(chassisId);
+  if (chassis !== undefined && chassis.frame !== 'mech') {
+    return chassis.frame === 'vehicle' ? 'tracked vehicle — no root to tow' : 'emplacement — nothing to tow';
+  }
+  if (candidate.outcome === 'ammo_explosion') return 'ammunition took the hull with it';
+  return 'no salvage claim under these terms';
+}
+
 function candidateName(catalog: Catalog, candidate: SalvageCandidate): string {
   return (
     catalog.designs.get(candidate.designId)?.name
@@ -195,7 +206,8 @@ export function Debrief({
               <div className="debrief-recovery" data-testid="debrief-recovery">
                 <h4>Field recovery ledger</h4>
                 <p>
-                  Eligible hull odds include the signed package. Ineligible hulls remain on the record without a roll.
+                  Eligible hull odds include the signed package. A cored walker keeps only a slim chance;
+                  a legged one is usually towable. Vehicles and emplacements have no root and are never towed.
                 </p>
                 <ul>
                   {candidates.map((candidate, index) => (
@@ -211,7 +223,7 @@ export function Debrief({
                           ? 'hull recovered'
                           : candidate.chassisChance > 0
                             ? 'not recovered'
-                            : 'not eligible'}
+                            : `not eligible — ${ineligibleReason(catalog, candidate)}`}
                       </span>
                     </li>
                   ))}
@@ -222,7 +234,9 @@ export function Debrief({
             {offered.length === 0 ? null : (
               <div className="debrief-salvage" data-testid="debrief-salvage">
                 <h4>
-                  Salvage — {picks.length}/{SALVAGE_PICKS} picks · {cbills(selectedValue)} build value
+                  {offered.length <= SALVAGE_PICKS
+                    ? `Salvage — everything recovered is aboard · ${cbills(selectedValue)} build value`
+                    : `Salvage — ${picks.length}/${SALVAGE_PICKS} picks · ${cbills(selectedValue)} build value`}
                 </h4>
                 <p className="salvage-note">
                   {outcome.salvageFinalized

@@ -40,7 +40,20 @@ export const MovementRulesSchema = z.strictObject({
    * that costs pace.
    */
   offAxisSpeedFactor: Factor,
-  moveAlignmentDegrees: z.number().positive().max(180),
+  /**
+   * The pivot gate, with hysteresis. A standing mech waits until its nose is
+   * within the resume angle of its waypoint before stepping off; one already
+   * walking keeps walking until the hold angle. One threshold for both had a
+   * mech in a running fight flicker between stopped and walking every tick.
+   */
+  facingResumeDegrees: z.number().positive().max(180),
+  facingHoldDegrees: z.number().positive().max(180),
+  /**
+   * How much dearer a tile under a stationary lance-mate is to route through.
+   * Soft, so a corridor of parked machines is still a route — just not the
+   * first one tried. Wrecks charge nothing.
+   */
+  occupiedTileCostFactor: z.number().min(1),
   torsoTwistDegrees: z.number().positive().max(180),
   torsoTurnRateDegreesPerSecond: z.number().positive(),
   waypointRadius: z.number().positive(),
@@ -72,6 +85,14 @@ export const MovementRulesSchema = z.strictObject({
    * other instead of being fired apart.
    */
   separationRate: Factor,
+}).superRefine((rules, ctx) => {
+  if (rules.facingHoldDegrees < rules.facingResumeDegrees) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['facingHoldDegrees'],
+      message: 'a walking mech must keep walking at least as far off-line as a standing one may step off from',
+    });
+  }
 });
 
 /** Which side of a mech a shot came in on. */
@@ -158,7 +179,7 @@ export const CombatRulesSchema = z.strictObject({
   hitChanceFloor: Probability,
   hitChanceCeiling: Probability,
   /** Used by fire that arrives from above — artillery, air strikes, mines. */
-  hitLocationWeights: perLocation(z.number().nonnegative()),
+  supportHitLocationWeights: perLocation(z.number().nonnegative()),
   /**
    * Where a shot lands and what it does depends on the side it came in on.
    * The two arc widths are measured across the nose and across the tail; what
@@ -195,6 +216,17 @@ export const CombatRulesSchema = z.strictObject({
   }),
   /** How long a mech under return-fire orders remembers who shot at it. */
   returnFireSeconds: z.number().positive(),
+  /**
+   * A mech with both legs gone is a gun emplacement until somebody walks
+   * over and finishes it — and if nobody does, the battle never ends. Left
+   * alone for this long with no upright ally close enough to be covering it,
+   * the crew powers down and concedes. The hull is intact, which is what
+   * makes legging the salvage outcome it is.
+   */
+  leggedConcession: z.strictObject({
+    seconds: z.number().positive().max(120),
+    allyRadius: z.number().nonnegative(),
+  }),
 });
 
 export const HeatTierSchema = z.strictObject({

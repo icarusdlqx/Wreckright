@@ -1,9 +1,15 @@
 import type { MechLocation } from '../schema/common';
-import { bodyRadius } from './collision';
 import { emit } from './events';
 import { applyHeatGovernor } from './governor';
 import { distance } from './math';
 import { beginJump } from './movement';
+import {
+  friendlyOccupancy,
+  HOPELESS_STRIKES,
+  reachableDestination,
+  reportDroppedOrder,
+  standingOnDestination,
+} from './orderRouting';
 import {
   applyPlayerTargeting,
   approachToEngage,
@@ -85,7 +91,13 @@ export function issueMove(
     return true;
   }
 
-  const path = findPath(world.terrain, entity.pos, to, world.rules.simulation.pathfindMaxNodes);
+  const path = findPath(
+    world.terrain,
+    entity.pos,
+    to,
+    world.rules.simulation.pathfindMaxNodes,
+    friendlyOccupancy(world, entity),
+  );
   if (path === null) return false;
 
   // A move order is the pilot being told to go somewhere, which overrides an
@@ -195,44 +207,6 @@ export function issueStop(entity: MechEntity): void {
   entity.stallStrikes = 0;
   entity.motion = 'stationary';
   entity.intendedMotion = entity.motion;
-}
-
-/**
- * Where an order can actually end. When the path stops short of the ask — the
- * click was on water, a cliff, the far side of a wall — the order is retargeted
- * to the ground the route reaches. Left pointed at the unreachable spot, the
- * arrival check can never pass, and the mech spends the rest of the battle
- * walking into the bank, stalling, and re-solving the same route.
- */
-function reachableDestination(world: World, path: readonly Vec2[], asked: Vec2): Vec2 {
-  const last = path[path.length - 1];
-  if (last === undefined || distance(last, asked) <= world.rules.movement.arrivalRadius) {
-    return { x: asked.x, y: asked.y };
-  }
-  return { x: last.x, y: last.y };
-}
-
-/** How many stalled re-solves mean the route is hopeless and the order drops. */
-const HOPELESS_STRIKES = 3;
-
-/**
- * Whether another machine is parked on the destination, close enough that the
- * walker cannot take the spot, and the walker is already up against it. This
- * is the honest test for "the ground I was sent to is taken".
- */
-function standingOnDestination(world: World, entity: MechEntity, to: Vec2): boolean {
-  const reach = bodyRadius(world, entity);
-  for (const other of world.entities) {
-    if (other.id === entity.id || !isOperational(other) || other.jump !== null) continue;
-    const clearance = reach + bodyRadius(world, other);
-    if (distance(other.pos, to) > clearance) continue;
-    // Something is on the spot; the order is done when the walker is up
-    // against that machine rather than still crossing the map towards it.
-    if (distance(entity.pos, other.pos) <= clearance + world.rules.movement.arrivalRadius) {
-      return true;
-    }
-  }
-  return false;
 }
 
 /** An order from the pilot: sets intent, and takes effect immediately. */
@@ -348,13 +322,7 @@ export function updatePlayerControl(world: World, entity: MechEntity): void {
     // it is said out loud: an order that evaporates in silence is the hardest
     // thing to tell apart from a control that does not work.
     issueStop(entity);
-    if (!entity.autopilot) {
-      emit(world.events, {
-        type: 'mission_message',
-        tick: world.tick,
-        text: `${entity.name} cannot find a way through — order dropped.`,
-      });
-    }
+    reportDroppedOrder(world, entity, `${entity.name} cannot find a way through — order dropped.`);
   } else {
     if (entity.path.length === 0 || world.tick >= entity.nextPathTick) {
       const path = findPath(
@@ -362,6 +330,7 @@ export function updatePlayerControl(world: World, entity: MechEntity): void {
         entity.pos,
         order.to,
         world.rules.simulation.pathfindMaxNodes,
+        friendlyOccupancy(world, entity),
       );
       entity.nextPathTick = world.tick + world.rules.simulation.aiPathIntervalTicks;
 
@@ -371,13 +340,7 @@ export function updatePlayerControl(world: World, entity: MechEntity): void {
         // from the outside exactly like the game forgetting the order.
         replacePath(entity, []);
         entity.orders.move = null;
-        if (!entity.autopilot) {
-          emit(world.events, {
-            type: 'mission_message',
-            tick: world.tick,
-            text: `${entity.name} has no route to that point.`,
-          });
-        }
+        reportDroppedOrder(world, entity, `${entity.name} has no route to that point.`);
       } else if (path.length === 0) {
         // Already inside the destination tile but not yet on the spot. A tile is
         // four times the arrival radius across, so this is most short orders —

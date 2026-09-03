@@ -6,7 +6,7 @@ import { mechIntegrity } from '../../campaign/integrity';
 import { assign } from '../../campaign/roster';
 import { isPilotAvailable, type CampaignState, type PilotRecord } from '../../campaign/types';
 import { PilotStats } from '../PilotStats';
-import { authoredDesignName, designIdentityLabel } from '../designLabel';
+import { authoredDesignName, companyMachineLabel } from '../designLabel';
 import { ContractBriefing } from './ContractBriefing';
 import { useDialogFocus } from '../useDialogFocus';
 
@@ -59,6 +59,27 @@ export function LanceManifest({ catalog, state, mutate, onLaunch, onCancel, onRe
   const benched = (pilot: PilotRecord): boolean => state.benched.includes(pilot.id);
   const dropIndex = (pilot: PilotRecord): number =>
     dropping.findIndex((pair) => pair.pilot.id === pilot.id);
+
+  // When nothing can drop, the button alone says nothing; the reason and the
+  // way out (the calendar, on the map) have to be on this screen.
+  const grounded = dropping.length === 0 ? groundedReason() : null;
+  function groundedReason(): string {
+    const fit = roster.filter((pilot) => isPilotAvailable(state, pilot) && !benched(pilot));
+    const mechsUp = state.mechs.filter(
+      (mech) => mech.status === 'ready' && mech.readyOnDay <= state.day && mech.design.mounts.length > 0,
+    );
+    if (fit.length === 0) {
+      const soonest = Math.min(...roster.map((pilot) => pilot.injuredUntilDay));
+      return `No pilot is fit to fly today. The infirmary releases the first on day ${soonest}; advance the calendar from the map.`;
+    }
+    if (mechsUp.length === 0) {
+      const days = state.mechs.map((mech) => mech.readyOnDay).filter((day) => day > state.day);
+      return days.length > 0
+        ? `No machine is ready today. The first leaves the workshop on day ${Math.min(...days)}; advance the calendar from the map.`
+        : 'No machine can drop: every hull is a wreck or unarmed. Rebuild or fit a weapon from stores.';
+    }
+    return 'Nobody is seated in a ready machine. Choose a mech for a pilot above.';
+  }
 
   const toggleBench = (pilot: PilotRecord): void => {
     mutate((draft) => {
@@ -180,7 +201,7 @@ export function LanceManifest({ catalog, state, mutate, onLaunch, onCancel, onRe
                     <option value="">— no mech —</option>
                     {state.mechs.map((mech) => (
                       <option key={mech.id} value={mech.id}>
-                        {designIdentityLabel(catalog, mech.design)}
+                        {companyMachineLabel(catalog, state.mechs, mech)}
                         {mech.status === 'ready' ? '' : ` (${mech.status})`}
                       </option>
                     ))}
@@ -237,6 +258,11 @@ export function LanceManifest({ catalog, state, mutate, onLaunch, onCancel, onRe
           <button type="button" onClick={onCancel} data-testid="manifest-cancel">
             Back to the mechbay
           </button>
+          {grounded === null ? null : (
+            <p className="manifest-grounded" data-testid="manifest-grounded">
+              {grounded}
+            </p>
+          )}
         </footer>
       </section>
     </div>

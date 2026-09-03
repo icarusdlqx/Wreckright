@@ -35,8 +35,9 @@ export function modelDamageSignature(entity: MechEntity, faction: Faction): numb
     if (location === undefined) continue;
     const state = entity.locations[location];
     const wear = damageWearTier(state);
-    const mark = (revealsWear || isLimbLocation(location) ? wear : 0)
-      + (state.destroyed ? 4 : 0);
+    // A sealed shell hides light wear; only heavy wear dulls its finish.
+    const shownWear = revealsWear || isLimbLocation(location) ? wear : wear === 2 ? 2 : 0;
+    const mark = shownWear + (state.destroyed ? 4 : 0);
     if (mark === 0) continue;
     bits = Math.imul(bits ^ ((index + 1) * 11 + mark), 16777619);
   }

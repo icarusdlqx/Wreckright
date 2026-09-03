@@ -152,7 +152,7 @@ describe('fixed tracer pools', () => {
     fire(low);
     fire(reduced);
 
-    expect(full.stats().families.shell.active).toBe(6);
+    expect(full.stats().families.shell.active).toBe(12);
     expect(low.stats().families.shell.active).toBe(1);
     expect(reduced.stats().families.shell.active).toBe(2);
     expect(full.stats().families.burst.active).toBe(1);
@@ -165,7 +165,8 @@ describe('fixed tracer pools', () => {
     const engagement = { shooterId: 1, targetId: 2, weaponId: 'lrm20' };
     const muzzle = new Vector3(0, 14, 0);
 
-    for (let volley = 0; volley < 20; volley += 1) {
+    // Six full twenty-tube salvos in the air at once is the audited peak.
+    for (let volley = 0; volley < 6; volley += 1) {
       layer.fire(
         muzzle,
         { x: 600, y: 40 },
@@ -187,7 +188,7 @@ describe('fixed tracer pools', () => {
     expect(stats.families.missile.active).toBe(120);
     expect(stats.families.missile.evicted).toBe(0);
     expect(stats.families.burst.capacity).toBeGreaterThanOrEqual(106);
-    expect(stats.families.burst.active).toBe(126);
+    expect(stats.families.burst.active).toBe(112);
     expect(stats.families.burst.evicted).toBe(0);
     layer.dispose();
   });

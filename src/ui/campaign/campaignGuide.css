@@ -75,3 +75,44 @@
     z-index: 16;
   }
 }
+
+/* The standing strip inherits the guide's frame: one strip, one job, and the
+   grid area the first-drop guide vacates when it retires. */
+.campaign-next {
+  grid-template-columns: minmax(0, 1fr);
+  border-color: var(--edge);
+  background: color-mix(in srgb, var(--panel) 96%, var(--accent));
+}
+
+.campaign-next-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.campaign-next-list button {
+  min-height: 0;
+  padding: 4px 10px;
+  border: 1px solid var(--edge);
+  border-radius: 999px;
+  background: rgba(10, 15, 20, 0.6);
+  color: inherit;
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.campaign-next-list li.warn button {
+  border-color: color-mix(in srgb, #ffb454 60%, transparent);
+  color: #ffd18a;
+}
+
+.campaign-next-list button:hover,
+.campaign-next-list button:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}

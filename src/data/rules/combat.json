@@ -29,8 +29,8 @@
   "maxRangeMultiplier": 1.25,
   "firingArcDegrees": 120,
   "hitChanceFloor": 0.05,
-  "hitChanceCeiling": 0.95,
-  "hitLocationWeights": {
+  "hitChanceCeiling": 0.9,
+  "supportHitLocationWeights": {
     "head": 2,
     "centre_torso": 20,
     "left_torso": 13,
@@ -46,7 +46,7 @@
     "front": {
       "damageFactor": 1,
       "hitLocationWeights": {
-        "head": 2,
+        "head": 1,
         "centre_torso": 20,
         "near_torso": 13,
         "far_torso": 13,
@@ -59,7 +59,7 @@
     "side": {
       "damageFactor": 1.15,
       "hitLocationWeights": {
-        "head": 2,
+        "head": 1,
         "centre_torso": 14,
         "near_torso": 24,
         "far_torso": 3,
@@ -72,7 +72,7 @@
     "rear": {
       "damageFactor": 1.2,
       "hitLocationWeights": {
-        "head": 2,
+        "head": 1,
         "centre_torso": 26,
         "near_torso": 18,
         "far_torso": 18,
@@ -96,5 +96,9 @@
     "rangeMinimumLevels": 2,
     "rangeMaxFactor": 1.12
   },
-  "returnFireSeconds": 6
+  "returnFireSeconds": 6,
+  "leggedConcession": {
+    "seconds": 8,
+    "allyRadius": 150
+  }
 }

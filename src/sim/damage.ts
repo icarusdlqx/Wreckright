@@ -39,12 +39,13 @@ export function detonateAmmoBin(world: World, entity: MechEntity, bin: AmmoBin):
   });
   queueIgnition(world, entity.pos, 'ammo_explosion');
 
-  const core = entity.locations.centre_torso;
-  if (core.destroyed) return;
-
-  core.internal -= damage;
-  entity.stats.damageTaken += damage;
-  if (core.internal <= 0) destroyLocation(world, entity, 'centre_torso', 'ammo_explosion');
+  // The blast goes off where the bin sat and gets out the way any other hit
+  // does: through whatever plate that location still has, then down the
+  // transfer chain. A bin that went up because its location was just breached
+  // starts one step inboard, which is where the shrapnel is going anyway.
+  // Going straight for the core skipped every plate on the way, and turned a
+  // half-empty bin into a guaranteed kill.
+  entity.stats.damageTaken += applyDamage(world, entity, bin.location, damage, 'front', 'ammo_explosion');
 }
 
 /** A breached power store venting into the centre torso, the way an ammo bin does. */
@@ -60,8 +61,9 @@ function detonateVolatile(world: World, entity: MechEntity, damage: number): voi
   const core = entity.locations.centre_torso;
   if (core.destroyed) return;
 
-  core.internal -= damage;
-  entity.stats.damageTaken += damage;
+  const applied = Math.min(core.internal, damage);
+  core.internal -= applied;
+  entity.stats.damageTaken += applied;
   if (core.internal <= 0) destroyLocation(world, entity, 'centre_torso', 'ammo_explosion');
 }
 
@@ -131,6 +133,8 @@ export function destroyLocation(
  * The face travels with the shot, not with the location — so a round that comes
  * in from behind, blows an arm off and spills inboard eats the side torso's back
  * plate too, which is what it would have hit had the arm not been in the way.
+ *
+ * `via` names what this damage was, for the kill method if it cores the mech.
  */
 export function applyDamage(
   world: World,
@@ -138,6 +142,7 @@ export function applyDamage(
   location: MechLocation,
   amount: number,
   face: ArmourFace = 'front',
+  via: KillMethod | null = null,
 ): number {
   let remaining = amount * target.damageTakenFactor * abilityFactor(world, target, 'damageTaken');
   let absorbed = 0;
@@ -174,7 +179,7 @@ export function applyDamage(
     if (state.internal > 0) break;
 
     const next = world.rules.damage.transfer[current];
-    destroyLocation(world, target, current);
+    destroyLocation(world, target, current, via);
     current = next;
   }
 

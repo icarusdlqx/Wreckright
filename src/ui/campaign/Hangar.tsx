@@ -13,7 +13,7 @@ import { isMechAvailable, type CampaignState } from '../../campaign/types';
 import { cbills } from './Panels';
 import { ContractBriefing } from './ContractBriefing';
 import { workshopFactionLine } from './factionEconomy';
-import { authoredDesignName, designIdentityLabel } from '../designLabel';
+import { authoredDesignName, companyMachineLabel } from '../designLabel';
 import { useDialogFocus } from '../useDialogFocus';
 
 interface Props {
@@ -48,6 +48,14 @@ export function Hangar({ catalog, state, mutate, onRefit, onContinue, onCancel }
       : employerNameFor(catalog, state.campaignId, contract.employerId, contract.employerName);
   const queue = repairQueue(catalog, state);
   const queueByMech = new Map(queue.map((entry) => [entry.mechId, entry]));
+  const fieldable = state.mechs.filter(
+    (mech) => isMechAvailable(state, mech) && mech.status !== 'hulk' && mech.design.mounts.length > 0,
+  );
+  const needsWork = state.mechs.filter(
+    (mech) => mech.status === 'hulk' || estimateRepair(catalog, mech).days > 0,
+  );
+  const allReady = needsWork.length === 0 && fieldable.length === state.mechs.length;
+  const deadline = contract?.deadlineDay ?? null;
 
   return (
     <div className="manifest-backdrop" data-testid="hangar-stage">
@@ -60,11 +68,17 @@ export function Hangar({ catalog, state, mutate, onRefit, onContinue, onCancel }
         tabIndex={-1}
       >
         <header>
-          <h3 id="hangar-title">Mechbay — prepare the machines</h3>
-          <p>
+          <h3 id="hangar-title">
+            {allReady
+              ? `Mechbay — all ${state.mechs.length} machines are ready`
+              : `Mechbay — ${fieldable.length} of ${state.mechs.length} machines can drop`}
+          </h3>
+          <p data-testid="hangar-lead">
             {mission?.name ?? 'Contract'}
-            {employer === null ? '' : ` — ${employer}.`} Repair what is broken, refit
-            what is mis-armed, then move on to the drop manifest.
+            {employer === null ? '' : ` — ${employer}.`}{' '}
+            {allReady
+              ? 'Nothing needs the workshop. Refit a machine if you want to change its guns, or continue to the drop manifest.'
+              : 'Repairs and rebuilds are optional: a damaged machine can still drop, and one on a lift is simply left behind. Book what you want, then continue.'}
           </p>
           {contract === null ? null : (
             <ContractBriefing
@@ -81,6 +95,7 @@ export function Hangar({ catalog, state, mutate, onRefit, onContinue, onCancel }
         <ul className="manifest-list">
           {state.mechs.map((mech) => {
             const designName = authoredDesignName(catalog, mech.design);
+            const label = companyMachineLabel(catalog, state.mechs, mech);
             const estimate = estimateRepair(catalog, mech);
             const chassis = catalog.chassis.get(mech.design.chassisId);
             const ready = isMechAvailable(state, mech) && mech.status !== 'hulk';
@@ -92,6 +107,10 @@ export function Hangar({ catalog, state, mutate, onRefit, onContinue, onCancel }
               projected.status === 'active'
                 ? `ready day ${projected.readyOnDay}`
                 : `starts day ${projected.startsOnDay}, ready day ${projected.readyOnDay}`;
+            const lateForContract =
+              deadline !== null &&
+              ((booking !== undefined && mech.readyOnDay > deadline) ||
+                (booking === undefined && estimate.days > 0 && projected.readyOnDay > deadline));
             const status =
               mech.status === 'hulk'
                 ? `Wreck — ${cbills(estimate.cost)}, ${projectedTiming}`
@@ -110,13 +129,18 @@ export function Hangar({ catalog, state, mutate, onRefit, onContinue, onCancel }
             return (
               <li key={mech.id} className="manifest-row" data-testid={`hangar-${mech.id}`}>
                 <div className="manifest-pilot">
-                  <span className="pilot-name">{designIdentityLabel(catalog, mech.design)}</span>
+                  <span className="pilot-name">{label}</span>
                   {chassis === undefined ? null : (
                     <small className="faction-economy" data-faction={chassis.faction}>
                       {workshopFactionLine(catalog, chassis.faction)}
                     </small>
                   )}
                   <small className="manifest-status">{status}</small>
+                  {lateForContract ? (
+                    <small className="manifest-warning" data-testid={`hangar-late-${mech.id}`}>
+                      Not back before the day {deadline} deadline
+                    </small>
+                  ) : null}
                 </div>
 
                 <div className="manifest-mech">
@@ -188,7 +212,9 @@ export function Hangar({ catalog, state, mutate, onRefit, onContinue, onCancel }
 
         <footer className="manifest-actions">
           <button type="button" onClick={onContinue} data-testid="hangar-continue">
-            Continue to deployment
+            {fieldable.length === 0
+              ? 'Continue to deployment'
+              : `Continue with ${fieldable.length} machine${fieldable.length === 1 ? '' : 's'}`}
           </button>
           <button type="button" onClick={onCancel} data-testid="hangar-cancel">
             Back to the map

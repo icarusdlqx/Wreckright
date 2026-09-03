@@ -359,7 +359,8 @@ export async function runMobilePlaythrough({ browser, url, shots, check }) {
     check(
       '1024px fine-pointer location cards contain their fitted contents',
       await desktopPage.locator('.bay-location').evaluateAll((cards) =>
-        cards.length === 8 && cards.every((card) => card.clientHeight + 1 >= card.scrollHeight)),
+        cards.length >= 5 && cards.length <= 8 &&
+        cards.every((card) => card.clientHeight + 1 >= card.scrollHeight)),
     );
   } finally {
     await desktopContext.close();

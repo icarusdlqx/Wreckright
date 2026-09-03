@@ -56,16 +56,23 @@ describe('range damage chart model', () => {
       ['lrm20', 1],
       ['lrm10', 2],
     ]);
+    // The stack follows the catalogue, so a missile retune moves it without
+    // re-pinning the rack arithmetic here.
+    const dps = (id: string): number => {
+      const record = weapon(id);
+      return (record.damage * record.projectiles) / record.cooldown;
+    };
+    const stack = dps('lrm20') + 2 * dps('lrm10');
     expect(chart.bands.find(({ start, end }) => start === 0 && end === 60)?.total)
-      .toBeCloseTo(10.75, 8);
+      .toBeCloseTo(stack * 0.5, 8);
     expect(chart.bands.find(({ start, end }) => start === 60 && end === 180)?.total)
-      .toBeCloseTo(21.5, 8);
+      .toBeCloseTo(stack, 8);
     expect(chart.bands.find(({ start, end }) => start === 180 && end === 350)?.total)
-      .toBeCloseTo(17.63, 8);
+      .toBeCloseTo(stack * 0.82, 8);
     expect(chart.bands.find(({ start, end }) => start === 350 && end === 540)?.total)
-      .toBeCloseTo(12.47, 8);
+      .toBeCloseTo(stack * 0.58, 8);
     expect(chart.bands.find(({ start, end }) => start === 540 && end === 600)?.total)
-      .toBeCloseTo(2.58, 8);
+      .toBeCloseTo(stack * 0.12, 8);
     expect(chart.bands.every((band) => band.layers.length === 2)).toBe(true);
   });
 

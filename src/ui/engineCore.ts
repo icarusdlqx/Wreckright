@@ -1,14 +1,7 @@
 import type { MechLocation } from '../schema/common';
 import type { Renderer } from '../render3d/scene';
-import { callSupport, headingBetween, isDirectional, type SupportCallId } from '../sim/support';
-import {
-  findEntity,
-  isOperational,
-  type EntityId,
-  type Posture,
-  type Vec2,
-  type World,
-} from '../sim/types';
+import { callSupport, isDirectional, type SupportCallId } from '../sim/support';
+import { findEntity, type EntityId, type Posture, type Vec2, type World } from '../sim/types';
 import { toResult, type BattleResult } from '../sim/world';
 import { AudioDirector } from './audio';
 import {
@@ -31,9 +24,15 @@ import { EnginePresentation } from './enginePresentation';
 import { FramePacer } from './framePacer';
 import type { IncomingFireDirections } from './incomingFireDirections';
 import { attachInput } from './input';
+import { OrderFeedback } from './orderFeedback';
 import { PerfOverlay } from './perf';
 import { useGame, type OrderMode } from './store';
-import { supportRadius } from './supportOptions';
+import {
+  supportAreaPreview,
+  supportHeading,
+  supportRunPreview,
+  type SupportAim,
+} from './engineSupport';
 
 const HUD_INTERVAL_SECONDS = 0.1;
 const SMOKE_INTERVAL_SECONDS = 0.7;
@@ -50,6 +49,8 @@ export class Engine {
   private accumulator = 0;
   private readonly pacer = new FramePacer();
   private readonly presentation: EnginePresentation;
+  /** Ground marks for orders given and orders the machines gave up. */
+  private readonly orderFeedback = new OrderFeedback();
   /** The frame-time overlay, attached by createEngine and toggled with P. */
   perf: PerfOverlay | null = null;
   private lastFrame = 0;
@@ -62,7 +63,14 @@ export class Engine {
     this.renderer = renderer;
     this.maxTicks = maxTicks;
     this.audio.primeScore(world);
-    this.presentation = new EnginePresentation(world, renderer, this.audio, maxTicks, incomingFire);
+    this.presentation = new EnginePresentation(
+      world,
+      renderer,
+      this.audio,
+      maxTicks,
+      incomingFire,
+      this.orderFeedback,
+    );
   }
 
   get paused(): boolean {
@@ -206,6 +214,7 @@ export class Engine {
         supportRadius: this.supportArea(state.supportMode),
         supportRun: this.supportRun(state.supportMode),
         routes: this.presentation.routeMarkers(this.selectionSet),
+        pulses: this.orderFeedback.views(),
       },
       presentationDelta,
     );
@@ -261,48 +270,18 @@ export class Engine {
   cursorWorld: Vec2 | null = null;
   hoveredId: EntityId | null = null;
   selectionBox: { a: Vec2; b: Vec2 } | null = null;
-  supportAim: { call: SupportCallId; at: Vec2; to: Vec2 } | null = null;
+  supportAim: SupportAim | null = null;
 
-  private supportRun(call: SupportCallId | null): {
-    at: Vec2;
-    heading: number;
-    length: number;
-    width: number;
-  } | null {
-    const aim = this.supportAim;
-    const at = aim?.at ?? this.cursorWorld;
-    if ((aim?.call ?? call) !== 'air_strike' || at === null) return null;
-    const config = this.world.rules.support.air_strike;
-    return {
-      at,
-      heading: this.headingFor(at, aim?.to ?? at),
-      length: config.length,
-      width: config.width,
-    };
+  private supportRun(call: SupportCallId | null) {
+    return supportRunPreview(this.world, this.supportAim, this.cursorWorld, call);
   }
 
-  private supportArea(call: SupportCallId | null): { at: Vec2; radius: number } | null {
-    if (this.cursorWorld === null) return null;
-    const radius = supportRadius(this.world.rules.support, call);
-    return radius === null ? null : { at: this.cursorWorld, radius };
+  private supportArea(call: SupportCallId | null) {
+    return supportAreaPreview(this.world, this.cursorWorld, call);
   }
 
   private headingFor(at: Vec2, to: Vec2): number {
-    const drag = Math.hypot(to.x - at.x, to.y - at.y);
-    if (drag >= this.world.terrain.tileSize) return headingBetween(at, to);
-
-    const team = this.world.playerTeam ?? 0;
-    let x = 0;
-    let y = 0;
-    let count = 0;
-    for (const entity of this.world.entities) {
-      if (entity.team !== team || !isOperational(entity)) continue;
-      x += entity.pos.x;
-      y += entity.pos.y;
-      count += 1;
-    }
-    if (count === 0) return 0;
-    return headingBetween({ x: x / count, y: y / count }, at);
+    return supportHeading(this.world, at, to);
   }
 
   forceStep(): void {
@@ -316,7 +295,7 @@ export class Engine {
 
   orderMove(to: Vec2, run: boolean, options: MoveOrderOptions = {}): void {
     this.hudDirty = true;
-    moveSelection(this, to, run, options);
+    if (moveSelection(this, to, run, options) > 0) this.orderFeedback.markOrder(to);
   }
 
   engageContact(targetId: EntityId, to: Vec2): void {

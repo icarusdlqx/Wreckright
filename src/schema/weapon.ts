@@ -97,6 +97,12 @@ export const WeaponSchema = z
         width: z.number().positive().max(12).default(2),
         /** How high a projectile lobs on its way over, in metres. */
         arc: z.number().nonnegative().max(120).default(0),
+        /**
+         * Presentation-only travel speed, in metres per second, for a weapon the
+         * simulation resolves instantly. A charged bolt reads better crossing the
+         * field than appearing at both ends at once; combat never consults this.
+         */
+        speed: z.number().positive().max(4000).optional(),
       })
       .default({ style: 'tracer', colour: '#ffd489', width: 2, arc: 0 }),
     /** What it is for, in the words a quartermaster would use. */

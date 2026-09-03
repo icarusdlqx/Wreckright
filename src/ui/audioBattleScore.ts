@@ -29,7 +29,7 @@ export class BattleScoreDirector {
   unlock(graph: AudioGraph): void {
     if (this.handle !== null) return;
     const state = this.currentState();
-    this.handle = startBattleScore(graph, state.aurelianShare, state.level);
+    this.handle = startBattleScore(graph.scoreBus(), state.aurelianShare, state.level);
     this.handle.setState(state);
   }
 

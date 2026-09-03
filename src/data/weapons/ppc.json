@@ -25,7 +25,8 @@
     "style": "bolt",
     "colour": "#8ea6ff",
     "width": 4.0,
-    "arc": 0
+    "arc": 0,
+    "speed": 900
   },
   "summary": "A bolt of charged particles with a minimum range you will discover the hard way. Ten heat a shot and worth it."
 }

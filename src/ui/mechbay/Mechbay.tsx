@@ -25,17 +25,15 @@ import {
   redoDesign,
   undoDesign,
 } from './designHistory';
-import {
-  bestAmmoLocation,
-  bestLocationFor,
-  compatibleFrom,
-  fitByLocation,
-} from './autoFit';
+import { bestLocationFor, compatibleFrom, fitByLocation } from './autoFit';
+import { acceptBayEvaluation } from './bayEditAcceptance';
 import { evaluateEdit, type EditEvaluation, type EditIntent } from './editPreview';
 import { LoadoutGrid } from './LoadoutGrid';
-import { MECH_LOCATION_NAMES, type DropPayload } from './LocationCard';
+import type { DropPayload } from './LocationCard';
+import { locationWeaponMounts } from './locationLayout';
 import { MachinePanel } from './MachinePanel';
 import { evaluateDrop } from './mechbayEdits';
+import type { SwapRequest } from './shelfFit';
 import { StoreShelf, type Shelf } from './StoreShelf';
 import { useArmedPlacementFocus } from './useArmedPlacementFocus';
 import './mechbayWorkspaceLayout.css';
@@ -77,6 +75,7 @@ export function Mechbay({
   const [showAll, setShowAll] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<MechLocation | null>(null);
   const [hoveredLocation, setHoveredLocation] = useState<MechLocation | null>(null);
+  const [swapRequest, setSwapRequest] = useState<SwapRequest | null>(null);
   const [workspace, setWorkspace] = useState<BayWorkspaceTab>('loadout');
   const quietBay = useQuietBay(armed);
   const bayRef = useRef<HTMLDivElement>(null);
@@ -85,6 +84,7 @@ export function Mechbay({
     setSelectedLocation(null);
     setHoveredLocation(null);
     setArmed(null);
+    setSwapRequest(null);
     quietBay.clearDrag();
     setInspected(null);
     setShowAll(false);
@@ -116,6 +116,12 @@ export function Mechbay({
     [design, targeting, inventory],
   );
   const compatible = useMemo(() => new Set(compatibleFrom(locationFits)), [locationFits]);
+  // A swap outlives the mount it named only until the design moves under it.
+  const swap = swapRequest !== null
+    && design.mounts[swapRequest.index]?.weaponId === swapRequest.weaponId
+    && design.mounts[swapRequest.index]?.location === swapRequest.location
+    ? swapRequest
+    : null;
 
   useArmedPlacementFocus({
     armed,
@@ -146,69 +152,16 @@ export function Mechbay({
   const navigateHistory = (direction: 'undo' | 'redo'): void => {
     setHistory((current) => direction === 'undo' ? undoDesign(current) : redoDesign(current));
     setArmed(null);
+    setSwapRequest(null);
     setStatus({ tone: 'ok', text: direction === 'undo' ? 'Last fit undone.' : 'Fit restored.' });
   };
 
   const acceptEvaluation = (
     evaluation: EditEvaluation,
     location: MechLocation | null = null,
-  ): boolean => {
-    if (evaluation.status === 'blocked') {
-      if (location !== null) setSelectedLocation(location);
-      setStatus({
-        tone: 'error',
-        text: evaluation.reasons[0]?.message ?? 'That change cannot be made.',
-      });
-      return false;
-    }
-
-    if (evaluation.status === 'needs_ammo') {
-      const { weaponId, locations } = evaluation.continuation;
-      const weaponName = catalog.weapons.get(weaponId)?.name ?? weaponId;
-      // A gun with no feed is not a decision, it is a chore. Stow the first ton
-      // somewhere survivable and say where it went; moving or removing it is
-      // still one click, and the player never meets an illegal build they did
-      // not ask for.
-      const berth = bestAmmoLocation(catalog, evaluation.nextDesign, locations);
-      const stowed =
-        berth === null
-          ? null
-          : evaluateEdit(
-              catalog,
-              evaluation.nextDesign,
-              { type: 'add_ammo', weaponId, location: berth },
-              inventory,
-            );
-
-      if (berth !== null && stowed?.status === 'applied') {
-        commitDraft(stowed.nextDesign);
-        if (location !== null) setSelectedLocation(location);
-        setArmed(null);
-        setStatus({
-          tone: 'ok',
-          text: `${weaponName} fitted — one ton of ammunition stowed in the ${MECH_LOCATION_NAMES[berth].toLowerCase()}.`,
-        });
-        return true;
-      }
-
-      // No berth would take it automatically; fall back to letting the player place it.
-      commitDraft(evaluation.nextDesign);
-      const payload: DropPayload = { kind: 'ammo', id: weaponId };
-      setSelectedLocation(null);
-      setShelf('ammo');
-      setInspected(payload);
-      setArmed(payload);
-      setStatus({ tone: 'ok', text: evaluation.reasons[0]?.message ?? 'Choose an ammunition bin.' });
-      return true;
-    }
-
-    commitDraft(evaluation.nextDesign);
-
-    if (location !== null) setSelectedLocation(location);
-    setArmed(null);
-    setStatus(null);
-    return true;
-  };
+  ): boolean => acceptBayEvaluation(catalog, inventory, evaluation, location, {
+    commitDraft, setSelectedLocation, setArmed, setInspected, setShelf, setStatus,
+  });
 
   const applyIntent = (intent: EditIntent): boolean =>
     acceptEvaluation(evaluateEdit(catalog, design, intent, inventory));
@@ -240,8 +193,31 @@ export function Mechbay({
       onDrop(armed, location);
       return;
     }
+    setSwapRequest(null);
     setSelectedLocation((current) => current === location ? null : location);
+    // A leg or head with no gun mount has nothing to say on the weapons tab.
+    setShelf(locationWeaponMounts(chassis.hardpoints[location]) > 0 ? 'weapons' : 'equipment');
+  };
+
+  const beginSwap = (index: number): void => {
+    const mount = design.mounts[index];
+    if (mount === undefined) return;
+    setArmed(null);
+    setSwapRequest({ index, location: mount.location, weaponId: mount.weaponId });
+    setSelectedLocation(mount.location);
+    setInspected({ kind: 'weapon', id: mount.weaponId });
     setShelf('weapons');
+  };
+
+  const pickSwap = (weaponId: string): void => {
+    if (swap === null) return;
+    const accepted = acceptEvaluation(
+      evaluateEdit(catalog, design, { type: 'replace_weapon', index: swap.index, weaponId }, inventory),
+      swap.location,
+    );
+    if (!accepted) return;
+    setSwapRequest(null);
+    quietBay.recordFit(swap.location, { kind: 'weapon', id: weaponId });
   };
 
   return (
@@ -336,6 +312,7 @@ export function Mechbay({
             }
           }}
           onRemoveEquipment={(index) => applyIntent({ type: 'remove_equipment', index })}
+          onSwapMount={beginSwap}
           onInspect={(payload) => { setSelectedLocation(null); setInspected(payload); setShelf(payload.kind === 'weapon' ? 'weapons' : payload.kind); }}
           onSelectLocation={selectLocation}
           onHoverLocation={setHoveredLocation}
@@ -350,9 +327,12 @@ export function Mechbay({
           selectedLocation={selectedLocation}
           armed={armed}
           inspected={inspected}
+          swap={swap}
           onShelfChange={setShelf}
           onShowAllChange={setShowAll}
           onClearLocation={() => setSelectedLocation(null)}
+          onSwapPick={pickSwap}
+          onCancelSwap={() => setSwapRequest(null)}
           onInspect={setInspected}
           onArm={(payload) => {
             setInspected(payload);

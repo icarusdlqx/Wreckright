@@ -8,10 +8,11 @@ import {
   remainingInventory,
   type BayInventory,
 } from './bayFit';
-import { Dossier, type Inspected, type InspectorFit } from './Dossier';
+import { Dossier, type Inspected } from './Dossier';
 import type { DropPayload } from './LocationCard';
 import { mountedWeaponProfiles as resolveMountedWeaponProfiles } from './rangeDamageChartModel';
-import { shelfFit } from './shelfFit';
+import { shelfFit, swapFit, type SwapRequest } from './shelfFit';
+import { ShelfItem } from './ShelfItem';
 import { ShelfToolbar } from './ShelfToolbar';
 import {
   shelfSearchMatches,
@@ -19,83 +20,10 @@ import {
   type WeaponCategoryFilter,
 } from './shelfFilter';
 import { WeaponCard } from './WeaponCard';
-import { WEAPON_CATEGORIES, weaponCategory } from './weaponPresentation';
+import { WEAPON_CATEGORIES, weaponCatalogMedians, weaponCategory } from './weaponPresentation';
 import './storeShelf.css';
 
 export type Shelf = 'weapons' | 'ammo' | 'equipment';
-
-function ShelfItem({
-  payload,
-  label,
-  detail,
-  stock,
-  fit,
-  armed,
-  inspected,
-  onInspect,
-  onArm,
-  onAutoFit,
-}: {
-  payload: DropPayload;
-  label: string;
-  detail: string;
-  stock?: number;
-  fit: InspectorFit;
-  armed: boolean;
-  inspected: boolean;
-  onInspect: (payload: DropPayload) => void;
-  onArm: (payload: DropPayload) => void;
-  onAutoFit: (payload: DropPayload) => void;
-}) {
-  const exhausted = stock !== undefined && stock <= 0;
-  const unavailable = exhausted || !fit.ok;
-  return (
-    <li
-      className={`bay-stock${unavailable ? ' exhausted' : ''}${armed ? ' armed' : ''}${inspected ? ' inspected' : ''}`}
-    >
-      <button
-        type="button"
-        draggable={!unavailable}
-        aria-pressed={armed}
-        aria-current={inspected ? 'true' : undefined}
-        aria-disabled={unavailable || undefined}
-        aria-controls="bay-shelf-inspector"
-        data-testid={`stock-${payload.kind}-${payload.id}`}
-        onFocus={() => onInspect(payload)}
-        onClick={() => {
-          onInspect(payload);
-          if (!unavailable) onArm(payload);
-        }}
-        onDragStart={(event) => {
-          if (unavailable) return event.preventDefault();
-          onInspect(payload);
-          event.dataTransfer.setData('application/wreckright', JSON.stringify(payload));
-          event.dataTransfer.effectAllowed = 'copy';
-        }}
-      >
-        <span className="stock-name">
-          {label}
-          {stock === undefined ? null : <em className="stock-count">×{Math.max(0, stock)}</em>}
-        </span>
-        <span className="stock-detail">{detail}</span>
-        <span className={`bay-stock__fit ${fit.ok ? 'is-fit' : 'is-blocked'}`}>
-          {fit.ok ? 'Fits' : fit.reason}
-        </span>
-      </button>
-      {unavailable ? null : (
-        <button
-          type="button"
-          className="bay-stock__autofit"
-          data-testid={`autofit-${payload.kind}-${payload.id}`}
-          aria-label={`Fit ${label} automatically`}
-          onClick={() => onAutoFit(payload)}
-        >
-          Fit
-        </button>
-      )}
-    </li>
-  );
-}
 
 interface Props {
   catalog: Catalog;
@@ -107,6 +35,8 @@ interface Props {
   selectedLocation: MechLocation | null;
   armed: DropPayload | null;
   inspected: Inspected | null;
+  /** While set, the weapons tab lists replacements for one fitted gun. */
+  swap?: SwapRequest | null;
   onShelfChange: (shelf: Shelf) => void;
   onShowAllChange: (show: boolean) => void;
   onClearLocation: () => void;
@@ -114,6 +44,8 @@ interface Props {
   onArm: (payload: DropPayload) => void;
   onAutoFit: (payload: DropPayload) => void;
   onHoverWeapon: (weaponId: string | null) => void;
+  onSwapPick?: (weaponId: string) => void;
+  onCancelSwap?: () => void;
 }
 
 export function StoreShelf({
@@ -126,6 +58,7 @@ export function StoreShelf({
   selectedLocation,
   armed,
   inspected,
+  swap = null,
   onShelfChange,
   onShowAllChange,
   onClearLocation,
@@ -133,6 +66,8 @@ export function StoreShelf({
   onArm,
   onAutoFit,
   onHoverWeapon,
+  onSwapPick,
+  onCancelSwap,
 }: Props) {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<WeaponCategoryFilter>('all');
@@ -142,6 +77,7 @@ export function StoreShelf({
   }, [chassis.id]);
 
   const remaining = useMemo(() => remainingInventory(inventory, design), [inventory, design]);
+  const medians = useMemo(() => weaponCatalogMedians(catalog), [catalog]);
   const mountedWeaponProfiles = useMemo(
     () => resolveMountedWeaponProfiles(catalog, design.mounts),
     [catalog, design],
@@ -165,19 +101,18 @@ export function StoreShelf({
     () =>
       knownWeapons.map((weapon) => ({
         weapon,
-        fit: shelfFit(
-          catalog,
-          design,
-          { kind: 'weapon', id: weapon.id },
-          inventory,
-          selectedLocation,
-        ),
+        fit: swap === null
+          ? shelfFit(catalog, design, { kind: 'weapon', id: weapon.id }, inventory, selectedLocation)
+          : swapFit(catalog, design, swap, weapon.id, inventory),
       })),
-    [catalog, design, inventory, knownWeapons, selectedLocation],
+    [catalog, design, inventory, knownWeapons, selectedLocation, swap],
   );
+  // A swap lists only guns that could take the mount; the one already in it is not a swap.
   const availableWeaponRows = weaponRows.filter(
     ({ weapon, fit }) =>
-      showAll || fit.ok || (selectedLocation === null && mountedWeaponIds.has(weapon.id)),
+      swap === null
+        ? showAll || fit.ok || (selectedLocation === null && mountedWeaponIds.has(weapon.id))
+        : weapon.id !== swap.weaponId && (showAll || fit.ok),
   );
   const categoryOrder = new Map(WEAPON_CATEGORIES.map((entry, index) => [entry.id, index]));
   const visibleWeaponRows = availableWeaponRows
@@ -224,6 +159,9 @@ export function StoreShelf({
     .filter(({ equipment }) =>
       shelfSearchMatches(query, equipment.name, equipment.category, equipment.faction));
   const selectedName = selectedLocation?.replaceAll('_', ' ') ?? null;
+  const swapLabel = swap === null
+    ? null
+    : `${catalog.weapons.get(swap.weaponId)?.name ?? swap.weaponId} in ${swap.location.replaceAll('_', ' ')}`;
   const expectedKind = shelf === 'weapons' ? 'weapon' : shelf === 'ammo' ? 'ammo' : 'equipment';
   const matchingInspected = inspected?.kind === expectedKind ? inspected : null;
   const defaultInspected: Inspected | null =
@@ -248,7 +186,7 @@ export function StoreShelf({
         : null;
   const resultLabel =
     shelf === 'weapons'
-      ? `${visibleWeaponRows.length} of ${knownWeapons.length} weapons · ${showAll ? 'all fit states' : 'fits only'}`
+      ? `${visibleWeaponRows.length} of ${knownWeapons.length} weapons · ${swap === null ? (showAll ? 'all fit states' : 'fits only') : 'swap candidates'}`
       : shelf === 'ammo'
         ? `${ammoRows.length} of ${ammoShelfWeapons(catalog, design).length} ammo bins · ${showAll ? 'all fit states' : 'fits only'}`
         : `${gearRows.length} of ${knownGear.length} gear items · ${showAll ? 'all fit states' : 'fits only'}`;
@@ -263,12 +201,14 @@ export function StoreShelf({
         categories={categories}
         showAll={showAll}
         selectedName={selectedName}
+        swapLabel={swapLabel}
         resultLabel={resultLabel}
         onShelfChange={onShelfChange}
         onQueryChange={setQuery}
         onCategoryChange={setCategory}
         onShowAllChange={onShowAllChange}
         onClearLocation={onClearLocation}
+        onCancelSwap={onCancelSwap}
       />
 
       <Dossier
@@ -300,6 +240,7 @@ export function StoreShelf({
                   <WeaponCard
                     catalog={catalog}
                     weapon={weapon}
+                    medians={medians}
                     chassisFaction={chassis.faction}
                     stock={remaining?.weapon.get(weapon.id)}
                     selected={armed?.kind === 'weapon' && armed.id === weapon.id}
@@ -307,8 +248,12 @@ export function StoreShelf({
                     unavailableReason={fit.ok ? null : fit.reason}
                     testId={`stock-weapon-${weapon.id}`}
                     onInspect={() => onInspect({ kind: 'weapon', id: weapon.id })}
-                    onPick={() => onArm({ kind: 'weapon', id: weapon.id })}
-                    onAutoFit={() => onAutoFit({ kind: 'weapon', id: weapon.id })}
+                    onPick={() => swap === null
+                      ? onArm({ kind: 'weapon', id: weapon.id })
+                      : onSwapPick?.(weapon.id)}
+                    onAutoFit={swap === null
+                      ? () => onAutoFit({ kind: 'weapon', id: weapon.id })
+                      : undefined}
                     onHover={(hovered) => onHoverWeapon(hovered ? weapon.id : null)}
                   />
                 </li>

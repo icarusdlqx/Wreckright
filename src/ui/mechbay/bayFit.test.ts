@@ -45,7 +45,7 @@ describe('bay inventory', () => {
         ['medium_laser', 4],
         ['srm6', 1],
       ]), new Map([
-        ['case', 2],
+        ['case', 3],
         ['heat_sink', 12],
         ['double_heat_sink', 10],
       ])),
@@ -181,7 +181,7 @@ describe('shelf filters', () => {
         design(),
         inventory(new Map(), new Map([
           ['jump_jet', 1],
-          ['case', 2],
+          ['case', 3],
         ])),
       ).map((equipment) => equipment.id),
     ).toEqual(['case']);

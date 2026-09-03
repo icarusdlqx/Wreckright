@@ -21,7 +21,7 @@ import {
   responseBlend,
 } from './terrainGait';
 import type { Interpolated } from './unitViews';
-import { idleWeightCorrection, legPhaseFor } from './machineCulture';
+import { hullJoltRoll, idleWeightCorrection, legPhaseFor } from './machineCulture';
 import { localTilt, sampleGround, type GroundSample } from './locomotionGround';
 import { poseLoosePanels } from './damagedPanels';
 import { poseMachineMotion } from './machineMotion';
@@ -102,6 +102,7 @@ export class Locomotion {
     model.torso.rotation.y = -at.torso;
 
     this.animate(entity, model, at, deltaSeconds, tilt, terrainId);
+    model.root.rotation.x += hullJoltRoll(model.hullRecoil);
     if (submergence !== 0 && state.terminal.fall <= 0) {
       lockSubmergedBody(model, state, state.ground + lift + submergence);
     }

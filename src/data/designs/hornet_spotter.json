@@ -3,17 +3,17 @@
   "name": "Gadfly",
   "chassisId": "hornet_hnt2",
   "armour": {
-    "head": 12,
-    "centre_torso": 44,
-    "left_torso": 32,
-    "right_torso": 32,
-    "left_arm": 20,
-    "right_arm": 20,
-    "left_leg": 30,
-    "right_leg": 30
+    "head": 14,
+    "centre_torso": 52,
+    "left_torso": 38,
+    "right_torso": 38,
+    "left_arm": 24,
+    "right_arm": 24,
+    "left_leg": 35,
+    "right_leg": 35
   },
   "heatSinkId": "heat_sink",
-  "heatSinks": 11,
+  "heatSinks": 10,
   "mounts": [
     {
       "weaponId": "flamer",

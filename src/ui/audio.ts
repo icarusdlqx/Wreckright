@@ -1,10 +1,7 @@
 import type { TerrainMapData } from '../schema/map';
 import type { Faction } from '../schema/faction';
 import type { SimEvent } from '../sim/events';
-import type { MechEntity, Vec2, World } from '../sim/types';
-import { weaponFireProfile } from '../sim/weaponModes';
-import { canPresentEntity } from '../render3d/visibilityPresentation';
-import { machineCulture } from '../render3d/machineCulture';
+import type { Vec2, World } from '../sim/types';
 import { startAmbient, type AmbientHandle } from './audioAmbient';
 import {
   advanceHeatTier,
@@ -13,29 +10,33 @@ import {
   type HeatCue,
   type HeatTier,
 } from './audioCues';
+import { collectFieldCues } from './audioFieldCues';
 import { AudioGraph, type VoicePlacement } from './audioGraph';
 import { BattleScoreDirector } from './audioBattleScore';
-import { isPlayerConsoleCue, lifecyclePlacement, preferredLifecycleEntity } from './audioCueRouting';
-import { readAudioMuted, writeAudioMuted } from './audioPreference';
+import { isPlayerConsoleCue } from './audioCueRouting';
+import {
+  readAudioLevels,
+  readAudioMuted,
+  writeAudioLevel,
+  writeAudioMuted,
+  type AudioLevelKind,
+  type AudioLevels,
+} from './audioPreference';
+import { REACTOR_STRESS_MIN_TIER, startReactorStress, type ReactorStressHandle } from './audioReactor';
 import { SCORE_CLOSE_DELAY_MS } from './audioScore';
-import { playSupportResolution } from './audioSupport';
+import { playSupportAcknowledged } from './audioSupport';
 import {
   playAbility,
   playAlphaStrike,
+  playBattleEnd,
   playChime,
-  playCollapse,
   playFootfall,
   playHeatWarning,
-  playJets,
-  playLanding,
-  playLifecycleMoment,
   playMissionMessage,
   playOrder,
-  playPowerSweep,
-  playRestart,
   playSelect,
+  type BattleOutcome,
 } from './audioVoices';
-import { playCrunch, playDestruction, playImpact, playWeapon } from './audioWeapons';
 
 /**
  * Every sound in the game, synthesised.
@@ -47,28 +48,42 @@ import { playCrunch, playDestruction, playImpact, playWeapon } from './audioWeap
 export class AudioDirector {
   /** Where the player is listening from, for distance and air absorption. */
   listenAt: Vec2 = { x: 0, y: 0 };
+  /** The player's current selection; those machines are heard first. */
+  selection: () => readonly number[] = () => [];
 
   private graph: AudioGraph | null = null;
   private ambient: AmbientHandle | null = null;
+  private reactor: ReactorStressHandle | null = null;
   private readonly battleScore = new BattleScoreDirector();
   private pendingAmbient: string | null = null;
   private terrain: TerrainMapData | null = null;
   private readonly heatTiers = new Map<number, HeatTier>();
   private readonly cueEvents: SimEvent[] = [];
-  private readonly destroyedThisBatch = new Set<number>();
-  private readonly knockedDownThisBatch = new Set<number>();
   private mutedState = readAudioMuted();
+  private levelsState: AudioLevels = readAudioLevels();
+  private endVoiced = false;
   private destroyed = false;
 
   get muted(): boolean {
     return this.mutedState;
   }
 
+  get levels(): Readonly<AudioLevels> {
+    return this.levelsState;
+  }
+
   toggleMuted(): boolean {
     this.mutedState = !this.mutedState;
     writeAudioMuted(this.mutedState);
     this.graph?.setMuted(this.mutedState);
+    if (this.mutedState) this.reactor?.setTier(0);
     return this.mutedState;
+  }
+
+  setLevel(kind: AudioLevelKind, value: number): void {
+    this.levelsState = { ...this.levelsState, [kind]: value };
+    writeAudioLevel(kind, value);
+    this.graph?.setLevel(kind, value);
   }
 
   /** Must run under a pointer or key gesture, or the browser suspends it. */
@@ -78,7 +93,7 @@ export class AudioDirector {
       this.graph.resume();
       return;
     }
-    this.graph = AudioGraph.create(this.mutedState);
+    this.graph = AudioGraph.create(this.mutedState, this.levelsState);
     if (this.graph !== null) this.battleScore.unlock(this.graph);
     this.restartAmbient();
   }
@@ -104,11 +119,11 @@ export class AudioDirector {
     this.destroyed = true;
     this.battleScore.destroy();
     this.stopAmbient();
+    this.reactor?.stop();
+    this.reactor = null;
     this.terrain = null;
     this.heatTiers.clear();
     this.cueEvents.length = 0;
-    this.destroyedThisBatch.clear();
-    this.knockedDownThisBatch.clear();
     const graph = this.graph;
     this.graph = null;
     graph?.close(SCORE_CLOSE_DELAY_MS);
@@ -143,14 +158,9 @@ export class AudioDirector {
     const graph = this.graph;
     this.cueEvents.length = 0;
     if (graph === null) return;
+    const selected = new Set(this.selection());
+    this.updateReactorStress(graph, world, selected);
     if (this.mutedState) return;
-
-    this.destroyedThisBatch.clear();
-    this.knockedDownThisBatch.clear();
-    for (const event of events) {
-      if (event.type === 'mech_destroyed') this.destroyedThisBatch.add(event.entityId);
-      else if (event.type === 'knocked_down') this.knockedDownThisBatch.add(event.entityId);
-    }
 
     for (const event of events) {
       if (isPlayerConsoleCue(world, event)) this.cueEvents.push(event);
@@ -162,162 +172,17 @@ export class AudioDirector {
     if (summary.alphaCount > 0) playAlphaStrike(graph, summary.alphaCount);
     if (summary.missionMessage) playMissionMessage(graph);
 
-    const preferredEjection = preferredLifecycleEntity(world, events, 'pilot_ejected');
-    const preferredWithdrawal = preferredLifecycleEntity(world, events, 'unit_withdrew');
-    let chimed = false;
-    let ejectionVoiced = false;
-    let withdrawalVoiced = false;
-    for (const event of events) {
-      switch (event.type) {
-        case 'weapon_fired': {
-          if (!canPresentEntity(world, event.shooterId)) break;
-          const weapon = world.catalog.weapons.get(event.weaponId);
-          const at = positionOf(world, event.shooterId);
-          if (weapon !== undefined && at !== null) {
-            const profile = weaponFireProfile(weapon, event.modeId);
-            playWeapon(
-              graph,
-              weapon.faction,
-              weapon.visual.style,
-              profile.projectiles,
-              this.placementAt(at),
-            );
-          }
-          break;
-        }
-        case 'projectile_hit': {
-          if (!canPresentEntity(world, event.targetId)) break;
-          const at = positionOf(world, event.targetId);
-          const weapon = world.catalog.weapons.get(event.weaponId);
-          if (at !== null) {
-            playImpact(
-              graph,
-              {
-                type: weapon?.type ?? 'ballistic',
-                style: weapon?.visual.style ?? 'tracer',
-                damage: event.damage,
-              },
-              this.placementAt(at),
-            );
-          }
-          break;
-        }
-        case 'critical_hit': {
-          if (!canPresentEntity(world, event.entityId)) break;
-          const at = positionOf(world, event.entityId);
-          if (at !== null) playCrunch(graph, this.placementAt(at));
-          break;
-        }
-        case 'ammo_explosion': {
-          if (!canPresentEntity(world, event.entityId)) break;
-          const at = positionOf(world, event.entityId);
-          if (at !== null) {
-            playDestruction(graph, { kind: 'ammo', damage: event.damage }, this.placementAt(at));
-          }
-          break;
-        }
-        case 'mech_destroyed': {
-          if (!canPresentEntity(world, event.entityId)) break;
-          const entity = entityOf(world, event.entityId);
-          if (entity !== null) {
-            const placement = this.placementAt(entity.pos);
-            playDestruction(graph, { kind: 'terminal', tonnage: entity.tonnage }, placement);
-            const faction = factionOf(world, entity) ?? 'linewrought';
-            // A prior knockdown already owns the landing voice. A knockdown in
-            // this batch has not reached the renderer, so the terminal fall owns it instead.
-            if (entity.downRemaining <= 0 || this.knockedDownThisBatch.has(entity.id)) {
-              playCollapse(
-                graph,
-                placement,
-                entity.tonnage,
-                presentationDelay(
-                  reducedMotion ? 0 : machineCulture(faction).terminalFallSeconds,
-                  playbackSpeed,
-                ),
-                'terminal',
-              );
-            }
-          }
-          break;
-        }
-        case 'knocked_down': {
-          if (!canPresentEntity(world, event.entityId)) break;
-          if (this.destroyedThisBatch.has(event.entityId)) break;
-          const entity = entityOf(world, event.entityId);
-          if (entity !== null) {
-            playCollapse(
-              graph,
-              this.placementAt(entity.pos),
-              entity.tonnage,
-              presentationDelay(0.4, playbackSpeed),
-            );
-          }
-          break;
-        }
-        case 'shutdown': {
-          if (!canPresentEntity(world, event.entityId)) break;
-          const at = positionOf(world, event.entityId);
-          if (at !== null) playPowerSweep(graph, 360, 50, 0.9, this.placementAt(at));
-          break;
-        }
-        case 'restart': {
-          if (!canPresentEntity(world, event.entityId)) break;
-          const entity = entityOf(world, event.entityId);
-          const faction = entity === null ? null : factionOf(world, entity);
-          if (entity !== null && faction !== null) {
-            playRestart(graph, faction, this.placementAt(entity.pos, 0.7));
-          }
-          break;
-        }
-        case 'jump_started': {
-          if (!canPresentEntity(world, event.entityId)) break;
-          const at = positionOf(world, event.entityId);
-          if (at !== null) playJets(graph, this.placementAt(at));
-          break;
-        }
-        case 'jump_landed':
-          if (canPresentEntity(world, event.entityId)) {
-            playLanding(graph, this.placementAt({ x: event.x, y: event.y }), 1);
-          }
-          break;
-        case 'stood_up':
-        case 'pilot_ejected':
-        case 'unit_withdrew': {
-          if (event.type === 'pilot_ejected'
-            && (ejectionVoiced || event.entityId !== preferredEjection)) break;
-          if (event.type === 'unit_withdrew'
-            && (withdrawalVoiced || event.entityId !== preferredWithdrawal)) break;
-          if (!canPresentEntity(world, event.entityId)) break;
-          const at = positionOf(world, event.entityId);
-          if (at !== null) {
-            const placement = lifecyclePlacement(event.type, this.placementAt(at));
-            playLifecycleMoment(graph, event.type, placement);
-          }
-          if (event.type === 'pilot_ejected') ejectionVoiced = true;
-          if (event.type === 'unit_withdrew') withdrawalVoiced = true;
-          break;
-        }
-        case 'support_resolved':
-          if (event.team === (world.playerTeam ?? 0)) {
-            playSupportResolution(
-              graph,
-              event.call,
-              this.placementAt({ x: event.x, y: event.y }),
-            );
-          }
-          break;
-        case 'zone_captured':
-        case 'objective_settled':
-          if (!chimed) {
-            playChime(graph);
-            chimed = true;
-          }
-          break;
-        default:
-          break;
-      }
-    }
+    const batch = collectFieldCues({
+      world,
+      selected,
+      placementAt: (at, scale) => this.placementAt(at, scale),
+      playbackSpeed,
+      reducedMotion,
+    }, events);
+    if (batch.duck) graph.duckScore();
+    for (const cue of batch.cues) cue.play(graph);
 
+    this.consoleCues(graph, world, events);
     if (heatCue !== null) playHeatWarning(graph, heatCue);
   }
 
@@ -340,6 +205,31 @@ export class AudioDirector {
     if (!this.mutedState && this.graph !== null) playSelect(this.graph);
   }
 
+  /** Console reports never compete with the field for admission. */
+  private consoleCues(graph: AudioGraph, world: World, events: readonly SimEvent[]): void {
+    const team = world.playerTeam ?? 0;
+    let chimed = false;
+    let acknowledged = false;
+    let outcome: BattleOutcome | null = null;
+    for (const event of events) {
+      if (event.type === 'zone_captured' || event.type === 'objective_settled') {
+        if (!chimed) playChime(graph);
+        chimed = true;
+      } else if (event.type === 'support_called') {
+        if (!acknowledged && event.team === team) playSupportAcknowledged(graph);
+        acknowledged = acknowledged || event.team === team;
+      } else if (event.type === 'mission_ended') {
+        outcome = event.status;
+      } else if (event.type === 'battle_ended' && outcome === null) {
+        outcome = event.winner === null ? 'draw' : event.winner === team ? 'success' : 'failure';
+      }
+    }
+    if (outcome !== null && !this.endVoiced) {
+      this.endVoiced = true;
+      playBattleEnd(graph, outcome);
+    }
+  }
+
   private restartAmbient(): void {
     this.ambient?.stop();
     this.ambient = null;
@@ -348,7 +238,7 @@ export class AudioDirector {
       && this.graph !== null
       && this.pendingAmbient !== null
     ) {
-      this.ambient = startAmbient(this.graph, this.pendingAmbient);
+      this.ambient = startAmbient(this.graph.scoreBus(), this.pendingAmbient);
     }
   }
 
@@ -378,22 +268,17 @@ export class AudioDirector {
     }
     return hottest;
   }
-}
 
-/** Presentation motion advances in simulation seconds, while Web Audio schedules real seconds. */
-function presentationDelay(seconds: number, playbackSpeed: number): number {
-  const speed = Number.isFinite(playbackSpeed) && playbackSpeed > 0 ? playbackSpeed : 1;
-  return seconds / speed;
-}
-
-function entityOf(world: World, id: number): MechEntity | null {
-  return world.entities.find((candidate) => candidate.id === id) ?? null;
-}
-
-function positionOf(world: World, id: number): Vec2 | null {
-  return entityOf(world, id)?.pos ?? null;
-}
-
-function factionOf(world: World, entity: MechEntity): Faction | null {
-  return world.catalog.chassis.get(entity.chassisId)?.faction ?? null;
+  /** The selected machine's reactor strain follows the same hysteresis as the warnings. */
+  private updateReactorStress(graph: AudioGraph, world: World, selected: ReadonlySet<number>): void {
+    let tier: HeatTier = 0;
+    for (const id of selected) {
+      const current = this.heatTiers.get(id) ?? 0;
+      if (current > tier) tier = current;
+    }
+    if (this.mutedState || tier < REACTOR_STRESS_MIN_TIER || world.finished) tier = 0;
+    if (tier === 0 && this.reactor === null) return;
+    this.reactor ??= startReactorStress(graph.effectsBus());
+    this.reactor.setTier(tier);
+  }
 }

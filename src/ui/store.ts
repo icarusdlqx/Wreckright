@@ -260,6 +260,12 @@ export interface GameState {
   marquee: { x: number; y: number; width: number; height: number } | null;
   /** To-hit readout for the primary selection, or null with nothing to price. */
   hitPreview: HitPreviewView | null;
+  /**
+   * The hostile the player last clicked, so its damage stays readable while
+   * the lance shoots at it. A click on an enemy with a lance selected is an
+   * attack order first; this is what lets it also be a look.
+   */
+  inspectedId: EntityId | null;
 }
 
 export interface GameActions {
@@ -314,6 +320,7 @@ export function battleRemountState() {
     reservesLeft: 0,
     marquee: null,
     hitPreview: null,
+    inspectedId: null,
   } satisfies Partial<GameState>;
 }
 
@@ -359,6 +366,7 @@ export const useGame = create<GameState & GameActions>((set) => ({
   reservesLeft: 0,
   marquee: null,
   hitPreview: null,
+  inspectedId: null,
 
   enterBattle: (entry = {}) =>
     set((state) => ({

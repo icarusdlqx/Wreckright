@@ -1,3 +1,12 @@
+import {
+  DEFAULT_AUDIO_LEVELS,
+  clampAudioLevel,
+  type AudioLevelKind,
+  type AudioLevels,
+} from './audioPreference';
+
+export { blip, body, crack, noiseSweep, oscillator, thump } from './audioSynth';
+
 export interface VoicePlacement {
   /** The gain before the shared compressor. */
   level: number;
@@ -31,10 +40,22 @@ export const FIELD_VOICE_LIMIT = 8;
 export const FIELD_VOICE_WINDOW_MS = 100;
 /** A terminal blast and its landing must survive an already saturated volley. */
 export const TERMINAL_VOICE_RESERVE = 2;
+/** Overflow past the full-level slots is mixed down rather than dropped, up to this many. */
+export const FIELD_QUIET_VOICE_LIMIT = 4;
+/** About -10 dB: present under the ranked voices, never competing with them. */
+export const QUIET_MIX_GAIN = 0.316;
+/** Master, effects and score: the gains a graph owns before any voice or score is built. */
+export const GRAPH_BUS_GAIN_COUNT = 3;
 /** Restart storms may leave at most two contexts finishing their short fade. */
 export const PENDING_AUDIO_CLOSE_LIMIT = 2;
+/** A blast pushes the score down to this fraction before it climbs back. */
+export const SCORE_DUCK_FLOOR = 0.4;
+export const SCORE_DUCK_HOLD_SECONDS = 0.25;
+export const SCORE_DUCK_RECOVER_SECONDS = 1.5;
 
 const MAX_AUDIO_CLOSE_DELAY_MS = 1_000;
+const DUCK_ATTACK_SECONDS = 0.03;
+const LEVEL_FOLLOW_SECONDS = 0.02;
 
 interface PendingAudioClose {
   finish(): void;
@@ -44,7 +65,14 @@ const pendingAudioCloses: PendingAudioClose[] = [];
 
 /** The shared graph and the admission control in front of every one-shot. */
 export class AudioGraph implements VoiceBus, AmbientBus {
-  private readonly window = { at: 0, ordinary: 0, terminal: 0 };
+  /** Every one-shot voice; the effects slider trims this without touching the score. */
+  readonly effects: GainNode;
+  /** The score and the ambient bed, ducked together under a blast. */
+  readonly score: GainNode;
+
+  private readonly window = { at: 0, ordinary: 0, quiet: 0, terminal: 0 };
+  private readonly levels: AudioLevels;
+  private muted: boolean;
   private seed = 0x9e3779b9;
   private closed = false;
 
@@ -52,9 +80,21 @@ export class AudioGraph implements VoiceBus, AmbientBus {
     readonly context: AudioContext,
     readonly master: GainNode,
     readonly noise: AudioBuffer,
-  ) {}
+    muted = false,
+    levels: Readonly<AudioLevels> = DEFAULT_AUDIO_LEVELS,
+  ) {
+    this.muted = muted;
+    this.levels = { ...levels };
+    this.effects = context.createGain();
+    this.effects.gain.value = this.levels.effects;
+    this.effects.connect(master);
+    this.score = context.createGain();
+    this.score.gain.value = this.levels.score;
+    this.score.connect(master);
+    this.applyMaster();
+  }
 
-  static create(muted: boolean): AudioGraph | null {
+  static create(muted: boolean, levels: Readonly<AudioLevels> = DEFAULT_AUDIO_LEVELS): AudioGraph | null {
     const Ctor =
       (globalThis as { AudioContext?: typeof AudioContext }).AudioContext ??
       (globalThis as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
@@ -67,18 +107,67 @@ export class AudioGraph implements VoiceBus, AmbientBus {
     compressor.connect(context.destination);
 
     const master = context.createGain();
-    master.gain.value = muted ? 0 : MASTER_LEVEL;
     master.connect(compressor);
 
     const noise = context.createBuffer(1, context.sampleRate, context.sampleRate);
-    const graph = new AudioGraph(context, master, noise);
+    const graph = new AudioGraph(context, master, noise, muted, levels);
     const data = noise.getChannelData(0);
     for (let i = 0; i < data.length; i += 1) data[i] = graph.random() * 2 - 1;
     return graph;
   }
 
   setMuted(muted: boolean): void {
-    this.master.gain.value = muted ? 0 : MASTER_LEVEL;
+    this.muted = muted;
+    this.applyMaster();
+  }
+
+  setLevel(kind: AudioLevelKind, value: number): void {
+    const level = clampAudioLevel(value);
+    this.levels[kind] = level;
+    if (kind === 'master') {
+      this.applyMaster();
+    } else if (kind === 'effects') {
+      this.effects.gain.value = level;
+    } else if (!this.closed) {
+      // The score bus may be mid-duck; automation keeps the slider from clicking.
+      const at = this.context.currentTime;
+      this.score.gain.cancelScheduledValues(at);
+      this.score.gain.setTargetAtTime(level, at, LEVEL_FOLLOW_SECONDS);
+    }
+  }
+
+  /** Ambient and score hang off their own bus so one slider and one duck reach both. */
+  scoreBus(): AmbientBus {
+    return {
+      context: this.context,
+      master: this.score,
+      noise: this.noise,
+      random: () => this.random(),
+    };
+  }
+
+  /** Continuous effects (a stressed reactor) share the effects trim with the one-shots. */
+  effectsBus(): AmbientBus {
+    return {
+      context: this.context,
+      master: this.effects,
+      noise: this.noise,
+      random: () => this.random(),
+    };
+  }
+
+  /** A blast pushes the score aside for a moment; it returns as the dust settles. */
+  duckScore(): void {
+    if (this.closed) return;
+    const at = this.context.currentTime;
+    const gain = this.score.gain;
+    gain.cancelScheduledValues(at);
+    gain.setTargetAtTime(this.levels.score * SCORE_DUCK_FLOOR, at, DUCK_ATTACK_SECONDS);
+    gain.setTargetAtTime(
+      this.levels.score,
+      at + SCORE_DUCK_HOLD_SECONDS,
+      SCORE_DUCK_RECOVER_SECONDS / 3,
+    );
   }
 
   resume(): void {
@@ -116,15 +205,21 @@ export class AudioGraph implements VoiceBus, AmbientBus {
     timer = setTimeout(pending.finish, boundedDelay);
   }
 
-  /** Refuses excess field voices before they can allocate a source node. */
+  /**
+   * Refuses excess field voices before they can allocate a source node. The
+   * caller offers voices best-first, so the full slots go to what matters and
+   * the overflow sits underneath at the quiet mix until the hard cap.
+   */
   begin(placement: VoicePlacement, priority: VoicePriority = 'ordinary'): VoiceFrame | null {
     if (this.closed || placement.level <= 0.01) return null;
 
+    let quiet = false;
     if (placement.distance !== null) {
       const now = performance.now();
       if (now - this.window.at > FIELD_VOICE_WINDOW_MS) {
         this.window.at = now;
         this.window.ordinary = 0;
+        this.window.quiet = 0;
         this.window.terminal = 0;
       }
       if (priority === 'terminal') {
@@ -133,24 +228,25 @@ export class AudioGraph implements VoiceBus, AmbientBus {
           || this.window.ordinary + this.window.terminal >= FIELD_VOICE_LIMIT
         ) return null;
         this.window.terminal += 1;
-      } else {
-        if (
-          this.window.ordinary >= FIELD_VOICE_LIMIT - TERMINAL_VOICE_RESERVE
-          || this.window.ordinary + this.window.terminal >= FIELD_VOICE_LIMIT
-        ) return null;
+      } else if (this.window.ordinary < FIELD_VOICE_LIMIT - TERMINAL_VOICE_RESERVE) {
         this.window.ordinary += 1;
+      } else if (this.window.quiet < FIELD_QUIET_VOICE_LIMIT) {
+        this.window.quiet += 1;
+        quiet = true;
+      } else {
+        return null;
       }
     }
 
     const out = this.context.createGain();
-    out.gain.value = Math.min(1, placement.level);
+    out.gain.value = Math.min(1, placement.level) * (quiet ? QUIET_MIX_GAIN : 1);
     if (placement.distance === null) {
-      out.connect(this.master);
+      out.connect(this.effects);
     } else {
       const air = this.context.createBiquadFilter();
       air.type = 'lowpass';
       air.frequency.value = Math.max(600, 18_000 - placement.distance * 22);
-      out.connect(air).connect(this.master);
+      out.connect(air).connect(this.effects);
     }
 
     return {
@@ -169,6 +265,10 @@ export class AudioGraph implements VoiceBus, AmbientBus {
     this.seed ^= this.seed << 5;
     return ((this.seed >>> 0) % 10_000) / 10_000;
   }
+
+  private applyMaster(): void {
+    this.master.gain.value = this.muted ? 0 : MASTER_LEVEL * this.levels.master;
+  }
 }
 
 function closeContext(context: AudioContext): void {
@@ -177,133 +277,4 @@ function closeContext(context: AudioContext): void {
   } catch {
     // A browser may synchronously reject a context already being discarded.
   }
-}
-
-/** Broadband attack. Without it a gunshot is only a note with better manners. */
-export function crack(frame: VoiceFrame, at: number, gain: number, colour: number): void {
-  const src = frame.context.createBufferSource();
-  src.buffer = frame.noise;
-
-  const shelf = frame.context.createBiquadFilter();
-  shelf.type = 'highpass';
-  shelf.frequency.value = colour;
-
-  const level = frame.context.createGain();
-  level.gain.setValueAtTime(gain, at);
-  level.gain.exponentialRampToValueAtTime(0.0001, at + 0.012);
-  src.connect(shelf).connect(level).connect(frame.out);
-  src.start(at, frame.random() * 0.5);
-  src.stop(at + 0.03);
-}
-
-/** Noise through a closing resonance: machinery has a body, not a clean pitch. */
-export function body(
-  frame: VoiceFrame,
-  at: number,
-  seconds: number,
-  from: number,
-  to: number,
-  gain: number,
-  resonance: number,
-): void {
-  const src = frame.context.createBufferSource();
-  src.buffer = frame.noise;
-
-  const filter = frame.context.createBiquadFilter();
-  filter.type = 'lowpass';
-  filter.frequency.setValueAtTime(from, at);
-  filter.frequency.exponentialRampToValueAtTime(Math.max(40, to), at + seconds);
-  filter.Q.value = resonance;
-
-  const level = frame.context.createGain();
-  level.gain.setValueAtTime(0.0001, at);
-  level.gain.exponentialRampToValueAtTime(gain, at + 0.006);
-  level.gain.exponentialRampToValueAtTime(0.0001, at + seconds);
-  src.connect(filter).connect(level).connect(frame.out);
-  src.start(at, frame.random() * 0.5);
-  src.stop(at + seconds + 0.02);
-}
-
-/** Weight belongs below the noise, where it is felt before it is named. */
-export function thump(
-  frame: VoiceFrame,
-  at: number,
-  seconds: number,
-  from: number,
-  to: number,
-  gain: number,
-): void {
-  oscillator(frame, at, seconds, from, to, gain, 'sine');
-}
-
-export function oscillator(
-  frame: VoiceFrame,
-  at: number,
-  seconds: number,
-  from: number,
-  to: number,
-  gain: number,
-  type: OscillatorType,
-): void {
-  const osc = frame.context.createOscillator();
-  osc.type = type;
-  osc.frequency.setValueAtTime(Math.max(1, from), at);
-  osc.frequency.exponentialRampToValueAtTime(Math.max(1, to), at + seconds);
-  const level = frame.context.createGain();
-  level.gain.setValueAtTime(Math.max(0.0001, gain), at);
-  level.gain.exponentialRampToValueAtTime(0.0001, at + seconds);
-  osc.connect(level).connect(frame.out);
-  osc.start(at);
-  osc.stop(at + seconds + 0.02);
-}
-
-export function noiseSweep(
-  frame: VoiceFrame,
-  at: number,
-  seconds: number,
-  from: number,
-  to: number,
-  gain: number,
-  type: BiquadFilterType = 'lowpass',
-  resonance = 0.8,
-): void {
-  const src = frame.context.createBufferSource();
-  src.buffer = frame.noise;
-  src.loop = true;
-  const filter = frame.context.createBiquadFilter();
-  filter.type = type;
-  filter.frequency.setValueAtTime(Math.max(40, from), at);
-  filter.frequency.exponentialRampToValueAtTime(Math.max(40, to), at + seconds);
-  filter.Q.value = resonance;
-  const level = frame.context.createGain();
-  level.gain.setValueAtTime(0.0001, at);
-  level.gain.exponentialRampToValueAtTime(gain, at + Math.min(0.04, seconds * 0.2));
-  level.gain.exponentialRampToValueAtTime(0.0001, at + seconds);
-  src.connect(filter).connect(level).connect(frame.out);
-  src.start(at, frame.random() * 0.5);
-  src.stop(at + seconds + 0.02);
-}
-
-/** A filtered console tone; bare waveforms make every control sound like a toy. */
-export function blip(
-  frame: VoiceFrame,
-  at: number,
-  frequency: number,
-  seconds: number,
-  gain: number,
-): void {
-  const osc = frame.context.createOscillator();
-  osc.type = 'triangle';
-  osc.frequency.setValueAtTime(frequency, at);
-  osc.frequency.exponentialRampToValueAtTime(frequency * 0.82, at + seconds);
-  const soften = frame.context.createBiquadFilter();
-  soften.type = 'lowpass';
-  soften.frequency.value = frequency * 2.2;
-  const level = frame.context.createGain();
-  level.gain.setValueAtTime(0.0001, at);
-  level.gain.exponentialRampToValueAtTime(gain, at + 0.004);
-  level.gain.exponentialRampToValueAtTime(0.0001, at + seconds);
-  osc.connect(soften).connect(level).connect(frame.out);
-  osc.start(at);
-  osc.stop(at + seconds + 0.02);
 }

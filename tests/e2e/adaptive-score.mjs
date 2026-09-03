@@ -256,7 +256,11 @@ export async function runAdaptiveScoreChecks({ browser, url, check }) {
     });
     const moving = (await audioProbe(page))[0];
     check('an engine-routed pressure event retargets the pulse without allocating nodes',
-      moving.counts.nodes === initial.counts.nodes && moving.targets > seeded.targets,
+      // The support call now voices a console blip of its own; the score itself
+      // must still retarget on the same five sources without growing.
+      moving.scoreSources.length === initial.scoreSources.length
+        && moving.scoreSources.every((source, index) => source.id === initial.scoreSources[index]?.id)
+        && moving.targets > seeded.targets,
       JSON.stringify({ before: seeded, after: moving }));
     check('low activity leaves the full battle layer dormant',
       !newTargets(seeded, moving).some((entry) => /^gain-\d+$/.test(entry.name)
