@@ -17,7 +17,7 @@
 
 .camp-command-header .camp-company-identity { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .camp-command-header .camp-company-identity > svg { flex-shrink: 0; color: var(--exp-orange-ink); }
-.camp-command-header .camp-title { display: grid; gap: 2px; min-width: 0; margin: 0; }
+.camp-command-header .camp-title { display: grid; flex: 1 1 0; gap: 2px; min-width: 0; margin: 0; }
 .camp-command-header .camp-title .camp-command-kicker { display: none; }
 .camp-command-header .camp-title h2 {
   margin: 0;
@@ -186,6 +186,12 @@
   .camp .camp-command-header .camp-utility-actions button { padding-inline: 8px; }
   .camp .camp-restart-dialog { padding: 22px; }
   .camp .camp-restart-actions { flex-direction: column; }
+}
+@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+  .camp .camp-command-header button,
+  .camp .camp-command-header summary,
+  .camp .camp-command-header .camp-file-import,
+  .camp .camp-restart-actions button { min-height: 44px; }
 }
 @media (forced-colors: active) {
   .camp .camp-command-header :is(button, summary),

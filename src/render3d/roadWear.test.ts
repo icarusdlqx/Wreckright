@@ -2,6 +2,7 @@ import { Color } from 'three';
 import { describe, expect, it } from 'vitest';
 import { catalog } from '../../tests/support';
 import type { TerrainMapData } from '../schema/map';
+import { TERRAIN_COLOURS } from '../render/palette';
 import { buildRoadWear } from './roadWear';
 
 const heightAt = (x: number, y: number): number => x * 0.007 - y * 0.003;
@@ -131,6 +132,20 @@ describe('procedural road wear', () => {
       );
     }
     expect(minimumUpwardArea).toBeGreaterThan(0);
+  });
+
+  it('keeps warm lane paint visibly brighter than the road surface', () => {
+    const source = catalog.maps.get('ridge_pass');
+    expect(source).toBeDefined();
+    if (source === undefined) return;
+    const wear = buildRoadWear(fixture(source, 'paint_contrast', ['===']), () => 0, null);
+    const paint = new Color().fromArray(wear.colours);
+    const road = new Color(TERRAIN_COLOURS.road);
+    const luminance = (colour: Color): number =>
+      colour.r * 0.2126 + colour.g * 0.7152 + colour.b * 0.0722;
+
+    expect((luminance(paint) + 0.05) / (luminance(road) + 0.05)).toBeGreaterThan(3);
+    expect(paint.r).toBeGreaterThan(paint.b);
   });
 
   it('uses a diagonal principal axis for a staircase road', () => {

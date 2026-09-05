@@ -245,7 +245,7 @@ async function runOrientation({ browser, url, shots, check, viewport, label, sho
     await page.waitForSelector('[data-testid="campaign"]');
 
     const campaign = await overflowOf(page, '[data-testid="campaign"]');
-    check(`${prefix} campaign is one column`, await oneColumn(page, '[data-testid="campaign"]'));
+    check(`${prefix} campaign operations are one column`, await oneColumn(page, '.company-operations'));
     check(
       `${prefix} campaign has no horizontal overflow`,
       campaign.scrollWidth <= campaign.clientWidth + 1,

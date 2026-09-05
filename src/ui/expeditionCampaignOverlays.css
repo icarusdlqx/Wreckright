@@ -71,7 +71,15 @@
 .camp-workspace .debrief :is(.manifest-status, .manifest-skills, .debrief-fate, .debrief-losses) { font-size: 12px; }
 .camp-workspace .debrief .manifest-skills { gap: 4px; }
 .camp-workspace .debrief .debrief-fate.returned { color: var(--ok); }
-.camp-workspace .debrief .manifest-actions { padding-top: 12px; border-top: 1px solid var(--edge); }
+.camp-workspace .debrief .manifest-actions {
+  position: sticky;
+  bottom: -20px;
+  z-index: 2;
+  margin: 12px -20px -20px;
+  padding: 12px 20px 20px;
+  border-top: 1px solid var(--edge);
+  background: var(--exp-paper);
+}
 .camp-workspace .debrief .manifest-actions button {
   min-height: 44px;
   padding: 8px 16px;
@@ -115,7 +123,7 @@
     background: Canvas; color: CanvasText; border-color: CanvasText; box-shadow: none;
   }
   .camp-workspace :is(.manual-sheet > header, .debrief .salvage-offer button.taken,
-    .camp-recovery, .company-status) { background: Canvas; color: CanvasText; border-color: CanvasText; box-shadow: none; }
+    .debrief .manifest-actions, .camp-recovery, .company-status) { background: Canvas; color: CanvasText; border-color: CanvasText; box-shadow: none; }
   .camp-workspace .camp-recovery :is(strong, span, small) { color: CanvasText; }
   .camp-workspace .debrief .manifest-actions button,
   .camp-workspace .campaign-chooser-actions [data-testid='campaign-choice-start']:not(:disabled),

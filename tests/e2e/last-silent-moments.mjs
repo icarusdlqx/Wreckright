@@ -189,7 +189,9 @@ export async function runLastSilentMomentsChecks({ browser, url, check }) {
       const ally = world.entities.find((entity) => entity.team === world.playerTeam);
       if (ally === undefined) throw new Error('missing heat-warning ally');
       ally.heat = ally.heatCapacity * 0.95;
-      engine.forceStep();
+      // Observe the warning directly. A simulation tick at this heat can also
+      // roll a shutdown or ammo explosion, adding an unrelated source.
+      engine.audio.consume(world, []);
     });
     const afterHeat = (await audioProbe(page))[0];
     const heatSources = afterHeat.sources.slice(beforeHeat.sources.length);
@@ -212,6 +214,11 @@ export async function runLastSilentMomentsChecks({ browser, url, check }) {
       const { engine, world } = globalThis.__wreckright;
       const enemy = world.entities.find((entity) => entity.team !== world.playerTeam);
       if (enemy === undefined || world.vision === null) throw new Error('missing hidden enemy fixture');
+      // The heat-warning fixture left an ally at 95% heat. forceStep also
+      // advances thermal rolls; a friendly shutdown is unrelated to privacy.
+      for (const entity of world.entities) {
+        if (entity.team === world.playerTeam) entity.heat = 0;
+      }
       world.vision.visible.delete(enemy.id);
       world.vision.detected.delete(enemy.id);
       world.events.push(
@@ -222,9 +229,11 @@ export async function runLastSilentMomentsChecks({ browser, url, check }) {
       engine.forceStep();
     });
     const afterHidden = (await audioProbe(page))[0];
+    const hiddenSources = afterHidden.sources.slice(beforeHidden.sources.length);
     check(
       'hidden hostile lifecycle moments do not leak through audio',
       afterHidden.sources.length === beforeHidden.sources.length,
+      JSON.stringify({ sourceDelta: hiddenSources.length, signature: sourceSignature(hiddenSources) }),
     );
 
     const menu = page.locator('[data-testid="desktop-menu-sheet"]');
