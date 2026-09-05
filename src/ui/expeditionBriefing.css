@@ -1,0 +1,109 @@
+.briefing,
+.battle-results {
+  --panel: var(--exp-paper-raised);
+  --edge: var(--exp-line);
+  --accent: var(--exp-teal);
+  --warn: #945e1d;
+  --danger: var(--exp-negative);
+  --text: var(--exp-ink);
+  --muted: var(--exp-muted);
+  --ok: var(--exp-positive);
+  border: 1px solid var(--edge);
+  border-top: 4px solid var(--exp-orange);
+  border-radius: 7px;
+  background: var(--exp-paper);
+  color: var(--text);
+  box-shadow: 0 18px 80px rgb(8 27 34 / 40%);
+}
+
+.briefing { padding: 25px 28px; }
+.briefing h2 { margin-bottom: 13px; color: var(--text); font-size: 34px; }
+.briefing h4 { margin-top: 16px; margin-bottom: 7px; font-size: 16px; letter-spacing: .08em; }
+.briefing p, .briefing ul { font-size: 13px; line-height: 1.65; }
+.briefing > ul { padding: 10px 12px 10px 30px; border-left: 3px solid var(--accent); background: var(--panel); }
+
+.briefing .setup-field { font-size: 11px; font-weight: 600; }
+.briefing .setup-field select,
+.briefing .setup-fixed,
+.briefing .briefing-berth select {
+  min-height: 36px;
+  border-color: var(--edge);
+  background-color: var(--panel);
+  color: var(--text);
+  font-size: 12px;
+}
+
+.briefing .setup-description, .briefing .setup-fixed small { font-size: 11px; }
+.briefing .briefing-berth { gap: 8px; padding-block: 6px; border-bottom: 1px solid var(--edge); }
+.briefing .briefing-berth button {
+  min-height: 36px;
+  margin-top: 0;
+  padding: 5px 10px;
+  background: var(--panel);
+  color: var(--accent);
+  font-size: 12px;
+}
+
+.briefing .briefing-tonnage { font-size: 15px; }
+.briefing .pilot-stats { color: var(--muted); }
+.briefing .training-briefing-note { border-color: var(--edge); background: var(--panel); color: var(--muted); }
+.briefing .briefing-actions {
+  padding-top: 12px;
+  border-top: 1px solid var(--edge);
+  background: var(--exp-paper);
+}
+
+.briefing .briefing-actions > button,
+.battle-results .battle-results-actions > button {
+  min-height: 42px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--accent);
+  color: var(--exp-paper-raised);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .025em;
+}
+
+.briefing .briefing-actions > button.secondary,
+.battle-results .battle-results-actions > button.secondary {
+  background: var(--panel);
+  color: var(--text);
+  border-color: var(--edge);
+}
+
+.briefing .briefing-actions > button:disabled { opacity: .5; }
+.battle-results .battle-results-heading h2 { color: var(--text); font-size: 36px; letter-spacing: .025em; }
+.battle-results .battle-results-heading p { font-size: 13px; line-height: 1.55; }
+.battle-results .battle-results-summary > div { background: var(--panel); }
+.battle-results .battle-results-summary strong { font-size: 17px; }
+.battle-results .battle-results-summary small,
+.battle-results .battle-results-row small,
+.battle-results .battle-results-actions small { font-size: 11px; }
+.battle-results .battle-results-row { border-bottom-color: var(--edge); font-size: 12px; }
+.battle-results .battle-results-lance h3 { font-size: 17px; }
+.battle-results .unit-result.operational { color: var(--ok); }
+
+@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+  .briefing { padding: 18px; }
+  .briefing h2 { font-size: 29px; }
+  .briefing .briefing-berth { grid-template-columns: minmax(0, 1fr); }
+  .briefing :is(button, select),
+  .battle-results button { min-height: 44px; }
+  .briefing .briefing-actions { padding-top: 10px; background: var(--exp-paper); }
+}
+
+@media (prefers-contrast: more) {
+  .briefing, .battle-results { --edge: var(--exp-line); --accent: var(--exp-teal); }
+}
+
+@media (forced-colors: active) {
+  .briefing, .battle-results {
+    --text: CanvasText; --muted: CanvasText; --panel: Canvas;
+    --accent: LinkText; --warn: CanvasText; --danger: CanvasText;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+  .briefing .briefing-actions > button,
+  .battle-results .battle-results-actions > button { background: ButtonFace; color: ButtonText; }
+}

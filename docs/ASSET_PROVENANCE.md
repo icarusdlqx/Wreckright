@@ -24,11 +24,28 @@ clearance the repository cannot prove.
 
 ## Generated presentation
 
-No external meshes, textures, fonts, music, or sound recordings are checked
+No external meshes, textures, music, or sound recordings are checked
 in. Battlefield geometry and visual effects are assembled at runtime from the
 project's TypeScript, JSON, and CSS. Sound is synthesized at runtime with the
 Web Audio API. This describes the repository inventory; it is not a claim
 about authorship of every source contribution.
+
+## Bundled typefaces
+
+The Graphic Expedition presentation bundles DM Sans (variable) and Barlow
+Condensed (Semibold and Bold). These are unmodified font files from the
+official `google/fonts` repository, retrieved on 2026-09-05. DM Sans's upstream
+`DMSans[opsz,wght].ttf` has the local filename `DMSans-Variable.ttf`; its font
+data is unchanged. Exact source URLs and SHA-256 hashes are retained in the
+asset register. The fonts and their original SIL Open Font License 1.1 texts
+are stored together under `src/ui/assets/fonts/`.
+
+The fonts retain their own OFL terms. Their license texts are also included by
+`npm run notices:write`, so ordinary web builds and the standalone HTML carry
+the same notices. CSS imports the local files and Vite inlines them into the
+standalone build; no runtime font service or external font request is used.
+The fonts' recorded license does not resolve the separate app-icon provenance
+question above or grant rights in the game's other material.
 
 ## Commercial-release gate
 

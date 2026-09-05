@@ -1,0 +1,194 @@
+.camp .camp-top.camp-command-header {
+  display: block;
+  padding: 12px 20px 10px;
+  border: 1px solid var(--exp-line);
+  border-radius: 8px;
+  background: var(--exp-paper-raised);
+  color: var(--exp-ink);
+  overflow: visible;
+}
+
+.camp-command-header .camp-command-main {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) auto auto;
+  align-items: center;
+  gap: 16px;
+}
+
+.camp-command-header .camp-company-identity { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.camp-command-header .camp-company-identity > svg { flex-shrink: 0; color: var(--exp-orange-ink); }
+.camp-command-header .camp-title { display: grid; gap: 2px; min-width: 0; margin: 0; }
+.camp-command-header .camp-title .camp-command-kicker { display: none; }
+.camp-command-header .camp-title h2 {
+  margin: 0;
+  color: var(--exp-ink);
+  font: 600 clamp(25px, 2.3vw, 28px)/1.04 var(--font-display);
+  letter-spacing: 0.015em;
+}
+.camp-command-header .camp-title .camp-seed {
+  margin: 0;
+  color: var(--exp-muted);
+  font: 10px/1.4 var(--font-mono);
+  overflow-wrap: anywhere;
+}
+.camp-command-header .camp-command-kicker,
+.camp .camp-restart-dialog .camp-command-kicker {
+  margin: 0;
+  color: var(--exp-orange-ink);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.camp-command-header .camp-company-status { display: flex; align-items: center; gap: 24px; }
+.camp-command-header .camp-company-status > div { display: grid; gap: 4px; white-space: nowrap; }
+.camp-command-header .camp-stat-label { color: var(--exp-muted); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; }
+.camp-command-header .camp-company-status strong { color: var(--exp-ink); font: 600 17px/1.25 var(--font-mono); }
+
+.camp .camp-command-header button,
+.camp .camp-command-header summary,
+.camp .camp-command-header .camp-file-import {
+  border: 1px solid var(--exp-line);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--exp-ink);
+  min-height: 36px;
+  padding: 8px 12px;
+  margin: 0;
+  font: 600 12px/1.3 var(--font-body);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.camp .camp-command-header button:hover:not(:disabled),
+.camp .camp-command-header summary:hover,
+.camp .camp-command-header .camp-file-import:hover { background: #e9eee2; border-color: var(--exp-teal); }
+.camp .camp-command-header button:disabled { opacity: 0.45; cursor: not-allowed; }
+.camp .camp-command-header :is(button, summary, input):focus-visible,
+.camp .camp-command-header .camp-file-import:focus-within { outline: 2px solid var(--exp-teal); outline-offset: 3px; }
+.camp .camp-command-header .camp-advance-button {
+  min-height: 44px;
+  padding: 10px 18px;
+  background: var(--exp-navy);
+  border-color: var(--exp-navy);
+  color: var(--exp-paper-raised);
+  font-size: 13px;
+}
+.camp .camp-command-header .camp-advance-button:hover:not(:disabled) { background: var(--exp-teal); border-color: var(--exp-teal); }
+.camp-command-header .camp-command-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 18px;
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px solid var(--exp-line);
+}
+.camp-command-header .camp-utility-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.camp .camp-command-header .camp-utility-actions button { border-color: transparent; min-width: 0; }
+.camp-command-header .camp-company-files { position: relative; }
+.camp-command-header .camp-company-files > summary { list-style: disclosure-closed inside; }
+.camp-command-header .camp-company-files[open] > summary { list-style-type: disclosure-open; background: #e5ebde; }
+.camp-command-header .camp-files-panel {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 8px);
+  left: 0;
+  width: min(292px, calc(100vw - 56px));
+  box-sizing: border-box;
+  padding: 16px;
+  background: var(--exp-paper-raised);
+  border: 1px solid var(--exp-line);
+  border-radius: 6px;
+  box-shadow: var(--exp-shadow);
+}
+.camp-command-header .camp-files-panel p { margin: 0 0 12px; color: var(--exp-muted); font-size: 12px; }
+.camp-command-header .camp-files-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.camp-command-header .camp-files-run { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--exp-line); }
+.camp .camp-command-header .camp-restart-link { color: var(--exp-negative); }
+.camp .camp-command-header .camp-file-import { display: flex; align-items: center; justify-content: center; position: relative; }
+.camp .camp-command-header .camp-file-import input {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.camp .camp-command-header .camp-recovery {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: #faedce;
+  border-color: #c4a462;
+  color: var(--exp-ink);
+}
+.camp .camp-command-header .camp-recovery strong { font-size: 13px; }
+.camp .camp-command-header .camp-recovery span { font-size: 12px; white-space: normal; }
+.camp .camp-command-header .camp-recovery small { color: var(--exp-muted); font-size: 11px; }
+.camp .camp-command-header .camp-recovery button {
+  color: var(--exp-orange-ink);
+  border-color: #c4a462;
+  background: #fff7e4;
+  white-space: normal;
+}
+
+.camp .camp-restart-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  padding: 20px;
+  background: rgb(13 35 43 / 58%);
+}
+.camp .camp-restart-dialog {
+  width: min(460px, 100%);
+  box-sizing: border-box;
+  padding: 28px;
+  border: 1px solid var(--exp-line);
+  border-top: 4px solid var(--exp-orange);
+  border-radius: 8px;
+  background: var(--exp-paper-raised);
+  color: var(--exp-ink);
+  box-shadow: var(--exp-shadow);
+}
+.camp .camp-restart-dialog h2 { margin: 9px 0 14px; font: 600 32px/1.1 var(--font-display); }
+.camp .camp-restart-dialog > p:not(.camp-command-kicker) { margin: 0; color: var(--exp-muted); font-size: 14px; line-height: 1.65; }
+.camp .camp-restart-dialog strong { color: var(--exp-ink); }
+.camp .camp-restart-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+.camp .camp-restart-actions button {
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid var(--exp-line);
+  border-radius: 5px;
+  background: var(--exp-paper);
+  color: var(--exp-ink);
+  font-weight: 600;
+  cursor: pointer;
+}
+.camp .camp-restart-actions .camp-restart-confirm { background: var(--exp-negative); border-color: var(--exp-negative); color: #fffaf0; }
+.camp .camp-restart-actions button:hover { filter: brightness(0.94); }
+.camp .camp-restart-actions button:focus-visible { outline: 2px solid var(--exp-teal); outline-offset: 3px; }
+
+@media (max-width: 860px) {
+  .camp-command-header .camp-command-main { grid-template-columns: minmax(0, 1fr) auto; gap: 18px; }
+  .camp-command-header .camp-company-identity { grid-column: 1 / -1; }
+}
+@media (max-width: 580px) {
+  .camp .camp-top.camp-command-header { padding: 16px; }
+  .camp-command-header .camp-command-main { grid-template-columns: 1fr; gap: 16px; }
+  .camp-command-header .camp-company-status { justify-content: space-between; gap: 12px; }
+  .camp-command-header .camp-command-tools { align-items: flex-start; }
+  .camp-command-header .camp-utility-actions { gap: 3px; }
+  .camp .camp-command-header .camp-utility-actions button { padding-inline: 8px; }
+  .camp .camp-restart-dialog { padding: 22px; }
+  .camp .camp-restart-actions { flex-direction: column; }
+}
+@media (forced-colors: active) {
+  .camp .camp-command-header :is(button, summary),
+  .camp .camp-command-header .camp-file-import,
+  .camp .camp-restart-actions button { border-color: ButtonText; }
+}

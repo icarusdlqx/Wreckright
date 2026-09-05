@@ -18,8 +18,10 @@ export const HERO_MECH_RENDER: Readonly<MechRenderOptions> = Object.freeze({
   detail: 'hero',
 });
 
-export const SURFACE_DETAIL_ENTER_DISTANCE = 300;
-export const SURFACE_DETAIL_LEAVE_DISTANCE = 340;
+// Four surface pieces per signature chassis remain legible at the normal
+// 470m tactical camera. Full inspection detail still never enters the field.
+export const SURFACE_DETAIL_ENTER_DISTANCE = 520;
+export const SURFACE_DETAIL_LEAVE_DISTANCE = 580;
 
 /** Hysteresis keeps a wheel resting on the boundary from flickering detail. */
 export function battlefieldDetailForDistance(

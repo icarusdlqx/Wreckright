@@ -1,36 +1,41 @@
 import { MeshStandardMaterial } from 'three';
 import type { Tone } from '../render/blueprint';
 import type { WeaponType } from '../schema/weapon';
-import { mix, shade } from '../render/palette';
+import type { Faction } from '../schema/faction';
+import { mix } from '../render/palette';
+import { GraphicStandardMaterial } from './graphicMaterials';
 
 export type MechMaterials = Record<Tone, MeshStandardMaterial>;
 
 const TONES: readonly Tone[] = ['plate', 'deep', 'trim', 'glass', 'accent'];
 
-const DEFAULT_BODY_COLOUR = 0x626a6e;
+const DEFAULT_BODY_COLOUR = 0xe3b569;
 
-/** Neutral finishes let construction identify a chassis before team markings do. */
+/** Warm field paint and cool ceramic shells identify construction, not teams. */
 const CHASSIS_BODY_COLOURS: Readonly<Record<string, number>> = {
-  bulwark_bwk3: 0x62685b,
-  cairn_crn3: 0x746957,
-  colossus_cls1: 0x555d64,
-  courser_crs1: 0x70695c,
-  drover_dvr2: 0x62655a,
-  falchion_fal2: 0x655e59,
-  halberd_hlb4: 0x5c646c,
-  hornet_hnt2: 0x556b65,
-  rampart_rmp4: 0x6a6155,
-  redoubt_rdt1: 0x69645e,
-  sentinel_snl2: 0x596b73,
-  warden_wrd5: 0x665a62,
-  wisp_wsp1: 0x68747c,
+  bulwark_bwk3: 0xe4b96d,
+  cairn_crn3: 0xd99558,
+  colossus_cls1: 0xdfb278,
+  courser_crs1: 0xe8c898,
+  drover_dvr2: 0xdd9c5d,
+  falchion_fal2: 0xcbdacf,
+  halberd_hlb4: 0xe2e0cd,
+  hornet_hnt2: 0xecb654,
+  rampart_rmp4: 0xcb8050,
+  redoubt_rdt1: 0xe5c17e,
+  sentinel_snl2: 0xe4e7d8,
+  warden_wrd5: 0xd3dfd5,
+  wisp_wsp1: 0xd5e8df,
+  votive_vtv2: 0xe9e5d3,
+  obsequy_obq3: 0xc8d7d1,
+  pallvault_plv1: 0xdce1d0,
 };
 
 const INDUSTRIAL_FINISHES: readonly number[] = [
-  0x596970,
-  0x62675c,
-  0x706657,
-  0x645b61,
+  0xe3b569,
+  0xdba36a,
+  0xe8cc97,
+  0xce8752,
 ];
 
 const WEAPON_ACCENTS: Record<WeaponType, number> = {
@@ -48,11 +53,13 @@ function finishIndex(identity: string): number {
   return (hash >>> 0) % INDUSTRIAL_FINISHES.length;
 }
 
-export function chassisBodyColour(identity: string | null): number {
-  if (identity === null) return DEFAULT_BODY_COLOUR;
+export function chassisBodyColour(identity: string | null, faction: Faction = 'linewrought'): number {
+  const fallback = faction === 'aurelian' ? 0xe0e4d5 : DEFAULT_BODY_COLOUR;
+  if (identity === null) return fallback;
   const known = CHASSIS_BODY_COLOURS[identity];
   if (known !== undefined) return known;
-  return INDUSTRIAL_FINISHES[finishIndex(identity)] ?? DEFAULT_BODY_COLOUR;
+  const fieldFinish = INDUSTRIAL_FINISHES[finishIndex(identity)] ?? DEFAULT_BODY_COLOUR;
+  return faction === 'aurelian' ? mix(0xd3e4dc, fieldFinish, 0.12) : fieldFinish;
 }
 
 function material(
@@ -62,12 +69,13 @@ function material(
   emissive = 0x000000,
   emissiveIntensity = 0,
 ): MeshStandardMaterial {
-  return new MeshStandardMaterial({
+  return new GraphicStandardMaterial({
     color: colour,
     roughness,
     metalness,
     emissive,
     emissiveIntensity,
+    flatShading: true,
   });
 }
 
@@ -75,6 +83,7 @@ export function createMechMaterials(
   identity: string | null,
   team: number,
   destroyed: boolean,
+  faction: Faction = 'linewrought',
 ): MechMaterials {
   if (destroyed) {
     return {
@@ -86,13 +95,14 @@ export function createMechMaterials(
     };
   }
 
-  const body = chassisBodyColour(identity);
+  const body = chassisBodyColour(identity, faction);
+  const sealed = faction === 'aurelian';
   return {
-    plate: material(body, 0.68, 0.12),
-    deep: material(mix(shade(body, 0.36), team, 0.44), 0.48, 0.7),
-    trim: material(team, 0.56, 0.14),
-    glass: material(0x8edfff, 0.14, 0.04, 0x17688f, 1.55),
-    accent: material(mix(body, 0xb8b3a5, 0.34), 0.52, 0.28),
+    plate: material(body, sealed ? 0.72 : 0.82, 0.04),
+    deep: material(mix(sealed ? 0x203744 : 0x384547, team, 0.16), 0.66, 0.32),
+    trim: material(team, 0.76, 0.06),
+    glass: material(0xa9e7e1, 0.2, 0.04, 0x277a85, 1.4),
+    accent: material(sealed ? 0x478f88 : mix(body, 0xffefc8, 0.8), 0.78, 0.08),
   };
 }
 
@@ -117,5 +127,5 @@ export function createDamageWearMaterials(
 
 /** Weapon housings remain readable against painted armour under coloured light. */
 export function createWeaponMaterial(type: WeaponType): MeshStandardMaterial {
-  return material(mix(0x343b40, WEAPON_ACCENTS[type], 0.18), 0.4, 0.72);
+  return material(mix(0x374c54, WEAPON_ACCENTS[type], 0.3), 0.58, 0.38);
 }

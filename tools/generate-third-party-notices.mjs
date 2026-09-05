@@ -32,6 +32,21 @@ function licenseText(packageDirectory) {
   return readFileSync(join(packageDirectory, licenseName), 'utf8').trim();
 }
 
+function bundledFontNotices() {
+  const register = JSON.parse(readFileSync(join(ROOT, 'docs', 'asset-provenance.json'), 'utf8'));
+  const fonts = new Map();
+  for (const asset of register.assets) {
+    if (asset.clearance !== 'licensed-open-font') continue;
+    if (asset.license !== 'OFL-1.1' || !asset.licenseFile || !asset.name || !asset.source) {
+      throw new Error(`Incomplete bundled-font provenance: ${asset.path}`);
+    }
+    const font = fonts.get(asset.licenseFile) ?? { ...asset, sources: [] };
+    font.sources.push(asset.source);
+    fonts.set(asset.licenseFile, font);
+  }
+  return [...fonts.values()].sort((left, right) => left.name.localeCompare(right.name));
+}
+
 function generate() {
   const sbom = JSON.parse(
     execFileSync(process.execPath, [join(ROOT, 'tools', 'generate-sbom.mjs')], {
@@ -46,10 +61,12 @@ function generate() {
   const lines = [
     'WRECKRIGHT THIRD-PARTY NOTICES',
     '',
-    'Generated from package-lock.json by npm run notices:write.',
+    'Generated from package-lock.json and docs/asset-provenance.json',
+    'by npm run notices:write.',
     'Verify this checked-in file with npm run notices:check.',
     '',
-    'This inventory covers the production dependency graph reported by npm. It',
+    'This inventory covers the production dependency graph reported by npm',
+    'and the separately licensed bundled fonts recorded in the asset register. It',
     'does not license the game\'s original source, writing, visual design, or',
     'other assets. Development-only tooling is intentionally excluded.',
     '',
@@ -75,6 +92,19 @@ function generate() {
     );
   }
 
+  for (const font of bundledFontNotices()) {
+    lines.push(
+      '='.repeat(80),
+      `${font.name} — ${font.license}`,
+      ...font.sources.sort().map((source) => `Source: ${source}`),
+      'Bundled unmodified; the following license applies to the font software.',
+      '='.repeat(80),
+      '',
+      readFileSync(join(ROOT, font.licenseFile), 'utf8').trim(),
+      '',
+    );
+  }
+
   return `${lines.join('\n').trimEnd()}\n`;
 }
 
@@ -95,7 +125,7 @@ if (mode === '--write') {
     console.error('Third-party notices are stale. Run npm run notices:write and review the result.');
     process.exitCode = 1;
   } else {
-    console.log('Third-party notices match the production dependency graph.');
+    console.log('Third-party notices match the production dependencies and bundled fonts.');
   }
 } else if (mode === undefined) {
   process.stdout.write(output);

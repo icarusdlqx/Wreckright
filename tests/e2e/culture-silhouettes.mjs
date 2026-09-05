@@ -293,6 +293,13 @@ export async function runCultureSilhouetteChecks({ browser, url, shots, check })
     );
 
     await setQuality(page, 470, false);
+    const normal = await inspectCultureFixture(page, fixture.ids);
+    check(
+      'normal tactical zoom retains the authored surface cues',
+      normal.units.every((unit) => unit.detail === 'surface' && unit.visibleSurface === 4),
+      JSON.stringify(normal.units),
+    );
+    await setQuality(page, 610, false);
     const far = await inspectCultureFixture(page, fixture.ids);
     check(
       'far tactical view removes every optional surface mesh',

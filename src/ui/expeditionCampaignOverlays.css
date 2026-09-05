@@ -1,0 +1,124 @@
+/* Campaign reports are paper documents, including dialogs that previously
+ * supplied a dark surface while inheriting the strategic screen's ink. */
+.camp-workspace :is(.manual-sheet, .campaign-chooser, .manifest.debrief) {
+  --text: var(--exp-ink);
+  --muted: var(--exp-muted);
+  --accent: var(--exp-teal);
+  --edge: var(--exp-line);
+  --panel: var(--exp-paper-raised);
+  --warn: #916022;
+  --danger: var(--exp-negative);
+  --ok: var(--exp-positive);
+  border-color: var(--edge);
+  border-top: 4px solid var(--exp-orange);
+  border-radius: 8px;
+  background: var(--exp-paper);
+  color: var(--text);
+  box-shadow: 0 18px 70px rgb(8 27 34 / 32%);
+  font-family: var(--font-body);
+}
+.camp-workspace :is(.camp-manual, .campaign-chooser-backdrop) {
+  background: rgb(13 35 43 / 66%);
+}
+.camp-workspace .manual-sheet > header { background: var(--exp-paper); border-bottom: 1px solid var(--edge); }
+.camp-workspace .manual-sheet h3 { color: var(--text); font-size: 30px; letter-spacing: .04em; }
+.camp-workspace .manual-sheet h4 { font-size: 21px; letter-spacing: .035em; }
+.camp-workspace .manual-controls h5 { font-size: 12px; letter-spacing: .06em; }
+.camp-workspace .manual-sheet p { font-size: 13px; line-height: 1.65; }
+.camp-workspace .manual-bindings > div { border-color: var(--edge); }
+.camp-workspace .manual-bindings :is(dt, dd) { font-size: 12px; line-height: 1.5; }
+.camp-workspace .manual-bindings dt { font-weight: 600; }
+.camp-workspace .manual-sheet > header button {
+  min-height: 36px;
+  border-color: var(--edge);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 12px;
+}
+.camp-workspace .campaign-chooser h3 { color: var(--text); font-size: 32px; line-height: 1.1; }
+.camp-workspace .campaign-chooser p { font-size: 13px; line-height: 1.65; }
+.camp-workspace .campaign-chooser .campaign-chooser-kicker { color: var(--accent); font-size: 11px; }
+.camp-workspace .campaign-chooser :is(button, select) { min-height: 44px; font-family: var(--font-body); }
+.camp-workspace .campaign-chooser-actions button { font-size: 12px; }
+.camp-workspace .campaign-chooser-actions [data-testid='campaign-choice-start']:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--exp-paper-raised);
+  font-weight: 700;
+}
+
+.camp-workspace .manifest.debrief > header { padding-bottom: 10px; }
+.camp-workspace .manifest.debrief > header h3 { color: var(--text); font-size: clamp(22px, 2.4vw, 29px); }
+.camp-workspace .manifest.debrief > header p { font-size: 12px; line-height: 1.5; }
+.camp-workspace .debrief :is(.debrief-salvage-report, .debrief-recovery, .debrief-salvage) { border-color: var(--edge); }
+.camp-workspace .debrief-salvage-report > summary { min-height: 44px; font-size: 12px; }
+.camp-workspace .debrief :is(.debrief-recovery h4, .debrief-salvage h4) { font-size: 21px; }
+.camp-workspace .debrief :is(.debrief-recovery p, .salvage-note) { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.camp-workspace .debrief-recovery li { border-color: var(--edge); background: var(--panel); font-size: 11px; }
+.camp-workspace .debrief :is(.recovery-outcome, .recovery-chance, .recovery-result) { color: var(--muted); }
+.camp-workspace .debrief .recovery-result.recovered { color: var(--ok); font-weight: 600; }
+.camp-workspace .debrief .salvage-offer button { background: var(--panel); border-color: var(--edge); color: var(--text); }
+.camp-workspace .debrief .salvage-offer button.taken { border-color: var(--accent); background: #e2ecda; box-shadow: inset 0 2px var(--accent); }
+.camp-workspace .debrief .salvage-offer button:disabled { opacity: 1; cursor: default; }
+.camp-workspace .debrief .salvage-name { font-size: 13px; font-weight: 700; }
+.camp-workspace .debrief :is(.salvage-kind, .salvage-mark, .salvage-spec, .salvage-fit,
+  .salvage-owned, .salvage-source, .salvage-value) { color: var(--muted); font-size: 11px; line-height: 1.45; }
+.camp-workspace .debrief .salvage-value { color: var(--warn); }
+.camp-workspace .debrief .salvage-offer button.taken .salvage-mark { color: var(--ok); font-weight: 700; }
+.camp-workspace .debrief .manifest-row { border-color: var(--edge); background: var(--panel); padding: 10px; }
+.camp-workspace .debrief .manifest-row.unfit { opacity: 1; border-left-color: var(--danger); }
+.camp-workspace .debrief .pilot-name { color: var(--text); font-family: var(--font-display); font-size: 22px; }
+.camp-workspace .debrief :is(.manifest-status, .manifest-skills, .debrief-fate, .debrief-losses) { font-size: 12px; }
+.camp-workspace .debrief .manifest-skills { gap: 4px; }
+.camp-workspace .debrief .debrief-fate.returned { color: var(--ok); }
+.camp-workspace .debrief .manifest-actions { padding-top: 12px; border-top: 1px solid var(--edge); }
+.camp-workspace .debrief .manifest-actions button {
+  min-height: 44px;
+  padding: 8px 16px;
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--exp-paper-raised);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.camp-workspace .camp-recovery { border-color: #a88652; background: #f3e6ce; color: #624923; }
+.camp-workspace .camp-recovery strong { color: inherit; font-size: 13px; }
+.camp-workspace .camp-recovery span { color: inherit; font-size: 12px; }
+.camp-workspace .camp-recovery small { color: #6b5638; font-size: 11px; }
+.camp.camp-workspace .camp-recovery button { min-height: 44px; border-color: #a88652; background: var(--exp-paper-raised); color: #624923; font-size: 12px; }
+.camp-workspace .company-status { padding: 12px; border-left: 3px solid var(--exp-orange); background: #f0e8d8; }
+.camp-workspace .company-status h3 { margin-bottom: 7px; font-size: 22px; }
+.camp-workspace .company-status p { color: var(--text); font-size: 12px; line-height: 1.6; }
+.camp-workspace .company-status [data-testid='company-retire-confirm'] { border-color: var(--danger); color: var(--danger); }
+.camp-workspace .employer-ledger { border-color: var(--edge); }
+.camp-workspace .employer-ledger summary { font-size: 11px; }
+.camp-workspace .employer-ledger li { border-bottom: 1px solid var(--edge); padding-block: 6px; }
+.camp-workspace .employer-ledger li small { color: var(--muted); font-size: 11px; }
+.camp-workspace :is(.camp-salvage-terms .salvage-rights, .camp-salvage-terms .salvage-part-odds,
+  .camp-salvage-terms .salvage-capacity, .salvage-odds, .salvage-odds tbody th) { color: var(--muted); font-size: 11px; }
+.camp-workspace .salvage-stance { color: var(--warn); border-color: var(--warn); font-size: 10px; }
+.camp-workspace .salvage-odds :is(th, td) { border-color: var(--edge); }
+
+@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+  .camp-workspace .manual-sheet > header button,
+  .camp-workspace .company-status button,
+  .camp-workspace .employer-ledger summary { min-height: 44px; }
+  .camp-workspace .manual-sheet h3 { font-size: 26px; }
+  .camp-workspace .campaign-chooser h3 { font-size: 29px; }
+}
+
+@media (forced-colors: active) {
+  .camp-workspace :is(.manual-sheet, .campaign-chooser, .manifest.debrief) {
+    --text: CanvasText; --muted: CanvasText; --accent: LinkText; --edge: CanvasText;
+    --panel: Canvas; --warn: CanvasText; --danger: CanvasText; --ok: CanvasText;
+    background: Canvas; color: CanvasText; border-color: CanvasText; box-shadow: none;
+  }
+  .camp-workspace :is(.manual-sheet > header, .debrief .salvage-offer button.taken,
+    .camp-recovery, .company-status) { background: Canvas; color: CanvasText; border-color: CanvasText; box-shadow: none; }
+  .camp-workspace .camp-recovery :is(strong, span, small) { color: CanvasText; }
+  .camp-workspace .debrief .manifest-actions button,
+  .camp-workspace .campaign-chooser-actions [data-testid='campaign-choice-start']:not(:disabled),
+  .camp.camp-workspace .camp-recovery button { background: ButtonFace; color: ButtonText; border-color: ButtonText; }
+  .camp-workspace .debrief .salvage-offer button.taken { border-width: 3px; }
+}

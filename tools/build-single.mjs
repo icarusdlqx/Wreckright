@@ -40,8 +40,8 @@ const notices = encodeNoticePayload(
 // The host wraps this in its own shell, so pin the game to the viewport rather
 // than trusting a percentage height chain through ancestors we do not control.
 const fill = `
-html, body { height: 100%; margin: 0; overflow: hidden; background: #0d1013; }
-#root { position: fixed; inset: 0; background: #0d1013; }
+html, body { height: 100%; margin: 0; overflow: hidden; background: #0c222c; }
+#root { position: fixed; inset: 0; background: #0c222c; }
 `;
 
 const page = [

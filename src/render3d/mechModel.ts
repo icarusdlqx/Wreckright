@@ -132,8 +132,8 @@ export function buildMechModel(
     for (const location of lost) sealedFailures.add(location);
     for (const mount of mounts) if (mount.destroyed === true) sealedFailures.add(mount.location);
   }
-  const tones = createMechMaterials(identity, team, destroyed);
-  const burnt = createMechMaterials(identity, team, true);
+  const tones = createMechMaterials(identity, team, destroyed, faction);
+  const burnt = createMechMaterials(identity, team, true, faction);
   const worn = Object.values(shownWear).some((tier) => tier === 1)
     ? createDamageWearMaterials(tones, 1)
     : null;

@@ -1,3 +1,5 @@
+import { checkHomeTheatre } from './home-theatre.mjs';
+import { companyFile, restartCompany, checkRestartCancellation, checkCompanyWorkspaces } from './campaign-navigation.mjs';
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync } from 'node:fs';
 import { setTimeout as sleep } from 'node:timers/promises';
@@ -488,7 +490,8 @@ async function main() {
     );
     await battleCode.fill('Ridge Touch 0000002A');
     await page.locator('[data-testid="briefing-deploy"]').click();
-    await sleep(1200);
+    await page.waitForFunction((tick) => globalThis.__wreckright.world.tick > tick,
+      beforeBriefing, { timeout: 10_000 });
     const running = await sim(page);
     check('deploying starts the clock', running.tick > beforeBriefing, `${beforeBriefing} → ${running.tick}`);
     const lanceIdentities = await page.locator('[data-testid="lance-bar"] .lance-chassis').allInnerTexts();
@@ -1079,7 +1082,7 @@ async function main() {
         (await page.locator('[data-testid="camp-cbills"]').innerText()).replace(/[^0-9-]/g, ''),
       );
 
-    await page.locator('[data-testid="camp-campaigns"]').click();
+    await companyFile(page, 'camp-campaigns');
     await page.waitForSelector('[data-testid="campaign-chooser"]');
     const campaignChoices = await page.locator('[data-testid="campaign-choice"] option')
       .evaluateAll((options) => options.map((option) => ({
@@ -1153,7 +1156,7 @@ async function main() {
     );
     await page.screenshot({ path: `${SHOTS}/06c-aurelian-branch-compact.png` });
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.locator('[data-testid="camp-restart"]').click();
+    await restartCompany(page);
     const restartedAurelian = await page.evaluate(() =>
       JSON.parse(localStorage.getItem('ironline.campaign')).state,
     );
@@ -1164,7 +1167,7 @@ async function main() {
       restartedAurelian.seed,
     );
     await page.screenshot({ path: `${SHOTS}/06b-aurelian-campaign.png` });
-    await page.locator('[data-testid="camp-campaigns"]').click();
+    await companyFile(page, 'camp-campaigns');
     await page.locator('[data-testid="campaign-choice"]').selectOption('border_dispute');
     await page.locator('[data-testid="campaign-choice-start"]').click();
     await page.waitForSelector('[data-testid="camp-node-militia_raid"]');
@@ -1209,13 +1212,14 @@ async function main() {
         ),
     );
 
+    await checkRestartCancellation({ page, check });
     const firstRunCode = await page.locator('[data-testid="camp-seed"]').innerText();
     check(
       'a new campaign exposes a readable run code',
       /^Run [a-z]+-[a-z]+-[0-9a-f]{8}$/.test(firstRunCode),
       firstRunCode,
     );
-    await page.locator('[data-testid="camp-restart"]').click();
+    await restartCompany(page);
     const restartedCode = await page.locator('[data-testid="camp-seed"]').innerText();
     const persistedRun = await page.evaluate(() =>
       JSON.parse(localStorage.getItem('ironline.campaign')).state.seed,
@@ -1324,7 +1328,7 @@ async function main() {
       (await page.locator('[data-testid="camp-active-terms"]').textContent()) === 'Salvage first',
     );
 
-    await page.locator('[data-testid="camp-save"]').click();
+    await companyFile(page, 'camp-save');
     const savedCampaign = await page.evaluate(() => localStorage.getItem('ironline.campaign'));
     check('the campaign saves to storage', savedCampaign !== null && savedCampaign.length > 100);
 
@@ -1343,6 +1347,7 @@ async function main() {
         ((await page.locator('[data-testid^="hangar-"][data-testid*="mech_"]').count()) > 0 ||
           (await page.locator('.hangar .manifest-row').count()) > 0),
     );
+    await page.screenshot({ path: `${SHOTS}/08-hangar.png` });
     await page.locator('[data-testid="hangar-continue"]').click();
     await page.waitForSelector('[data-testid="lance-manifest"]');
     check(
@@ -1355,6 +1360,7 @@ async function main() {
     );
     // Five rated bars per pilot, not three lines of prose: what the player
     // needs off this screen is to be able to tell two pilots apart.
+    await page.screenshot({ path: `${SHOTS}/08-manifest.png` });
     const rated = page.locator('.manifest-row [data-testid="pilot-stats"]').first();
     check(
       'the manifest lists the crew with their skills',
@@ -1614,6 +1620,7 @@ async function main() {
         (await page.locator('[data-testid="campaign"]').getAttribute('data-first-drop-stage')) ===
           null,
     );
+    await checkCompanyWorkspaces({ page, shots: SHOTS, check });
     check('the lance is visible on the company books', (await page.locator('[data-testid="camp-bay"] li').count()) >= 4);
     check(
       'the barracks lists the company pilots',
@@ -1679,7 +1686,7 @@ async function main() {
     check('battle damage came home', (await page.locator('[data-testid="camp-bay"] li').count()) >= 4);
     await page.screenshot({ path: `${SHOTS}/08-campaign.png` });
 
-    await page.locator('[data-testid="camp-load"]').click();
+    await companyFile(page, 'camp-load');
     const afterReload = await page.evaluate(() =>
       JSON.parse(localStorage.getItem('ironline.campaign')).state,
     );
@@ -1689,6 +1696,7 @@ async function main() {
     );
 
     check('no page errors across the whole run', pageErrors.length === 0, pageErrors.slice(0, 3).join(' | '));
+    await checkHomeTheatre({ browser, url: URL, shots: SHOTS, check });
     await runFireModeStage2Checks({ browser, url: URL, check });
     await runRangeDamageChartChecks({ browser, url: URL, shots: SHOTS, check });
     await runNightOperationsChecks({ browser, url: URL, shots: SHOTS, check });

@@ -32,7 +32,7 @@ export function CampaignPostBattle({
   return (
     <>
       <footer className="camp-log" data-testid="camp-log">
-        <span className="camp-status" data-testid="camp-status">
+        <span className="camp-status" data-testid="camp-status" role="status" aria-live="polite">
           {status ?? ''}
         </span>
         <ul>

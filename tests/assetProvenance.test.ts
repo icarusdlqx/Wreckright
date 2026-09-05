@@ -14,9 +14,13 @@ const MEDIA_EXTENSIONS = new Set([
 interface AssetEntry {
   path: string;
   sha256: string;
-  introducedBy: string;
+  introducedBy?: string;
   originEvidence: string;
   clearance: string;
+  name?: string;
+  source?: string;
+  license?: string;
+  licenseFile?: string;
 }
 
 interface AssetRegister {
@@ -50,7 +54,18 @@ describe('asset provenance register', () => {
   });
 
   it.each(register.assets)('$path retains its reviewed bytes and evidence', (asset) => {
-    expect(asset.introducedBy).toMatch(/^[0-9a-f]{40}$/);
+    if (asset.clearance === 'licensed-open-font') {
+      expect(extname(asset.path)).toMatch(/^\.(ttf|otf|woff2?)$/);
+      expect(asset.name?.trim().length).toBeGreaterThan(0);
+      expect(asset.source).toMatch(/^https:\/\/raw\.githubusercontent\.com\/google\/fonts\/[^/]+\/ofl\//);
+      expect(asset.license).toBe('OFL-1.1');
+      expect(asset.licenseFile).toMatch(/^src\/ui\/assets\/fonts\/[\w-]+-OFL\.txt$/);
+      const license = readFileSync(join(ROOT, asset.licenseFile ?? ''), 'utf8');
+      expect(license).toContain('SIL OPEN FONT LICENSE Version 1.1');
+      expect(license).toMatch(/Copyright/);
+    } else {
+      expect(asset.introducedBy).toMatch(/^[0-9a-f]{40}$/);
+    }
     expect(asset.originEvidence.trim().length).toBeGreaterThan(20);
     expect(asset.clearance.trim().length).toBeGreaterThan(0);
     expect(digest(asset.path)).toBe(asset.sha256);

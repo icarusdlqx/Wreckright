@@ -19,6 +19,7 @@ import { assessSolvency, retireCompany } from '../../campaign/solvency';
 import { employerHistories } from '../../campaign/employers';
 import type { BayCommission } from '../mechbay/Mechbay';
 import { authoredDesignName } from '../designLabel';
+import { CampaignWorkspace } from './CampaignWorkspace';
 import { CampaignHeader } from './CampaignHeader';
 import { CampaignChooser } from './CampaignChooser';
 import { CampaignMap, type NodeState } from './CampaignMap';
@@ -97,7 +98,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
       ? null
       : {
           title: authoredDesignName(catalog, refitMech.design),
-          cancelLabel: prep === 'bay' ? 'Back to hangar' : 'Back to manifest',
+          cancelLabel: prep === null ? 'Back to workshop' : prep === 'bay' ? 'Back to hangar' : 'Back to manifest',
           design: refitMech.design,
           inventory: refitAvailability(state, refitMech),
           onCancel: () => setRefitting(null),
@@ -207,7 +208,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
 
   return (
     <div
-      className="camp"
+      className="camp camp-workspace"
       data-testid="campaign"
       data-first-drop-stage={guidedFirstDrop === 'done' ? undefined : guidedFirstDrop}
     >
@@ -269,6 +270,15 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
       )}
       <CampaignGuide stage={guidedFirstDrop} onDismiss={() => setGuideDismissed(true)} />
 
+      <CampaignWorkspace
+        key={`${state.campaignId}:${state.seed}`}
+        catalog={catalog}
+        state={state}
+        fullCompany={guidedFirstDrop === 'done'}
+        workshop={<MechBayPanel state={state} mutate={mutate} onRefit={setRefitting} />}
+        crew={<BarracksPanel state={state} mutate={mutate} />}
+        supplies={<><StoresPanel state={state} mutate={mutate} /><MarketPanel state={state} mutate={mutate} /></>}
+        operations={<>
       <CampaignMap
         campaign={campaign}
         catalog={catalog}
@@ -280,7 +290,6 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
           return open.some((candidate) => candidate.id === entry.id) ? 'available' : 'locked';
         }}
       />
-
       <ContractPanel
         catalog={catalog}
         state={state}
@@ -336,10 +345,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
           )
         }
       />
-
-      {state.finished || guidedFirstDrop !== 'done' ? null : (
-        <>
-          {state.contract !== null ? null : (
+      {state.finished || guidedFirstDrop !== 'done' || state.contract !== null ? null : (
             <HiringHall
               catalog={catalog}
               campaign={campaign}
@@ -349,15 +355,9 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
               selectedId={node?.id ?? null}
               onSelect={revealPosting}
             />
-          )}
-
-          <MechBayPanel state={state} mutate={mutate} />
-          <BarracksPanel state={state} mutate={mutate} />
-          <StoresPanel state={state} mutate={mutate} />
-          <MarketPanel state={state} mutate={mutate} />
-        </>
       )}
-
+        </>}
+      />
       <CampaignPostBattle
         catalog={catalog}
         state={state}
@@ -367,7 +367,6 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         mutate={mutate}
         onDebriefed={setDebriefed}
       />
-
       <CampaignPrep
         catalog={catalog}
         state={state}

@@ -1,14 +1,15 @@
 import { useCallback, useRef } from 'react';
 import type { Catalog } from '../../schema/load';
-import { dropTeam, dropTonnageFor, missionSlots } from '../../campaign/campaign';
+import { deployableLance, dropTeam, dropTonnageFor, missionSlots } from '../../campaign/campaign';
 import { employerNameFor } from '../../campaign/employers';
 import { mechIntegrity } from '../../campaign/integrity';
 import { assign } from '../../campaign/roster';
-import { isPilotAvailable, type CampaignState, type PilotRecord } from '../../campaign/types';
+import { isMechAvailable, isPilotAvailable, type CampaignState, type PilotRecord } from '../../campaign/types';
 import { PilotStats } from '../PilotStats';
 import { authoredDesignName, designIdentityLabel } from '../designLabel';
 import { ContractBriefing } from './ContractBriefing';
 import { useDialogFocus } from '../useDialogFocus';
+import { MachineIdentity, PreparationSteps } from './MachineIdentity';
 
 interface Props {
   catalog: Catalog;
@@ -25,9 +26,8 @@ interface Props {
  *
  * The roster existed long before this screen did, and it might as well not
  * have: pilots were seated automatically, in roster order, behind a panel the
- * player had no reason to open. A mission fields four machines out of however
- * many the company owns, so which four, and who is in them, is the decision
- * the campaign is actually about.
+ * player had no reason to open. Show the actual drop without changing that
+ * order: holding back a pilot must not move the next button under the pointer.
  */
 export function LanceManifest({ catalog, state, mutate, onLaunch, onCancel, onRefit }: Props) {
   const dialogRef = useRef<HTMLElement>(null);
@@ -41,6 +41,8 @@ export function LanceManifest({ catalog, state, mutate, onLaunch, onCancel, onRe
   const slots = missionSlots(catalog, contract.missionId);
   const allowance = dropTonnageFor(catalog, contract.missionId);
   const dropping = dropTeam(catalog, state, contract.missionId);
+  const candidates = deployableLance(state);
+  const lastAboard = candidates.findIndex((pair) => pair.pilot.id === dropping.at(-1)?.pilot.id);
   const mission = catalog.missions.get(contract.missionId);
   const employer = employerNameFor(
     catalog,
@@ -77,7 +79,7 @@ export function LanceManifest({ catalog, state, mutate, onLaunch, onCancel, onRe
   return (
     <div className="manifest-backdrop" data-testid="lance-manifest">
       <section
-        className="manifest"
+        className="manifest exp-prep exp-drop-manifest"
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
@@ -85,6 +87,7 @@ export function LanceManifest({ catalog, state, mutate, onLaunch, onCancel, onRe
         tabIndex={-1}
       >
         <header>
+          <PreparationSteps stage="manifest" />
           <h3 id="manifest-title">Dropship manifest</h3>
           <p>
             {mission?.name ?? contract.missionId} — {employer}.
@@ -109,15 +112,21 @@ export function LanceManifest({ catalog, state, mutate, onLaunch, onCancel, onRe
               <dd>{mission?.type.replace('_', ' ') ?? 'contract'}</dd>
             </div>
           </dl>
-          <ContractBriefing
-            catalog={catalog}
-            state={state}
-            missionId={contract.missionId}
-            deadlineDay={contract.deadlineDay}
-            nodeId={contract.nodeId}
-            terms={contract}
-          />
-          {mission === undefined ? null : <p className="manifest-brief">{mission.briefing}</p>}
+          <details className="exp-prep-contract">
+            <summary>Mission orders &amp; signed terms</summary>
+            <ContractBriefing catalog={catalog} state={state} missionId={contract.missionId}
+              deadlineDay={contract.deadlineDay} nodeId={contract.nodeId} terms={contract} />
+            {mission === undefined ? null : <p className="manifest-brief">{mission.briefing}</p>}
+          </details>
+          <section className="exp-actual-drop" aria-label="Machines deploying" data-testid="manifest-actual-drop">
+            <div className="exp-drop-heading"><strong>{dropping.length === 0 ? 'No machines aboard' : `${dropping.length} machine${dropping.length === 1 ? '' : 's'} aboard`}</strong><span>{Math.max(0, allowance - tonnage)}t remaining · {roster.length - dropping.length} crew in reserve</span></div>
+            <div className="exp-drop-weight" role="progressbar" aria-label="Deployment tonnage" aria-valuemin={0} aria-valuemax={allowance} aria-valuenow={tonnage}><span style={{ width: `${allowance > 0 ? Math.min(100, tonnage / allowance * 100) : 0}%` }} /></div>
+            {dropping.length === 0 ? <p>Call up a fit pilot in an armed machine within the drop allowance.</p> : (
+              <ol>{dropping.map(({ mech, pilot }, index) => (
+                <li key={pilot.id} data-testid={`manifest-aboard-${pilot.id}`}><span>{String(index + 1).padStart(2, '0')}</span><div><strong>{authoredDesignName(catalog, mech.design)}</strong><small>{pilot.name} · {catalog.chassis.get(mech.design.chassisId)?.tonnage ?? 0}t</small></div></li>
+              ))}</ol>
+            )}
+          </section>
         </header>
 
         <ul className="manifest-list">
@@ -125,7 +134,9 @@ export function LanceManifest({ catalog, state, mutate, onLaunch, onCancel, onRe
             const order = dropIndex(pilot);
             const drops = order >= 0 && order < slots;
             const available = isPilotAvailable(state, pilot);
-            const seated = state.mechs.find((mech) => mech.id === pilot.mechId) ?? null;
+            const pair = candidates.find((entry) => entry.pilot.id === pilot.id);
+            const seated = pair?.mech ?? state.mechs.find((mech) => mech.id === pilot.mechId) ?? null;
+            const autoAssigned = pair !== undefined && pilot.mechId !== pair.mech.id;
             const seatedName =
               seated === null ? null : authoredDesignName(catalog, seated.design);
             const integrity = seated === null ? null : mechIntegrity(catalog, seated);
@@ -139,24 +150,25 @@ export function LanceManifest({ catalog, state, mutate, onLaunch, onCancel, onRe
               : benched(pilot)
                 ? 'Held back'
                 : seated === null
-                  ? 'No mech'
-                  : seated.status !== 'ready'
-                    ? `Mech ${seated.status}`
+                  ? 'No fieldable machine assigned or free'
+                  : !isMechAvailable(state, seated)
+                    ? seated.status === 'hulk' ? 'Reserve — mech needs rebuilding' : `Reserve — workshop until day ${seated.readyOnDay}`
                     : seated.design.mounts.length === 0
                       ? 'Mech needs a weapon'
                     : drops
                       ? `Dropping · ${weight}t`
-                      : dropping.length >= slots
+                      : dropping.length >= slots && candidates.findIndex((entry) => entry.pilot.id === pilot.id) > lastAboard
                         ? 'Reserve — no berth'
                         : 'Reserve — over the weight allowance';
 
             return (
               <li
                 key={pilot.id}
-                className={`manifest-row${drops ? ' drops' : ''}${available ? '' : ' unfit'}`}
+                className={`manifest-row${drops ? ' drops' : ' reserve'}${available ? '' : ' unfit'}`}
                 data-testid={`manifest-${pilot.id}`}
               >
                 <div className="manifest-pilot">
+                  <span className={`exp-readiness ${drops ? 'is-dropping' : 'is-reserve'}`}>{drops ? `Aboard ${String(order + 1).padStart(2, '0')}` : 'Reserve'}</span>
                   <span className="pilot-name">{pilot.name}</span>
                   {pilot.traits.length === 0 ? null : (
                     <small className="pilot-traits">
@@ -171,6 +183,8 @@ export function LanceManifest({ catalog, state, mutate, onLaunch, onCancel, onRe
                 <PilotStats catalog={catalog} pilot={pilot} />
 
                 <div className="manifest-mech">
+                  {seated === null ? null : <MachineIdentity catalog={catalog} design={seated.design} />}
+                  {autoAssigned ? <small className="exp-auto-assignment">{drops ? 'Auto-assigned for this drop.' : 'Available automatic pairing.'} Choose a machine below to make an explicit assignment.</small> : null}
                   <select
                     value={pilot.mechId ?? ''}
                     onChange={(event) => seat(pilot, event.target.value)}

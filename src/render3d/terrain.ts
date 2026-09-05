@@ -12,11 +12,11 @@ import { buildRoadWear } from './roadWear';
 import { buildWaterSurface, type WaterSurface } from './waterSurface';
 
 /** Bare rock, for ground too steep to hold anything else. */
-const ROCK = 0x6d675d;
+const ROCK = 0xc49671;
 /** What deep water grades toward away from its own shore. */
-const DEEP_WATER = 0x102636;
+const DEEP_WATER = 0x256b79;
 /** Pale stone and sky reflected over fordable water near a bank. */
-const SHALLOW_WATER = 0x376477;
+const SHALLOW_WATER = 0x6eb5af;
 
 /**
  * Metres of height per elevation step in the map data. Purely a matter of how
@@ -176,10 +176,14 @@ export function buildTerrain(
       const lift =
         1 +
         (heights[index] ?? 0) / HEIGHT_PER_STEP * 0.05 +
-        (hash(column, row, 9) - 0.5) * 0.12 +
+        (hash(column, row, 9) - 0.5) * 0.06 +
         patchNoise(column, row) * (MOTTLE[tile] ?? 0.1);
 
       let colour = shade(colourFor(tile), lift);
+      if (tile === 'open') {
+        const patch = patchNoise(column, row);
+        colour = mix(colour, patch > 0 ? 0xb5af78 : 0x6c9267, Math.abs(patch) * 1.2);
+      }
 
       // Ground too steep to hold soil shows the rock underneath. Terraces and
       // scarps are elevation data, not a terrain type, so without this a cliff
