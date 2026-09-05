@@ -1,5 +1,7 @@
 const FORCE_STEP_LIMIT = 2_000;
-const CONTACT_INTERACTION_TIMEOUT = 2_000;
+// Software-rendered CI still needs the ordinary Playwright action budget.
+const CONTACT_INTERACTION_TIMEOUT = 30_000;
+const OPTICAL_PUBLICATION_TIMEOUT = 2_000;
 
 function labelled(prefix, text) {
   return prefix === '' ? text : `${prefix} ${text}`;
@@ -208,7 +210,7 @@ export async function investigateSensorIfPresent({ page, check, prefix, touch, s
         const card = document.querySelector(`[data-testid="hostile-${id}"]`);
         return state.enemies.some((enemy) => enemy.id === id && enemy.alive)
           && card !== null && card.getClientRects().length > 0;
-      }, sensorId, timeout).catch(() => undefined);
+      }, sensorId, { timeout: OPTICAL_PUBLICATION_TIMEOUT }).catch(() => undefined);
       latest = await trainingContactState(page, sensorId);
       if (latest.alive && latest.worldOptical && latest.publishedOptical && latest.opticalCard) {
         check(labelled(prefix, 'sensor return becomes the same live optical contact before investigation'),

@@ -68,7 +68,11 @@ for (const touch of [false, true]) {
     await fixture(async ({ investigate, calls, checks }) => {
       assert.equal(await investigate(), true);
       assert.deepEqual(calls.filter(([name]) => name === 'click' || name === 'tap'),
-        [[touch ? 'tap' : 'click', { timeout: 2_000 }]]);
+        [[touch ? 'tap' : 'click', { timeout: 30_000 }]]);
+      assert.deepEqual(calls.filter(([name]) => ['visible', 'label', 'text'].includes(name)), [
+        ['visible', { state: 'visible', timeout: 30_000 }],
+        ['label', { timeout: 30_000 }], ['text', { timeout: 30_000 }],
+      ]);
       assert.equal(checks.length, 1);
       assert.equal(checks[0].passed, true);
       assert.match(checks[0].name, /direct-fire trainer investigates/);
@@ -80,6 +84,8 @@ test('a detached sensor is accepted only after the same live target is published
   await fixture(async ({ investigate, calls, checks }) => {
     assert.equal(await investigate(), false);
     assert.equal(calls.filter(([name]) => name === 'click').length, 1);
+    assert.deepEqual(calls.filter(([name]) => name === 'condition'),
+      [['condition', { timeout: 2_000 }]]);
     assert.equal(checks.length, 1);
     assert.match(checks[0].name, /same live optical contact/);
     assert.deepEqual(JSON.parse(checks[0].detail), {
@@ -95,6 +101,9 @@ for (const clickResult of ['unknown', 'wrong-id', 'unpublished', 'missing-card']
     await fixture(async ({ investigate, calls, checks }) => {
       await assert.rejects(investigate, /failed without a confirmed optical promotion: .*"id":5/);
       assert.equal(calls.filter(([name]) => name === 'click').length, 1);
+      const publicationWaits = calls.filter(([name]) => name === 'condition');
+      assert.deepEqual(publicationWaits, ['unpublished', 'missing-card'].includes(clickResult)
+        ? [['condition', { timeout: 2_000 }]] : []);
       assert.equal(checks.length, 0);
     }, { clickResult });
   });
