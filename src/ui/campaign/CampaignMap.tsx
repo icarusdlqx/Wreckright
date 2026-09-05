@@ -2,7 +2,9 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { Campaign, CampaignNode } from '../../schema/campaign';
 import type { Catalog } from '../../schema/load';
 import { employerDisplayName } from '../../campaign/employers';
-import { layoutCampaignMap, mapLabelHeight, MAP_SSR_SIZE } from './campaignMapLayout';
+import { layoutCampaignMap, mapLabelHeight, MAP_SSR_SIZE, campaignAnchor } from './campaignMapLayout';
+import { CampaignTheatre, theatreIdentity } from './CampaignTheatre';
+import './campaignTheatre.css';
 
 export type NodeState = 'locked' | 'available' | 'complete' | 'failed';
 
@@ -12,26 +14,6 @@ interface Props {
   stateOf: (node: CampaignNode) => NodeState;
   selectedId: string | null;
   onSelect: (id: string) => void;
-}
-
-/** Deterministic value noise, so the same theatre draws the same terrain every load. */
-function noise(x: number, y: number, seed: number): number {
-  const value = Math.sin(x * 12.9898 + y * 78.233 + seed * 37.719) * 43758.5453;
-  return value - Math.floor(value);
-}
-
-/** A closed contour ring, wobbled by the noise field — reads as high ground. */
-function contour(cx: number, cy: number, radius: number, seed: number): string {
-  const points: string[] = [];
-  const steps = 26;
-  for (let index = 0; index < steps; index += 1) {
-    const angle = (index / steps) * Math.PI * 2;
-    const wobble = 0.72 + noise(Math.cos(angle) * 3, Math.sin(angle) * 3, seed) * 0.55;
-    points.push(
-      `${(cx + Math.cos(angle) * radius * wobble).toFixed(1)},${(cy + Math.sin(angle) * radius * wobble * 0.62).toFixed(1)}`,
-    );
-  }
-  return `M${points.join('L')}Z`;
 }
 
 /** What the contract actually asks you to do, from the mission it points at. */
@@ -98,86 +80,30 @@ export function CampaignMap({ campaign, catalog, stateOf, selectedId, onSelect }
   return (
     <section className="camp-map" ref={mapRef} style={mapStyle} data-testid="camp-map">
       <svg className="camp-terrain" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        <defs>
-          <linearGradient id="camp-ground" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#f1ecda" />
-            <stop offset="100%" stopColor="#e1e5d1" />
-          </linearGradient>
-          <pattern id="camp-grid" width="10" height="10" patternUnits="userSpaceOnUse">
-            <path d="M10,0 H0 V10" fill="none" stroke="#6b8b80"
-              strokeWidth={0.65} vectorEffect="non-scaling-stroke" opacity={0.2} />
-            <path d="M5,0 V10 M0,5 H10" fill="none" stroke="#6b8b80"
-              strokeWidth={0.45} vectorEffect="non-scaling-stroke" opacity={0.1} />
-          </pattern>
-        </defs>
-        <rect width="100" height="100" fill="url(#camp-ground)" />
-
-        {/* Nested contours keep the highlands readable as printed cartography. */}
-        {[
-          { cx: 22, cy: 30, r: 20, seed: 3 },
-          { cx: 68, cy: 24, r: 16, seed: 11 },
-          { cx: 74, cy: 72, r: 22, seed: 7 },
-          { cx: 34, cy: 76, r: 14, seed: 19 },
-        ].map((hill, index) => (
-          <g key={index}>
-            {[1, 0.77, 0.53, 0.29].map((scale, ring) => (
-              <path
-                key={ring}
-                d={contour(hill.cx, hill.cy, hill.r * scale, hill.seed)}
-                fill={['#d4dcc0', '#cbd5b5', '#c2cca9', '#d7d2ac'][ring]}
-                fillOpacity={0.7}
-                stroke="#8b9e7f"
-                strokeOpacity={0.45}
-                strokeWidth={0.85}
-                vectorEffect="non-scaling-stroke"
-              />
-            ))}
-          </g>
-        ))}
-
-        {/* The river the whole border dispute is about. */}
-        <path
-          d="M-2,58 C18,52 26,68 44,64 C60,60 66,44 84,46 C94,47 98,42 102,40"
-          fill="none"
-          stroke="#d5bf91"
-          strokeWidth={3.9}
-          strokeOpacity={0.65}
-        />
-        <path
-          d="M-2,58 C18,52 26,68 44,64 C60,60 66,44 84,46 C94,47 98,42 102,40"
-          fill="none"
-          stroke="#f1e4bf"
-          strokeWidth={2.8}
-        />
-        <path
-          d="M-2,58 C18,52 26,68 44,64 C60,60 66,44 84,46 C94,47 98,42 102,40"
-          fill="none"
-          stroke="#74b5ae"
-          strokeWidth={1.7}
-        />
-        <path
-          d="M-2,58 C18,52 26,68 44,64 C60,60 66,44 84,46 C94,47 98,42 102,40"
-          fill="none"
-          stroke="#c7e6d8"
-          strokeWidth={0.25}
-          strokeDasharray="1.4 2.2"
-          strokeLinecap="round"
-        />
-        <rect width="100" height="100" fill="url(#camp-grid)" />
+        <CampaignTheatre campaignId={campaign.id} />
 
         {routes.map((route, index) =>
           route === null ? null : (
             <line
               key={index}
-              x1={at(route.from).x}
-              y1={at(route.from).y}
-              x2={at(route.to).x}
-              y2={at(route.to).y}
+              x1={campaignAnchor(route.from.position).x}
+              y1={campaignAnchor(route.from.position).y}
+              x2={campaignAnchor(route.to.position).x}
+              y2={campaignAnchor(route.to.position).y}
               className={`camp-route ${stateOf(route.from) === 'complete' ? 'open' : ''}`}
             />
           ),
         )}
+        {nodes.map((node) => {
+          const anchor = campaignAnchor(node.position);
+          const label = at(node);
+          return <g key={node.id} data-map-anchor={node.id}>
+            <line className="campaign-label-leader" x1={anchor.x} y1={anchor.y} x2={label.x} y2={label.y} />
+            <circle className={`campaign-anchor ${stateOf(node)}`} cx={anchor.x} cy={anchor.y} r={selectedId === node.id ? .8 : .55} />
+          </g>;
+        })}
       </svg>
+      <div className="campaign-cartouche"><strong>{theatreIdentity(campaign.id).name}</strong><span>Fixed sites · contract links</span></div>
 
       {nodes.map((node) => {
         const state = stateOf(node);

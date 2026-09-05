@@ -21,7 +21,7 @@ import type { Chassis } from '../../schema/chassis';
 import type { Design } from '../../schema/design';
 import { radiusFor } from '../../render/shape';
 import type { Catalog } from '../../schema/load';
-import { buildPreviewModel, previewModelKey, setPreviewHighlights, type PreviewHighlights, type PreviewModel } from './previewModel';
+import { buildPreviewModel, previewModelKey, setPreviewHighlights, type PreviewCondition, type PreviewHighlights, type PreviewModel } from './previewModel';
 import { PreviewLoop } from './previewLoop';
 
 export interface MechPreviewCallbacks {
@@ -122,11 +122,11 @@ export class MechPreviewRenderer {
     }
   }
 
-  setMachine(chassis: Chassis, design: Design): void {
-    const key = previewModelKey(chassis, design);
+  setMachine(chassis: Chassis, design: Design, condition?: PreviewCondition): void {
+    const key = previewModelKey(chassis, design, condition);
     if (key === this.current?.key) return;
 
-    const next = buildPreviewModel(this.catalog, chassis, design);
+    const next = buildPreviewModel(this.catalog, chassis, design, condition);
     try {
       this.bounds.setFromObject(next.model.root);
       this.bounds.getCenter(next.model.root.position).multiplyScalar(-1);

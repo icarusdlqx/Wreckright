@@ -1,0 +1,57 @@
+{
+  "id": "prybar_courier",
+  "name": "Prybar",
+  "chassisId": "prybar_pry1",
+  "armour": {
+    "head": 8,
+    "centre_torso": 30,
+    "left_torso": 22,
+    "right_torso": 22,
+    "left_arm": 12,
+    "right_arm": 12,
+    "left_leg": 27,
+    "right_leg": 27
+  },
+  "heatSinkId": "heat_sink",
+  "heatSinks": 10,
+  "mounts": [
+    {
+      "weaponId": "machine_gun",
+      "location": "left_arm"
+    },
+    {
+      "weaponId": "machine_gun",
+      "location": "right_arm"
+    },
+    {
+      "weaponId": "srm2",
+      "location": "left_torso"
+    },
+    {
+      "weaponId": "srm2",
+      "location": "right_torso"
+    }
+  ],
+  "ammo": [
+    {
+      "weaponId": "machine_gun",
+      "location": "right_torso",
+      "tons": 2
+    },
+    {
+      "weaponId": "srm2",
+      "location": "left_torso",
+      "tons": 2
+    }
+  ],
+  "equipment": [
+    {
+      "equipmentId": "case",
+      "location": "left_torso"
+    },
+    {
+      "equipmentId": "case",
+      "location": "right_torso"
+    }
+  ]
+}

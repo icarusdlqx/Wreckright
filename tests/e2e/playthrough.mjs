@@ -309,8 +309,9 @@ async function main() {
   // The sandbox image ships its own Chromium; Playwright's pinned revision is not present.
   const executablePath = process.env.CHROMIUM_PATH ?? '/opt/pw-browsers/chromium';
   const browser = await chromium.launch({
+    headless: true,
     executablePath: existsSync(executablePath) ? executablePath : undefined,
-    args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader', '--no-sandbox'],
+    args: ['--mute-audio', '--use-gl=swiftshader', '--enable-unsafe-swiftshader', '--no-sandbox'],
   });
 
   try {
@@ -1645,7 +1646,7 @@ async function main() {
           null,
     );
     await checkCompanyWorkspaces({ page, shots: SHOTS, check });
-    check('the lance is visible on the company books', (await page.locator('[data-testid="camp-bay"] li').count()) >= 4);
+    check('the lance is visible on the company books', (await page.locator('[data-testid="camp-bay"] .company-workshop-machines > [data-testid^="camp-mech-"]').count()) >= 4);
     check(
       'the barracks lists the company pilots',
       (await page.locator('li[data-testid^="camp-pilot-"]').count()) >= 4,
@@ -1707,7 +1708,7 @@ async function main() {
       );
     }
 
-    check('battle damage came home', (await page.locator('[data-testid="camp-bay"] li').count()) >= 4);
+    check('battle damage came home', (await page.locator('[data-testid="camp-bay"] .company-workshop-machines > [data-testid^="camp-mech-"]').count()) >= 4);
     await page.screenshot({ path: `${SHOTS}/08-campaign.png` });
 
     await companyFile(page, 'camp-load');

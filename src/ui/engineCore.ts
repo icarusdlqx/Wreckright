@@ -193,6 +193,8 @@ export class Engine {
       this.selectionSet = new Set(state.selection);
     }
     const drawStart = performance.now();
+    // Foot contacts are emitted during draw, including after camera movement between sim ticks.
+    this.audio.setListener(this.renderer.camera.target, this.renderer.camera.azimuth, this.renderer.camera.distance);
     this.renderer.draw(
       this.world,
       alpha,

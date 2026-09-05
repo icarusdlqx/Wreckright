@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { Vector3 } from 'three';
 import { playerWorld } from '../../tests/support';
 import type { Renderer } from '../render3d/scene';
 import { Engine } from './engine';
@@ -10,14 +11,16 @@ interface RendererHarness {
   beginKillingBlow: ReturnType<typeof vi.fn>;
   draw: ReturnType<typeof vi.fn>;
   spawnSmoke: ReturnType<typeof vi.fn>;
+  spawnVentSteam: ReturnType<typeof vi.fn>;
 }
 
 function rendererHarness(reducedMotion = false): RendererHarness {
   const beginKillingBlow = vi.fn();
   const draw = vi.fn();
   const spawnSmoke = vi.fn();
+  const spawnVentSteam = vi.fn();
   const renderer = {
-    camera: { target: { x: 0, y: 0 }, reducedMotion, beginKillingBlow },
+    camera: { target: { x: 0, y: 0 }, azimuth: -Math.PI / 2, distance: 470, reducedMotion, beginKillingBlow },
     consumeEvents: vi.fn(),
     destroy: vi.fn(),
     draw,
@@ -25,8 +28,10 @@ function rendererHarness(reducedMotion = false): RendererHarness {
     positionOf: vi.fn(() => ({ x: 0, y: 0 })),
     snapshot: vi.fn(),
     spawnSmoke,
+    spawnVentSteam,
+    ventOf: vi.fn((_id: number, out: Vector3) => { out.set(4, 12, 6); return true; }),
   } as unknown as Renderer;
-  return { renderer, beginKillingBlow, draw, spawnSmoke };
+  return { renderer, beginKillingBlow, draw, spawnSmoke, spawnVentSteam };
 }
 
 function tick(engine: Engine, deltaSeconds: number): void {
@@ -296,7 +301,7 @@ describe('engine presentation timing', () => {
     engine.destroy();
   });
 
-  it('paces smoke from the same accelerated presentation clock', () => {
+  it('paces anchored vent steam from the same accelerated presentation clock', () => {
     const world = playerWorld('smoke-presentation-clock');
     world.finished = true;
     for (const entity of world.entities) entity.heat = 0;
@@ -309,9 +314,10 @@ describe('engine presentation timing', () => {
     useGame.setState({ paused: false, speed: 4, selection: [] });
 
     tick(engine, 0.09);
-    expect(harness.spawnSmoke).not.toHaveBeenCalled();
+    expect(harness.spawnVentSteam).not.toHaveBeenCalled();
     tick(engine, 0.09);
-    expect(harness.spawnSmoke).toHaveBeenCalled();
+    expect(harness.spawnVentSteam).toHaveBeenCalledWith(new Vector3(4, 12, 6));
+    expect(harness.spawnSmoke).not.toHaveBeenCalled();
     engine.destroy();
   });
 });

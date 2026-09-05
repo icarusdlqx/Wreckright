@@ -13,13 +13,14 @@ const AREAS = [
   { id: 'supplies', label: 'Stores & yard', detail: 'Parts & trade' },
 ] as const;
 type Area = (typeof AREAS)[number]['id'];
+type WorkspaceContent = ReactNode | ((active: boolean) => ReactNode);
 
 interface CampaignWorkspaceProps {
   catalog: Catalog;
   state: CampaignState;
   fullCompany: boolean;
-  operations: ReactNode;
-  workshop: ReactNode;
+  operations: WorkspaceContent;
+  workshop: WorkspaceContent;
   crew: ReactNode;
   supplies: ReactNode;
 }
@@ -56,10 +57,10 @@ export function CampaignWorkspace({
         </nav>
       )}
       <div id="company-area-operations" className="company-area company-operations" hidden={selected !== 'operations'}>
-        {operations}
+        {typeof operations === 'function' ? operations(selected === 'operations') : operations}
       </div>
       <div id="company-area-workshop" className="company-area company-workshop" hidden={selected !== 'workshop'}>
-        {fullCompany && !state.finished ? workshop : null}
+        {fullCompany && !state.finished ? typeof workshop === 'function' ? workshop(selected === 'workshop') : workshop : null}
       </div>
       <div id="company-area-crew" className="company-area company-crew" hidden={selected !== 'crew'}>
         {fullCompany && !state.finished ? crew : null}

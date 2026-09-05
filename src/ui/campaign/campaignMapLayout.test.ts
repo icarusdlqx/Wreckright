@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { catalog } from '../../../tests/support';
 import { CampaignMap } from './CampaignMap';
 import {
-  layoutCampaignMap, MAP_EDGE_PADDING, MAP_LABEL_GAP, MAP_LEGEND_SPACE,
+  campaignAnchor, layoutCampaignMap, MAP_EDGE_PADDING, MAP_LABEL_GAP, MAP_LEGEND_SPACE,
   type CampaignMapCard, type CampaignMapLabel,
 } from './campaignMapLayout';
 
@@ -41,7 +41,7 @@ describe.each([...catalog.campaigns.values()])('$name campaign label layout', (c
     }
   });
 
-  it('renders stable SSR positions with route endpoints matching the adjusted cards', () => {
+  it('renders stable SSR labels with route endpoints at fixed authored sites', () => {
     const props = { campaign, catalog, stateOf: () => 'available' as const,
       selectedId: null, onSelect: () => undefined };
     const html = renderToStaticMarkup(createElement(CampaignMap, props));
@@ -56,9 +56,11 @@ describe.each([...catalog.campaigns.values()])('$name campaign label layout', (c
       const y = card.y / result.height * 100;
       expect(html).toContain(`left:${x}%;top:${y}%`);
       for (const prerequisite of node.requires) {
-        const from = result.cards.get(prerequisite);
+        const from = campaign.nodes.find((candidate) => candidate.id === prerequisite);
         if (from === undefined) continue;
-        expect(html).toContain(`x1="${from.x / result.width * 100}" y1="${from.y / result.height * 100}" x2="${x}" y2="${y}"`);
+        const start = campaignAnchor(from.position);
+        const end = campaignAnchor(node.position);
+        expect(html).toContain(`x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}"`);
       }
     }
     expect(html).toContain('--camp-node-width:144px');
@@ -121,5 +123,28 @@ describe('presentation bounds and measured cards', () => {
     const result = layoutCampaignMap([], { width: 343, height: 420 });
     expect(result.cards.size).toBe(0);
     expect(result.height).toBe(420);
+  });
+});
+
+
+describe('fixed theatre sites', () => {
+  it('keeps route anchors at authored positions while narrow layouts move collision labels', () => {
+    const campaign = [...catalog.campaigns.values()][0]!;
+    const labels = campaign.nodes.map((node) => ({ id: node.id, position: node.position, available: true }));
+    const narrow = layoutCampaignMap(labels, { width: 343, height: 550 });
+    let displaced = false;
+    for (const node of campaign.nodes) {
+      const site = campaignAnchor(node.position);
+      const card = narrow.cards.get(node.id)!;
+      if (Math.abs(card.x / narrow.width * 100 - site.x) > 1 || Math.abs(card.y / narrow.height * 100 - site.y) > 1) displaced = true;
+    }
+    expect(displaced).toBe(true);
+    const markup = renderToStaticMarkup(createElement(CampaignMap, { campaign, catalog, selectedId: null,
+      stateOf: () => 'available' as const, onSelect: () => undefined }));
+    const route = campaign.nodes.find((node) => node.requires.length > 0)!;
+    const from = campaign.nodes.find((node) => node.id === route.requires[0])!;
+    const start = campaignAnchor(from.position);
+    const end = campaignAnchor(route.position);
+    expect(markup).toContain(`x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" class="camp-route`);
   });
 });

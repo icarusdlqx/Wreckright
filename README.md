@@ -26,7 +26,15 @@ After `npm run build:single`, `node tests/e2e/standalone-smoke.mjs` checks the a
 offline file through home, workshop, refit and deployment. It uses Playwright's
 Chromium or the executable supplied by `CHROMIUM_PATH`.
 
+## Ironwork & Monolith
+
+The [Ironwork & Monolith rebuild](docs/IRONWORK_MONOLITH.md) adds sixteen distinct
+walker designs, actual-terrain mission surveys, a selected-machine Workshop,
+authored battlefield surroundings, physical motion/effects and shared audio
+settings. Its review fixtures run in background browsers with disposable profiles.
+
 ## Repository identity
+
 
 The product, source repository (`icarusdlqx/Wreckright`), Worker
 (`wreckright.ligand-ave.workers.dev`), diagnostic hook, downloads, and release

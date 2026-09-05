@@ -116,3 +116,8 @@ export function layoutCampaignMap(labels: readonly CampaignMapLabel[], size = MA
   const minimumHeight = Math.max(height, y + MAP_EDGE_PADDING + MAP_LEGEND_SPACE);
   return { width, nodeWidth, ...fitHeight(cards, minimumHeight, requestedHeight) };
 }
+
+/** Routes terminate at authored sites even when collision avoidance moves their labels. */
+export function campaignAnchor(position: { x: number; y: number }): { x: number; y: number } {
+  return { x: position.x * 100, y: position.y * 100 };
+}

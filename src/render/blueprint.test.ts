@@ -145,13 +145,18 @@ describe('body plans', () => {
     expect(forms.has('emplacement')).toBe(true);
   });
 
-  it('adds welded identity at constant mesh cost without moving weapon anchors', () => {
-    for (const id of ['bulwark_bwk3', 'cairn_crn3', 'hornet_hnt2']) {
-      const baseline = planFor(id, null);
-      const identified = planFor(id);
-      expect(identified.hardpoints, id).toEqual(baseline.hardpoints);
-      const structure = identified.parts.filter((part) => part.detail === 'structure');
-      expect(Math.abs(structure.length - baseline.parts.length), id).toBeLessThanOrEqual(1);
+  it('rebuilds every welded walker with a bounded primary silhouette', () => {
+    const ids = HULLS.filter((chassis) => chassis.frame === 'mech' && chassis.faction === 'linewrought');
+    expect(ids).toHaveLength(8);
+    for (const chassis of ids) {
+      const plan = planFor(chassis.id);
+      const structure = plan.parts.filter((piece) => piece.detail === 'structure');
+      expect(planSignature(plan), chassis.id).not.toBe(planSignature(planFor(chassis.id, null)));
+      expect(structure.length, chassis.id).toBeLessThanOrEqual(46);
+      expect(structure.some((piece) => piece.tone === 'accent'), chassis.id).toBe(true);
+      for (const location of LOCATIONS) {
+        expect(structure.some((piece) => piece.location === location), `${chassis.id}.${location}`).toBe(true);
+      }
     }
   });
 
@@ -201,19 +206,14 @@ describe('body plans', () => {
     }
   });
 
-  it('keeps sealed silhouettes inside their battlefield mesh budgets', () => {
-    const budgets = new Map<string, number>([
-      ['wisp_wsp1', 26],
-      ['votive_vtv2', 28],
-      ['sentinel_snl2', 36],
-      ['falchion_fal2', 36],
-      ['warden_wrd5', 38],
-      ['halberd_hlb4', 38],
-      ['obsequy_obq3', 40],
-      ['pallvault_plv1', 40],
-    ]);
-    for (const [id, budget] of budgets) {
-      expect(planFor(id).parts.length, id).toBeLessThanOrEqual(budget);
+  it('keeps all sealed primary silhouettes within their battlefield budgets', () => {
+    for (const id of AURELIAN_IDS) {
+      const plan = planFor(id);
+      expect(plan.parts.filter((piece) => piece.detail === 'structure').length, id).toBeLessThanOrEqual(30);
+      expect(plan.parts.length, id).toBeLessThanOrEqual(40);
+      for (const location of LOCATIONS) {
+        expect(plan.parts.some((piece) => piece.location === location && piece.detail === 'structure'), `${id}.${location}`).toBe(true);
+      }
     }
   });
 
@@ -236,19 +236,16 @@ describe('body plans', () => {
   it('keeps the Sentinel broad and the Falchion long', () => {
     const sentinel = planFor('sentinel_snl2');
     const falchion = planFor('falchion_fal2');
-    const sentinelChest = sentinel.parts.find(
-      (part) => part.location === 'centre_torso' && part.transverse !== undefined,
-    );
-    const falchionChest = falchion.parts.find(
-      (part) => part.location === 'centre_torso' && part.transverse !== undefined,
-    );
+    const shoulderSpan = (plan: Blueprint): number => Math.max(...plan.parts
+      .filter((piece) => piece.location === 'left_torso' || piece.location === 'right_torso')
+      .map((piece) => Math.abs(piece.at[2]) + piece.size[2] * 0.5));
     const sentinelArm = sentinel.parts.find(
       (part) => part.location === 'left_arm' && part.transverse !== undefined,
     );
     const falchionArm = falchion.parts.find(
       (part) => part.location === 'left_arm' && part.transverse !== undefined,
     );
-    expect(sentinelChest?.size[2] ?? 0).toBeGreaterThan(falchionChest?.size[2] ?? 0);
+    expect(shoulderSpan(sentinel)).toBeGreaterThan(shoulderSpan(falchion));
     expect(falchionArm?.size[1] ?? 0).toBeGreaterThan(sentinelArm?.size[1] ?? 0);
   });
 
@@ -256,7 +253,7 @@ describe('body plans', () => {
     const bulwark = planFor('bulwark_bwk3');
     const cairn = planFor('cairn_crn3');
     const shield = bulwark.parts.find(
-      (part) => part.location === 'left_arm' && part.tone === 'trim' && part.size[1] > 0.85,
+      (part) => part.location === 'left_arm' && part.tone === 'plate' && part.size[1] > 1,
     );
     expect(shield).toBeDefined();
     expect(shield?.size[0]).toBeGreaterThan(0.9);
@@ -264,10 +261,11 @@ describe('body plans', () => {
     expect(cairn.parts.some((part) => part.location === 'left_arm' && part.tone === 'trim')).toBe(false);
     for (const location of ['left_torso', 'right_torso'] as const) {
       const tower = cairn.parts.find(
-        (part) => part.location === location && part.tone === 'plate' && part.size[1] > 1,
+        (part) => part.location === location && part.transverse !== undefined && part.at[1] > 0.4,
       );
       expect(tower).toBeDefined();
-      expect(Math.abs(tower?.at[2] ?? 0)).toBeGreaterThan(1.1);
+      expect(Math.abs(tower?.at[2] ?? 0)).toBeGreaterThan(cairn.legs.stanceWidth);
+      expect(tower?.size[1] ?? 0).toBeGreaterThan(0.8);
     }
   });
 
@@ -275,10 +273,10 @@ describe('body plans', () => {
     const anonymous = planFor('hornet_hnt2', null);
     const gadfly = planFor('hornet_hnt2');
     expect(gadfly.parts.some(
-      (part) => part.location === 'head' && part.size[0] >= 0.75 && part.at[0] > 0.7,
+      (part) => part.location === 'head' && part.size[0] >= 0.75 && part.at[0] > 0.5,
     )).toBe(true);
     expect(gadfly.parts.some(
-      (part) => part.location === 'centre_torso' && part.tone === 'deep' && part.size[2] > 0.7,
+      (part) => part.location === 'centre_torso' && part.tone === 'deep' && part.size[1] > 0.3,
     )).toBe(true);
     expect(gadfly.legs.kneeForward).toBeGreaterThan(anonymous.legs.kneeForward * 1.25);
     expect(gadfly.legs.reach).toBeGreaterThan(gadfly.legs.stanceReach * 1.15);

@@ -41,6 +41,8 @@ import { CampaignPrep } from './CampaignPrep';
 import { firstDropStage, type FirstDropPrep } from './firstDropGuide';
 import { canLaunchFirstDropDirectly } from './firstDropLaunch';
 import { useCampaignScore } from './useCampaignScore';
+import { MissionSurvey } from './MissionSurvey';
+import { missionPreviewData, previewMissionId } from './missionPreviewData';
 
 const catalog = getCatalog();
 const DEFAULT_CAMPAIGN_ID = 'border_dispute';
@@ -87,6 +89,9 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
     prep,
   });
   const guidedFirstDrop = guideDismissed ? 'done' : firstDrop;
+  const surveyMission = previewMissionId(state.contract, node);
+  const survey = useMemo(() => missionPreviewData(catalog, surveyMission), [surveyMission]);
+  const previewsActive = prep === null && refitting === null && !manualOpen && !choosingCampaign && outcomeCount <= debriefed;
 
   useEffect(() => {
     record({ name: 'campaign_opened' });
@@ -275,10 +280,11 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         catalog={catalog}
         state={state}
         fullCompany={guidedFirstDrop === 'done'}
-        workshop={<MechBayPanel state={state} mutate={mutate} onRefit={setRefitting} />}
+        workshop={(active) => <MechBayPanel state={state} mutate={mutate} onRefit={setRefitting} previewActive={active && previewsActive} />}
         crew={<BarracksPanel state={state} mutate={mutate} />}
         supplies={<><StoresPanel state={state} mutate={mutate} /><MarketPanel state={state} mutate={mutate} /></>}
-        operations={<>
+        operations={(active) => <>
+      <MissionSurvey data={survey} active={active && previewsActive} signed={state.contract !== null} />
       <CampaignMap
         campaign={campaign}
         catalog={catalog}

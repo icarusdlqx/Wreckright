@@ -117,11 +117,16 @@ export class InstantShotPool {
     width: number,
     life: number,
     detailScale: number,
+    engagement: ProjectileEngagement | null = null,
   ): void {
     const slot = this.core.acquire(SHOT_PRIORITY.standard);
     if (slot === null) return;
     writeProjectileTrack(slot.track, from, toX, toY, toZ, 0, 1);
     slot.width = width;
+    slot.shooterId = engagement?.shooterId ?? -1;
+    slot.targetId = engagement?.targetId ?? -1;
+    slot.weaponId = engagement?.weaponId ?? '';
+    slot.resolved = engagement === null;
     const count = this.style === 'beam'
       ? 1
       : Math.max(1, Math.ceil(this.core.instancesPerSlot * detailScale));
@@ -153,6 +158,22 @@ export class InstantShotPool {
 
   clear(): void {
     this.core.clear();
+  }
+
+  /** The same hit that emits a contact flare also fixes this beam's endpoint. */
+  resolve(engagement: ProjectileEngagement, endpoint: Vector3): boolean {
+    let found: PathSlot | null = null;
+    for (const slot of this.core.slots) {
+      if (!slot.active || slot.resolved || slot.shooterId !== engagement.shooterId ||
+        slot.targetId !== engagement.targetId || slot.weaponId !== engagement.weaponId) continue;
+      if (found === null || slot.generation < found.generation) found = slot;
+    }
+    if (found === null) return false;
+    found.track.toX = endpoint.x; found.track.toY = endpoint.y; found.track.toZ = endpoint.z;
+    found.resolved = true;
+    this.writeMatrices(found);
+    this.core.commit();
+    return true;
   }
 
   private writeMatrices(slot: PathSlot): void {

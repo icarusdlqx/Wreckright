@@ -1,8 +1,12 @@
+import { AudioMixer } from './audioMixer';
+
 export interface VoicePlacement {
   /** The gain before the shared compressor. */
   level: number;
   /** Null keeps a console sound out of the battlefield's air filter. */
   distance: number | null;
+  /** Camera-relative stereo; console reports remain centred regardless of this value. */
+  pan?: number;
 }
 
 export interface VoiceFrame {
@@ -26,7 +30,6 @@ export interface AmbientBus {
   random(): number;
 }
 
-const MASTER_LEVEL = 0.5;
 export const FIELD_VOICE_LIMIT = 8;
 export const FIELD_VOICE_WINDOW_MS = 100;
 /** A terminal blast and its landing must survive an already saturated volley. */
@@ -47,12 +50,23 @@ export class AudioGraph implements VoiceBus, AmbientBus {
   private readonly window = { at: 0, ordinary: 0, terminal: 0 };
   private seed = 0x9e3779b9;
   private closed = false;
+  readonly mixer: AudioMixer;
+  readonly musicBus: Pick<AmbientBus, 'context' | 'master'>;
+  readonly ambientBus: AmbientBus;
 
   constructor(
     readonly context: AudioContext,
     readonly master: GainNode,
     readonly noise: AudioBuffer,
-  ) {}
+    compressor: DynamicsCompressorNode | null = null,
+    muted?: boolean,
+  ) {
+    this.mixer = new AudioMixer(context, master, compressor, muted);
+    this.musicBus = { context, master: this.mixer.music };
+    this.ambientBus = {
+      context, master: this.mixer.effects, noise, random: () => this.random(),
+    };
+  }
 
   static create(muted: boolean): AudioGraph | null {
     const Ctor =
@@ -62,23 +76,20 @@ export class AudioGraph implements VoiceBus, AmbientBus {
 
     const context = new Ctor();
     const compressor = context.createDynamicsCompressor();
-    compressor.threshold.value = -18;
-    compressor.ratio.value = 8;
     compressor.connect(context.destination);
 
     const master = context.createGain();
-    master.gain.value = muted ? 0 : MASTER_LEVEL;
     master.connect(compressor);
 
     const noise = context.createBuffer(1, context.sampleRate, context.sampleRate);
-    const graph = new AudioGraph(context, master, noise);
+    const graph = new AudioGraph(context, master, noise, compressor, muted);
     const data = noise.getChannelData(0);
     for (let i = 0; i < data.length; i += 1) data[i] = graph.random() * 2 - 1;
     return graph;
   }
 
   setMuted(muted: boolean): void {
-    this.master.gain.value = muted ? 0 : MASTER_LEVEL;
+    this.mixer.setMuted(muted);
   }
 
   resume(): void {
@@ -88,6 +99,7 @@ export class AudioGraph implements VoiceBus, AmbientBus {
   close(delayMs = 0): void {
     if (this.closed) return;
     this.closed = true;
+    this.mixer.destroy();
     const boundedDelay = Number.isFinite(delayMs)
       ? Math.min(MAX_AUDIO_CLOSE_DELAY_MS, Math.max(0, delayMs))
       : 0;
@@ -118,7 +130,9 @@ export class AudioGraph implements VoiceBus, AmbientBus {
 
   /** Refuses excess field voices before they can allocate a source node. */
   begin(placement: VoicePlacement, priority: VoicePriority = 'ordinary'): VoiceFrame | null {
-    if (this.closed || placement.level <= 0.01) return null;
+    const channel = placement.distance === null ? 'interface' : 'effects';
+    if (this.closed || !Number.isFinite(placement.level) || placement.level <= 0.01
+      || !this.mixer.audible(channel)) return null;
 
     if (placement.distance !== null) {
       const now = performance.now();
@@ -145,12 +159,21 @@ export class AudioGraph implements VoiceBus, AmbientBus {
     const out = this.context.createGain();
     out.gain.value = Math.min(1, placement.level);
     if (placement.distance === null) {
-      out.connect(this.master);
+      out.connect(this.mixer.interface);
     } else {
       const air = this.context.createBiquadFilter();
       air.type = 'lowpass';
       air.frequency.value = Math.max(600, 18_000 - placement.distance * 22);
-      out.connect(air).connect(this.master);
+      out.connect(air);
+      if (typeof this.context.createStereoPanner === 'function') {
+        const stereo = this.context.createStereoPanner();
+        const pan = placement.pan ?? 0;
+        stereo.pan.value = Number.isFinite(pan) ? Math.max(-1, Math.min(1, pan)) : 0;
+        air.connect(stereo).connect(this.mixer.effects);
+      } else {
+        // Older embedded browsers keep the same voice and privacy limits in mono.
+        air.connect(this.mixer.effects);
+      }
     }
 
     return {

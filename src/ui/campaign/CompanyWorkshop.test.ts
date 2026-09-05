@@ -1,11 +1,12 @@
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { catalog } from '../../../tests/support';
 import { startCampaign } from '../../campaign/campaign';
 import { estimateRepair, startRepair } from '../../campaign/repair';
 import type { CampaignState } from '../../campaign/types';
 import { MechBayPanel } from './Panels';
+import { revealInspectedMachine } from './CompanyWorkshop';
 
 function workshop(state: CampaignState, onRefit?: (id: string) => void): string {
   return renderToStaticMarkup(createElement(MechBayPanel, {
@@ -33,7 +34,33 @@ describe('company workshop', () => {
     expect(markup).toContain('data-testid="chassis-silhouette"');
     expect(markup).toContain('Armour &amp; structure');
     expect(markup).toContain('Daily payroll');
+    expect(markup).toContain('role="status" aria-live="polite" aria-atomic="true"');
     expect(JSON.stringify(state)).toBe(before);
+  });
+
+  it.each([
+    { stacked: false, reduced: false, behavior: null },
+    { stacked: true, reduced: false, behavior: 'smooth' },
+    { stacked: true, reduced: true, behavior: 'instant' },
+  ] as const)('reveals stacked inspections without stealing focus: $stacked / $reduced', ({ stacked, reduced, behavior }) => {
+    const scrollIntoView = vi.fn();
+    const focus = vi.fn();
+    const matchMedia = vi.fn((query: string) => ({
+      matches: query === '(prefers-reduced-motion: reduce)' ? reduced : stacked,
+    }));
+    const source = {
+      ownerDocument: { defaultView: { matchMedia } },
+      closest: (selector: string) => selector === '.company-workshop-floor' ? {
+        querySelector: (selector: string) => selector === '[data-testid="camp-selected-machine"]'
+          ? { scrollIntoView, focus } : null,
+      } : null,
+      focus,
+    } as unknown as HTMLElement;
+    revealInspectedMachine(source);
+    expect(matchMedia).toHaveBeenCalledWith('(max-width: 640px), (max-width: 1100px) and (pointer: coarse)');
+    if (behavior === null) expect(scrollIntoView).not.toHaveBeenCalled();
+    else expect(scrollIntoView).toHaveBeenCalledExactlyOnceWith({ block: 'start', behavior });
+    expect(focus).not.toHaveBeenCalled();
   });
 
   it('disables refit for every booking and hulk, including a booking whose date has passed', () => {

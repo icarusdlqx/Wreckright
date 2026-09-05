@@ -73,12 +73,27 @@ describe('linewrought machine motion', () => {
         chassis.hardpoints,
         chassis.id,
       );
+      const serviceMeshes = new Set([
+        ...welded.services.jets.map((outlet) => outlet.parent),
+        ...welded.services.vents.map((outlet) => outlet.parent),
+      ]);
+      expect(welded.services.jets).toHaveLength(2);
+      expect(welded.services.vents).toHaveLength(2);
+      expect(serviceMeshes.size).toBe(4);
+      expect(sealed.services.jets).toHaveLength(0);
+      expect(sealed.services.vents).toHaveLength(2);
       let blueprintMeshes = 0;
+      let hardwareMeshes = 0;
+      const mechanismBatches: InstancedMesh[] = [];
       welded.root.traverse((node) => {
+        if (node instanceof InstancedMesh) mechanismBatches.push(node);
         if (node instanceof Mesh && typeof node.userData.blueprintDetail === 'string') {
-          blueprintMeshes += 1;
+          if (serviceMeshes.has(node)) hardwareMeshes += 1;
+          else blueprintMeshes += 1;
         }
       });
+      expect(mechanismBatches).toEqual([pistons]);
+      expect(hardwareMeshes).toBe(4);
       expect(blueprintMeshes).toBe(
         plan.parts.filter((part) => part.detail !== 'hero').length,
       );

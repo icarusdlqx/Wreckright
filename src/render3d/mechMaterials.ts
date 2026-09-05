@@ -13,23 +13,31 @@ const DEFAULT_BODY_COLOUR = 0xe3b569;
 
 /** Warm field paint and cool ceramic shells identify construction, not teams. */
 const CHASSIS_BODY_COLOURS: Readonly<Record<string, number>> = {
-  bulwark_bwk3: 0xe4b96d,
-  cairn_crn3: 0xd99558,
-  colossus_cls1: 0xdfb278,
+  bulwark_bwk3: 0xe4d6ba,
+  cairn_crn3: 0xdccaab,
+  colossus_cls1: 0xe7d9bf,
   courser_crs1: 0xe8c898,
   drover_dvr2: 0xdd9c5d,
-  falchion_fal2: 0xcbdacf,
-  halberd_hlb4: 0xe2e0cd,
-  hornet_hnt2: 0xecb654,
-  rampart_rmp4: 0xcb8050,
+  falchion_fal2: 0xe3e3d7,
+  halberd_hlb4: 0xeeeada,
+  hornet_hnt2: 0xe8d9b7,
+  rampart_rmp4: 0xddc8a7,
   redoubt_rdt1: 0xe5c17e,
-  sentinel_snl2: 0xe4e7d8,
-  warden_wrd5: 0xd3dfd5,
-  wisp_wsp1: 0xd5e8df,
-  votive_vtv2: 0xe9e5d3,
-  obsequy_obq3: 0xc8d7d1,
-  pallvault_plv1: 0xdce1d0,
+  sentinel_snl2: 0xebe8db,
+  warden_wrd5: 0xe0e3d9,
+  wisp_wsp1: 0xe7ebe2,
+  votive_vtv2: 0xf0ead9,
+  obsequy_obq3: 0xe1e3db,
+  pallvault_plv1: 0xece7d7,
+  prybar_pry1: 0xe5d8c1,
+  rivet_rvt1: 0xe2cfb2,
+  trestle_trs1: 0xdbc9ae,
 };
+
+const IRONWORK_IDS: ReadonlySet<string> = new Set([
+  'hornet_hnt2', 'prybar_pry1', 'rivet_rvt1', 'trestle_trs1',
+  'cairn_crn3', 'bulwark_bwk3', 'rampart_rmp4', 'colossus_cls1',
+]);
 
 const INDUSTRIAL_FINISHES: readonly number[] = [
   0xe3b569,
@@ -97,12 +105,13 @@ export function createMechMaterials(
 
   const body = chassisBodyColour(identity, faction);
   const sealed = faction === 'aurelian';
+  const ironwork = identity !== null && IRONWORK_IDS.has(identity);
   return {
     plate: material(body, sealed ? 0.72 : 0.82, 0.04),
     deep: material(mix(sealed ? 0x203744 : 0x384547, team, 0.16), 0.66, 0.32),
     trim: material(team, 0.76, 0.06),
     glass: material(0xa9e7e1, 0.2, 0.04, 0x277a85, 1.4),
-    accent: material(sealed ? 0x478f88 : mix(body, 0xffefc8, 0.8), 0.78, 0.08),
+    accent: material(sealed ? 0x3d7877 : ironwork ? 0xc3763f : mix(body, 0xffefc8, 0.8), 0.78, 0.08),
   };
 }
 

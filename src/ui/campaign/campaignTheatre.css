@@ -1,0 +1,20 @@
+.camp-map .campaign-geography text { fill: #526f61; font: 1.3px var(--font-mono); letter-spacing: .2px; opacity: .75; }
+.camp-map .campaign-anchor { fill: #ecedde; stroke: #476e61; stroke-width: .23; }
+.camp-map .campaign-anchor.available { fill: #376f65; stroke: #edf0dc; stroke-width: .2; }
+.camp-map .campaign-anchor.complete { fill: #6c906a; }
+.camp-map .campaign-anchor.failed { fill: #a4513b; }
+.camp-map .campaign-label-leader { stroke: #70887b; stroke-width: .14; stroke-dasharray: .35 .3; opacity: .85; }
+.camp-map .campaign-cartouche { position: absolute; top: 10px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; pointer-events: none; color: #3f6558; font: 9px var(--font-mono); }
+.campaign-cartouche strong { text-transform: uppercase; letter-spacing: .07em; }
+.campaign-cartouche span { font-size: 8px; opacity: .85; }
+.camp-workspace .camp-route { stroke: #607d6c; stroke-width: .22; stroke-dasharray: .7 .6; }
+.camp-workspace .camp-route.open { stroke: #326c61; stroke-width: .38; }
+@media (max-width: 640px) {
+  .campaign-cartouche span { display: none; }
+}
+@media (forced-colors: active) {
+  .camp-map .campaign-geography { opacity: .2; }
+  .camp-map .campaign-anchor { fill: Canvas; stroke: CanvasText; }
+  .camp-map .campaign-label-leader { stroke: CanvasText; }
+  .camp-map .campaign-cartouche { color: CanvasText; background: Canvas; }
+}

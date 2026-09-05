@@ -19,6 +19,7 @@
 .camp .company-workshop-ledger dt { color: var(--exp-muted); font-size: 10px; margin-bottom: 3px; }
 .camp .company-workshop-ledger dd { margin: 0; color: var(--exp-ink); font: 600 15px var(--font-mono); }
 .camp .company-workshop > .ledger-note { margin: 0 0 18px; line-height: 1.6; }
+.company-inspection-status { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 .camp .company-workshop .company-workshop-machines { display: grid; gap: 12px; }
 .camp .company-workshop .company-workshop-machine {
   display: grid;

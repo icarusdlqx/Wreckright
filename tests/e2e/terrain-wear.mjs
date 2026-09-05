@@ -337,12 +337,12 @@ export async function runTerrainWearChecks({ browser, url, shots, check }) {
     );
 
     const lowBudget = await recordedLowFxBudget(page);
-    // Normal zoom uploads four surface pieces on each of three visible machines.
-    // Low FX hides those twelve resident geometries; draw calls and triangles stay fixed.
+    // Measure residency after the reconstructed machines and full-quality scenery
+    // have rendered. Low FX hides optional geometry without adding terrain draws.
     check(
       'low-FX Causeway retains its draw budget with bounded resident surface geometry',
       lowBudget.calls === 19 && lowBudget.triangles === 51_956 &&
-        lowBudget.geometries === 224 && lowBudget.textures === 3,
+        lowBudget.geometries === 250 && lowBudget.textures === 3,
       JSON.stringify(lowBudget),
     );
     await page.evaluate(() => globalThis.__wreckright.engine.renderer.setLowFx(false));

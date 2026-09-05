@@ -9,18 +9,18 @@
     "wind": { "x": 0.15, "y": 0.05 }
   },
   "sky": "#0c0705",
-  "exposure": 0.96,
+  "exposure": 1.12,
   "fog": { "kind": "linear", "colour": "#20120c", "near": 800, "far": 2600 },
   "sun": {
     "colour": "#ff9a52",
-    "intensity": 0.85,
+    "intensity": 1.45,
     "direction": { "azimuthDegrees": 200, "elevationDegrees": 16, "distance": 1300 }
   },
   "fill": {
-    "colour": "#6a7ea0",
-    "intensity": 0.24,
+    "colour": "#9aabc7",
+    "intensity": 0.68,
     "direction": { "azimuthDegrees": 20, "elevationDegrees": 30, "distance": 1000 }
   },
-  "hemisphere": { "sky": "#c08a66", "ground": "#2d1f18", "intensity": 0.52 },
-  "terrainTint": { "colour": "#5b311d", "strength": 0.24 }
+  "hemisphere": { "sky": "#d1ae8b", "ground": "#4d4941", "intensity": 1.04 },
+  "terrainTint": { "colour": "#96795b", "strength": 0.1 }
 }

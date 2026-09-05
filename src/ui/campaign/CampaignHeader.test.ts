@@ -33,7 +33,7 @@ describe('campaign command header', () => {
     for (const action of ['save', 'load', 'export', 'import', 'campaigns', 'restart']) {
       expect(files).toContain(`data-testid="camp-${action}"`);
     }
-    for (const id of ['camp-manual-toggle', 'campaign-mute-button', 'camp-exit', 'feedback-link']) {
+    for (const id of ['camp-manual-toggle', 'campaign-mute-button', 'audio-settings', 'camp-exit', 'feedback-link']) {
       expect(markup).toContain(`data-testid="${id}"`);
       expect(files).not.toContain(`data-testid="${id}"`);
     }

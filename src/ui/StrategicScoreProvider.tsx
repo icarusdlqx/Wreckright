@@ -7,12 +7,11 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from 'react';
-import { readAudioMuted } from './audioPreference';
+import { readAudioMuted, subscribeAudioPreferences, writeAudioMuted } from './audioPreference';
 import { StrategicScoreDirector, type StrategicScoreLease } from './audioStrategic';
 import type { StrategicScoreSurface } from './audioScoreTreatments';
 
 const StrategicScoreContext = createContext<StrategicScoreDirector | null>(null);
-const emptySubscribe = (): (() => void) => () => undefined;
 
 export function StrategicScoreProvider({ children }: { children: ReactNode }) {
   const [director] = useState(() => new StrategicScoreDirector());
@@ -59,13 +58,17 @@ export function useStrategicScoreControls(): {
 } {
   const director = useContext(StrategicScoreContext);
   const muted = useSyncExternalStore(
-    director?.subscribe ?? emptySubscribe,
-    () => director?.muted ?? readAudioMuted(),
+    subscribeAudioPreferences,
+    readAudioMuted,
     readAudioMuted,
   );
   return {
     muted,
     prepare: () => director?.prepare(),
-    toggleMuted: () => director?.toggleMuted() ?? readAudioMuted(),
+    toggleMuted: () => {
+      const next = !readAudioMuted();
+      writeAudioMuted(next);
+      return next;
+    },
   };
 }

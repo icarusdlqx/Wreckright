@@ -2,6 +2,7 @@ import { createFootContactState, type FootContactState } from './footContact';
 import type { LegPose } from './legMotion';
 import { gaitForTerrain, type GaitProfile } from './terrainGait';
 import type { TerminalMotionState } from './terminalMotion';
+import { createContactCueState, type ContactCueState } from './locomotionContact';
 
 export interface AnimationState {
   phase: number;
@@ -29,6 +30,9 @@ export interface AnimationState {
   stumbleRemaining: number;
   stumbleSide: -1 | 0 | 1;
   terminal: TerminalMotionState;
+  contactCue: ContactCueState;
+  weightSettle: number;
+  wasMoving: boolean;
 }
 
 export function createAnimationState(): AnimationState {
@@ -61,5 +65,8 @@ export function createAnimationState(): AnimationState {
     stumbleRemaining: 0,
     stumbleSide: 0,
     terminal: { fall: 0, landed: false, destroyed: false },
+    contactCue: createContactCueState(),
+    weightSettle: 0,
+    wasMoving: false,
   };
 }

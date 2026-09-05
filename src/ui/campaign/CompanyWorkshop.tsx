@@ -1,20 +1,35 @@
+import { useState } from 'react';
 import { rebuildHulk } from '../../campaign/refit';
 import { dailyPayroll, payrollThrough } from '../../campaign/ledger';
 import { estimateRepair, projectedRepairWindow, repairQueue, startRepair } from '../../campaign/repair';
 import { isMechAvailable } from '../../campaign/types';
 import { mechIntegrity } from '../../campaign/integrity';
 import { getCatalog } from '../../schema/load';
-import { authoredDesignName } from '../designLabel';
+import { authoredDesignName, machineDisplayName } from '../designLabel';
 import { workshopFactionLine } from './factionEconomy';
 import { MachineIdentity, RepairReadout } from './MachineIdentity';
 import { cbills, type PanelProps } from './Panels';
 import './companyWorkshop.css';
+import { SelectedMachineShowcase } from './SelectedMachineShowcase';
 
 const catalog = getCatalog();
 
-export type MechBayPanelProps = PanelProps & { onRefit?: (mechId: string) => void };
+export type MechBayPanelProps = PanelProps & { onRefit?: (mechId: string) => void; previewActive?: boolean };
 
-export function MechBayPanel({ state, mutate, onRefit }: MechBayPanelProps) {
+/** On stacked layouts the inspected machine is above the roster; keep keyboard focus on its order. */
+export function revealInspectedMachine(source: Pick<HTMLElement, 'ownerDocument' | 'closest'>): void {
+  const view = source.ownerDocument.defaultView;
+  if (view === null || typeof view.matchMedia !== 'function'
+    || !view.matchMedia('(max-width: 640px), (max-width: 1100px) and (pointer: coarse)').matches) return;
+  const showcase = source.closest('.company-workshop-floor')?.querySelector('[data-testid="camp-selected-machine"]');
+  const reduced = view.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  showcase?.scrollIntoView({ block: 'start', behavior: reduced ? 'instant' : 'smooth' });
+}
+
+export function MechBayPanel({ state, mutate, onRefit, previewActive = false }: MechBayPanelProps) {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [inspectionStatus, setInspectionStatus] = useState('');
+  const selected = state.mechs.find((mech) => mech.id === selectedId) ?? state.mechs[0];
   const payroll = dailyPayroll(catalog, state);
   const bayCapacity = catalog.rules.economy.repair.bayCapacity;
   const bayDescription = `${bayCapacity === 1 ? 'One lift works' : `${bayCapacity} lifts work`} through the queue in order.`;
@@ -34,7 +49,11 @@ export function MechBayPanel({ state, mutate, onRefit }: MechBayPanelProps) {
         {bayDescription} Workshop bills are paid up front; the {cbills(payroll)} daily
         payroll continues while work is booked.
       </p>
-      <ul className="company-workshop-machines">
+      <p className="company-inspection-status" role="status" aria-live="polite" aria-atomic="true"
+        data-testid="camp-inspection-status">{inspectionStatus}</p>
+      <div className="company-workshop-floor">
+      {selected === undefined ? null : <SelectedMachineShowcase catalog={catalog} mech={selected} active={previewActive} />}
+      <ul className="company-workshop-machines" aria-label="Company machines and workshop orders">
         {state.mechs.map((mech) => {
           const estimate = estimateRepair(catalog, mech);
           const chassis = catalog.chassis.get(mech.design.chassisId);
@@ -63,7 +82,7 @@ export function MechBayPanel({ state, mutate, onRefit }: MechBayPanelProps) {
                   : `queued ${booking?.queuePosition ?? 1} · starts day ${booking?.startsOnDay ?? state.day} · ready day ${mech.readyOnDay}`;
           const shortfall = Math.max(0, estimate.cost - state.cbills);
           return (
-            <li key={mech.id} className="company-workshop-machine" data-testid={`camp-mech-${mech.id}`}>
+            <li key={mech.id} className="company-workshop-machine" data-selected={selected?.id === mech.id} data-testid={`camp-mech-${mech.id}`}>
               <div className="company-workshop-identity">
                 <MachineIdentity catalog={catalog} design={mech.design} />
                 {chassis === undefined ? null : (
@@ -87,6 +106,12 @@ export function MechBayPanel({ state, mutate, onRefit }: MechBayPanelProps) {
                 ) : null}
               </div>
               <div className="company-workshop-actions">
+                <button type="button" aria-pressed={selected?.id === mech.id} onClick={(event) => {
+                  setSelectedId(mech.id);
+                  setInspectionStatus(`Inspecting ${machineDisplayName(catalog, mech.design)}. Current equipment and condition shown.`);
+                  revealInspectedMachine(event.currentTarget);
+                }}
+                  data-testid={`camp-inspect-${mech.id}`}>Inspect</button>
                 {mech.status === 'hulk' ? (
                   <button
                     type="button"
@@ -136,6 +161,7 @@ export function MechBayPanel({ state, mutate, onRefit }: MechBayPanelProps) {
           );
         })}
       </ul>
+      </div>
     </section>
   );
 }

@@ -6,6 +6,7 @@ import { chromium } from 'playwright';
 const browser = await chromium.launch({
   headless: true,
   executablePath: process.env.CHROMIUM_PATH || undefined,
+  args: ['--mute-audio', '--use-gl=swiftshader', '--enable-unsafe-swiftshader'],
 });
 const shots = process.env.SHOT_DIR ?? './reports/standalone';
 await mkdir(shots, { recursive: true });

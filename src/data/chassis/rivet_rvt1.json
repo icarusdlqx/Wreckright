@@ -1,0 +1,104 @@
+{
+  "id": "rivet_rvt1",
+  "name": "Rivet",
+  "faction": "linewrought",
+  "frame": "mech",
+  "class": "medium",
+  "tonnage": 45,
+  "baseCost": 3450000,
+  "engineRating": 225,
+  "internalHeatSinks": 10,
+  "jumpCapable": false,
+  "hardpoints": {
+    "head": {
+      "energy": 0,
+      "ballistic": 0,
+      "missile": 0,
+      "slots": 1,
+      "size": 1
+    },
+    "centre_torso": {
+      "energy": 1,
+      "ballistic": 0,
+      "missile": 0,
+      "slots": 2,
+      "size": 2
+    },
+    "left_torso": {
+      "energy": 0,
+      "ballistic": 0,
+      "missile": 1,
+      "slots": 6,
+      "size": 2
+    },
+    "right_torso": {
+      "energy": 0,
+      "ballistic": 1,
+      "missile": 0,
+      "slots": 6,
+      "size": 2
+    },
+    "left_arm": {
+      "energy": 0,
+      "ballistic": 0,
+      "missile": 1,
+      "slots": 3,
+      "size": 2
+    },
+    "right_arm": {
+      "energy": 0,
+      "ballistic": 1,
+      "missile": 0,
+      "slots": 4,
+      "size": 3
+    },
+    "left_leg": {
+      "energy": 0,
+      "ballistic": 0,
+      "missile": 0,
+      "slots": 2,
+      "size": 1
+    },
+    "right_leg": {
+      "energy": 0,
+      "ballistic": 0,
+      "missile": 0,
+      "slots": 2,
+      "size": 1
+    }
+  },
+  "armourMax": {
+    "head": 16,
+    "centre_torso": 68,
+    "left_torso": 50,
+    "right_torso": 50,
+    "left_arm": 32,
+    "right_arm": 32,
+    "left_leg": 46,
+    "right_leg": 46
+  },
+  "internals": {
+    "head": 6,
+    "centre_torso": 35,
+    "left_torso": 22,
+    "right_torso": 22,
+    "left_arm": 15,
+    "right_arm": 15,
+    "left_leg": 22,
+    "right_leg": 22
+  },
+  "silhouette": {
+    "form": "brawler",
+    "torsoLength": 1.04,
+    "torsoWidth": 1.08,
+    "shoulder": 1.18,
+    "legLength": 0.92,
+    "stance": 1.1
+  },
+  "role": "Convoy guard",
+  "summary": "A medium escort with a workhorse cannon, short-range racks and protected bins. Built to keep walking beside something slower.",
+  "lore": "Sarn wrote the first Rivet conversion against a freight guarantee, not a military order. The surviving root could carry a better engine, but the carrier wanted a cannon it could feed and legs that could finish a shift damaged. The right gun cradle and left rack do not balance on the gantry; the counterweight is armour and the workshop keeps its measurements beside the root collar. Crews value the missile screen. The freight office values a machine that can stand between a stopped hauler and the reason it stopped.",
+  "traits": [
+    "reinforced_legs"
+  ]
+}

@@ -142,6 +142,17 @@ export class SmokeLayer {
     this.commit();
   }
 
+  /** Follow a visible falling wreck without restarting its keyed smoke cycle. */
+  followAnchors(resolve: (key: number, out: Vector3) => boolean): void {
+    if (this.disposed || this.mesh.count === 0) return;
+    for (const column of this.columns) {
+      if (!column.active || column.key === null || !resolve(column.key, AT)) continue;
+      column.x = AT.x; column.z = AT.z; column.ground = AT.y - 6;
+      this.drawColumn(column, Math.ceil(PUFFS * (1 - column.elapsed / SMOKE_SECONDS)));
+    }
+    this.commit();
+  }
+
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;

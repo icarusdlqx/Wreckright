@@ -1,0 +1,44 @@
+.company-workshop-floor { display: grid; grid-template-columns: minmax(320px, .9fr) minmax(0, 1.1fr); gap: 20px; align-items: start; }
+.selected-machine-showcase { grid-column: 2; grid-row: 1; position: sticky; top: 16px; min-width: 0; overflow: hidden; border: 1px solid #436465; border-radius: 6px; background: #193b42; color: #f3f0e7; }
+.selected-machine-showcase header { padding: 24px 26px 0; position: relative; z-index: 1; }
+.selected-machine-showcase header p { color: #bdd0bc; font: 10px var(--font-mono); text-transform: uppercase; letter-spacing: .12em; margin: 0 0 8px; }
+.camp .selected-machine-showcase header h3 { color: #f3f0e7; font: 600 44px/.95 var(--font-display); margin: 0 0 9px; }
+.selected-machine-showcase header > span { color: #c6d7c7; font-size: 12px; }
+.selected-machine-stage { height: clamp(320px, 40vw, 485px); position: relative; isolation: isolate; background: radial-gradient(ellipse at 50% 42%, #52746755, transparent 66%); }
+.selected-machine-stage::before { content: ''; position: absolute; inset: 12% 5%; z-index: -1; border: 1px solid #b7cfb713; background: linear-gradient(90deg, transparent 49.9%, #bad4c416 50%, transparent 50.1%), linear-gradient(transparent 49.9%, #bad4c416 50%, transparent 50.1%); }
+.selected-machine-stage .mech-preview { width: 100%; height: 100%; min-height: 0; position: relative; }
+.selected-machine-stage > .chassis-silhouette { width: 100%; height: 100%; max-height: none; padding: 35px; }
+.showcase-stage-caption { position: absolute; bottom: 14px; left: 20px; right: 65px; color: #bdd0bd; font: 9px/1.5 var(--font-mono); }
+.showcase-scale { position: absolute; bottom: 12px; right: 20px; color: #b7cbb8; font: 26px var(--font-display); }
+.showcase-loadout { padding: 20px 26px; background: #122e3580; border-top: 1px solid #6e8d7740; }
+.camp .showcase-loadout h4 { color: #c9d5c0; margin: 0 0 12px; font: 11px var(--font-mono); text-transform: uppercase; letter-spacing: .09em; }
+.camp .showcase-loadout ul { padding: 0; margin: 0; list-style: none; display: grid; gap: 0; }
+.camp .showcase-loadout li { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 7px 0; border: 0; border-bottom: 1px solid #a0b6a321; background: transparent; color: #f3f0e7; font-size: 12px; }
+.showcase-loadout li strong { color: #d69469; font: 12px var(--font-mono); }
+.showcase-loadout p { color: #d1decd; font-size: 12px; }
+.showcase-loadout .showcase-note { margin: 17px 0 0; color: #aabfac; font-size: 10px; line-height: 1.6; }
+.camp .company-workshop-floor > .company-workshop-machines { grid-row: 1; grid-column: 1; margin: 0; min-width: 0; }
+.camp .company-workshop-floor .company-workshop-machine { grid-template-columns: minmax(0, 1fr); gap: 13px; padding: 18px; }
+.camp .company-workshop-floor .company-workshop-machine[data-selected='true'] { border-color: var(--exp-teal); box-shadow: inset 3px 0 var(--exp-teal); background: #edf1e5; }
+.camp .company-workshop-floor .company-workshop-identity { grid-template-columns: minmax(0, 1fr); }
+.camp .company-workshop-floor .company-workshop-actions { grid-column: auto; flex-direction: row; flex-wrap: wrap; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--exp-line); padding-top: 12px; }
+.camp .company-workshop-floor .company-workshop-actions button:first-child { margin-right: auto; background: transparent; }
+.camp .company-workshop-floor .company-workshop-actions button[aria-pressed='true'] { border-color: var(--exp-teal); color: var(--exp-teal); }
+@media (max-width: 900px) {
+  .company-workshop-floor { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+  .selected-machine-showcase header { padding: 20px 18px 0; }
+  .camp .selected-machine-showcase header h3 { font-size: 36px; }
+  .showcase-loadout { padding: 18px; }
+}
+@media (max-width: 640px), (max-width: 1100px) and (pointer: coarse) {
+  .company-workshop-floor { grid-template-columns: minmax(0, 1fr); }
+  .selected-machine-showcase { position: relative; top: auto; grid-column: 1; grid-row: 1; }
+  .camp .company-workshop-floor > .company-workshop-machines { grid-row: 2; }
+  .selected-machine-stage { height: 320px; }
+  .camp .company-workshop-floor .company-workshop-actions button { min-height: 44px; }
+}
+@media (forced-colors: active) {
+  .selected-machine-showcase, .showcase-loadout { background: Canvas; color: CanvasText; border-color: CanvasText; }
+  .selected-machine-showcase :is(p, h3, h4, span, li, strong) { color: CanvasText !important; }
+  .camp .company-workshop-floor .company-workshop-machine[data-selected='true'] { outline: 2px solid Highlight; }
+}

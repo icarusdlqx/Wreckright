@@ -37,6 +37,8 @@ describe('chassis motion profiles', () => {
     expect(assault.bob).toBeLessThan(light.bob);
     expect(assault.response).toBeLessThan(light.response);
     expect(assault.lean).toBeGreaterThan(light.lean);
+    expect(assault.settleSeconds).toBeGreaterThan(light.settleSeconds);
+    expect(assault.braceScale).toBeGreaterThan(light.braceScale);
   });
 
   it('derives the leg arc from the ground-adjusted stride', () => {

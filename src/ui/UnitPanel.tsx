@@ -5,6 +5,8 @@ import { PaperDoll } from './PaperDoll';
 import { getCatalog } from '../schema/load';
 import { selectedUnit, useGame } from './store';
 import { TacticalReadout } from './TacticalReadout';
+import { selectionReadiness } from './selectionReadiness';
+import './tacticalWorkspace.css';
 
 
 /** A trait's painted name; the id only if the rules no longer know it. */
@@ -25,6 +27,7 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
       : [...state.units, ...state.enemies].find((candidate) => candidate.id === preview.targetId)
           ?.name ?? preview.targetName;
   const playerControlled = unit !== null && unit.team === state.playerTeam && unit.alive;
+  const readiness = unit === null ? null : selectionReadiness(unit);
 
   const onSelectLocation = (location: MechLocation): void => {
     state.setCalledShotLocation(location);
@@ -33,7 +36,7 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
 
   return (
     <aside
-      className={compact ? 'mobile-unit-panel' : 'sidebar'}
+      className={`${compact ? 'mobile-unit-panel' : 'sidebar'} tactical-unit-panel`}
       data-testid={compact ? 'mobile-unit-panel' : 'sidebar'}
     >
       {unit === null ? (
@@ -42,6 +45,7 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
         </p>
       ) : (
         <>
+          <p className="selection-kicker">{unit.team === state.playerTeam ? 'Selected company machine' : 'Observed hostile machine'}</p>
           <h2>
             {unit.pilotName}
             <small>{unit.identity}</small>
@@ -56,6 +60,8 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
               ))}
             </p>
           ) : null}
+          {readiness === null ? null : <div className={`selection-readiness ${readiness.tone}`}><span>{readiness.label}</span><strong>{unit.tonnage}t</strong></div>}
+          <p className="unit-system-label">Armour &amp; structure <span>front / rear / internal</span></p>
           <PaperDoll
             locations={unit.locations}
             {...(playerControlled ? { onSelectLocation } : {})}
@@ -88,6 +94,7 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
               ))}
             </div>
           )}
+          <p className="unit-system-label">Weapon groups <span>range · ammunition</span></p>
           <WeaponGroups
             unit={unit}
             playerTeam={state.playerTeam}

@@ -1,0 +1,101 @@
+{
+  "baselineCommit": "762de23440f6b08f4f9bca15034706d3984a227c",
+  "note": "Unmodified PNG capture files; no image processing or re-encoding. After captures are the working-tree Ironwork & Monolith review, not a release declaration.",
+  "modelCaptureSettings": {
+    "width": 960,
+    "height": 800,
+    "tacticalSpan": 140,
+    "detailSpan": 90,
+    "target": [
+      0,
+      30,
+      0
+    ],
+    "normal": [
+      1,
+      0.62,
+      1
+    ],
+    "elevated": [
+      1,
+      1.4142135623730951,
+      1
+    ],
+    "rear": [
+      -1,
+      0.62,
+      -1
+    ],
+    "teamColour": 8959930,
+    "background": 15986919,
+    "ground": 15066326
+  },
+  "files": [
+    {
+      "file": "gadfly-before.png",
+      "source": "reports/mechs-before/linewrought-hornet_hnt2-detail-normal-loaded.png",
+      "bytes": 38291,
+      "sha256": "f21b523d6c1eaf914e328bafb3c66e4d330d855ff155eb51830265e9086eb77a"
+    },
+    {
+      "file": "gadfly-after.png",
+      "source": "reports/mechs-after/linewrought-hornet_hnt2-detail-normal-loaded.png",
+      "bytes": 36867,
+      "sha256": "28294ecf9cdd5704fee3b9fe2982333bf8df85dc2b051139ad9bb7e5f806ee58"
+    },
+    {
+      "file": "sentinel-before.png",
+      "source": "reports/mechs-before/aurelian-sentinel_snl2-detail-normal-loaded.png",
+      "bytes": 34841,
+      "sha256": "79b9767f571312a11b4908578b8c67e4cea64630eee4586b8854f68c17a22077"
+    },
+    {
+      "file": "sentinel-after.png",
+      "source": "reports/mechs-after/aurelian-sentinel_snl2-detail-normal-loaded.png",
+      "bytes": 34503,
+      "sha256": "576eaacc6d28404efe16a6e529a7362e5761ad7e231db69f9a529b92e244d23f"
+    },
+    {
+      "file": "causeway-before.png",
+      "source": "reports/landscapes-before/causeway.png",
+      "bytes": 216576,
+      "sha256": "ab917a70e9020f7dec7b53f1f4027dbdbd672462b5e87c2c63d0a57ec2f00e76"
+    },
+    {
+      "file": "causeway-after.png",
+      "source": "reports/landscapes-after/causeway.png",
+      "bytes": 297347,
+      "sha256": "93f5af84983b6fc1546a09bd7e48a21bc085d14a5df08e5aa19aec5a669e1943"
+    },
+    {
+      "file": "operations.png",
+      "source": "reports/ironwork-ui-review/ironwork-operations.png",
+      "bytes": 282992,
+      "sha256": "9df8eed457dfce780fe0b3e9f69836a66f58b4b4e1e33e4f51ff0e11c068bdf9"
+    },
+    {
+      "file": "workshop-viewport.png",
+      "source": "reports/ironwork-ui-review/ironwork-workshop-viewport.png",
+      "bytes": 174635,
+      "sha256": "b53664936d922132cf5f2031e38c9cd5923684ef12993aa1a7992dfe9187eb59"
+    },
+    {
+      "file": "workshop-layout.png",
+      "source": "reports/ironwork-ui-review/ironwork-workshop-layout.png",
+      "bytes": 174786,
+      "sha256": "f9f1f22be1a2848444c48bbd0220e6c5772bd44406277571ff04afd93bf2f79b"
+    },
+    {
+      "file": "energy-contact.png",
+      "source": "reports/combat-motion-review/57-sentinel_snl2-energy-facing-contact.png",
+      "bytes": 48779,
+      "sha256": "5513994f8fb1ba6f2cecf61d772e99a3afdc164ccd296bdca78f652f0bac6cfa"
+    },
+    {
+      "file": "settled-wreck.png",
+      "source": "reports/combat-motion-review/38-sentinel_snl2-terminal-settled.png",
+      "bytes": 28515,
+      "sha256": "34aaad0d51aeab2933f454ada3f21e65d1f31e8441c63dec2761cd7d5dcce263"
+    }
+  ]
+}

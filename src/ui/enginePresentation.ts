@@ -1,3 +1,4 @@
+import { Vector3 } from 'three';
 import { KILLING_BLOW_SECONDS } from '../render3d/camera';
 import { machineCulture } from '../render3d/machineCulture';
 import type { RouteMarkerLeg, RouteMarkerView } from '../render3d/routeMarkerTypes';
@@ -25,6 +26,7 @@ import { snapshotUnits } from './snapshot';
 import { useGame, type HitPreviewView } from './store';
 
 const MAX_QUEUED_ROUTE_MARKERS = 8;
+const HOT_VENT = new Vector3();
 
 function copyPoint(point: Vec2): Vec2 {
   return { x: point.x, y: point.y };
@@ -163,7 +165,7 @@ export class EnginePresentation {
     this.renderer.consumeEvents(this.world, events);
     this.beginKillingBlow(events);
     this.incomingFire?.consume(this.world, events, useGame.getState().selection);
-    this.audio.listenAt = this.renderer.camera.target;
+    this.audio.setListener(this.renderer.camera.target, this.renderer.camera.azimuth, this.renderer.camera.distance);
     this.audio.consume(
       this.world,
       events,
@@ -198,8 +200,7 @@ export class EnginePresentation {
       // steam off the vents is how a player reads "that one is about to shut
       // down" while looking at the fight rather than at a bar.
       if (entity.heat > entity.heatCapacity * 0.62) {
-        const vent = this.renderer.positionOf(entity.id);
-        if (vent !== null) this.renderer.spawnSmoke(vent);
+        if (this.renderer.ventOf(entity.id, HOT_VENT)) this.renderer.spawnVentSteam(HOT_VENT);
       }
 
       const faction = this.world.catalog.chassis.get(entity.chassisId)?.faction ?? 'linewrought';

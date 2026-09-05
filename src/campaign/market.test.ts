@@ -201,8 +201,8 @@ describe('the yard', () => {
         .map((chassis) => chassis?.class),
     );
 
-    // The yard has no Linewrought medium mech to sell. It still shows every
-    // class it can source before a heavier class gets the spare fourth slot.
+    // A complete walker ladder gives every weight class a place on the lot,
+    // rather than letting a second heavy crowd out an affordable medium.
     for (let week = 0; week < 8; week += 1) {
       const classes = marketListings(catalog, state).map(
         (entry) => catalog.chassis.get(entry.design.chassisId)?.class,

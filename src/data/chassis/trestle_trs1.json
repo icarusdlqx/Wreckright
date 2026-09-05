@@ -1,0 +1,104 @@
+{
+  "id": "trestle_trs1",
+  "name": "Trestle",
+  "faction": "linewrought",
+  "frame": "mech",
+  "class": "medium",
+  "tonnage": 55,
+  "baseCost": 4250000,
+  "engineRating": 250,
+  "internalHeatSinks": 10,
+  "jumpCapable": false,
+  "hardpoints": {
+    "head": {
+      "energy": 0,
+      "ballistic": 0,
+      "missile": 0,
+      "slots": 1,
+      "size": 1
+    },
+    "centre_torso": {
+      "energy": 0,
+      "ballistic": 1,
+      "missile": 0,
+      "slots": 4,
+      "size": 1
+    },
+    "left_torso": {
+      "energy": 0,
+      "ballistic": 0,
+      "missile": 1,
+      "slots": 6,
+      "size": 2
+    },
+    "right_torso": {
+      "energy": 0,
+      "ballistic": 0,
+      "missile": 1,
+      "slots": 6,
+      "size": 2
+    },
+    "left_arm": {
+      "energy": 0,
+      "ballistic": 1,
+      "missile": 0,
+      "slots": 4,
+      "size": 3
+    },
+    "right_arm": {
+      "energy": 1,
+      "ballistic": 0,
+      "missile": 1,
+      "slots": 3,
+      "size": 2
+    },
+    "left_leg": {
+      "energy": 0,
+      "ballistic": 0,
+      "missile": 0,
+      "slots": 2,
+      "size": 1
+    },
+    "right_leg": {
+      "energy": 0,
+      "ballistic": 0,
+      "missile": 0,
+      "slots": 2,
+      "size": 1
+    }
+  },
+  "armourMax": {
+    "head": 16,
+    "centre_torso": 72,
+    "left_torso": 54,
+    "right_torso": 54,
+    "left_arm": 30,
+    "right_arm": 30,
+    "left_leg": 52,
+    "right_leg": 52
+  },
+  "internals": {
+    "head": 6,
+    "centre_torso": 40,
+    "left_torso": 25,
+    "right_torso": 25,
+    "left_arm": 17,
+    "right_arm": 17,
+    "left_leg": 27,
+    "right_leg": 27
+  },
+  "silhouette": {
+    "form": "squat",
+    "torsoLength": 1.16,
+    "torsoWidth": 1.2,
+    "shoulder": 1.28,
+    "legLength": 0.92,
+    "stance": 1.18
+  },
+  "role": "Field battery",
+  "summary": "Two standoff racks on an open shoulder truss, with a cannon for direct fire. Lighter than a Cairn and much less forgiving under fire.",
+  "lore": "A Trestle wears its repair around the shoulders. Separate launcher bins hang from a bolted crossmember, clear of the old root keel, and a fitter can reach either feed without opening the other. The arrangement came from a quarry walker whose original upper hull could not be recovered. Halloran kept the gun arm for the minutes before a spotter finds a firing lane. The smaller battery follows a moving company more easily than a Cairn, but the foreman paints the same instruction inside every cab: this is not the front rank.",
+  "traits": [
+    "wide_stance"
+  ]
+}

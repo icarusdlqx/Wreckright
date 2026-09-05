@@ -18,8 +18,8 @@ export const HERO_MECH_RENDER: Readonly<MechRenderOptions> = Object.freeze({
   detail: 'hero',
 });
 
-// Four surface pieces per signature chassis remain legible at the normal
-// 470m tactical camera. Full inspection detail still never enters the field.
+// The limited surface fittings remain legible at the normal 470m tactical
+// camera. Full inspection detail still never enters the field.
 export const SURFACE_DETAIL_ENTER_DISTANCE = 520;
 export const SURFACE_DETAIL_LEAVE_DISTANCE = 580;
 
@@ -39,4 +39,12 @@ export function battlefieldDetailForDistance(
 export function includesDetail(level: ModelDetail, wanted: BlueprintDetail): boolean {
   const rank: Record<ModelDetail, number> = { structure: 0, surface: 1, hero: 2 };
   return rank[wanted] <= rank[level];
+}
+/** Storage is optional in an embedded or private browsing session. */
+export function readLowFx(): boolean {
+  try {
+    return localStorage.getItem('ironline.lowfx') === '1';
+  } catch {
+    return false;
+  }
 }

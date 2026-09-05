@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import type { CampaignPersistenceState } from '../../campaign/save';
 import { CommandMark } from '../CommandMark';
+import { AudioSettings } from '../AudioSettings';
 import { usePlaytest } from '../playtest';
 import { CampaignRecoveryNotice } from './CampaignRecoveryNotice';
 import { CampaignRestartDialog } from './CampaignRestartDialog';
@@ -148,6 +149,7 @@ export function CampaignHeader({
               title={muted ? 'Sound is off' : 'Sound is on'} data-testid="campaign-mute-button">
               {muted ? 'Sound off' : 'Sound on'}
             </button>
+            <AudioSettings compact />
             <button type="button" onClick={onExit} data-testid="camp-exit">Home</button>
             <button type="button" className="pause feedback-link" onClick={openFeedback}
               title="Something broken, unfair, or missing? Tell the builders."
