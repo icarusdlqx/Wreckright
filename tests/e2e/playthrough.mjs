@@ -775,27 +775,51 @@ async function main() {
       JSON.stringify(arrowShifts.ArrowDown),
     );
 
-    const centreError = async () =>
-      page.evaluate(() => {
+    // Keep camera dispatch separate from live combat and the map-edge clamp:
+    // a correctly centred edge unit can legitimately remain off the target.
+    const centreFixture = await page.evaluate(() => {
+      const { engine, useGame, world } = globalThis.__wreckright;
+      const state = useGame.getState();
+      const unit = world.entities.find((entity) => entity.team === state.playerTeam &&
+        !entity.destroyed && !entity.withdrawn && !entity.pilot.dead && !entity.pilot.ejected);
+      if (unit === undefined) throw new Error('camera fixture needs an operational friendly');
+      const camera = engine.renderer.camera;
+      const saved = {
+        id: unit.id, pos: { ...unit.pos }, selection: [...state.selection], paused: state.paused,
+        cameraTarget: { ...camera.target }, tick: world.tick,
+      };
+      const expected = {
+        x: world.terrain.width * world.terrain.tileSize / 2,
+        y: world.terrain.height * world.terrain.tileSize / 2,
+      };
+      engine.setPaused(true);
+      Object.assign(unit.pos, expected);
+      useGame.getState().setSelection([unit.id]);
+      camera.centreOn({ x: expected.x * 0.6, y: expected.y * 0.6 });
+      return { ...saved, expected, start: { ...camera.target }, minimumTravel: world.terrain.tileSize };
+    });
+    try {
+      await page.locator('[data-testid="centre-selection"]').click();
+      const buttonCentre = await page.evaluate(({ expected }) => {
+        const { engine, world } = globalThis.__wreckright;
+        const target = { ...engine.renderer.camera.target };
+        return { target, tick: world.tick, error: Math.hypot(target.x - expected.x, target.y - expected.y) };
+      }, centreFixture);
+      check('centre button finds the selection',
+        Math.hypot(centreFixture.start.x - centreFixture.expected.x,
+          centreFixture.start.y - centreFixture.expected.y) > centreFixture.minimumTravel &&
+          buttonCentre.error < 0.01 && buttonCentre.tick === centreFixture.tick,
+        JSON.stringify({ fixture: centreFixture, result: buttonCentre }));
+    } finally {
+      await page.evaluate((saved) => {
         const { engine, useGame, world } = globalThis.__wreckright;
-        const selected = new Set(useGame.getState().selection);
-        const units = world.entities.filter((entity) => selected.has(entity.id));
-        const sum = units.reduce(
-          (point, entity) => ({ x: point.x + entity.pos.x, y: point.y + entity.pos.y }),
-          { x: 0, y: 0 },
-        );
-        const expected = { x: sum.x / units.length, y: sum.y / units.length };
-        return {
-          error: Math.hypot(
-            engine.renderer.camera.target.x - expected.x,
-            engine.renderer.camera.target.y - expected.y,
-          ),
-          tolerance: world.terrain.tileSize * 4,
-        };
-      });
-    await page.locator('[data-testid="centre-selection"]').click();
-    const buttonCentre = await centreError();
-    check('centre button finds the selection', buttonCentre.error < buttonCentre.tolerance);
+        const unit = world.entities.find((entity) => entity.id === saved.id);
+        if (unit !== undefined) Object.assign(unit.pos, saved.pos);
+        useGame.getState().setSelection(saved.selection);
+        engine.renderer.camera.centreOn(saved.cameraTarget);
+        engine.setPaused(saved.paused);
+      }, centreFixture);
+    }
 
     process.stdout.write('\nfog of war\n');
     const fog = await sim(page);
