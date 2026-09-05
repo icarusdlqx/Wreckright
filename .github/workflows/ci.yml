@@ -78,8 +78,9 @@ jobs:
   browser:
     name: Browser playthrough
     runs-on: ubuntu-latest
-    # The complete software-rendered playthrough needs room for runner cleanup.
-    timeout-minutes: 30
+    # Software rendering reached check 644/682 at 30 minutes; allow the final
+    # tablet journey and browser cleanup to finish with bounded headroom.
+    timeout-minutes: 35
     steps:
       - name: Check out source
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
