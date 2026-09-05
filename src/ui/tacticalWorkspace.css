@@ -1,0 +1,37 @@
+/* Keep the battlefield visible while preserving every detailed control in its panel. */
+.app .sidebar.tactical-unit-panel { border-radius: 5px; padding: 14px; box-shadow: 0 9px 30px #061a2360; }
+.tactical-unit-panel .selection-kicker { margin: 0 0 7px; color: #acc4b5; font: 9px var(--font-mono); text-transform: uppercase; letter-spacing: .12em; }
+.app .tactical-unit-panel h2 { margin-bottom: 9px; font-size: 25px; }
+.app .tactical-unit-panel .pilot-hand { margin: 7px 0 12px; gap: 7px; }
+.selection-readiness { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; padding: 7px 9px; background: #c5dab010; border: 1px solid #a8c4a929; color: #c8dfbe; font-size: 10px; text-transform: capitalize; }
+.selection-readiness.warn { border-color: #c8a35d88; color: #f0d092; background: #b1904422; }
+.selection-readiness.danger { border-color: #cb806788; color: #fac4a9; background: #b9533f22; }
+.selection-readiness strong { font: 10px var(--font-mono); white-space: nowrap; }
+.tactical-unit-panel .unit-system-label { margin: 11px 0 7px; display: flex; justify-content: space-between; color: #a9c2b1; font: 9px var(--font-mono); text-transform: uppercase; letter-spacing: .06em; }
+.unit-system-label span { text-transform: none; letter-spacing: 0; color: #839f95; }
+.app .tactical-unit-panel .paper-doll { gap: 3px; margin-bottom: 10px; }
+.app .tactical-unit-panel .doll-cell { padding: 4px 2px; }
+.app .tactical-unit-panel .target-line { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 9px 0; border-bottom: 1px solid #a4c4b324; }
+.app .tactical-unit-panel .target-line strong { color: #f1dcba; }
+.app .tactical-unit-panel .hit-factors { margin: 5px 0; gap: 4px; }
+.app .tactical-unit-panel .weapon-group { margin-top: 8px; }
+.app .tactical-unit-panel .weapon-group li { padding: 5px 0; }
+.app .tactical-unit-panel .sidebar-details summary { min-height: 34px; display: flex; align-items: center; justify-content: space-between; padding: 8px 0; cursor: pointer; }
+.app .tactical-unit-panel .sidebar-details summary::after { content: '+'; color: #a8bfae; }
+.app .tactical-unit-panel .sidebar-details[open] > summary::after { content: '−'; }
+.app .tactical-command-deck .camera-lance-row { align-items: stretch; }
+.app .tactical-command-deck .command-support-row { padding: 8px; border: 1px solid #67897b55; border-radius: 5px; background: #102d39f5; box-shadow: 0 8px 22px #04171d40; }
+.app .tactical-command-deck .lance-card { padding: 8px 10px; gap: 4px; }
+.app .tactical-command-deck .lance-card.selected { border-color: #d2d8ad; }
+@media (min-width: 1101px), (min-width: 901px) and (pointer: fine) {
+  .app .sidebar.tactical-unit-panel { max-height: calc(100dvh - 255px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: #557d6a transparent; overscroll-behavior: contain; }
+}
+@media (max-width: 640px), (max-width: 1100px) and (pointer: coarse) {
+  .app .tactical-unit-panel .sidebar-details summary { min-height: 44px; }
+  .app .tactical-unit-panel .doll-cell { min-height: 44px; }
+  .tactical-unit-panel .unit-system-label { font-size: 10px; }
+}
+@media (forced-colors: active) {
+  .selection-readiness, .app .tactical-command-deck .command-support-row { background: Canvas; color: CanvasText; border-color: CanvasText; }
+  .tactical-unit-panel :is(.selection-kicker, .unit-system-label, .unit-system-label span) { color: CanvasText; }
+}

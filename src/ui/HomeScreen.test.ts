@@ -15,6 +15,8 @@ describe('home screen', () => {
     expect(html).toContain('data-testid="home-learn"');
     expect(html).toContain('data-testid="home-campaign"');
     expect(html).toContain('data-testid="home-skirmish"');
+    expect(html).toContain('aria-label="Audio settings"');
+    expect(html).toContain('data-testid="audio-music"');
     expect(html).toContain('WRECKRIGHT');
     expect(html).toContain('No new machines. Only new owners.');
     expect(html).toContain('Learn Command');

@@ -115,7 +115,7 @@ describe('terrain-following locomotion', () => {
     expect(advance(30).knee).toBeCloseTo(advance(144).knee, 10);
   });
 
-  it('gives a sealed machine no bob in motion and an exact idle stance', () => {
+  it('gives a sealed machine no bob in motion and settles to an exact idle stance', () => {
     const { entity, model, locomotion } = walkingHarness(() => 0, 'wisp_scout');
     expect(model.faction).toBe('aurelian');
     locomotion.place(entity, model, { x: 0, y: 0, facing: 0, torso: 0 }, 0, 0.1);
@@ -137,6 +137,11 @@ describe('terrain-following locomotion', () => {
       0,
       0.1,
     );
+    expect(model.legs.every((leg) => Math.abs(leg.knee.rotation.z) < 0.01)).toBe(true);
+    for (let frame = 0; frame < 60; frame += 1) {
+      locomotion.place(entity, model,
+        { x: model.strideLength * 0.4, y: 0, facing: 0, torso: 0.5 }, 0, 1 / 30);
+    }
     expect(model.legs.every((leg) =>
       leg.hip.rotation.z === 0 && leg.knee.rotation.z === 0 && leg.ankle.rotation.z === 0,
     )).toBe(true);
@@ -163,13 +168,15 @@ describe('terrain-following locomotion', () => {
     disposeModel(reduced.model.root);
   });
 
-  it('moves the complete welded frame through recoil and reports its footfall culture', () => {
+  it('absorbs welded recoil through the stance without sliding the root and reports footfall culture', () => {
     const { entity, model, locomotion } = walkingHarness(() => 0, 'hornet_spotter');
     const footfall = vi.fn();
     locomotion.onFootfall = footfall;
     model.hullRecoil.kick = 0.5;
     locomotion.place(entity, model, { x: 0, y: 0, facing: 0, torso: 0 }, 0, 0.1);
-    expect(model.root.position.x).toBe(-0.5);
+    expect(model.root.position.x).toBe(0);
+    expect(model.torso.position.x).toBeLessThan(0);
+    expect(model.legs.some((leg) => leg.knee.rotation.z < 0)).toBe(true);
     for (let step = 1; step < 9; step += 1) {
       locomotion.place(
         entity,
@@ -320,10 +327,9 @@ describe('terrain-following locomotion', () => {
 
     entity.jump = null;
     locomotion.place(entity, model, { x: 90, y: 0, facing: 0, torso: 0 }, 0, 0.1);
-    expect(model.legs.every((leg) =>
-      leg.hip.rotation.z === 0 && leg.knee.rotation.z === 0 && leg.ankle.rotation.z === 0,
-    )).toBe(true);
-    expect(footfall).not.toHaveBeenCalled();
+    expect(model.legs.every((leg) => leg.knee.rotation.z < 0)).toBe(true);
+    expect(footfall).toHaveBeenCalledTimes(2);
+    expect(footfall.mock.calls.every((call) => call[3]?.landing === true)).toBe(true);
     disposeModel(model.root);
   });
 

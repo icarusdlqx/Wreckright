@@ -1,3 +1,4 @@
+import { restartCompany } from './campaign-navigation.mjs';
 import { readFile } from 'node:fs/promises';
 
 export async function runCampaignRecovery({ page, shots, check }) {
@@ -42,7 +43,7 @@ export async function runCampaignRecovery({ page, shots, check }) {
   await page.screenshot({ path: `${shots}/08-save-recovery-touch.png`, fullPage: true });
   await page.setViewportSize({ width: 1440, height: 900 });
 
-  await page.locator('[data-testid="camp-restart"]').click();
+  await restartCompany(page);
   check('an explicit restart clears recovery mode', (await page.locator('[data-testid="camp-recovery"]').count()) === 0);
   const recovered = await page.evaluate(() => {
     try {

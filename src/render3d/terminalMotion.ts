@@ -1,4 +1,5 @@
 import type { MechModel } from './mechModel';
+import { settleTerminalAssemblies } from './modelArticulation';
 
 export interface TerminalMotionState {
   fall: number;
@@ -81,4 +82,17 @@ function writeFall(
   model.root.rotation.x = tilt.x + eased * angle * pitch;
   model.root.rotation.z = tilt.z + eased * angle * roll;
   model.root.position.y -= eased * drop;
+  const fold = Math.min(1, eased * 1.35);
+  for (let index = 0; index < model.legs.length; index += 1) {
+    const leg = model.legs[index]!;
+    const side = index === 0 ? -1 : 1;
+    const damage = leg.destroyed ? 1.2 : 1;
+    leg.hip.rotation.z = (-0.13 + side * roll * 0.08) * fold * damage;
+    leg.knee.rotation.z = -(0.52 + side * roll * 0.12) * fold * damage;
+    leg.ankle.rotation.set(0, 0, 0.42 * fold);
+  }
+  model.torso.position.y = model.torsoRestY - model.height * 0.018 * fold;
+  model.torso.rotation.z = fold * 0.07 * roll;
+  model.torso.rotation.x = fold * 0.05 * pitch;
+  settleTerminalAssemblies(model.articulation, fold, roll, model.faction === 'aurelian');
 }

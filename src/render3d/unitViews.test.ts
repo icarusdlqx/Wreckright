@@ -12,6 +12,22 @@ function meshCount(root: Object3D): number {
 }
 
 describe('rendered weapon mounts', () => {
+  it('exposes heat outlets only for a placed and visible machine', () => {
+    const world = testWorld('vent-visibility');
+    const entity = unitOf(world, 'sentinel_brawler');
+    const units = new UnitViews(new Scene(), () => 0);
+    const view = units.viewFor(world, entity);
+    const at = new Vector3();
+    expect(units.ventOf(entity.id, at)).toBe(false);
+    units.beginFrame();
+    units.markPlaced(entity.id);
+    expect(units.ventOf(entity.id, at)).toBe(true);
+    expect(at.y).toBeGreaterThan(1);
+    view.model.root.visible = false;
+    expect(units.ventOf(entity.id, at)).toBe(false);
+    units.dispose();
+  });
+
   it('rebuilds scorch only when a location crosses a damage tier', () => {
     const world = testWorld('location-scorch');
     const entity = unitOf(world, 'hornet_spotter');
@@ -218,7 +234,7 @@ describe('rendered weapon mounts', () => {
       if (node.userData.blueprintDetail === 'surface') surface.push(node);
     });
 
-    expect(surface).toHaveLength(4);
+    expect(surface).toHaveLength(6);
     expect(surface.every((node) => !node.visible)).toBe(true);
     units.setRenderQuality(250, false);
     expect(surface.every((node) => node.visible)).toBe(true);

@@ -2,7 +2,7 @@ import { Color, Scene, Vector3 } from 'three';
 import type { MechLocation } from '../schema/common';
 import type { SimEvent } from '../sim/events';
 import { findEntity, type EntityId, type Vec2, type World } from '../sim/types';
-import type { TacticalCamera, Viewport } from './camera';
+import type { TacticalCamera } from './camera';
 import { BattlefieldWear } from './battlefieldWear';
 import { CombatReadouts } from './combatReadouts';
 import { JetLayer } from './effects';
@@ -22,6 +22,11 @@ import {
 } from './battleEventPresentation';
 import { canPresentEntity } from './visibilityPresentation';
 import { weaponFiringPresentation } from './weaponFiringPresentation';
+import { impactBearing } from './impactBearing';
+import type { ImpactFamily } from './shotBurstPool';
+import type { FootfallContact } from './locomotionContact';
+import type { BattleFeedbackBindings } from './battleFeedbackBindings';
+export type { BattleFeedbackBindings } from './battleFeedbackBindings';
 
 type DestructiveEvent = Extract<SimEvent, { type: 'mech_destroyed' | 'ammo_explosion' }>;
 
@@ -29,17 +34,6 @@ function destructiveLocation(event: DestructiveEvent): MechLocation {
   return event.type === 'ammo_explosion'
     ? event.location
     : event.method === 'head' ? 'head' : 'centre_torso';
-}
-
-export interface BattleFeedbackBindings {
-  anchorOf: (id: EntityId, location: MechLocation, out: Vector3) => boolean;
-  canLocate?: (id: EntityId) => boolean;
-  currentPositionOf?: (id: EntityId) => Vec2 | null;
-  readouts?: {
-    host: HTMLElement;
-    world: World;
-    viewport: () => Viewport;
-  };
 }
 
 const CRITICAL_COLOUR = 0xffd07a;
@@ -61,6 +55,7 @@ export class BattleEffects {
   private readonly effectPoint = new Vector3();
   private readonly effectAt: Vec2 = { x: 0, y: 0 };
   private readonly anchorOf: BattleFeedbackBindings['anchorOf'] | null;
+  private readonly contactOf: BattleFeedbackBindings['contactOf'];
   private readonly canLocate: BattleFeedbackBindings['canLocate'];
   private readonly currentPositionOf: (id: EntityId) => Vec2 | null;
   private readonly readouts: CombatReadouts | null;
@@ -83,6 +78,7 @@ export class BattleEffects {
     this.wear = new BattlefieldWear(fogColour, heightAt);
     this.flashes = new MuzzleFlashPool(scene);
     this.anchorOf = feedback?.anchorOf ?? null;
+    this.contactOf = feedback?.contactOf;
     this.canLocate = feedback?.canLocate;
     this.currentPositionOf = feedback?.currentPositionOf ?? positionOf;
     const readouts = feedback?.readouts;
@@ -141,6 +137,7 @@ export class BattleEffects {
     }
 
     this.jets.commit();
+    this.wear.smoke.followAnchors(this.resolveWreckAnchor);
     this.readouts?.advance(deltaSeconds);
   }
   advance(deltaSeconds: number): void {
@@ -217,6 +214,8 @@ export class BattleEffects {
           'miss',
           weaponEventColour(weapon),
           0.8,
+          weapon?.type ?? 'generic',
+          impactBearing(world, event, this.effectAt, this.currentPositionOf),
         );
         continue;
       }
@@ -235,9 +234,13 @@ export class BattleEffects {
         if (!canPresentEntity(world, event.targetId)) continue;
         const colour = weaponEventColour(weapon);
         if (this.locationOf(event.targetId, event.location, this.effectPoint)) {
+          this.toGroundPoint(this.effectPoint);
+          const bearing = impactBearing(world, event, this.effectAt, this.currentPositionOf);
+          this.contactOf?.(event.targetId, event.location, bearing, this.effectPoint);
           this.tracers.resolveProjectile(event, this.effectPoint);
           this.toGroundPoint(this.effectPoint);
-          this.emitBurst('hit', colour, 0.75 + Math.min(1.25, event.damage / 18));
+          this.emitBurst('hit', colour, 0.75 + Math.min(1.25, event.damage / 18),
+            weapon?.type ?? 'generic', bearing + Math.PI);
           const damage = weapon?.damage ?? 5;
           this.wear.scars.mark(
             this.effectAt,
@@ -332,6 +335,16 @@ export class BattleEffects {
     this.tracers.spawnSmoke(at, this.heightAt(at.x, at.y));
   }
 
+  footfall(at: Vec2, contact: FootfallContact): void {
+    if (this.destroyed) return;
+    const scale = (.45 + Math.min(1, contact.tonnage / 100)) * (contact.landing ? 1.35 : 1);
+    this.tracers.footfall(at, contact.height, contact.terrain, scale);
+  }
+
+  spawnVentSteam(at: Vector3): void {
+    if (!this.destroyed) this.tracers.ventSteam(at);
+  }
+
   destroy(): void {
     if (this.destroyed) return;
     this.destroyed = true;
@@ -363,8 +376,8 @@ export class BattleEffects {
   private toGroundPoint(at: Vector3): void {
     this.effectAt.x = at.x; this.effectAt.y = at.z;
   }
-  private emitBurst(kind: ShotBurstKind, colour: number, scale: number): void {
-    this.tracers.burst(this.effectAt, this.effectPoint.y - 14, kind, colour, scale);
+  private emitBurst(kind: ShotBurstKind, colour: number, scale: number, family: ImpactFamily = 'generic', bearing = 0): void {
+    this.tracers.burst(this.effectAt, this.effectPoint.y - 14, kind, colour, scale, family, bearing);
   }
 
   private nearness(at: Vec2): number {
@@ -388,5 +401,8 @@ export class BattleEffects {
     out.set(at.x, this.heightAt(at.x, at.y) + 14, at.y);
     return true;
   };
+
+  private readonly resolveWreckAnchor = (id: EntityId, out: Vector3): boolean =>
+    this.canLocate?.(id) === true && this.anchorOf?.(id, 'centre_torso', out) === true;
 
 }

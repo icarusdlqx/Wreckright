@@ -11,7 +11,30 @@ playable in Safari on a phone as well as on a desktop. See
 [`docs/HOSTING.md`](docs/HOSTING.md) for the build settings and how to deploy
 without pushing.
 
+## Graphic Expedition interface
+
+The presentation uses paper campaign/refit screens, dark teal battle controls,
+colourful faction finishes and illustrated terrain. Company management is split
+into **Operations**, **Workshop**, **Crew** and **Stores & yard**. Workshop opens
+individual refits directly; the manifest shows the actual drop, automatic pilot
+pairings and reasons for reserves. Combat, tonnage, campaign costs and save keys
+retain their existing rules.
+
+See [the presentation review](docs/GRAPHIC_EXPEDITION_REVIEW.md) for the full
+system audit, preservation decisions, validation record and remaining priorities.
+After `npm run build:single`, `node tests/e2e/standalone-smoke.mjs` checks the actual
+offline file through home, workshop, refit and deployment. It uses Playwright's
+Chromium or the executable supplied by `CHROMIUM_PATH`.
+
+## Ironwork & Monolith
+
+The [Ironwork & Monolith rebuild](docs/IRONWORK_MONOLITH.md) adds sixteen distinct
+walker designs, actual-terrain mission surveys, a selected-machine Workshop,
+authored battlefield surroundings, physical motion/effects and shared audio
+settings. Its review fixtures run in background browsers with disposable profiles.
+
 ## Repository identity
+
 
 The product, source repository (`icarusdlqx/Wreckright`), Worker
 (`wreckright.ligand-ave.workers.dev`), diagnostic hook, downloads, and release
@@ -144,8 +167,9 @@ Skirmishes are outfitted at the briefing: each berth has a design picker
 **Customise** button that opens the bay on that machine. The lance must fit
 the mission's drop tonnage, and the loadout is remembered per mission.
 
-A campaign contract is fought with what you decide to take. Signing one and
-pressing **Deploy** opens the dropship manifest rather than launching:
+A campaign contract is fought with what you decide to take. A pristine first
+company can **Sign → Launch the drop**, with **Review machines first** available
+for adjustments. Otherwise **Prepare drop** opens the hangar, then the manifest:
 
 - **The profile** — how many berths the dropship has, how many tonnes it will
   carry, and what the contract is. The lance is limited by weight as well as by

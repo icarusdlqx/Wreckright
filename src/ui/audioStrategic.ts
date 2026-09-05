@@ -1,5 +1,5 @@
 import { AudioGraph } from './audioGraph';
-import { readAudioMuted, writeAudioMuted } from './audioPreference';
+import { readAudioMuted, subscribeAudioPreferences, writeAudioMuted } from './audioPreference';
 import {
   SCORE_CLOSE_DELAY_MS,
   SCORE_RETARGET_INTERVAL_SECONDS,
@@ -29,32 +29,26 @@ const RETARGET_RETRY_MS = Math.ceil(SCORE_RETARGET_INTERVAL_SECONDS * 1_000) + 1
 /** One bounded score graph for a contiguous visit to the strategic screens. */
 export class StrategicScoreDirector {
   private readonly leases = new Map<symbol, LeaseState>();
-  private readonly listeners = new Set<() => void>();
   private graph: AudioGraph | null = null;
   private score: ScoreHandle | null = null;
   private retry: ReturnType<typeof setTimeout> | null = null;
   private nextOrder = 0;
   private lastShare = NEUTRAL_CULTURE_SHARE;
-  private mutedState = readAudioMuted();
   private destroyed = false;
 
   get muted(): boolean {
-    return this.mutedState;
+    return readAudioMuted();
   }
 
   get active(): boolean {
     return this.leases.size > 0;
   }
 
-  subscribe = (listener: () => void): (() => void) => {
-    this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
-  };
+  subscribe = subscribeAudioPreferences;
 
   /** Called inside the route-changing gesture, before the lazy screen mounts. */
   prepare(): void {
     if (this.destroyed) return;
-    this.syncMuted();
     this.ensureGraph();
     this.graph?.resume();
   }
@@ -94,11 +88,9 @@ export class StrategicScoreDirector {
   }
 
   toggleMuted(): boolean {
-    this.mutedState = !this.mutedState;
-    writeAudioMuted(this.mutedState);
-    this.graph?.setMuted(this.mutedState);
-    this.emit();
-    return this.mutedState;
+    const muted = !this.muted;
+    writeAudioMuted(muted);
+    return muted;
   }
 
   destroy(): void {
@@ -106,18 +98,17 @@ export class StrategicScoreDirector {
     this.destroyed = true;
     this.leases.clear();
     this.closeGraph();
-    this.listeners.clear();
   }
 
   private ensureGraph(): void {
     if (this.graph !== null) return;
-    const graph = AudioGraph.create(this.mutedState);
+    const graph = AudioGraph.create(this.muted);
     if (graph === null) return;
     this.graph = graph;
     const chosen = this.chosenLease();
     const share = chosen?.aurelianShare ?? this.lastShare;
     const initialLevel = chosen === null ? 0 : STRATEGIC_SCORE_TREATMENTS[chosen.surface].level;
-    this.score = createProceduralScore(graph, share, initialLevel);
+    this.score = createProceduralScore(graph.musicBus, share, initialLevel);
     this.apply();
   }
 
@@ -167,17 +158,6 @@ export class StrategicScoreDirector {
     this.lastShare = NEUTRAL_CULTURE_SHARE;
   }
 
-  private syncMuted(): void {
-    const stored = readAudioMuted();
-    if (stored === this.mutedState) return;
-    this.mutedState = stored;
-    this.graph?.setMuted(stored);
-    this.emit();
-  }
-
-  private emit(): void {
-    for (const listener of this.listeners) listener();
-  }
 }
 
 function priority(surface: StrategicScoreSurface): number {

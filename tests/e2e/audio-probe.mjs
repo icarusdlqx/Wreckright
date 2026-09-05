@@ -103,6 +103,13 @@ export async function installAudioProbe(page, scoreSourceCount) {
       }
     }
 
+    class ProbePanner extends ProbeNode {
+      constructor(context) {
+        super(context, 'stereo-panner');
+        this.pan = new ProbeParam(context, `panner-${this.id}-pan`);
+      }
+    }
+
     const contexts = [];
     class ProbeContext {
       constructor() {
@@ -112,6 +119,8 @@ export async function installAudioProbe(page, scoreSourceCount) {
         this.sources = [];
         this.gains = [];
         this.filters = [];
+        this.panners = [];
+        this.compressors = [];
         this.automation = [];
         this.closeCalls = 0;
         this.resumeCalls = 0;
@@ -119,7 +128,16 @@ export async function installAudioProbe(page, scoreSourceCount) {
         this.destination = new ProbeNode(this, 'destination');
         contexts.push(this);
       }
-      createDynamicsCompressor() { return new ProbeCompressor(this); }
+      createDynamicsCompressor() {
+        const compressor = new ProbeCompressor(this);
+        this.compressors.push(compressor);
+        return compressor;
+      }
+      createStereoPanner() {
+        const panner = new ProbePanner(this);
+        this.panners.push(panner);
+        return panner;
+      }
       createBuffer(_channels, length) {
         const data = new Float32Array(length);
         return { getChannelData: () => data };
@@ -173,9 +191,19 @@ export async function installAudioProbe(page, scoreSourceCount) {
         sources: context.sources.length,
         gains: context.gains.length,
         filters: context.filters.length,
+        panners: context.panners.length,
       },
       activeSources: context.sources.filter((source) => source.active).length,
       master: context.gains[0]?.gain.value ?? null,
+      mix: {
+        effects: context.gains[1]?.gain.value ?? null,
+        music: context.gains[2]?.gain.value ?? null,
+        interface: context.gains[3]?.gain.value ?? null,
+      },
+      panners: context.panners.map((panner) => ({ id: panner.id, pan: panner.pan.value })),
+      compression: context.compressors.map((compressor) => ({
+        threshold: compressor.threshold.value, ratio: compressor.ratio.value,
+      })),
       targets: context.automation.filter((entry) => entry.method === 'target').length,
       automation: context.automation.map((entry) => ({ ...entry })),
       topology: context.nodes.map((node) => ({

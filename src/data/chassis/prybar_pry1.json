@@ -1,0 +1,104 @@
+{
+  "id": "prybar_pry1",
+  "name": "Prybar",
+  "faction": "linewrought",
+  "frame": "mech",
+  "class": "light",
+  "tonnage": 25,
+  "baseCost": 1650000,
+  "engineRating": 210,
+  "internalHeatSinks": 8,
+  "jumpCapable": false,
+  "hardpoints": {
+    "head": {
+      "energy": 0,
+      "ballistic": 0,
+      "missile": 0,
+      "slots": 1,
+      "size": 1
+    },
+    "centre_torso": {
+      "energy": 1,
+      "ballistic": 0,
+      "missile": 0,
+      "slots": 2,
+      "size": 1
+    },
+    "left_torso": {
+      "energy": 0,
+      "ballistic": 0,
+      "missile": 1,
+      "slots": 5,
+      "size": 1
+    },
+    "right_torso": {
+      "energy": 0,
+      "ballistic": 0,
+      "missile": 1,
+      "slots": 5,
+      "size": 1
+    },
+    "left_arm": {
+      "energy": 0,
+      "ballistic": 1,
+      "missile": 0,
+      "slots": 2,
+      "size": 1
+    },
+    "right_arm": {
+      "energy": 0,
+      "ballistic": 1,
+      "missile": 0,
+      "slots": 2,
+      "size": 1
+    },
+    "left_leg": {
+      "energy": 0,
+      "ballistic": 0,
+      "missile": 0,
+      "slots": 2,
+      "size": 1
+    },
+    "right_leg": {
+      "energy": 0,
+      "ballistic": 0,
+      "missile": 0,
+      "slots": 2,
+      "size": 1
+    }
+  },
+  "armourMax": {
+    "head": 10,
+    "centre_torso": 32,
+    "left_torso": 24,
+    "right_torso": 24,
+    "left_arm": 13,
+    "right_arm": 13,
+    "left_leg": 27,
+    "right_leg": 27
+  },
+  "internals": {
+    "head": 4,
+    "centre_torso": 19,
+    "left_torso": 12,
+    "right_torso": 12,
+    "left_arm": 8,
+    "right_arm": 8,
+    "left_leg": 12,
+    "right_leg": 12
+  },
+  "silhouette": {
+    "form": "scout",
+    "torsoLength": 0.88,
+    "torsoWidth": 0.8,
+    "shoulder": 0.86,
+    "legLength": 1.18,
+    "stance": 0.84
+  },
+  "role": "Courier scout",
+  "summary": "A light walker for the work a company cannot spare a heavier root to do. Quick, thinly plated and armed only for a close escape.",
+  "lore": "The first Prybar in the Halloran books was a survey root returned with its sealed instruments missing. A road crew fitted an offset cab, two feed boxes and enough plate to get the driver home. The name followed the machine through four yards. Later rebuilds keep the narrow shoulders and ordinary gait bearings because those are the parts small shops can reach. There is no beacon and no jump assembly. A Prybar carries the message, watches the next bend and leaves the argument to whoever arrives behind it.",
+  "traits": [
+    "narrow_profile"
+  ]
+}

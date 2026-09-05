@@ -1,25 +1,18 @@
 import {
   fitFromStore,
-  rebuildHulk,
   stripToStore,
 } from '../../campaign/refit';
 import { buyMech, buyPart, marketListings, partMarketListings, saleValueOf, sellMech } from '../../campaign/market';
-import { dailyPayroll, payrollThrough } from '../../campaign/ledger';
-import {
-  estimateRepair,
-  projectedRepairWindow,
-  repairQueue,
-  startRepair,
-} from '../../campaign/repair';
-import { isMechAvailable, type CampaignState } from '../../campaign/types';
+import type { CampaignState } from '../../campaign/types';
 import { getCatalog } from '../../schema/load';
 import { computeLoadout } from '../../sim/loadout';
 import { authoredDesignName, designIdentityLabel } from '../designLabel';
-import { workshopFactionLine, yardStockLine } from './factionEconomy';
+import { yardStockLine } from './factionEconomy';
 
 const catalog = getCatalog();
 
 export { BarracksPanel } from './BarracksPanel';
+export { MechBayPanel } from './CompanyWorkshop';
 
 export function cbills(value: number): string {
   return `${Math.round(value).toLocaleString('en-GB')} C`;
@@ -33,100 +26,6 @@ export interface PanelProps {
    * overwritten by the caption of the button that hoped it would work.
    */
   mutate: (change: (draft: CampaignState) => string | null | void, message?: string) => void;
-}
-
-export function MechBayPanel({ state, mutate }: PanelProps) {
-  const payroll = dailyPayroll(catalog, state);
-  const bayCapacity = catalog.rules.economy.repair.bayCapacity;
-  const bayDescription = `${bayCapacity === 1 ? 'One lift works' : `${bayCapacity} lifts work`} through the queue in order.`;
-  const queue = repairQueue(catalog, state);
-  const queueByMech = new Map(queue.map((entry) => [entry.mechId, entry]));
-  return (
-      <section className="camp-bay progression-bay" data-testid="camp-bay">
-        <h3>Mech bay</h3>
-        <p className="ledger-note">
-          {bayDescription} Workshop bills are paid up front; the {cbills(payroll)} daily
-          payroll continues while work is booked.
-        </p>
-        <ul>
-          {state.mechs.map((mech) => {
-            const estimate = estimateRepair(catalog, mech);
-            const chassis = catalog.chassis.get(mech.design.chassisId);
-            const ready = isMechAvailable(state, mech) && mech.status !== 'hulk';
-            const projected = projectedRepairWindow(catalog, state, estimate.days);
-            const booking = queueByMech.get(mech.id);
-            const calendarDays = projected.readyOnDay - state.day;
-            const projectedTiming =
-              projected.status === 'active'
-                ? `ready day ${projected.readyOnDay}`
-                : `starts day ${projected.startsOnDay} · ready day ${projected.readyOnDay}`;
-            return (
-              <li key={mech.id} data-testid={`camp-mech-${mech.id}`}>
-                <span className="bay-mech-name">
-                  {designIdentityLabel(catalog, mech.design)}
-                </span>
-                <span className="bay-mech-state">
-                  {chassis === undefined ? null : (
-                    <small className="faction-economy" data-faction={chassis.faction}>
-                      {workshopFactionLine(catalog, chassis.faction)}
-                    </small>
-                  )}
-                  <span>
-                    {mech.status === 'hulk'
-                      ? `wreck — ${cbills(estimate.cost)} now · ${projectedTiming} · ${cbills(payrollThrough(catalog, state, calendarDays))} wages`
-                      : ready
-                        ? mech.design.mounts.length === 0
-                          ? 'rebuilt — fit a weapon before deployment'
-                          : estimate.days === 0
-                            ? 'ready'
-                            : `damaged — ${cbills(estimate.cost)} now · ${projectedTiming} · ${cbills(payrollThrough(catalog, state, calendarDays))} wages`
-                        : booking?.status === 'active'
-                          ? `on a lift · ready day ${mech.readyOnDay} · ${cbills(payrollThrough(catalog, state, mech.readyOnDay - state.day))} wages left`
-                          : booking?.status === 'inherited'
-                            ? `inherited concurrent booking · ready day ${mech.readyOnDay}`
-                            : `queued ${booking?.queuePosition ?? 1} · starts day ${booking?.startsOnDay ?? state.day} · ready day ${mech.readyOnDay}`}
-                  </span>
-                </span>
-                {mech.status === 'hulk' ? (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      mutate((draft) => {
-                        const target = draft.mechs.find((entry) => entry.id === mech.id);
-                        if (target === undefined) return null;
-                        const result = rebuildHulk(catalog, draft, target);
-                        return result.ok
-                          ? `${authoredDesignName(catalog, target.design)} booked; ready day ${target.readyOnDay}.`
-                          : result.reason;
-                      })
-                    }
-                  >
-                    {projected.status === 'active' ? 'Rebuild' : 'Queue rebuild'}
-                  </button>
-                ) : estimate.days > 0 && mech.status === 'ready' ? (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      mutate((draft) => {
-                        const target = draft.mechs.find((entry) => entry.id === mech.id);
-                        if (target === undefined) return null;
-                        const result = startRepair(catalog, draft, target);
-                        return result.ok
-                          ? `${authoredDesignName(catalog, target.design)} booked; ready day ${target.readyOnDay}.`
-                          : result.reason;
-                      })
-                    }
-                    data-testid={`camp-repair-${mech.id}`}
-                  >
-                    {projected.status === 'active' ? 'Repair' : 'Queue repair'}
-                  </button>
-                ) : null}
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-  );
 }
 
 export function StoresPanel({ state, mutate }: PanelProps) {

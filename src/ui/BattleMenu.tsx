@@ -3,6 +3,7 @@ import { SetupToolbar } from './BattleSetup';
 import { usePlaytest } from './playtest';
 import { useGame } from './store';
 import { useStrategicScoreControls } from './StrategicScoreProvider';
+import { AudioSettings, useAudioPreferences } from './AudioSettings';
 
 interface BattleMenuProps extends BattleTopbarProps {
   fullHud: boolean;
@@ -14,6 +15,7 @@ export function BattleMenu({ fullHud, variant, ...props }: BattleMenuProps) {
   const state = useGame();
   const { openFeedback } = usePlaytest();
   const score = useStrategicScoreControls();
+  const { muted } = useAudioPreferences();
   const mobile = variant === 'mobile';
   const lockedTitle = state.campaignPending
     ? 'The lance is in the field — resolve the contract first.'
@@ -46,12 +48,13 @@ export function BattleMenu({ fullHud, variant, ...props }: BattleMenuProps) {
           <button
             type="button"
             className="pause"
-            onClick={() => props.onMuted(props.engine?.audio.toggleMuted() ?? false)}
-            title={props.muted ? 'Sound is off' : 'Sound is on'}
+            onClick={() => props.onMuted(props.engine?.audio.toggleMuted() ?? score.toggleMuted())}
+            title={muted ? 'Sound is off' : 'Sound is on'}
             data-testid="mute-button"
           >
-            {props.muted ? 'Sound off' : 'Sound on'}
+            {muted ? 'Sound off' : 'Sound on'}
           </button>
+          <AudioSettings compact onPrepare={() => props.engine?.audio.unlock()} />
           <button
             type="button"
             className={`pause ${props.lowFx ? 'active' : ''}`}

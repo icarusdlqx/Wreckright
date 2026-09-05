@@ -101,7 +101,7 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
         />
       ) : null}
       {fullHud ? <Minimap engine={engine} /> : null}
-      <footer className={`bottombar${fullHud ? '' : ' training-bottombar'}`}>
+      <footer className={`bottombar tactical-command-deck${fullHud ? '' : ' training-bottombar'}`}>
         {trainingShowsHeatReadout(trainingStep) ? (
           <TrainingHeatReadout unit={playerControlled ? unit : null} />
         ) : null}

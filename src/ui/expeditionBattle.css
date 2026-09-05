@@ -1,0 +1,160 @@
+.app .battle-topbar,
+.app .mobile-topbar {
+  border-bottom: 2px solid var(--exp-orange);
+  background: rgb(17 44 57 / 97%);
+  box-shadow: 0 4px 18px rgb(6 21 27 / 17%);
+}
+
+.app .battle-topbar .mission { font-family: var(--font-display); font-size: 20px; letter-spacing: .045em; }
+.app .clock { color: var(--exp-sand); font-size: 13px; }
+.app .clock-final { color: var(--danger); }
+.app .pause {
+  min-height: 30px;
+  border-color: var(--edge);
+  background: rgb(243 240 231 / 5%);
+  font-size: 12px;
+  font-weight: 600;
+}
+.app .pause.active { background: rgb(232 189 124 / 12%); color: var(--warn); }
+
+.app .sidebar,
+.app .objectives,
+.app .training-coach,
+.app .salvage-drill-coach,
+.app .desktop-menu-sheet,
+.app .mobile-menu-sheet,
+.app .tactics-drawer,
+.app .support-drawer,
+.app .mobile-tray {
+  border-color: var(--edge);
+  background: var(--panel);
+  box-shadow: 0 6px 24px rgb(6 22 29 / 20%);
+}
+
+.app .sidebar { border-top: 3px solid var(--exp-orange); }
+.app .sidebar h2 { font-size: 23px; line-height: 1.1; }
+.app .sidebar h2 small { margin-top: 4px; font-family: var(--font-body); font-size: 11px; line-height: 1.4; }
+.app .sidebar .empty { font-size: 12px; line-height: 1.5; }
+.app .sidebar-details { border-top-color: var(--edge); }
+.app .sidebar-details summary { font-size: 11px; font-weight: 600; letter-spacing: .04em; }
+.app .tactical-readout { border-color: var(--edge); font-size: 11px; }
+.app .tactical-label, .app .tactical-state { font-size: 9px; letter-spacing: .025em; }
+.app .ability-readout p { font-size: 11px; line-height: 1.45; }
+.app .alpha-caveat, .app .governor-line strong { font-size: 9px; }
+.app .pilot-hand { font-size: 11px; }
+
+.app .doll-cell { background: rgb(243 240 231 / 5%); border-color: rgb(178 201 187 / 22%); }
+.app .doll-cell.active { border-color: var(--warn); box-shadow: 0 0 0 1px var(--warn); }
+.app .doll-cell.destroyed { border-color: var(--danger); background: rgb(174 60 38 / 24%); }
+.app .doll-label { font-size: 10px; }
+.app .weapon-group li { font-size: 11px; }
+.app .weapon-name { color: var(--text); }
+.app .weapon-range, .app .weapon-ammo { font-size: 10px; }
+.app .group-key { background: rgb(181 223 201 / 8%); border-color: var(--edge); }
+.app .weapon-mode { background: rgb(243 240 231 / 5%); border-color: var(--edge); }
+.app .weapon-mode[aria-pressed='true'] { color: var(--warn); }
+
+.app .bottombar { gap: 8px; }
+.app .lance-card {
+  border-color: var(--edge);
+  border-top-width: 3px;
+  padding: 8px 10px;
+  background: linear-gradient(145deg, #1c3d47, #112c39);
+  box-shadow: 0 4px 16px rgb(5 20 27 / 20%);
+}
+.app .lance-card.selected {
+  border-color: var(--exp-sand);
+  background: linear-gradient(145deg, #31524f, #193943);
+  box-shadow: inset 0 2px var(--exp-sand), 0 4px 16px rgb(5 20 27 / 20%);
+}
+.app .lance-name { font-family: var(--font-display); font-size: 19px; font-weight: 600; line-height: 1.05; }
+.app .lance-chassis { font-size: 11px; line-height: 1.3; }
+.app .lance-status { color: #c7d4c1; font-size: 9px; letter-spacing: .06em; }
+.app .lance-health { height: 5px; background: #081d27; }
+.app .lance-health span { background: #add6b0; }
+
+.app .command,
+.app .support-toggle,
+.app .mobile-lance-action,
+.app .mobile-dock-tabs button {
+  border-color: var(--edge);
+  background: #16343f;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+}
+.app .command { min-height: 36px; padding: 6px 10px; }
+.app .command.active,
+.app .mobile-lance-action.active,
+.app .mobile-dock-tabs button.active {
+  border-color: var(--exp-sand);
+  background: #35554e;
+  color: #faf3d9;
+}
+.app .command-key { color: #bfd0c5; border-color: var(--edge); font-size: 10px; }
+.app .command-state { color: var(--muted); font-size: 9px; }
+.app .command:disabled { opacity: .48; }
+.app .support-toggle { border-left: 3px solid var(--exp-orange); }
+.app .support-call { background: #20404a; }
+.app .support-label { font-size: 12px; }
+.app .support-detail { font-size: 11px; border-color: var(--edge); }
+.app .support-cost { font-size: 10px; }
+.app .support-mark { font-family: var(--font-display); font-size: 14px; }
+
+.app .hostiles { padding: 7px; border: 1px solid rgb(222 157 127 / 32%); border-radius: 5px; background: rgb(29 42 45 / 92%); }
+.app .hostiles-label { color: #eab59c; font-size: 10px; }
+.app .hostile { border-color: rgb(222 157 127 / 30%); background: #293c3e; }
+.app .hostile.targeted { border-color: #efb18c; background: #494b40; }
+.app .hostile-name { font-size: 12px; }
+.app .hostile-range { font-family: var(--font-mono); font-size: 10px; }
+.app .contact { border-color: var(--edge); }
+.app .minimap { border: 2px solid #91a99b; border-radius: 4px; box-shadow: 0 6px 24px rgb(6 22 29 / 24%); }
+.app .paused-banner { border-color: var(--exp-sand); background: #15353f; font-family: var(--font-display); font-size: 17px; letter-spacing: .14em; }
+.app .battle-menu-help { border-color: var(--edge); font-size: 11px; line-height: 1.5; }
+.app .battle-menu-title { font-family: var(--font-display); font-size: 22px; }
+.app .log { font-size: 11px; line-height: 1.45; }
+.app .objectives h4, .app .training-coach h4 { font-size: 17px; }
+.app .training-coach p { font-size: 12px; line-height: 1.5; }
+.app .training-progress { font-size: 11px; }
+.app .tactics-menu[open] > summary { background: #35554e; color: var(--warn); }
+
+@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+  .app .mobile-topbar { background: #112c39; }
+  .app .mobile-topbar .pause,
+  .app .mobile-battle-menu > summary,
+  .app .mobile-menu-sheet .pause,
+  .app .mobile-menu-sheet select,
+  .app .mobile-menu-sheet .feedback-link { min-height: 44px; }
+  .app .mobile-dock .command,
+  .app .mobile-dock-tabs button,
+  .app .mobile-tray .support-call,
+  .app .mobile-unit-panel .group-key { min-height: 44px; }
+  .app .mobile-dock .command { font-size: 11px; padding: 5px 8px; }
+  .app .mobile-dock-tabs button { font-size: 11px; }
+  .app .mobile-lance-row .lance-card { padding: 6px 8px; }
+  .app .mobile-lance-row .lance-name { font-size: 18px; }
+  .app .mobile-lance-row .lance-chassis { font-size: 11px; }
+  .app .mobile-lance-row .lance-status { font-size: 9px; }
+  .app .mobile-tray .hostiles { border: 0; background: transparent; }
+  .app .mobile-tray .rp { background: #112c39; }
+  .app .mobile-unit-panel { font-size: 12px; }
+  .app .mobile-unit-panel h2 { font-size: 22px; }
+  .app .mobile-objectives > summary,
+  .app .mobile-training > summary { font-size: 12px; }
+}
+
+@media (prefers-contrast: more) {
+  .app .sidebar, .app .lance-card, .app .command,
+  .app .mobile-tray, .app .desktop-menu-sheet,
+  .app .tactics-drawer, .app .support-drawer { background: #081d27; }
+}
+
+@media (forced-colors: active) {
+  .app :is(.battle-topbar, .mobile-topbar, .sidebar, .objectives, .lance-card,
+    .command, .mobile-lance-action, .mobile-tray, .tactics-drawer, .support-drawer,
+    .desktop-menu-sheet, .mobile-menu-sheet, .hostiles, .hostile, .paused-banner) {
+    background: Canvas; color: CanvasText; border-color: CanvasText; box-shadow: none;
+  }
+  .app .lance-card.selected, .app .command.active,
+  .app .mobile-dock-tabs button.active { border-width: 3px; }
+}

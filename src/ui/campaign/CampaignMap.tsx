@@ -1,6 +1,10 @@
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { Campaign, CampaignNode } from '../../schema/campaign';
 import type { Catalog } from '../../schema/load';
 import { employerDisplayName } from '../../campaign/employers';
+import { layoutCampaignMap, mapLabelHeight, MAP_SSR_SIZE, campaignAnchor } from './campaignMapLayout';
+import { CampaignTheatre, theatreIdentity } from './CampaignTheatre';
+import './campaignTheatre.css';
 
 export type NodeState = 'locked' | 'available' | 'complete' | 'failed';
 
@@ -10,26 +14,6 @@ interface Props {
   stateOf: (node: CampaignNode) => NodeState;
   selectedId: string | null;
   onSelect: (id: string) => void;
-}
-
-/** Deterministic value noise, so the same theatre draws the same terrain every load. */
-function noise(x: number, y: number, seed: number): number {
-  const value = Math.sin(x * 12.9898 + y * 78.233 + seed * 37.719) * 43758.5453;
-  return value - Math.floor(value);
-}
-
-/** A closed contour ring, wobbled by the noise field — reads as high ground. */
-function contour(cx: number, cy: number, radius: number, seed: number): string {
-  const points: string[] = [];
-  const steps = 26;
-  for (let index = 0; index < steps; index += 1) {
-    const angle = (index / steps) * Math.PI * 2;
-    const wobble = 0.72 + noise(Math.cos(angle) * 3, Math.sin(angle) * 3, seed) * 0.55;
-    points.push(
-      `${(cx + Math.cos(angle) * radius * wobble).toFixed(1)},${(cy + Math.sin(angle) * radius * wobble * 0.62).toFixed(1)}`,
-    );
-  }
-  return `M${points.join('L')}Z`;
 }
 
 /** What the contract actually asks you to do, from the mission it points at. */
@@ -48,11 +32,42 @@ function missionGlyph(catalog: Catalog, missionId: string): { glyph: string; kin
 }
 
 export function CampaignMap({ campaign, catalog, stateOf, selectedId, onSelect }: Props) {
+  const mapRef = useRef<HTMLElement>(null);
+  const [measured, setMeasured] = useState({ ...MAP_SSR_SIZE, borderHeight: 2, heights: {} as Record<string, number> });
   const nodes = campaign.nodes;
-  const at = (node: CampaignNode): { x: number; y: number } => ({
-    x: node.position.x * 100,
-    y: node.position.y * 100,
-  });
+  useEffect(() => {
+    const map = mapRef.current;
+    if (map === null) return;
+    const cards = [...map.querySelectorAll<HTMLElement>('[data-map-node]')];
+    const measure = (): void => {
+      if (map.clientWidth <= 0 || map.clientHeight <= 0) return;
+      const heights = Object.fromEntries(cards.map((card) => [card.dataset.mapNode ?? '', card.offsetHeight]));
+      const borderHeight = Math.max(0, map.offsetHeight - map.clientHeight);
+      setMeasured((previous) => previous.width === map.clientWidth && previous.height === map.clientHeight
+        && previous.borderHeight === borderHeight
+        && Object.keys(heights).every((id) => heights[id] === previous.heights[id])
+        ? previous : { width: map.clientWidth, height: map.clientHeight, borderHeight, heights });
+    };
+    measure();
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', measure);
+      return () => window.removeEventListener('resize', measure);
+    }
+    const observer = new ResizeObserver(measure);
+    observer.observe(map);
+    cards.forEach((card) => observer.observe(card));
+    return () => observer.disconnect();
+  }, [campaign.id]);
+  const layout = layoutCampaignMap(nodes.map((node) => ({
+    id: node.id, position: node.position, available: stateOf(node) === 'available', height: measured.heights[node.id],
+  })), measured);
+  const at = (node: CampaignNode): { x: number; y: number } => {
+    const card = layout.cards.get(node.id);
+    return { x: (card?.x ?? node.position.x * layout.width) / layout.width * 100,
+      y: (card?.y ?? node.position.y * layout.height) / layout.height * 100 };
+  };
+  const mapStyle = { '--camp-node-width': `${layout.nodeWidth}px`,
+    '--camp-map-min-height': `${layout.minimumHeight + measured.borderHeight}px` } as CSSProperties;
 
   // Supply routes: a contract unlocks the ones that list it as a prerequisite.
   const routes = nodes.flatMap((node) =>
@@ -63,57 +78,32 @@ export function CampaignMap({ campaign, catalog, stateOf, selectedId, onSelect }
   );
 
   return (
-    <section className="camp-map" data-testid="camp-map">
+    <section className="camp-map" ref={mapRef} style={mapStyle} data-testid="camp-map">
       <svg className="camp-terrain" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        <defs>
-          <linearGradient id="camp-ground" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#141c18" />
-            <stop offset="100%" stopColor="#0f1418" />
-          </linearGradient>
-        </defs>
-        <rect width="100" height="100" fill="url(#camp-ground)" />
-
-        {/* Highland masses, three contour levels each. */}
-        {[
-          { cx: 22, cy: 30, r: 20, seed: 3 },
-          { cx: 68, cy: 24, r: 16, seed: 11 },
-          { cx: 74, cy: 72, r: 22, seed: 7 },
-          { cx: 34, cy: 76, r: 14, seed: 19 },
-        ].map((hill, index) => (
-          <g key={index}>
-            {[1, 0.72, 0.44].map((scale, ring) => (
-              <path
-                key={ring}
-                d={contour(hill.cx, hill.cy, hill.r * scale, hill.seed + ring)}
-                fill="none"
-                stroke="rgba(140, 224, 255, 0.10)"
-                strokeWidth={0.25}
-              />
-            ))}
-          </g>
-        ))}
-
-        {/* The river the whole border dispute is about. */}
-        <path
-          d="M-2,58 C18,52 26,68 44,64 C60,60 66,44 84,46 C94,47 98,42 102,40"
-          fill="none"
-          stroke="rgba(90, 150, 200, 0.30)"
-          strokeWidth={1.4}
-        />
+        <CampaignTheatre campaignId={campaign.id} />
 
         {routes.map((route, index) =>
           route === null ? null : (
             <line
               key={index}
-              x1={at(route.from).x}
-              y1={at(route.from).y}
-              x2={at(route.to).x}
-              y2={at(route.to).y}
+              x1={campaignAnchor(route.from.position).x}
+              y1={campaignAnchor(route.from.position).y}
+              x2={campaignAnchor(route.to.position).x}
+              y2={campaignAnchor(route.to.position).y}
               className={`camp-route ${stateOf(route.from) === 'complete' ? 'open' : ''}`}
             />
           ),
         )}
+        {nodes.map((node) => {
+          const anchor = campaignAnchor(node.position);
+          const label = at(node);
+          return <g key={node.id} data-map-anchor={node.id}>
+            <line className="campaign-label-leader" x1={anchor.x} y1={anchor.y} x2={label.x} y2={label.y} />
+            <circle className={`campaign-anchor ${stateOf(node)}`} cx={anchor.x} cy={anchor.y} r={selectedId === node.id ? .8 : .55} />
+          </g>;
+        })}
       </svg>
+      <div className="campaign-cartouche"><strong>{theatreIdentity(campaign.id).name}</strong><span>Fixed sites · contract links</span></div>
 
       {nodes.map((node) => {
         const state = stateOf(node);
@@ -126,10 +116,12 @@ export function CampaignMap({ campaign, catalog, stateOf, selectedId, onSelect }
             key={node.id}
             type="button"
             className={`camp-node ${state} ${selectedId === node.id ? 'selected' : ''}`}
-            style={{ left: `${position.x}%`, top: `${position.y}%` }}
+            style={{ left: `${position.x}%`, top: `${position.y}%`,
+              '--camp-node-height': `${mapLabelHeight(state === 'available')}px` } as CSSProperties}
             disabled={state !== 'available'}
             onClick={() => onSelect(node.id)}
             data-testid={`camp-node-${node.id}`}
+            data-map-node={node.id}
             title={`${employer} · ${kind}`}
           >
             <span className="node-glyph" aria-hidden="true">

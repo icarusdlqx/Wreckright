@@ -36,9 +36,9 @@ describe('company machines', () => {
     }
   });
 
-  it('keeps every berth in its weight class where the culture stocks it', () => {
+  it.each(['linewrought', 'aurelian'] as const)('keeps every %s berth in its authored weight class', (faction) => {
     const authored = defaultLance(catalog, MISSION);
-    const refit = factionLance(catalog, MISSION, 'aurelian');
+    const refit = factionLance(catalog, MISSION, faction);
     for (let index = 0; index < authored.length; index += 1) {
       const wanted = catalog.chassis.get(
         berthDesign(catalog, authored[index]!)!.chassisId,

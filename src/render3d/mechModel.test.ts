@@ -91,9 +91,10 @@ describe('mech model resources', () => {
     const hero = build(true);
 
     try {
-      expect(blueprintTopology(tactical.root)).toEqual({ meshes: 19, triangles: 1628 });
+      expect({ tactical: blueprintTopology(tactical.root), hero: blueprintTopology(hero.root) }).toEqual({
+        tactical: { meshes: 24, triangles: 2060 }, hero: { meshes: 24, triangles: 3796 },
+      });
       expect(tactical.root.userData.modelDetail).toBe('structure');
-      expect(blueprintTopology(hero.root)).toEqual({ meshes: 19, triangles: 2996 });
       expect(hero.root.userData.modelDetail).toBe('hero');
     } finally {
       disposeModel(tactical.root);

@@ -5,6 +5,7 @@ import type { Design } from '../../schema/design';
 import type { Catalog } from '../../schema/load';
 import { ChassisSilhouette } from './ChassisSilhouette';
 import { MechPreviewRenderer } from './MechPreviewRenderer';
+import type { PreviewCondition } from './previewModel';
 
 const EMPTY_COMPATIBLE: ReadonlySet<MechLocation> = new Set();
 
@@ -19,6 +20,7 @@ export interface MechPreviewProps {
   onSelectLocation?: (location: MechLocation) => void;
   className?: string;
   reducedMotion?: boolean;
+  condition?: PreviewCondition;
 }
 
 /** React owns the host; the renderer owns every object placed inside it. */
@@ -33,6 +35,7 @@ export function MechPreview({
   onSelectLocation,
   className,
   reducedMotion,
+  condition,
 }: MechPreviewProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<MechPreviewRenderer | null>(null);
@@ -76,13 +79,13 @@ export function MechPreview({
     const renderer = rendererRef.current;
     if (renderer === null) return;
     try {
-      renderer.setMachine(chassis, design);
+      renderer.setMachine(chassis, design, condition);
     } catch {
       renderer.destroy();
       if (rendererRef.current === renderer) rendererRef.current = null;
       setFailed(true);
     }
-  }, [chassis, design, catalog, resolvedReducedMotion]);
+  }, [chassis, design, condition, catalog, resolvedReducedMotion]);
 
   useEffect(() => {
     const renderer = rendererRef.current;

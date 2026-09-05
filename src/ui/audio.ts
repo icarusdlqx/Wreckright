@@ -17,6 +17,7 @@ import { AudioGraph, type VoicePlacement } from './audioGraph';
 import { BattleScoreDirector } from './audioBattleScore';
 import { isPlayerConsoleCue, lifecyclePlacement, preferredLifecycleEntity } from './audioCueRouting';
 import { readAudioMuted, writeAudioMuted } from './audioPreference';
+import { fieldPlacement } from './audioPlacement';
 import { SCORE_CLOSE_DELAY_MS } from './audioScore';
 import { playSupportResolution } from './audioSupport';
 import {
@@ -47,6 +48,8 @@ import { playCrunch, playDestruction, playImpact, playWeapon } from './audioWeap
 export class AudioDirector {
   /** Where the player is listening from, for distance and air absorption. */
   listenAt: Vec2 = { x: 0, y: 0 };
+  private cameraAzimuth = -Math.PI / 2;
+  private cameraDistance = 470;
 
   private graph: AudioGraph | null = null;
   private ambient: AmbientHandle | null = null;
@@ -57,18 +60,20 @@ export class AudioDirector {
   private readonly cueEvents: SimEvent[] = [];
   private readonly destroyedThisBatch = new Set<number>();
   private readonly knockedDownThisBatch = new Set<number>();
-  private mutedState = readAudioMuted();
   private destroyed = false;
 
-  get muted(): boolean {
-    return this.mutedState;
-  }
+  get muted(): boolean { return readAudioMuted(); }
 
   toggleMuted(): boolean {
-    this.mutedState = !this.mutedState;
-    writeAudioMuted(this.mutedState);
-    this.graph?.setMuted(this.mutedState);
-    return this.mutedState;
+    const muted = !this.muted;
+    writeAudioMuted(muted);
+    return muted;
+  }
+
+  setListener(at: Vec2, azimuth: number, distance: number): void {
+    this.listenAt = at;
+    this.cameraAzimuth = azimuth;
+    this.cameraDistance = distance;
   }
 
   /** Must run under a pointer or key gesture, or the browser suspends it. */
@@ -78,7 +83,7 @@ export class AudioDirector {
       this.graph.resume();
       return;
     }
-    this.graph = AudioGraph.create(this.mutedState);
+    this.graph = AudioGraph.create(this.muted);
     if (this.graph !== null) this.battleScore.unlock(this.graph);
     this.restartAmbient();
   }
@@ -143,7 +148,7 @@ export class AudioDirector {
     const graph = this.graph;
     this.cueEvents.length = 0;
     if (graph === null) return;
-    if (this.mutedState) return;
+    if (this.muted) return;
 
     this.destroyedThisBatch.clear();
     this.knockedDownThisBatch.clear();
@@ -324,7 +329,7 @@ export class AudioDirector {
   /** A footfall arrives from the rendered leg plant, not the simulation tick. */
   footfall(at: Vec2, tonnage: number, faction: Faction): void {
     const graph = this.graph;
-    if (graph === null || this.mutedState) return;
+    if (graph === null || this.muted) return;
     const level = 0.25 * (0.5 + tonnage / 160);
     const placement = this.placementAt(at, level);
     if (placement.level <= 0.02) return;
@@ -333,11 +338,11 @@ export class AudioDirector {
 
   /** Feedback for the player's own orders. */
   order(): void {
-    if (!this.mutedState && this.graph !== null) playOrder(this.graph);
+    if (!this.muted && this.graph !== null) playOrder(this.graph);
   }
 
   select(): void {
-    if (!this.mutedState && this.graph !== null) playSelect(this.graph);
+    if (!this.muted && this.graph !== null) playSelect(this.graph);
   }
 
   private restartAmbient(): void {
@@ -348,16 +353,12 @@ export class AudioDirector {
       && this.graph !== null
       && this.pendingAmbient !== null
     ) {
-      this.ambient = startAmbient(this.graph, this.pendingAmbient);
+      this.ambient = startAmbient(this.graph.ambientBus, this.pendingAmbient);
     }
   }
 
   private placementAt(at: Vec2, scale = 1): VoicePlacement {
-    const distance = Math.hypot(at.x - this.listenAt.x, at.y - this.listenAt.y);
-    return {
-      level: Math.max(0, 1 - distance / 900) ** 1.4 * scale,
-      distance,
-    };
+    return fieldPlacement(at, this.listenAt, this.cameraAzimuth, this.cameraDistance, scale);
   }
 
   /** One hottest-lance cue per tick; four hot machines are still one warning. */

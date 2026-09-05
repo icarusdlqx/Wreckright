@@ -1,0 +1,139 @@
+.bay.bay--workspace {
+  --panel: var(--exp-paper-raised);
+  --edge: var(--exp-line);
+  --accent: var(--exp-teal);
+  --text: var(--exp-ink);
+  --muted: var(--exp-muted);
+  --warn: #945e1d;
+  --warning: #945e1d;
+  --danger: var(--exp-negative);
+  --ok: var(--exp-positive);
+  --catalog-fit: var(--exp-positive);
+  background: var(--exp-paper);
+  color: var(--text);
+  font-family: var(--font-body);
+}
+
+.bay.bay--workspace .bay-top {
+  padding: 10px 12px;
+  border: 1px solid var(--edge);
+  border-top: 3px solid var(--exp-orange);
+  border-radius: 6px;
+  background: var(--panel);
+}
+.bay.bay--workspace .bay-name { min-height: 38px; background: var(--exp-paper); font-size: 17px; font-weight: 600; }
+.bay.bay--workspace :is(.bay-top, .bay-actions) :is(button, select) { min-height: 36px; font-size: 12px; }
+.bay.bay--workspace .bay-commission { color: var(--accent); font-size: 13px; font-weight: 600; }
+.bay.bay--workspace .bay-workspace-tabs { padding: 5px; background: #e5e8dc; }
+.bay.bay--workspace .bay-workspace-tabs__tab { font-size: 12px; letter-spacing: .065em; }
+.bay.bay--workspace .bay-workspace-tabs__tab.is-active { border-color: var(--accent); background: var(--panel); color: var(--text); box-shadow: 0 2px 6px rgb(18 43 52 / 7%); }
+.bay.bay--workspace .bay-workspace-tabs__count { background: var(--exp-paper); font-size: 10px; }
+
+.bay.bay--workspace :is(.bay-machine, .bay-side, .bay-location,
+  .bay-dossier, .bay-dossier-card, .cooling-bank, .armour-workbench,
+  .build-review, .build-compare, .location-workbench__guide) {
+  border-color: var(--edge);
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 2px 9px rgb(18 43 52 / 4%);
+}
+.bay.bay--workspace .bay-machine { padding: 12px; }
+.bay.bay--workspace .bay-machine h3 { font-size: 26px; line-height: 1.08; }
+.bay.bay--workspace .dossier-class { margin-top: 5px; font-family: var(--font-body); font-size: 11px; }
+.bay.bay--workspace .bay-role { font-size: 11px; }
+.bay.bay--workspace .mech-preview {
+  border-color: #537969;
+  border-radius: 5px;
+  background: radial-gradient(ellipse at 50% 60%, #31565b, #112c39 75%);
+  box-shadow: inset 0 0 32px rgb(4 22 29 / 24%);
+}
+.bay.bay--workspace .bay-preview-help { font-size: 11px; line-height: 1.45; }
+.bay.bay--workspace .bay-gauges { margin-top: 12px; gap: 9px; }
+.bay.bay--workspace .bay-gauge { font-size: 11px; }
+.bay.bay--workspace .gauge-track { height: 5px; background: #d6dfd1; }
+.bay.bay--workspace .dossier-summary { color: var(--muted); font-size: 12px; line-height: 1.55; }
+.bay.bay--workspace .dossier-traits li { border-color: var(--edge); color: var(--accent); font-size: 10px; }
+.bay.bay--workspace .bay-issues { font-size: 11px; line-height: 1.45; }
+
+.bay.bay--workspace .machine-culture { --machine-culture-tone: #966020; }
+.bay.bay--workspace .machine-culture.culture-aurelian { --machine-culture-tone: #26796f; }
+.bay.bay--workspace .machine-culture__badge { font-size: 11px; }
+.bay.bay--workspace :is(.machine-culture__explanation, .machine-culture__fit-guide, .machine-culture__foreign-note) { font-size: 11px; }
+.bay.bay--workspace .location-workbench__guide { background: #e8ecdf; }
+.bay.bay--workspace .location-workbench__guide h3 { font-size: 17px; }
+.bay.bay--workspace .location-workbench__guide.is-folded h3 { font-family: var(--font-body); font-size: 12px; }
+.bay.bay--workspace .location-workbench__disclosure { background: var(--panel); font-size: 11px; }
+.bay.bay--workspace .location-fit-steps li { border-color: var(--edge); }
+.bay.bay--workspace .location-fit-steps li.current { background: #dce9d8; }
+.bay.bay--workspace .location-fit-steps li.complete { color: var(--ok); }
+.bay.bay--workspace .location-overview > .bay-location { padding: 9px; }
+.bay.bay--workspace .bay-location-name { color: var(--text); font-size: 12px; font-weight: 700; }
+.bay.bay--workspace .bay-location.selected { border-color: var(--accent); background: #edf4e5; box-shadow: inset 0 3px var(--accent); }
+.bay.bay--workspace .bay-location.hovered { border-color: var(--accent); background: #edf4e5; }
+.bay.bay--workspace .bay-location.compatible { border-color: #6c9b7a; }
+.bay.bay--workspace .bay-location.invalid { border-color: var(--danger); }
+.bay.bay--workspace .location-flag--compatible { border-color: var(--ok); color: var(--ok); }
+.bay.bay--workspace .location-flag--selected { border-color: var(--accent); color: var(--accent); }
+.bay.bay--workspace .location-overview .bay-armour-read { font-size: 10px; }
+.bay.bay--workspace .slot-block { color: var(--text); background: #e9eee2; border-color: #adc3b7; }
+.bay.bay--workspace .slot-block.tone-energy { color: #275d57; background: #e0eee4; border-color: #85b3a1; }
+.bay.bay--workspace .slot-block.tone-ballistic { color: #655127; background: #eee8d7; border-color: #bfaa7a; }
+.bay.bay--workspace .slot-block.tone-missile { color: #81422e; background: #f3e5dc; border-color: #c28d72; }
+.bay.bay--workspace .slot-block.tone-ammo { color: #655127; background: #f2eddf; }
+.bay.bay--workspace .slot-block.tone-gear { color: #425c69; background: #e4ebed; border-color: #9cabb8; }
+.bay.bay--workspace .slot-block__remove { color: var(--muted); background: rgb(25 55 68 / 4%); border-left-color: var(--edge); }
+.bay.bay--workspace .slot-block__inspect { font-size: 11px; }
+.bay.bay--workspace .slot-block.empty { background: transparent; border-color: var(--edge); }
+.bay.bay--workspace .rack-cell { border-color: currentColor; background: currentColor; opacity: .6; }
+.bay.bay--workspace .slot-block.empty .rack-cell { background: transparent; opacity: .45; }
+.bay.bay--workspace .slot-block.empty .rack-cell--incoming { background: var(--ok); opacity: .75; }
+.bay.bay--workspace .bay-armed-banner { background: #dce9d8; border-color: var(--accent); color: var(--text); }
+
+.bay.bay--workspace .bay-catalog { --catalog-fit: var(--ok); }
+.bay.bay--workspace .bay-shelf-head { padding-bottom: 9px; border-bottom-color: var(--edge); }
+.bay.bay--workspace .bay-shelf-tabs button { font-size: 11px; }
+.bay.bay--workspace :is(.bay-catalog-search input, .bay-catalog-family select) { min-height: 34px; height: auto; background: var(--exp-paper); font-size: 12px; }
+.bay.bay--workspace :is(.bay-catalog-count, .bay-catalog-search, .bay-catalog-family) { font-size: 10px; }
+.bay.bay--workspace .weapon-card { --weapon-faction: #966020; background: var(--exp-paper); border-color: var(--edge); border-left-color: var(--weapon-faction); }
+.bay.bay--workspace .weapon-card.faction-aurelian { --weapon-faction: #26796f; background: #e9f1e8; }
+.bay.bay--workspace .weapon-card--compact .weapon-card__identity strong { font-size: 12px; }
+.bay.bay--workspace .weapon-card--compact .weapon-card__category { font-size: 10px; }
+.bay.bay--workspace .weapon-card__quick-stats { font-size: 10px; }
+.bay.bay--workspace .weapon-card__fit { font-size: 10px; }
+.bay.bay--workspace .weapon-card--compact.is-unavailable { background: #efeee6; }
+.bay.bay--workspace .weapon-card--compact.is-inspected { background: #e3edde; }
+.bay.bay--workspace .bay-stock { background: var(--exp-paper); color: var(--text); border-color: var(--edge); }
+.bay.bay--workspace .bay-stock > button { color: var(--text); font-size: 12px; }
+.bay.bay--workspace :is(.bay-catalog-inspector, .bay-dossier-card, .dossier-stats) { background: var(--exp-paper); border-color: var(--edge); }
+.bay.bay--workspace .bay-dossier-card h4 { font-size: 22px; }
+.bay.bay--workspace .bay-dossier-card p { font-size: 11px; line-height: 1.5; }
+.bay.bay--workspace .weapon-glyph { background: rgb(25 55 68 / 7%); }
+.bay.bay--workspace .bay-actions { padding: 9px 12px; border: 1px solid var(--edge); border-radius: 5px; background: var(--panel); }
+.bay.bay--workspace .bay-actions [data-testid='bay-save']:not(:disabled) { background: var(--accent); color: var(--exp-paper-raised); }
+
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  .bay.bay--workspace .bay-top { padding: 8px; }
+  .bay.bay--workspace :is(.bay-top, .bay-actions) :is(button, select),
+  .bay.bay--workspace :is(.bay-shelf-tabs button, .bay-catalog-search input,
+    .bay-catalog-family select, .location-workbench__disclosure,
+    .machine-culture__disclosure) { min-height: 44px; }
+  .bay.bay--workspace .location-overview > .bay-location { padding: 7px; }
+  .bay.bay--workspace .bay-machine h3 { font-size: 25px; }
+  .bay.bay--workspace .bay-actions { gap: 8px; }
+}
+
+@media (forced-colors: active) {
+  .bay.bay--workspace {
+    --text: CanvasText; --muted: CanvasText; --panel: Canvas;
+    --accent: LinkText; --warn: CanvasText; --warning: CanvasText;
+    --danger: CanvasText; --ok: CanvasText;
+  }
+  .bay.bay--workspace :is(.bay-top, .bay-actions, .bay-machine, .bay-side,
+    .bay-location, .bay-workspace-tabs, .bay-workspace-tabs__tab, .slot-block,
+    .weapon-card, .bay-stock, .bay-catalog-inspector, .bay-dossier-card,
+    .location-workbench__guide, .bay-armed-banner) {
+    background: Canvas; color: CanvasText; border-color: CanvasText; box-shadow: none;
+  }
+  .bay.bay--workspace .bay-actions [data-testid='bay-save']:not(:disabled) { background: ButtonFace; color: ButtonText; }
+  .bay.bay--workspace .mech-preview { background: Canvas; border-color: CanvasText; }
+}

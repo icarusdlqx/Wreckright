@@ -1,12 +1,15 @@
 const FORCE_STEP_LIMIT = 2_000;
+// Software-rendered CI still needs the ordinary Playwright action budget.
+const CONTACT_INTERACTION_TIMEOUT = 30_000;
+const OPTICAL_PUBLICATION_TIMEOUT = 2_000;
 
 function labelled(prefix, text) {
   return prefix === '' ? text : `${prefix} ${text}`;
 }
 
-async function activate(locator, touch) {
-  if (touch) await locator.tap();
-  else await locator.click();
+async function activate(locator, touch, options = {}) {
+  if (touch) await locator.tap(options);
+  else await locator.click(options);
 }
 
 async function selectShortRangeTrainer(page, touch) {
@@ -154,7 +157,29 @@ async function stepUntilOpticalOrReveal(page) {
   }, FORCE_STEP_LIMIT);
 }
 
-async function investigateSensorIfPresent({ page, check, prefix, touch, sensorId }) {
+async function trainingContactState(page, id) {
+  return page.evaluate((targetId) => {
+    const { world, useGame } = globalThis.__wreckright;
+    const state = useGame.getState();
+    const target = world.entities.find((entity) => entity.id === targetId);
+    const optical = document.querySelector(`[data-testid="hostile-${targetId}"]`);
+    return {
+      id: targetId, tick: world.tick, paused: state.paused,
+      alive: target !== undefined && !target.destroyed && !target.withdrawn
+        && !target.pilot.dead && !target.pilot.ejected,
+      worldOptical: world.vision?.visible.has(targetId) === true,
+      detected: world.vision?.detected.has(targetId) === true,
+      publishedOptical: state.enemies.some((enemy) => enemy.id === targetId && enemy.alive),
+      sensorCurrent: state.contacts.find((contact) => contact.id === targetId)?.current ?? null,
+      opticalCard: optical !== null && optical.getClientRects().length > 0,
+      sensorCard: document.querySelector(`[data-testid="sensor-contact-${targetId}"]`) !== null,
+      gateOwner: world.zones.find((zone) => zone.id === 'range_gate')?.owner,
+      revealFired: world.triggers.find((trigger) => trigger.id === 'range_open')?.fired,
+    };
+  }, id);
+}
+
+export async function investigateSensorIfPresent({ page, check, prefix, touch, sensorId }) {
   if (sensorId === null) {
     const opticalCount = await page.locator('button[data-testid^="hostile-"]').count();
     check(
@@ -167,12 +192,37 @@ async function investigateSensorIfPresent({ page, check, prefix, touch, sensorId
 
   if (touch) await page.locator('[data-testid="mobile-tab-contacts"]').tap();
   const sensor = page.locator(`[data-testid="sensor-contact-${sensorId}"]`);
-  await sensor.waitFor({ state: 'visible' });
-  const ariaLabel = (await sensor.getAttribute('aria-label'))?.toLowerCase() ?? '';
-  const sensorText = (await sensor.innerText()).toLowerCase();
-  const accessible =
-    ariaLabel.includes('indirect missiles') && sensorText.includes('investigate');
-  await activate(sensor, touch);
+  const timeout = { timeout: CONTACT_INTERACTION_TIMEOUT };
+  let accessible;
+  try {
+    await sensor.waitFor({ state: 'visible', ...timeout });
+    const ariaLabel = (await sensor.getAttribute('aria-label', timeout))?.toLowerCase() ?? '';
+    const sensorText = (await sensor.innerText(timeout)).toLowerCase();
+    accessible = ariaLabel.includes('indirect missiles') && sensorText.includes('investigate');
+    await activate(sensor, touch, timeout);
+  } catch (error) {
+    let latest = await trainingContactState(page, sensorId);
+    // A sensor button is deliberately replaced by a different optical control.
+    // Accept only that same live target's confirmed promotion, never an unknown disappearance.
+    if (latest.alive && latest.worldOptical) {
+      await page.waitForFunction((id) => {
+        const state = globalThis.__wreckright.useGame.getState();
+        const card = document.querySelector(`[data-testid="hostile-${id}"]`);
+        return state.enemies.some((enemy) => enemy.id === id && enemy.alive)
+          && card !== null && card.getClientRects().length > 0;
+      }, sensorId, { timeout: OPTICAL_PUBLICATION_TIMEOUT }).catch(() => undefined);
+      latest = await trainingContactState(page, sensorId);
+      if (latest.alive && latest.worldOptical && latest.publishedOptical && latest.opticalCard) {
+        check(labelled(prefix, 'sensor return becomes the same live optical contact before investigation'),
+          true, JSON.stringify(latest));
+        if (touch) await page.locator('[data-testid="mobile-tab-orders"]').tap();
+        return false;
+      }
+    }
+    throw new Error(`Training sensor interaction failed without a confirmed optical promotion: ${JSON.stringify(latest)}`, { cause: error });
+  }
+  // A successful click must still issue the real investigation order. A later
+  // visibility change cannot excuse an order handler that failed to dispatch.
   await page.waitForFunction(() => {
     const { useGame, world } = globalThis.__wreckright;
     const selected = new Set(useGame.getState().selection);

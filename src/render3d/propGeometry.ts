@@ -9,6 +9,7 @@ import {
 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { PropTheme } from '../schema/map';
+import { mix, shade } from '../render/palette';
 
 export type PropKind =
   | 'tree'
@@ -67,8 +68,8 @@ function merge(parts: readonly Part[]): BufferGeometry {
 
 function tree(theme: PropTheme): BufferGeometry {
   const foliage =
-    theme === 'causeway' ? 0x385242 : theme === 'shale' ? 0x3f4d35 : 0x294a30;
-  const bark = theme === 'shale' ? 0x51483a : 0x4a3a28;
+    theme === 'causeway' ? 0x468f7e : theme === 'shale' ? 0x6f8960 : 0x568c68;
+  const bark = theme === 'shale' ? 0x8b694a : 0x755840;
   return merge([
     {
       geometry: new CylinderGeometry(0.18, 0.25, 1, 5),
@@ -78,7 +79,7 @@ function tree(theme: PropTheme): BufferGeometry {
     },
     {
       geometry: new ConeGeometry(1, 1, 6),
-      colour: foliage,
+      colour: shade(foliage, 0.78),
       position: [0, 0.47, 0],
       scale: [1.12, 0.5, 1.12],
     },
@@ -90,7 +91,7 @@ function tree(theme: PropTheme): BufferGeometry {
     },
     {
       geometry: new ConeGeometry(0.6, 1, 6),
-      colour: foliage,
+      colour: mix(foliage, 0xbad393, 0.32),
       position: [0, 0.84, 0],
       scale: [1, 0.32, 1],
     },
@@ -98,7 +99,7 @@ function tree(theme: PropTheme): BufferGeometry {
 }
 
 function snag(theme: PropTheme): BufferGeometry {
-  const bark = theme === 'shale' ? 0x554a3b : 0x4f4131;
+  const bark = theme === 'shale' ? 0x8d7457 : 0x80644d;
   return merge([
     {
       geometry: new CylinderGeometry(0.14, 0.24, 1, 5),
@@ -124,21 +125,21 @@ function boulder(): BufferGeometry {
   return merge([
     {
       geometry: new IcosahedronGeometry(1, 0),
-      colour: 0x6a6154,
+      colour: 0xc39a73,
       position: [-0.18, 0.42, 0],
       rotation: [0.1, 0.35, 0],
       scale: [0.72, 0.48, 0.62],
     },
     {
       geometry: new IcosahedronGeometry(1, 0),
-      colour: 0x59544b,
+      colour: 0x9e7c64,
       position: [0.42, 0.25, 0.18],
       rotation: [0, 0.72, 0.16],
       scale: [0.38, 0.28, 0.42],
     },
     {
       geometry: new IcosahedronGeometry(1, 0),
-      colour: 0x756b5b,
+      colour: 0xe0b686,
       position: [0.15, 0.18, -0.42],
       rotation: [0.2, 0.1, -0.08],
       scale: [0.3, 0.2, 0.34],
@@ -150,21 +151,21 @@ function shale(): BufferGeometry {
   return merge([
     {
       geometry: new ConeGeometry(0.48, 1, 4),
-      colour: 0x57534d,
+      colour: 0xaa826b,
       position: [-0.22, 0.48, 0.02],
       rotation: [0.08, 0.28, -0.22],
       scale: [0.72, 0.96, 0.34],
     },
     {
       geometry: new ConeGeometry(0.42, 1, 4),
-      colour: 0x45474a,
+      colour: 0x736e6a,
       position: [0.2, 0.37, 0.12],
       rotation: [-0.1, -0.38, 0.3],
       scale: [0.6, 0.74, 0.3],
     },
     {
       geometry: new BoxGeometry(1, 1, 1),
-      colour: 0x666057,
+      colour: 0xc39a76,
       position: [0.12, 0.12, -0.25],
       rotation: [0.14, 0.32, 0.08],
       scale: [0.55, 0.18, 0.3],
@@ -173,58 +174,79 @@ function shale(): BufferGeometry {
 }
 
 function block(theme: PropTheme): BufferGeometry {
-  if (theme !== 'industrial') {
-    return merge([
-      {
-        geometry: new BoxGeometry(1, 1, 1),
-        colour: 0x6e6960,
-        position: [0, 0.5, 0],
-      },
-    ]);
-  }
-  return merge([
+  const industrial = theme === 'industrial';
+  const wall = industrial ? 0xd2bc95 : theme === 'shale' ? 0xc9a780 : 0xead6ab;
+  const roof = theme === 'shale' ? 0x65716e : 0x45646b;
+  const parts: Part[] = [
     {
       geometry: new BoxGeometry(1, 1, 1),
-      colour: 0x625e57,
+      colour: wall,
       position: [0, 0.38, 0],
       scale: [1, 0.76, 1],
     },
     {
       geometry: new BoxGeometry(1, 1, 1),
-      colour: 0x45494a,
-      position: [-0.18, 0.84, 0.08],
-      scale: [0.55, 0.18, 0.62],
+      colour: roof,
+      position: [0, 0.76, 0],
+      scale: [1.02, 0.075, 1.02],
     },
     {
-      geometry: new CylinderGeometry(0.07, 0.09, 0.5, 6),
-      colour: 0x4d443b,
-      position: [0.27, 0.95, -0.22],
+      geometry: new BoxGeometry(1, 1, 1),
+      colour: 0x31464b,
+      position: [0.08, 0.27, -0.502],
+      scale: [0.34, 0.54, 0.025],
     },
-  ]);
+    {
+      geometry: new BoxGeometry(1, 1, 1),
+      colour: 0xebaa51,
+      position: [0.08, 0.58, -0.514],
+      scale: [0.52, 0.07, 0.045],
+    },
+    {
+      geometry: new BoxGeometry(1, 1, 1),
+      colour: roof,
+      position: [-0.504, 0.44, 0.04],
+      scale: [0.025, 0.16, 0.52],
+    },
+  ];
+  if (industrial) {
+    parts.push(
+      { geometry: new BoxGeometry(1, 1, 1), colour: 0x70988d,
+        position: [-0.18, 0.84, 0.08], scale: [0.55, 0.18, 0.62] },
+      { geometry: new CylinderGeometry(0.07, 0.09, 0.5, 6), colour: 0x8b6954,
+        position: [0.27, 0.95, -0.22] },
+    );
+  } else {
+    // A low hipped roof keeps the original unit footprint and overall height.
+    parts.push({ geometry: new ConeGeometry(1, 1, 4), colour: roof,
+      position: [0, 0.875, 0], rotation: [0, Math.PI / 4, 0],
+      scale: [Math.SQRT1_2, 0.25, Math.SQRT1_2] });
+  }
+  return merge(parts);
 }
 
 function causeway(): BufferGeometry {
   return merge([
     {
       geometry: new CylinderGeometry(0.035, 0.05, 1, 5),
-      colour: 0x4b4e4e,
+      colour: 0x476267,
       position: [0, 0.5, 0],
     },
     {
       geometry: new BoxGeometry(1, 1, 1),
-      colour: 0x69655d,
+      colour: 0xd1b98c,
       position: [0, 0.52, 0],
       scale: [1, 0.045, 0.035],
     },
     {
       geometry: new BoxGeometry(1, 1, 1),
-      colour: 0x69655d,
+      colour: 0xd1b98c,
       position: [0, 0.3, 0],
       scale: [1, 0.04, 0.035],
     },
     {
       geometry: new BoxGeometry(1, 1, 1),
-      colour: 0x3f4446,
+      colour: 0xeab35e,
       position: [0, 0.92, 0],
       scale: [0.34, 0.055, 0.055],
     },
@@ -235,7 +257,7 @@ function wreckage(): BufferGeometry {
   return merge([
     {
       geometry: new BoxGeometry(1, 1, 1),
-      colour: 0x403b36,
+      colour: 0x92715a,
       position: [0, 0.3, 0],
       rotation: [0.05, 0.08, -0.07],
       scale: [0.8, 0.34, 0.54],
@@ -256,13 +278,13 @@ function wreckage(): BufferGeometry {
     },
     {
       geometry: new IcosahedronGeometry(1, 0),
-      colour: 0x675746,
+      colour: 0xb28b67,
       position: [0.55, 0.13, -0.5],
       scale: [0.22, 0.14, 0.24],
     },
     {
       geometry: new IcosahedronGeometry(1, 0),
-      colour: 0x554b42,
+      colour: 0x896c58,
       position: [-0.42, 0.11, 0.52],
       scale: [0.25, 0.12, 0.18],
     },
@@ -278,9 +300,18 @@ export function createPropGeometry(kind: PropKind, theme: PropTheme): BufferGeom
     case 'crag':
       return merge([
         {
-          geometry: new ConeGeometry(1, 1, 5),
-          colour: 0x363a42,
-          position: [0, 0.5, 0],
+          geometry: new IcosahedronGeometry(1, 0),
+          colour: 0xa1806b,
+          position: [-0.08, 0.46, 0],
+          rotation: [0.08, 0.25, 0.12],
+          scale: [0.7, 0.6, 0.62],
+        },
+        {
+          geometry: new IcosahedronGeometry(1, 0),
+          colour: 0xc49b74,
+          position: [0.24, 0.28, 0.12],
+          rotation: [0.1, 0.45, -0.14],
+          scale: [0.53, 0.33, 0.53],
         },
       ]);
     case 'block': return block(theme);

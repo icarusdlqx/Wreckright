@@ -331,7 +331,7 @@ describe('heat profile', () => {
 });
 
 describe('the roster', () => {
-  it('is thirteen mechs, one to a chassis', () => {
+  it('is sixteen mechs, eight per faction and one to a chassis', () => {
     // No prime-and-variant pairs: each chassis is one machine, so choosing
     // between them is choosing between designs rather than between trims.
     // Vehicles and emplacements are not counted: they are opposition, not
@@ -339,7 +339,10 @@ describe('the roster', () => {
     const mechs = [...catalog.designs.values()].filter(
       (design) => catalog.chassis.get(design.chassisId)?.frame === 'mech',
     );
-    expect(mechs).toHaveLength(13);
+    expect(mechs).toHaveLength(16);
+    for (const faction of ['linewrought', 'aurelian']) {
+      expect(mechs.filter((design) => catalog.chassis.get(design.chassisId)?.faction === faction)).toHaveLength(8);
+    }
 
     const chassis = [...catalog.designs.values()].map((design) => design.chassisId);
     expect(new Set(chassis).size).toBe(chassis.length);

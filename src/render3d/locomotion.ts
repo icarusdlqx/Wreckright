@@ -1,10 +1,9 @@
-import { Vector3 } from 'three';
 import { radiusFor } from '../render/shape';
 import { angleDifference, clamp } from '../sim/math';
 import type { EntityId, MechEntity, Vec2 } from '../sim/types';
 import type { BattleEffects } from './battleEffects';
-import { resetFootContact, settleFootContact } from './footContact';
-import { resetLegPose, writeJumpPose, writeStridePose, writeTurnPose } from './legMotion';
+import { settleFootContact } from './footContact';
+import { resetLegPose, writeStridePose, writeTurnPose } from './legMotion';
 import {
   advanceLegLossStumble,
   applyPersistentLimp,
@@ -34,16 +33,21 @@ import {
 } from './terminalMotion';
 import { createAnimationState, type AnimationState } from './locomotionState';
 import { lockSubmergedBody, placeMachineRoot } from './submergedLocomotion';
+import { burnJumpJets, jumpPose, resetMotion } from './locomotionJump';
+import { emitFootContacts, type FootfallCallback } from './locomotionContact';
+import { advanceWeightSettle, applyStanceResponse } from './stanceResponse';
+import { resetModelArticulation } from './modelArticulation';
+import { updateMachineHeat } from './machineServices';
+import { supportTerminalOnGround } from './terminalSupport';
 
 export { advanceGait, gaitForTerrain, responseBlend, type GaitProfile } from './terrainGait';
 export { localTilt, sampleGround, type GroundSample } from './locomotionGround';
 
-const NOZZLE = new Vector3();
 const OPEN_KNEE = 0.5;
 
 /** Render-only gait and ground pose; simulation positions remain authoritative. */
 export class Locomotion {
-  onFootfall: ((at: Vec2, tonnage: number, faction: MechModel['faction']) => void) | null = null;
+  onFootfall: FootfallCallback | null = null;
 
   private readonly states = new Map<EntityId, AnimationState>();
   private readonly terminalFallAuthorizations = new Set<EntityId>();
@@ -100,13 +104,18 @@ export class Locomotion {
     model.root.rotation.x = tilt.x;
     model.root.rotation.z = tilt.z;
     model.torso.rotation.y = -at.torso;
+    model.torso.position.x = 0;
+    resetModelArticulation(model.articulation);
+    updateMachineHeat(model.services, entity.heat / Math.max(1, entity.heatCapacity),
+      !entity.destroyed && entity.shutdownRemaining <= 0);
 
     this.animate(entity, model, at, deltaSeconds, tilt, terrainId);
+    if (state.terminal.fall > 0) supportTerminalOnGround(model, state.terminal.fall, this.heightAt, submergence);
     if (submergence !== 0 && state.terminal.fall <= 0) {
       lockSubmergedBody(model, state, state.ground + lift + submergence);
     }
     poseMachineMotion(model.machineMotion);
-    if (entity.jump !== null) this.burn(entity, model);
+    if (entity.jump !== null) burnJumpJets(entity, model, this.effects);
     return submergence;
   }
 
@@ -187,23 +196,28 @@ export class Locomotion {
 
     if (entity.jump !== null) {
       state.wasJumping = true;
-      this.jumpPose(entity, model, state, tilt, dt);
+      jumpPose(entity, model, state, tilt, dt);
       return;
     }
 
     if (state.wasJumping) {
       state.wasJumping = false;
-      this.resetMotion(state, model, tilt);
+      resetMotion(state, model, tilt);
+      state.weightSettle = this.reducedMotion ? 0 : 1;
+      applyStanceResponse(state, model, this.reducedMotion);
+      settleFootContact(state.contact, model, state.poses, this.heightAt, dt);
+      emitFootContacts(entity, model, state, this.terrainAt, this.heightAt, this.onFootfall, false, true);
       return;
     }
 
     if (translated > Math.max(2, model.strideLength * 2) || turned > Math.PI * 0.45) {
-      this.resetMotion(state, model, tilt);
+      resetMotion(state, model, tilt);
       return;
     }
 
     const turnTravel = turnDelta * model.turnRadius;
     const travelled = Math.hypot(translated, turnTravel);
+    advanceWeightSettle(state, model, travelled > 0, dt, this.reducedMotion);
     const pureTurn = turned > 0 && translated <= Math.abs(turnTravel) * 0.25;
     let posePhase: number;
     let poseStride = strideLength;
@@ -240,7 +254,9 @@ export class Locomotion {
       model.torso.rotation.z = 0;
       model.root.rotation.x = tilt.x;
       model.root.rotation.z = tilt.z;
+      applyStanceResponse(state, model, this.reducedMotion);
       settleFootContact(state.contact, model, state.poses, this.heightAt, dt);
+      emitFootContacts(entity, model, state, this.terrainAt, this.heightAt, this.onFootfall, false);
       return;
     }
 
@@ -288,6 +304,7 @@ export class Locomotion {
     applyPersistentLimp(model, lostLeg, posePhase, state.amp, this.reducedMotion);
     model.root.rotation.x = tilt.x;
     model.root.rotation.z = tilt.z;
+    applyStanceResponse(state, model, this.reducedMotion);
     settleFootContact(
       state.contact,
       model,
@@ -296,90 +313,7 @@ export class Locomotion {
       dt,
     );
 
-    const step = Math.floor(posePhase / Math.PI);
-    if (step !== state.lastStep) {
-      state.lastStep = step;
-      if (state.amp > 0.35 && travelled !== 0 && this.onFootfall !== null) {
-        this.onFootfall({ x: at.x, y: at.y }, entity.tonnage, model.faction);
-      }
-    }
-  }
-
-  private jumpPose(
-    entity: MechEntity,
-    model: MechModel,
-    state: AnimationState,
-    tilt: { x: number; z: number },
-    dt: number,
-  ): void {
-    const jump = entity.jump;
-    const motion = model.motion;
-    if (jump === null || motion === null) return;
-    const progress = jump.duration <= 0 ? 1 : jump.elapsed / jump.duration;
-    state.amp += (0 - state.amp) * responseBlend(motion.response, dt);
-    state.lean = 0;
-    resetFootContact(state.contact, model);
-    for (let index = 0; index < model.legs.length; index += 1) {
-      const leg = model.legs[index];
-      const pose = state.poses[index];
-      if (leg === undefined || pose === undefined) continue;
-      writeJumpPose(pose, progress, motion.tuck, index === 0 ? -1 : 1);
-      leg.hip.rotation.z = pose.hip;
-      leg.knee.rotation.z = pose.knee;
-      leg.ankle.rotation.z = pose.ankle;
-    }
-    model.torso.position.y = model.torsoRestY;
-    model.torso.rotation.x = 0;
-    model.torso.rotation.z = 0;
-    model.root.rotation.x = tilt.x;
-    model.root.rotation.z = tilt.z;
-  }
-
-  private resetMotion(
-    state: AnimationState,
-    model: MechModel,
-    tilt: { x: number; z: number },
-  ): void {
-    const previousContact = state.contact.body;
-    state.phase = Math.PI / 2;
-    state.turnPhase = Math.PI / 2;
-    state.turnDirection = 0;
-    state.amp = 0;
-    state.lean = 0;
-    state.lastStep = 0;
-    resetFootContact(state.contact, model);
-    model.root.position.y -= previousContact;
-    for (let index = 0; index < model.legs.length; index += 1) {
-      const leg = model.legs[index];
-      const pose = state.poses[index];
-      if (leg === undefined || pose === undefined) continue;
-      resetLegPose(pose);
-      leg.hip.rotation.z = 0;
-      leg.knee.rotation.z = 0;
-      leg.ankle.rotation.z = 0;
-    }
-    model.torso.position.y = model.torsoRestY;
-    model.torso.rotation.x = 0;
-    model.torso.rotation.z = 0;
-    model.root.rotation.x = tilt.x;
-    model.root.rotation.z = tilt.z;
-  }
-
-  private burn(entity: MechEntity, model: MechModel): void {
-    const jump = entity.jump;
-    if (jump === null) return;
-    const progress = jump.duration <= 0 ? 1 : jump.elapsed / jump.duration;
-    const throttle = clamp(
-      Math.max(0, 1 - progress * 2.4) + Math.max(0, (progress - 0.7) / 0.3) * 0.8,
-      0,
-      1,
-    );
-    if (throttle <= 0.02) return;
-
-    model.legs.forEach((rig, leg) => {
-      rig.knee.getWorldPosition(NOZZLE);
-      this.effects.plume(entity.id * 2 + leg, NOZZLE, throttle);
-    });
+    emitFootContacts(entity, model, state, this.terrainAt, this.heightAt, this.onFootfall, travelled > 0);
   }
 
   private stateFor(id: EntityId): AnimationState {

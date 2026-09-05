@@ -5,6 +5,7 @@ import { battlePlan, siegePlan } from './blueprint/plans-heavy';
 import { birdPlan, scoutPlan } from './blueprint/plans-light';
 import { bastionPlan, brawlerPlan, humanoidPlan, squatPlan } from './blueprint/plans-line';
 import type { Blueprint, Bones, HardpointMap, Plan } from './blueprint/types';
+import { WALKER_PLANS } from './blueprint/plans-walkers';
 
 export type {
   Blueprint,
@@ -85,7 +86,8 @@ export function chassisBlueprint(
     shoulder: base.shoulder * shape.shoulder,
   };
 
-  const built = PLANS[shape.form](bones, has, fit, identity);
+  const walkerPlan = identity === null || !WALKS.has(shape.form) ? undefined : WALKER_PLANS[identity];
+  const built = (walkerPlan ?? PLANS[shape.form])(bones, has, fit, identity);
   const torsoY = bones.hip + bones.tall * 0.5;
   const reversed = shape.form === 'scout' || shape.form === 'bird' || shape.form === 'battle';
   const ankleHeight = bones.kneeHeight * (reversed ? 0.12 : 0.14);
@@ -96,7 +98,7 @@ export function chassisBlueprint(
   const stanceReach = Math.hypot(bones.hip - ankleHeight, ankleForward);
 
   return {
-    parts: [...built.parts, ...signatureDetails(identity, bones)],
+    parts: walkerPlan === undefined ? [...built.parts, ...signatureDetails(identity, bones)] : built.parts,
     hardpoints: built.hardpoints,
     torsoY,
     height: torsoY + built.crown,

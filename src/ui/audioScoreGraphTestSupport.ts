@@ -35,7 +35,8 @@ export class FakeParam {
 }
 
 export class FakeNode {
-  connect<T>(destination: T): T { return destination; }
+  readonly connections: unknown[] = [];
+  connect<T>(destination: T): T { this.connections.push(destination); return destination; }
 }
 
 export class FakeSource extends FakeNode {
@@ -66,7 +67,11 @@ export class FakeFilter extends FakeNode {
   readonly Q = new FakeParam();
 }
 
-class FakeCompressor extends FakeNode {
+export class FakePanner extends FakeNode {
+  readonly pan = new FakeParam();
+}
+
+export class FakeCompressor extends FakeNode {
   readonly threshold = new FakeParam();
   readonly ratio = new FakeParam();
 }
@@ -79,13 +84,23 @@ export class FakeContext {
   readonly sources: FakeSource[] = [];
   readonly gains: FakeGain[] = [];
   readonly filters: FakeFilter[] = [];
+  readonly panners: FakePanner[] = [];
+  readonly compressors: FakeCompressor[] = [];
   closeCalls = 0;
   state: AudioContextState = 'running';
 
   constructor() { FakeContext.instances.push(this); }
 
   createDynamicsCompressor(): DynamicsCompressorNode {
-    return new FakeCompressor() as unknown as DynamicsCompressorNode;
+    const compressor = new FakeCompressor();
+    this.compressors.push(compressor);
+    return compressor as unknown as DynamicsCompressorNode;
+  }
+
+  createStereoPanner(): StereoPannerNode {
+    const panner = new FakePanner();
+    this.panners.push(panner);
+    return panner as unknown as StereoPannerNode;
   }
 
   createBuffer(_channels: number, length: number): AudioBuffer {
