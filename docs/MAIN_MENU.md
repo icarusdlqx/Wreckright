@@ -32,6 +32,9 @@ After: [desktop](images/main-menu/after-desktop.png),
 [landscape](images/main-menu/after-landscape.png), and
 [phone settings](images/main-menu/after-settings-phone.png).
 
+Offline: [illustrated menu](images/main-menu/after-offline.png) and
+[an in-game mech dossier](images/main-menu/wiki-offline.png).
+
 ## Preview availability
 
 The broken review links were caused by temporary development servers ending
@@ -56,3 +59,11 @@ companies from both factions, and unavailable browser storage. Preview server
 tests cover both-port binding, release headers, safe static paths, occupied
 ports and project-specific lifecycle configuration. Final delivery evidence
 also checks the actual launchd job and both live loopback addresses.
+
+Verified locally on 2026-09-06: typecheck, lint, **3,046 fast tests**,
+**833 full browser checks**, **24 focused production-menu checks**, both release
+builds and the offline archive/refit/deployment smoke all pass. Before/after,
+small-phone, landscape, Settings and offline images were inspected. The offline
+checker uses the same supported ANGLE/SwiftShader configuration as the other
+review browsers; decoding, visible artwork and the completed fade are checked
+before screenshots. No simulation, mission or campaign tuning changed.
