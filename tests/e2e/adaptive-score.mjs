@@ -46,7 +46,8 @@ async function restart(page) {
   await openMenu(page);
   await page.locator('[data-testid="restart-battle"]').click();
   await page.waitForFunction(() => (
-    globalThis.__wreckright?.engine !== globalThis.__scorePreviousEngine
+    globalThis.__wreckright !== undefined
+    && globalThis.__wreckright.engine !== globalThis.__scorePreviousEngine
     && globalThis.__wreckright.useGame.getState().briefingSeen === true
   ));
   await page.waitForFunction((count) => (

@@ -502,7 +502,7 @@ async function main() {
     );
     await battleCode.fill('Ridge Touch 0000002A');
     await page.locator('[data-testid="briefing-deploy"]').click();
-    await page.waitForFunction((tick) => globalThis.__wreckright.world.tick > tick,
+    await page.waitForFunction((tick) => globalThis.__wreckright?.world.tick > tick,
       beforeBriefing, { timeout: 10_000 });
     const running = await sim(page);
     check('deploying starts the clock', running.tick > beforeBriefing, `${beforeBriefing} → ${running.tick}`);
@@ -970,11 +970,11 @@ async function main() {
     });
     await openDesktopBattleMenu(page);
     await page.locator('[data-testid="restart-battle"]').click();
-    await page.waitForFunction(
-      () =>
-        globalThis.__wreckright.engine !== globalThis.__setupEngine &&
-        globalThis.__wreckright.engine.world.mission.id === 'base_capture_ridge',
-    );
+    await page.waitForFunction(() => {
+      const game = globalThis.__wreckright;
+      return game !== undefined && game.engine !== globalThis.__setupEngine &&
+        game.world.mission.id === 'base_capture_ridge';
+    });
     await page.waitForFunction(() => {
       const state = globalThis.__wreckright.useGame.getState();
       return state.objectives.length >= 3 && state.zones.length === 2;
@@ -1045,8 +1045,9 @@ async function main() {
       (await page.locator('[data-testid="briefing"] h2').innerText()).includes('Cutbank Registry'),
     );
     await page.locator('[data-testid="briefing-deploy"]').click();
+    // A remount removes the old hook before the new field has finished loading.
     await page.waitForFunction(
-      () => globalThis.__wreckright.world.mission.id === 'exchange_register',
+      () => globalThis.__wreckright?.world.mission.id === 'exchange_register',
     );
     const largeField = await page.evaluate(() => {
       const { engine, world } = globalThis.__wreckright;
