@@ -726,24 +726,41 @@ async function main() {
     check('own armour is an inspection view, not a called-shot control',
       await page.locator('[data-testid="doll-left_leg"]').isDisabled());
     // A controlled optical fixture lets this input test inspect a real hostile body section.
-    const aimTarget = await page.evaluate(() => {
+    const aimFixture = await page.evaluateHandle(() => {
       const { engine, world } = globalThis.__wreckright;
       const enemy = world.entities.find(entity => entity.team !== world.playerTeam && !entity.destroyed);
-      world.reveals.push({ kind: 'optical', team: world.playerTeam, x: enemy.pos.x, y: enemy.pos.y,
-        radius: 260, expiresTick: world.tick + 400 });
-      engine.forceStep();
-      return enemy.id;
+      const reveal = { kind: 'optical', team: world.playerTeam, x: enemy.pos.x, y: enemy.pos.y,
+        radius: 260, expiresTick: world.tick + 400 };
+      world.reveals.push(reveal);
+      return { engine, world, reveal, targetId: enemy.id };
     });
-    await page.locator('[data-testid="command-called_shot"]').click();
-    await page.locator('[data-testid="called-shot-hostile"]').selectOption(String(aimTarget));
-    await page.locator('[data-testid="called-shot-target"] [data-testid="doll-left_leg"]').click();
-    check('called shot targets the chosen hostile section through its armour panel',
-      (await state(page)).orderMode === 'called_shot' && (await state(page)).calledShotLocation === 'left_leg'
-      && await page.evaluate(({ selectedId, aimTarget }) => {
-        const entity = globalThis.__wreckright.world.entities.find(entity => entity.id === selectedId);
-        return entity.orders.attack?.targetId === aimTarget && entity.orders.attack?.calledShot === 'left_leg';
-      }, { selectedId, aimTarget }));
-    await page.locator('[data-testid="called-shot-target"] button').filter({ hasText: 'Done' }).click();
+    try {
+      const aimTarget = await aimFixture.evaluate(({ engine, targetId }) => {
+        engine.forceStep();
+        return targetId;
+      });
+      await page.locator('[data-testid="command-called_shot"]').click();
+      await page.locator('[data-testid="called-shot-hostile"]').selectOption(String(aimTarget));
+      await page.locator('[data-testid="called-shot-target"] [data-testid="doll-left_leg"]').click();
+      check('called shot targets the chosen hostile section through its armour panel',
+        (await state(page)).orderMode === 'called_shot' && (await state(page)).calledShotLocation === 'left_leg'
+        && await page.evaluate(({ selectedId, aimTarget }) => {
+          const entity = globalThis.__wreckright.world.entities.find(entity => entity.id === selectedId);
+          return entity.orders.attack?.targetId === aimTarget && entity.orders.attack?.calledShot === 'left_leg';
+        }, { selectedId, aimTarget }));
+      await page.locator('[data-testid="called-shot-target"] button').filter({ hasText: 'Done' }).click();
+    } finally {
+      try {
+        await aimFixture.evaluate(async ({ world, reveal }, url) => {
+          const index = world.reveals.indexOf(reveal);
+          if (index >= 0) world.reveals.splice(index, 1);
+          const { updateTeamVisions } = await import(new globalThis.URL('src/sim/sensors.ts', url).href);
+          updateTeamVisions(world);
+        }, URL);
+      } finally {
+        await aimFixture.dispose();
+      }
+    }
 
     process.stdout.write('\ncamera\n');
     const zoomPointer = { x: box.width * 0.72, y: box.height * 0.46 };
