@@ -8,6 +8,7 @@ import { useGame } from './store';
 import { CommandMark } from './CommandMark';
 import { HomeTheatre } from './HomeTheatre';
 import { AudioSettings } from './AudioSettings';
+import { WikiLink } from './wiki/WikiLink';
 import {
   skipTraining,
   readTraining,
@@ -62,7 +63,7 @@ export function HomeScreen() {
       <header className="home-masthead">
         <div><CommandMark /><span>WRECKRIGHT<small>INDEPENDENT COMPANY COMMAND</small></span></div>
         <p>TESSELL <span>/</span> THE GREAT RECALL</p>
-        <nav aria-label="Game settings"><AudioSettings compact /></nav>
+        <nav aria-label="Game settings"><WikiLink className="home-wiki-link" data-testid="home-wiki">Story & machines</WikiLink><AudioSettings compact /></nav>
       </header>
       <section className="home-panel" aria-labelledby="home-title">
         <div className="home-introduction">

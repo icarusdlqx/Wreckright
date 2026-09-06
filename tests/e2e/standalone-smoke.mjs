@@ -25,6 +25,17 @@ try {
   const fonts = await page.evaluate(() => ['600 24px "Barlow Condensed"', '700 24px "Barlow Condensed"', '400 14px "DM Sans"'].every((font) => document.fonts.check(font)));
   if (!fonts || await page.locator('.home-machine canvas').count() !== 2) throw new Error('Missing inline font or machine preview');
   await page.screenshot({ path: `${shots}/home.png` });
+  await page.locator('[data-testid="home-wiki"]').click();
+  await page.locator('[data-testid="wiki-machines"]').click();
+  if (await page.locator('.wiki-machine-card').count() !== 16) throw new Error('Offline archive missing machine dossiers');
+  await page.locator('.wiki-machine-card[href="#wiki/mech/prybar_pry1"]').click();
+  await page.waitForFunction(() => { const image = document.querySelector('.wiki-mech-portrait img'); return image?.complete && image.naturalWidth > 0; });
+  if (!(await page.locator('.wiki-reading').innerText()).includes('Service history')) throw new Error('Offline dossier missing history');
+  await page.screenshot({ path: `${shots}/wiki.png` });
+  await page.reload();
+  await page.locator('[data-testid="wiki-article"]').waitFor();
+  if (await page.locator('.home-machine canvas').count()) throw new Error('Direct offline archive mounted a game renderer');
+  await page.locator('[data-testid="wiki-close"]').click();
   await page.locator('[data-testid="home-campaign"]').click();
   await page.waitForSelector('[data-testid="campaign"]');
   await completeInitialCampaignSetup(page);
@@ -43,7 +54,7 @@ try {
   await page.waitForSelector('[data-testid="viewport"]');
   await page.screenshot({ path: `${shots}/battle.png` });
   if (errors.length || external.length) throw new Error(JSON.stringify({ errors, external }));
-  console.log('Standalone smoke passed: inline fonts, two home models, workshop refit, contract, deployment; zero external HTTP requests or page errors.');
+  console.log('Standalone smoke passed: inline fonts, two home models, 16 machine dossiers, offline archive reload, workshop refit, contract, deployment; zero external HTTP requests or page errors.');
 } finally {
   await browser.close();
 }

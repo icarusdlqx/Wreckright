@@ -1,0 +1,16 @@
+{
+  "id": "votive_vtv2",
+  "designId": "votive_picket",
+  "provenance": "Votives were recovered standing in regular rows inside a Compact service vault. Their narrow frames and paired upright armour forms gave the class its local name.",
+  "serviceHistory": [
+    "Restoration separated machines whose preservation work had held from those needing scarce internal replacements. The contrast encouraged a reputation for perfect machines that failed without explanation. Workshop records are less dramatic: a difficult fault can be diagnosed and still take a company out of service while it waits for the right component.",
+    "Custodian crews use Votives to watch the edges of a working line and challenge lighter opposition. Their instructors prize exact intervals and clean firing drills. On Tessell, where the ground and the opposition seldom oblige, experienced pilots learn to leave those intervals open enough for a damaged companion to get through."
+  ],
+  "fieldNotes": "The tall paired armour pieces distinguish the Votive from the low Vesper. The stock fit combines useful sensors with compact emitters and jump equipment. That concentration of technology is valuable on a light frame, but armour and cooling still set limits. A polished return to the bay is preferable to an impressive last volley.",
+  "related": [
+    { "kind": "story", "id": "the_sealed" },
+    { "kind": "story", "id": "the_custodians" },
+    { "kind": "mech", "id": "wisp_wsp1" },
+    { "kind": "mech", "id": "falchion_fal2" }
+  ]
+}

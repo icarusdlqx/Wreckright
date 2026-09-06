@@ -37,8 +37,10 @@ export function FriendlyMachineProfile({ unit }: { unit: UnitSnapshot }) {
         </ul>
       )}
       <p className="machine-profile-caveat">
-        Current weather is included. Terrain and elevation further alter optical reach. Sensor
-        returns do not provide line of sight.
+        Sensors work automatically; a fitted Deep Scanner extends their reach without a separate
+        activation. Current weather is included. The ring shows instrument range; small signatures
+        and concealment shorten detection. Terrain and elevation further alter optical reach.
+        Sensor returns do not provide line of sight.
       </p>
     </section>
   );

@@ -11,6 +11,7 @@ import { HostileBar, LanceBar, SupportPalette } from './Panels';
 import { selectedUnit, useGame } from './store';
 import type { SupportOption } from './supportOptions';
 import { SensorSweepReadout } from './SensorSweepReadout';
+import { SupportStatus } from './SupportStatus';
 import { TrainingHeatReadout } from './TrainingHeatReadout';
 import {
   trainingCommandIds,
@@ -105,6 +106,7 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
       ) : null}
       {fullHud ? <Minimap engine={engine} /> : null}
       <footer className={`bottombar tactical-command-deck${fullHud ? '' : ' training-bottombar'}`}>
+        {fullHud ? <SupportStatus world={engine?.world ?? null} paused={state.paused} /> : null}
         {trainingShowsHeatReadout(trainingStep) ? (
           <TrainingHeatReadout unit={playerControlled ? unit : null} />
         ) : null}
@@ -152,6 +154,7 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
                 active={state.supportMode}
                 notice={state.supportNotice}
                 reservesLeft={state.reservesLeft}
+                paused={state.paused}
                 onPick={(call) => state.setSupportMode(state.supportMode === call ? null : call)}
               />
             ) : null}

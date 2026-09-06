@@ -1,0 +1,44 @@
+{
+  "id": "places_on_the_line",
+  "category": "places",
+  "title": "Places of the Recall",
+  "summary": "Passes, yards and service routes where freight, power and disputed records meet.",
+  "sections": [
+    {
+      "heading": "Ridge Pass",
+      "body": [
+        "Road traffic passes beneath ground that a small guard can hold. Freight companies need the route open; a compliance detail needs only to make stopping cheaper than arguing. The Marker Eleven registry records the roots moving through this district. Its cabinets can bring a company into a dispute before any of its pilots has met the claimant."
+      ]
+    },
+    {
+      "heading": "Cutbank Exchange",
+      "body": [
+        "Custody posts and service readers turn physical movements into entries in a book. The freight hoist lifts ordinary cargo while clerks decide which name should stand beside a walker serial. Holding Cutbank does not give anyone control of a distant cockpit. It gives them access to the records that other people may later enforce."
+      ]
+    },
+    {
+      "heading": "Blackglass Quarry",
+      "body": [
+        "Lift cabinets, a weigh ledger and a serial punch make Blackglass useful to both workshops and claimants. The quarry handles castings and the paperwork attached to them. A new plate can replace a broken one; it cannot create the inherited root beneath it. The floor holds the machinery and records, while the rim overlooks the work."
+      ]
+    },
+    {
+      "heading": "Sarn's repair yards",
+      "body": [
+        "Sarn's gantries carry machines whose names are older than their current armour. Repair halls share power trunks, suppliers and yard books. Cutting a trunk can stop several crews at once without touching the roots above their work pits. Neutrality does not keep the lights on; switches, guards and somebody willing to pay do."
+      ]
+    },
+    {
+      "heading": "The Causeway and Shale Steps",
+      "body": [
+        "The Causeway crosses a drowned valley on one raised road, with a hardstand at mid-span. A root yard on the far bank makes the crossing an inventory question as much as a route. There is little room to treat either purpose separately.",
+        "Shale Steps offers terraces, broken sightlines and the ground around a working breaker. Power transferred there can return distant gantries to service. Like many places on Tessell, its value is easier to understand from a repair queue than from a map."
+      ]
+    }
+  ],
+  "related": [
+    { "kind": "story", "id": "tessell" },
+    { "kind": "story", "id": "the_employers" },
+    { "kind": "story", "id": "the_code" }
+  ]
+}

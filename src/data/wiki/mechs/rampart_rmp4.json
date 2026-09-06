@@ -1,0 +1,16 @@
+{
+  "id": "rampart_rmp4",
+  "designId": "rampart_breaker",
+  "provenance": "Rampart rebuilds opened an assault root's shoulders into weapon blocks and replaced vulnerable cockpit glazing with a heavy forward mantlet. Halloran's named survivors are hired for work expected to damage them.",
+  "serviceHistory": [
+    "A Rampart contract begins with the road survey. Gates may have to come down before the machine reaches the gate it was hired to break, and a narrow turn can delay the entire job. Halloran keeps those costs separate from the daily hire. Customers who dispute them are invited to propose another route.",
+    "Crews attach considerable importance to the people following with the recovery equipment. The armament can make a breach; it cannot guarantee that the machine will walk back out of it. A successful Rampart assignment often ends with the employer holding the ground while a fitter works under the mantlet."
+  ],
+  "fieldNotes": "The low forward slab and large weapon blocks mark a committed breaching machine. Its stock weapons cover different distances, so having a target in reach does not mean the whole battery can answer. Plan the approach and the recovery. The frame is slow to correct a mistake in either.",
+  "related": [
+    { "kind": "story", "id": "the_code" },
+    { "kind": "story", "id": "the_refit" },
+    { "kind": "mech", "id": "bulwark_bwk3" },
+    { "kind": "mech", "id": "colossus_cls1" }
+  ]
+}

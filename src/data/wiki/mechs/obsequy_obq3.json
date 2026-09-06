@@ -1,0 +1,16 @@
+{
+  "id": "obsequy_obq3",
+  "designId": "obsequy_vigil",
+  "provenance": "Karst's ledger placed Obsequy frames under PERIMETER. Opened bays did not account for the entire register, and the surviving machines entered service with their old duty still legible on the storage plates.",
+  "serviceHistory": [
+    "The tall central armour and separate projector channels suit a machine expected to watch an approach for a long time. Current service fits combine inherited systems with restored sensors and replacement emitters. Their clean surfaces conceal a maintenance history as old as that of the workshop machines they face.",
+    "Aurelian companies favour the Obsequy where they want a visible reason to respect an exclusion line. Local commanders prefer to learn what it can see before testing what it can hit. Both depend on the crew keeping the cooling service current; the absence of ammunition wagons does not mean the absence of a supply problem."
+  ],
+  "fieldNotes": "A tall, divided tower distinguishes the Obsequy from broader assault frames. The standard battery offers long reach and the fitted scanner helps it watch the approach. Fire discipline still matters: deep cooling is not permission to cycle every hot weapon indefinitely. Protect the position and allow room to disengage.",
+  "related": [
+    { "kind": "story", "id": "the_sealed" },
+    { "kind": "story", "id": "the_foundry_winter" },
+    { "kind": "mech", "id": "halberd_hlb4" },
+    { "kind": "mech", "id": "pallvault_plv1" }
+  ]
+}

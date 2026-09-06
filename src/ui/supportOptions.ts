@@ -5,6 +5,7 @@ export interface SupportOption {
   id: SupportCallId;
   label: string;
   cost: number;
+  delaySeconds: number;
   effect: string;
   placement: string;
 }
@@ -31,7 +32,7 @@ function timing(delaySeconds: number): string {
   return delaySeconds === 0 ? 'with no delay' : `after ${delaySeconds}s`;
 }
 
-function describe(call: SupportCallId, rules: SupportRules): Omit<SupportOption, 'id' | 'cost'> {
+function describe(call: SupportCallId, rules: SupportRules): Omit<SupportOption, 'id' | 'cost' | 'delaySeconds'> {
   switch (call) {
     case 'sensor_probe': {
       const entry = rules.sensor_probe;
@@ -46,15 +47,15 @@ function describe(call: SupportCallId, rules: SupportRules): Omit<SupportOption,
       return {
         label: 'Air Strike',
         effect: `${entry.shots} × ${entry.damage} damage across a ${entry.length} × ${entry.width}m lane ${timing(entry.delaySeconds)}.`,
-        placement: 'Drag the lane on desktop, or tap for the default approach.',
+        placement: 'Press and drag across the target to set the flight direction, or tap for the default approach.',
       };
     }
     case 'repair_truck': {
       const entry = rules.repair_truck;
       return {
         label: 'Repair Truck',
-        effect: `Restore ${entry.armourPerSecond} armour/s to each friendly within ${entry.radius}m for ${entry.durationSeconds}s ${timing(entry.delaySeconds)}.`,
-        placement: 'Click or tap where damaged mechs can gather.',
+        effect: `Restore up to ${entry.armourPerSecond} armour/s per friendly within ${entry.radius}m for ${entry.durationSeconds}s ${timing(entry.delaySeconds)}. Armour only: no internal, weapon or ammunition repairs.`,
+        placement: 'Click or tap clear ground, then move damaged mechs into the repair circle.',
       };
     }
     case 'reinforcement':
@@ -86,6 +87,7 @@ export function buildSupportOptions(rules: SupportRules, reserves: number): Supp
   return supportCallIds(reserves).map((id) => ({
     id,
     cost: rules[id].cost,
+    delaySeconds: rules[id].delaySeconds,
     ...describe(id, rules),
   }));
 }

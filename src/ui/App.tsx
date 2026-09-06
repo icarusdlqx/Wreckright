@@ -6,15 +6,14 @@ import { LazyMechbay } from './mechbay/LazyMechbay';
 import { PlaytestProvider } from './playtest';
 import { StrategicScoreProvider } from './StrategicScoreProvider';
 import { useGame } from './store';
+import { WikiHost } from './wiki/WikiHost';
 
 export function App() {
   return (
     <StrategicScoreProvider>
-      <PlaytestProvider>
-        <ErrorBoundary onReset={() => useGame.getState().patch({ screen: 'home', error: null })}>
-          <AppRoute />
-        </ErrorBoundary>
-      </PlaytestProvider>
+      <ErrorBoundary onReset={() => useGame.getState().patch({ screen: 'home', error: null })}>
+        <WikiHost><PlaytestProvider><AppRoute /></PlaytestProvider></WikiHost>
+      </ErrorBoundary>
     </StrategicScoreProvider>
   );
 }

@@ -39,6 +39,15 @@ rewards, shared objective XP, campaign endings, a planning map and previewed wea
 replacement. The [first-time playtest pack](docs/PLAYTEST_PACK.md) provides a
 repeatable way to check the opening with new players.
 
+The [Tessell field archive](docs/LORE_WIKI.md) adds searchable world history,
+sixteen illustrated machine dossiers, shareable article links and optional
+opening-route guidance for both campaigns. Campaign discoveries stay hidden
+unless earned or explicitly revealed, and the archive works in the offline build.
+
+The [sensor and support fixes](docs/SENSOR_SUPPORT_FIXES.md) make paused sweeps
+and probes respond immediately, explain queued support timing, and show aircraft
+and repair teams arriving, working and departing.
+
 ## Repository identity
 
 
@@ -142,7 +151,7 @@ Iteration *i* runs on seed `<seed>:<i>`, so any single battle can be replayed on
   returned to repossess every surviving walker root. An independent company
   fights through the Great Recall while deciding who owns the finite machines
   that kept this world alive. The setting is in `src/data/lore`, readable in-game
-  under Field Manual.
+  under Field Manual and the Tessell field archive.
 - Phase 7 — Polish: in progress.
 
 ### Phase 6 acceptance

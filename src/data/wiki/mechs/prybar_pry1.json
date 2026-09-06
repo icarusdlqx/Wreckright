@@ -1,0 +1,15 @@
+{
+  "id": "prybar_pry1",
+  "designId": "prybar_courier",
+  "provenance": "The first Prybar entered Halloran's books as a recovered survey root with its instruments missing. A road crew gave it an offset cab and the means to get its driver home.",
+  "serviceHistory": [
+    "The name travelled with the machine through successive yards. Other rebuilds adopted the same narrow shoulders and reachable running gear, but each continued a different inherited root. Prybar describes a useful way of keeping a small walker in service, not a production line.",
+    "Road companies send Prybars ahead with route notices, replacement survey stakes and messages that cannot wait for the next freight departure. Their drivers are often the first to learn that a familiar crossing now has a different owner's guard. A completed delivery rarely enters a battle history; the receipts in Halloran's books record a great many of them."
+  ],
+  "fieldNotes": "The upright cab and bare running gear make a Prybar easy to identify. Its standard weapons are for a close escape, not an argument across a valley. Local guns are straightforward to replace; the surviving root is not. A courier that returns without firing has done its work.",
+  "related": [
+    { "kind": "story", "id": "the_welded" },
+    { "kind": "story", "id": "the_refit" },
+    { "kind": "mech", "id": "hornet_hnt2" }
+  ]
+}

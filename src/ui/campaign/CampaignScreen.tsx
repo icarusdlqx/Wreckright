@@ -46,6 +46,8 @@ import { canLaunchFirstDropDirectly } from './firstDropLaunch';
 import { useCampaignScore } from './useCampaignScore';
 import { MissionSurvey } from './MissionSurvey';
 import { missionPreviewData, previewMissionId } from './missionPreviewData';
+import { openingRecommendation } from './openingRoute';
+import { OpeningRouteGuide } from './OpeningRouteGuide';
 
 const catalog = getCatalog();
 const DEFAULT_CAMPAIGN_ID = 'border_dispute';
@@ -56,6 +58,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
   const [persistence, setPersistence] = useState(initial.persistence);
   const [manualOpen, setManualOpen] = useState(false);
   const [guideDismissed, setGuideDismissed] = useState(false);
+  const [openingDismissedRun, setOpeningDismissedRun] = useState<string | null>(null);
   const [prep, setPrep] = useState<FirstDropPrep>(null);
   const [refitting, setRefitting] = useState<string | null>(null);
   const [debriefed, setDebriefed] = useState(() => debriefedCount());
@@ -93,6 +96,8 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
     prep,
   });
   const guidedFirstDrop = guideDismissed ? 'done' : firstDrop;
+  const openingRun = `${state.campaignId}:${state.seed}`;
+  const opening = openingRecommendation(catalog, state, open);
   const surveyMission = previewMissionId(state.contract, node);
   const survey = useMemo(() => missionPreviewData(catalog, surveyMission), [surveyMission]);
   const previewsActive = state.difficultyConfigured && prep === null && refitting === null && !manualOpen && !choosingCampaign && outcomeCount <= debriefed;
@@ -295,6 +300,10 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         crew={<BarracksPanel state={state} mutate={mutate} focus={navigation.target} />}
         supplies={<><StoresPanel state={state} mutate={mutate} /><MarketPanel state={state} mutate={mutate} /></>}
         operations={(active) => <>
+      {opening === null || openingDismissedRun === openingRun || guidedFirstDrop !== 'done' || outcomeCount > debriefed ? null : (
+        <OpeningRouteGuide recommendation={opening} selectedId={node?.id ?? null}
+          onReview={revealPosting} onDismiss={() => setOpeningDismissedRun(openingRun)} />
+      )}
       {state.finished ? null : <MissionSurvey data={survey} active={active && previewsActive} signed={state.contract !== null} />}
       <CampaignMap
         campaign={campaign}

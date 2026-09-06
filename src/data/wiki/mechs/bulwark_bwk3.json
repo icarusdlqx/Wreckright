@@ -1,0 +1,16 @@
+{
+  "id": "bulwark_bwk3",
+  "designId": "bulwark_assault",
+  "provenance": "A Sarn repair gave an old Compact siege root shortened legs and a wider stance. The shop repeated the arrangement because it suited a machine expected to hold a road.",
+  "serviceHistory": [
+    "Ridgeward militias acquired named Bulwarks when larger companies sold their older machines. Their new employers rarely expected them to march far. A walker standing beside a toll barrier or grain crossing could settle an argument without spending the ammunition the Assembly could scarcely afford.",
+    "The protected cab and large arm shield now identify a familiar sort of local security. Under that rough plate, many Bulwarks carry prized Compact emitters alongside workshop weapons. Fitters record an emitter's previous owners separately from the root's repair history. A machine can have a sound local claim and still carry a gun whose provenance nobody wishes to discuss."
+  ],
+  "fieldNotes": "The standard Bulwark is already a mixed refit. Its energy weapons do not need bins, while its local gun and racks offer another supply route. Holding a useful position suits the frame; changing that decision late is harder. Cooling, ammunition and recovery prospects all matter when replacing its armament.",
+  "related": [
+    { "kind": "story", "id": "the_employers" },
+    { "kind": "story", "id": "the_shared_mounts" },
+    { "kind": "story", "id": "the_code" },
+    { "kind": "mech", "id": "cairn_crn3" }
+  ]
+}

@@ -1,7 +1,7 @@
 import type { MechLocation } from '../schema/common';
 import { useAbility } from '../sim/abilities';
 import { restoreIntent } from '../sim/governor';
-import { isSightedBy } from '../sim/sensors';
+import { isSightedBy, updateTeamVisions } from '../sim/sensors';
 import {
   isHoldingFire,
   issueAlphaStrike,
@@ -227,6 +227,7 @@ export function toggleSelectionHeatSafety(context: EngineOrderContext): void {
 export function useSelectionAbilities(context: EngineOrderContext): void {
   let used = 0;
   let asked = 0;
+  let sensorsChanged = false;
   for (const id of context.selectedEntities()) {
     const entity = findEntity(context.world, id);
     if (entity === null || entity.autopilot) continue;
@@ -234,8 +235,11 @@ export function useSelectionAbilities(context: EngineOrderContext): void {
     if (!useAbility(context.world, entity)) continue;
     used += 1;
     const ability = context.world.rules.abilities.entries[entity.ability.id];
+    if ((ability?.sensorRangeFactor ?? 1) !== 1) sensorsChanged = true;
     useGame.getState().pushLog(`${entity.pilot.name}: ${ability?.label ?? entity.ability.id}.`);
   }
+  // Abilities take effect while paused; refresh their derived contacts without advancing the field.
+  if (sensorsChanged) updateTeamVisions(context.world);
   if (used > 0) context.audio.order();
   else if (asked > 0) useGame.getState().pushLog('Nothing ready to call on yet.');
   else useGame.getState().pushLog('No mech selected to give that order to.');

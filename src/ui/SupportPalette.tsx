@@ -16,16 +16,20 @@ interface SupportPaletteProps {
   active: SupportOption['id'] | null;
   notice?: string | null;
   reservesLeft: number;
+  paused?: boolean;
   onPick: (call: SupportOption['id']) => void;
   embedded?: boolean;
 }
 
-function availability(
+export function supportAvailability(
   option: SupportOption,
   resourcePoints: number,
   reservesLeft: number,
   active: SupportOption['id'] | null,
 ): { disabled: boolean; status: string } {
+  if (active === option.id) {
+    return { disabled: false, status: `Armed · ${option.placement} Choose this call again to cancel.` };
+  }
   if (option.id === 'reinforcement' && reservesLeft === 0) {
     return { disabled: true, status: 'No mission reserve remains.' };
   }
@@ -34,7 +38,7 @@ function availability(
   }
   return {
     disabled: false,
-    status: active === option.id ? `Armed · ${option.placement}` : option.placement,
+    status: option.placement,
   };
 }
 
@@ -45,6 +49,7 @@ export function SupportPalette({
   active,
   notice = null,
   reservesLeft,
+  paused = false,
   onPick,
   embedded = false,
 }: SupportPaletteProps) {
@@ -58,7 +63,7 @@ export function SupportPalette({
   const armed = options.find((option) => option.id === active) ?? null;
 
   const pick = (option: SupportOption): void => {
-    const state = availability(option, resourcePoints, reservesLeft, active);
+    const state = supportAvailability(option, resourcePoints, reservesLeft, active);
     setFocusedId(option.id);
     if (state.disabled) return;
     onPick(option.id);
@@ -114,7 +119,7 @@ export function SupportPalette({
         ) : null}
         <div className="support-choices">
           {options.map((option) => {
-            const { disabled, status } = availability(
+            const { disabled, status } = supportAvailability(
               option,
               resourcePoints,
               reservesLeft,
@@ -138,6 +143,9 @@ export function SupportPalette({
                 </span>
                 <span className="support-label">{option.label}</span>
                 <span className="support-cost">{option.cost} RP</span>
+                <span className={`support-availability${disabled ? ' blocked' : ''}`}>
+                  {disabled ? status : active === option.id ? 'Choose a target' : option.delaySeconds === 0 ? 'Immediate' : `${option.delaySeconds}s to arrival`}
+                </span>
               </button>
             );
           })}
@@ -146,12 +154,22 @@ export function SupportPalette({
           <div className="support-detail" aria-live="polite">
             <strong>{focused.label}</strong>
             <span>{focused.effect}</span>
-            <span className={availability(focused, resourcePoints, reservesLeft, active).disabled ? 'blocked' : ''}>
-              {availability(focused, resourcePoints, reservesLeft, active).status}
+            <span className={supportAvailability(focused, resourcePoints, reservesLeft, active).disabled ? 'blocked' : ''}>
+              {supportAvailability(focused, resourcePoints, reservesLeft, active).status}
+            </span>
+            <span className="support-dispatch-note">
+              {paused && focused.delaySeconds > 0 ? 'Place the call now; resume time to dispatch it.' : focused.delaySeconds === 0 ? 'Activates when placed, including while paused.' : 'Arrival time follows the mission clock.'}
+              {' '}RP is spent only after a valid target is placed.
             </span>
           </div>
         )}
       </section>
+      {armed === null || drawerOpen ? null : <div className="support-targeting" role="status" data-testid="support-targeting">
+        <strong>{armed.label}: choose a target</strong>
+        <span>{armed.placement}</span>
+        <span>{paused && armed.delaySeconds > 0 ? 'Place now, then resume to dispatch.' : 'The cost is charged when placed.'}</span>
+        <button type="button" onClick={() => onPick(armed.id)} data-testid="support-cancel">Cancel support</button>
+      </div>}
       {notice === null ? null : (
         <p className="support-notice" role="status" aria-live="polite" data-testid="support-notice">
           Support: {notice}.

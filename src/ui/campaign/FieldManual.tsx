@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { WikiLink } from '../wiki/WikiLink';
 import type { LoreEntry } from '../../schema/lore';
 import { useCompactLayout } from '../useCompactLayout';
 import { useDialogFocus } from '../useDialogFocus';
@@ -186,6 +187,7 @@ export function FieldManual({
           </button>
         </header>
 
+        <p><WikiLink className="camp-wiki-link">Explore the story & machine archive ↗</WikiLink></p>
         <article className="manual-controls" data-testid="manual-controls">
           <h4>Controls</h4>
           <p className="manual-summary">
@@ -223,6 +225,7 @@ export function FieldManual({
               {entry.body.map((paragraph, index) => (
                 <p key={index}>{paragraph}</p>
               ))}
+              <WikiLink to={{ kind: 'story', id: entry.id }} className="camp-wiki-link">Open connected archive records ↗</WikiLink>
             </article>
           ))}
       </div>

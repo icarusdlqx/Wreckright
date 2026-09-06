@@ -1,0 +1,16 @@
+{
+  "id": "warden_wrd5",
+  "designId": "warden_lancer",
+  "provenance": "Warden roots appear in Compact records beside mobile substations and survey towers. Their communications facilities suited a moving work party before they suited a fighting company.",
+  "serviceHistory": [
+    "Recovered examples retain a second working position and a lance display beneath the broad shoulder roof. The equipment gives a commander a place to assemble reports and coordinate movement. It is a communications system, not a means of taking control of another pilot's machine.",
+    "Custody tenders find the class useful because inspections rarely remain where the schedule put them. A Warden can move with the company while its crew records which gate is open, which clerk has signed and which escort has disappeared behind the ridge. Local operators use the same facilities with less interest in the signatures."
+  ],
+  "fieldNotes": "The continuous shoulder roof makes the Warden recognizable without an exposed antenna. Its speed and command facilities help keep a moving company together. The frame gives up protection to do that work, so a commander should not mistake heavy classification for permission to absorb the whole enemy line.",
+  "related": [
+    { "kind": "story", "id": "the_custodians" },
+    { "kind": "story", "id": "the_line" },
+    { "kind": "mech", "id": "falchion_fal2" },
+    { "kind": "mech", "id": "halberd_hlb4" }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "id": "a_short_chronology",
+  "category": "history",
+  "title": "A Short Chronology",
+  "summary": "From Compact extraction to the Great Recall. The order of events is clearer than the surviving dates.",
+  "sections": [
+    {
+      "heading": "The Compact years",
+      "body": [
+        "The Aurelian Compact arrives to extract Tessell's resources. Its walker roots come from an industrial chain spread across several worlds, not a local factory. Serial collars and state ledgers record the machines as Compact property."
+      ]
+    },
+    {
+      "heading": "Withdrawal and Foundry Winter",
+      "body": [
+        "When its Tessell charter lapses, the Compact ships what it can and leaves inside a year. What it cannot remove goes into depots or remains behind. Nearly a century separates that departure from the Recall.",
+        "Across the old Compact, political collapse is followed by a longer industrial failure. Suppliers close, calibration works are stripped and the distributed root lines stop. This is Foundry Winter, not a single season on Tessell. The Continuance inherits records and service works, but no complete chain capable of making a replacement root."
+      ]
+    },
+    {
+      "heading": "The workshop century",
+      "body": [
+        "Tessell's shops continue the machines that remain. They replace limbs, cast armour, fit local guns and add marks recording each rebuild. Freight registers and yard books accumulate alongside the old title records. Wreckright gives companies a practical answer when a disabled machine has no agreed owner: whoever holds the ground at dusk holds the wreck."
+      ]
+    },
+    {
+      "heading": "A collar answers",
+      "body": [
+        "A Tessellan root collar exported as scrap answers a Continuance service reader. An archive audit recovers the old root manifest. That proves surviving inventory exists; it does not reveal where every working walker is. Authorization, tender fitting and transit take years before a recovery expedition reaches Tessell."
+      ]
+    },
+    {
+      "heading": "The Great Recall",
+      "body": [
+        "The ships arrive with the General Reversion Order and the Recall Authority. Inspections, narrow compensation and local compliance are meant to recover inherited state roots for Continuance service. Kestrel offers assistance, other local powers defend their own claims, and companies find their working machines named in the same order they are hired to resist or enforce. This is where the campaigns begin."
+      ]
+    }
+  ],
+  "related": [
+    { "kind": "story", "id": "the_line" },
+    { "kind": "story", "id": "the_foundry_winter" },
+    { "kind": "story", "id": "the_refit" }
+  ]
+}

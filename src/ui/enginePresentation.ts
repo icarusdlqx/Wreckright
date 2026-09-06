@@ -53,7 +53,18 @@ export class EnginePresentation {
     stepWorld(this.world, this.maxTicks);
     this.clockSeconds = Math.max(0, (this.maxTicks - this.world.tick) * this.world.dt);
     this.renderer.snapshot(this.world);
+    this.presentEvents(true);
+    if (!this.world.finished) {
+      for (const warning of crossedMissionClockWarnings(before, this.clockSeconds)) {
+        useGame.getState().pushLog(warning);
+      }
+    }
+  }
+
+  /** Commands can finish while paused; their feedback must not wait for a simulation tick. */
+  presentEvents(includeEmpty = false): void {
     const events = this.world.events.splice(0, this.world.events.length);
+    if (events.length === 0 && !includeEmpty) return;
     this.renderer.consumeEvents(this.world, events);
     this.beginKillingBlow(events);
     this.incomingFire?.consume(this.world, events, useGame.getState().selection);
@@ -66,11 +77,6 @@ export class EnginePresentation {
     );
     this.logEvents(events);
     observeFieldRadio(this.world, events);
-    if (!this.world.finished) {
-      for (const warning of crossedMissionClockWarnings(before, this.clockSeconds)) {
-        useGame.getState().pushLog(warning);
-      }
-    }
   }
 
   /** Advances the results hold on wall time, independent of battle speed. */
