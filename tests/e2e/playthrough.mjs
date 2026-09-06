@@ -1144,10 +1144,10 @@ async function main() {
       JSON.parse(localStorage.getItem('ironline.campaign')).state,
     );
     check(
-      'the Aurelian campaign opens with its sealed roster, seven-contract spine and both endings',
-      (await page.locator('.camp-title h2').innerText()) === 'The Great Recall: Custodians' &&
+      'the Aurelian campaign opens with its stock roster, original spine, supply branch and both endings',
+      (await page.locator('.camp-title h2').textContent())?.trim() === 'The Great Recall: Custodians' &&
         aurelianNodeIds.join(',') ===
-          'first_warrant,cutbank_attestation,sarn_inventory,root_exchange,quarry_receipt,conduit_injunction,barrow_warrant,continuance_export,local_stewardship' &&
+          'first_warrant,custody_survey,custody_resupply,cutbank_attestation,sarn_inventory,root_exchange,quarry_receipt,conduit_injunction,barrow_warrant,continuance_export,local_stewardship' &&
         (await page.locator('.camp-node.available').count()) === 1 &&
         aurelianState.campaignId === 'aurelian_recall' &&
         aurelianState.mechs.map((mech) => mech.design.id).join(',') ===
@@ -1214,6 +1214,9 @@ async function main() {
     );
     const expectedCampaignNodeIds = [
       'militia_raid',
+      'marker_survey',
+      'recovery_window',
+      'workshop_defence',
       'pass_skirmish',
       'supply_line',
       'ridge_hold',
@@ -1226,9 +1229,8 @@ async function main() {
       'blackglass_receipt',
     ];
     check(
-      'campaign map draws the four-act route, both recoveries and both depot endings',
-      campaignNodeIds.length === expectedCampaignNodeIds.length &&
-        expectedCampaignNodeIds.every((id) => campaignNodeIds.includes(id)),
+      'campaign map draws the original route, recovery branch, large-map jobs and both depot endings',
+      JSON.stringify(campaignNodeIds) === JSON.stringify(expectedCampaignNodeIds),
       campaignNodeIds.join(', '),
     );
     check('only the opening node is available', (await page.locator('.camp-node.available').count()) === 1);
@@ -1398,15 +1400,23 @@ async function main() {
           '4 · Launch the lance',
         ),
     );
-    // Five rated bars per pilot, not three lines of prose: what the player
-    // needs off this screen is to be able to tell two pilots apart.
+    // Compact cards disclose the complete five-bar rating for each named pilot.
     await page.screenshot({ path: `${SHOTS}/08-manifest.png` });
-    const rated = page.locator('.manifest-row [data-testid="pilot-stats"]').first();
+    const manifestCrew = await page.evaluate(() => JSON.parse(localStorage.getItem('ironline.campaign')).state.pilots.filter(pilot => !pilot.dead));
+    let crewSkillsComplete = manifestCrew.length === 4;
+    for (const pilot of manifestCrew) {
+      const card = page.locator(`[data-testid="manifest-${pilot.id}"]`);
+      await card.locator('.lance-pilot-detail summary').click();
+      const rated = card.locator('[data-testid="pilot-stats"]');
+      const labels = await rated.locator('.stat-label').allTextContents();
+      crewSkillsComplete &&= await rated.isVisible()
+        && JSON.stringify(labels) === JSON.stringify(['Gunnery', 'Piloting', 'Sensors', 'Killer', 'Nerve'])
+        && (await card.locator('.pilot-name').textContent())?.trim() === pilot.name;
+      await card.locator('.lance-pilot-detail summary').click();
+    }
     check(
-      'the manifest lists the crew with their skills',
-      (await page.locator('.manifest-row').count()) >= 4 &&
-        (await rated.locator('li').count()) === 5 &&
-        (await rated.innerText()).includes('Gunnery'),
+      'each manifest crew card discloses its named pilot and all five skill ratings',
+      crewSkillsComplete,
     );
     const manifestMachineLabels = await page
       .locator('[data-testid^="manifest-seat-"]')
@@ -1425,27 +1435,35 @@ async function main() {
       (await page.locator('.manifest-row.drops').count()) > 0,
     );
 
-    // Holding a pilot back takes them out of the drop, and calling them up
-    // puts them back: the bench is the only reason this screen exists.
-    const dropsBefore = await page.locator('.manifest-row.drops').count();
-    const bench = page.locator('[data-testid^="manifest-bench-"]').first();
+    // Moving a card changes its DOM position; keep following the same pilot.
+    const aboardIds = () => page.locator('.manifest-row.drops').evaluateAll(rows =>
+      rows.map(row => row.getAttribute('data-testid').replace('manifest-', '')));
+    const dropsBefore = await aboardIds();
+    const heldPilotId = dropsBefore[0];
+    const bench = page.locator(`[data-testid="manifest-bench-${heldPilotId}"]`);
     await bench.click();
     check(
       'holding a pilot back removes them from the drop',
-      (await page.locator('.manifest-row.drops').count()) === dropsBefore - 1,
+      JSON.stringify(await aboardIds()) === JSON.stringify(dropsBefore.slice(1))
+      && await page.locator(`[data-testid="manifest-${heldPilotId}"].reserve`).count() === 1,
     );
     await bench.click();
     check(
-      'calling them up puts them back',
-      (await page.locator('.manifest-row.drops').count()) === dropsBefore,
+      'calling the same pilot up restores all four seats in the chosen order',
+      JSON.stringify(await aboardIds()) === JSON.stringify([...dropsBefore.slice(1), heldPilotId])
+      && await page.locator(`[data-testid="manifest-${heldPilotId}"].reserve`).count() === 0,
     );
 
     // The bay opens on one of the company's own machines, stocked from its own
     // stores — mission prep is who drops, in what, carrying what.
     await runCampaignRefitMechbayJourney({ page, check });
     const beforeDrop = await page.evaluate(() => {
-      const { store, mechs } = JSON.parse(localStorage.getItem('ironline.campaign')).state;
-      return { store, mechs };
+      const { store, mechs, pilots, deploymentSelection } = JSON.parse(localStorage.getItem('ironline.campaign')).state;
+      const expectedLance = deploymentSelection.map(id => {
+        const pilot = pilots.find(entry => entry.id === id);
+        return { designId: mechs.find(mech => mech.id === pilot.mechId).design.id, pilotId: pilot.templateId };
+      });
+      return { store, mechs, expectedLance };
     });
 
     await page.locator('[data-testid="manifest-launch"]').click();
@@ -1460,6 +1478,7 @@ async function main() {
       return {
         mission: world.mission.id,
         playerMechs: world.entities.filter((e) => e.team === 0).map((e) => e.name),
+        identities: world.entities.filter((e) => e.team === 0).map(e => ({ designId: e.designId, pilotId: e.pilot.id })),
       };
     });
     check(
@@ -1467,7 +1486,8 @@ async function main() {
       deployed.mission === 'line_maintenance',
       deployed.mission,
     );
-    check('the campaign lance deployed', deployed.playerMechs.length === 4, deployed.playerMechs.join(', '));
+    check('the exact chosen four-pilot campaign lance deployed', deployed.playerMechs.length === 4
+      && JSON.stringify(deployed.identities) === JSON.stringify(beforeDrop.expectedLance), JSON.stringify(deployed));
 
     await page.evaluate(async () => {
       const { engine } = globalThis.__wreckright;

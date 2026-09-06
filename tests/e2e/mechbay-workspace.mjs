@@ -367,7 +367,15 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
 }
 
 export async function runCampaignRefitMechbayJourney({ page, check }) {
-  await page.locator('[data-testid^="manifest-refit-"]').first().click();
+  // This journey inspects the Gadfly's authored Flamer/SRM inventory, even
+  // after the commander moves its card to a different deployment position.
+  const pilotId = await page.evaluate(() => {
+    const state = JSON.parse(localStorage.getItem('ironline.campaign')).state;
+    return state.pilots.find(pilot => state.mechs.some(mech => mech.id === pilot.mechId
+      && mech.design.id === 'hornet_spotter'))?.id;
+  });
+  if (!pilotId) throw new Error('The campaign refit fixture has no assigned Gadfly');
+  await page.locator(`[data-testid="manifest-refit-${pilotId}"]`).click();
   await page.waitForSelector('[data-testid="refit-bay"]');
   check(
     'the refit bay opens on the company mech in Loadout',
@@ -385,10 +393,16 @@ export async function runCampaignRefitMechbayJourney({ page, check }) {
       !shelvedWeapons.includes('stock-weapon-medium_laser'),
     shelvedWeapons.join(', '),
   );
+  // A newly opened bay can appear under the refit button's former pointer
+  // position. Clear hover and focus before testing its resting armour labels.
+  await page.mouse.move(0, 0);
+  await page.locator('[data-testid="stock-weapon-flamer"]').focus();
+  const restingLocations = await quietLocationState(page);
   check(
     'every resting campaign location exposes a quiet accessible rack summary',
     (await page.locator('[data-testid^="free-slots-"]').count()) === 8 &&
-      (await quietLocationState(page)).quiet === 8,
+      restingLocations.count === 8 && restingLocations.quiet === 8,
+    JSON.stringify(restingLocations),
   );
 
   const flamerRow = page.locator('[data-testid="stock-weapon-flamer"]');
