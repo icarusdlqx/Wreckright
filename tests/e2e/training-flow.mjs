@@ -253,6 +253,10 @@ export async function engageTrainingOpticalContact({ page, check, prefix = '', t
   await selectShortRangeTrainer(page, touch);
   await issueGateMove(page, touch);
   check(labelled(prefix, 'Move control plots the initial route to the range gate'), true);
+  await page.waitForFunction(() => {
+    const coach = document.querySelector('[data-testid="training-coach"]');
+    return coach instanceof HTMLElement && /Move order ready.*Resume/.test(coach.innerText);
+  });
   check(labelled(prefix, 'queued movement keeps the gate lesson and explains Resume'),
     (await page.locator('[data-testid="command-attack"]').count()) === 0
     && /Resume/.test(await page.locator('[data-testid="training-coach"]').innerText()));

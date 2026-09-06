@@ -29,7 +29,7 @@
 .app .hostile-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hostile-state { grid-column: 1 / -1; color: #b6c8c2; font-size: 9px; }
 .app .battle-field-status .sensor-contact-note { font-size: 9px; letter-spacing: 0; white-space: nowrap; }
-.app .paused-banner { top: 58px; white-space: nowrap; }
+.app .paused-banner { top: 58px; white-space: nowrap; pointer-events: none; }
 .app .field-radio { top: auto; bottom: 216px; }
 .commander-mode .battle-field-status,
 .commander-mode .paused-banner { display: none; }

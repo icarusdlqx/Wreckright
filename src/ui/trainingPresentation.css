@@ -121,3 +121,20 @@
 @media (max-width: 760px) {
   .training-show-gate { min-height: 44px; }
 }
+
+@media (orientation: landscape) and (max-height: 500px) {
+  /* The final drill shares this corner with Mission; earlier lessons have no objective panel. */
+  .mobile-training[data-training-step="4"] {
+    max-height: calc(100dvh - var(--mobile-top) - var(--mobile-status) - var(--mobile-dock) - 74px);
+    overflow-y: auto;
+  }
+  .mobile-training[data-training-step="4"] > summary {
+    position: sticky;
+    top: 0;
+    background: var(--panel);
+  }
+  .mobile-objectives[open] { z-index: 36; }
+  .app .mobile-objectives .objective-body {
+    max-height: min(42dvh, calc(100dvh - var(--mobile-top) - var(--mobile-status) - var(--mobile-dock) - 66px));
+  }
+}

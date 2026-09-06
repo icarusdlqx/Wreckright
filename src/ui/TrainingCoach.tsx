@@ -207,6 +207,7 @@ export function TrainingCoach({ active, step: controlledStep, onStep, onShowGate
         open={open}
         onToggle={(event) => setOpen(event.currentTarget.open)}
         data-testid="training-coach"
+        data-training-step={step}
         aria-live="polite"
       >
         <summary>
