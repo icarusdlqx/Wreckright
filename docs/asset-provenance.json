@@ -188,6 +188,13 @@
       "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
       "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Per-chassis bounds and design IDs are retained in src/assets/machines/provenance.json.",
       "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/art/tessell-crossing-menu.webp",
+      "sha256": "2664fd482f95cd1ff08f27f046b63ad80b364c63bf9bb024bd4a3da843adac08",
+      "introducedBy": "9f5bb01f54859d5bbffb73738e381efa3264cd3b",
+      "originEvidence": "Generated for Wreckright on 2026-09-06 with the built-in image generation tool from an original text prompt, with no image inputs. Full prompt and generation record: docs/art/TESSELL_CROSSING.md. The retained source master was converted to WebP locally with cwebp.",
+      "clearance": "generated-original-art-with-source-record"
     }
   ]
 }

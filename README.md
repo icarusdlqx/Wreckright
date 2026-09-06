@@ -48,6 +48,12 @@ The [sensor and support fixes](docs/SENSOR_SUPPORT_FIXES.md) make paused sweeps
 and probes respond immediately, explain queued support timing, and show aircraft
 and repair teams arriving, working and departing.
 
+The [illustrated main menu](docs/MAIN_MENU.md) puts learning, campaign, skirmish
+and **Wiki · Story & mechs** over original Tessell artwork. The archive opens
+inside the game, with no battle or 3D renderer started in the background.
+For review links that stay available after a coding session, build once and run
+`npm run preview:local`; see [local preview controls](docs/LOCAL_PREVIEW.md).
+
 ## Repository identity
 
 
@@ -87,6 +93,10 @@ npm test        # Vitest: determinism, schemas, architecture boundaries
 npm run lint    # ESLint, including the /sim purity rules
 npm run typecheck
 npm run dev     # Vite dev server
+npm run build
+npm run preview:local  # persistent local release on 5219 and 5220 (macOS)
+npm run preview:status
+npm run preview:stop
 
 # Headless balance harness
 npm run sim -- --iterations=100 --seed=1337
