@@ -1,0 +1,38 @@
+.company-operations > .opening-route { grid-column: 1 / -1; grid-row: 1; min-width: 0; }
+.company-operations:has(> .opening-route) > .mission-survey { grid-row: 2; }
+.camp-workspace .company-operations:has(> .opening-route) > .camp-map { grid-row: 3; }
+.camp-workspace .company-operations:has(> .opening-route) > .camp-contract { grid-row: 2 / span 2; }
+.opening-route {
+  border: 1px solid #b4c4b3; border-left: 4px solid var(--exp-teal); border-radius: 5px;
+  padding: 16px 20px; background: #e7ecdf; color: var(--exp-ink);
+}
+.opening-route header { display: flex; align-items: start; justify-content: space-between; gap: 16px; margin-bottom: 12px; }
+.opening-route header p { margin: 0 0 4px; color: var(--exp-muted); font: 10px var(--font-mono); letter-spacing: .06em; text-transform: uppercase; }
+.camp-workspace .opening-route h3 { margin: 0; color: var(--exp-ink); font: 600 25px/1.15 var(--font-display); }
+.opening-route-body { display: grid; grid-template-columns: 1.2fr 1fr; gap: 26px; }
+.opening-route-body > * { min-width: 0; }
+.opening-route h4 { margin: 0 0 4px; font-size: 12px; }
+.opening-route p { margin: 0 0 10px; font-size: 12px; line-height: 1.55; }
+.opening-route small { display: block; margin-top: 6px; color: var(--exp-muted); font-size: 10px; }
+.opening-route button { min-height: 44px; border: 1px solid #9eb4a6; border-radius: 3px; padding: 8px 12px; font: 11px var(--font-body); cursor: pointer; }
+.opening-route .opening-route-dismiss { background: transparent; color: var(--exp-muted); flex-shrink: 0; }
+.opening-route .opening-route-review { background: var(--exp-navy); color: #f6f2e5; border-color: var(--exp-navy); }
+.opening-route button:hover { border-color: var(--exp-orange); }
+.opening-route :is(button, a):focus-visible { outline: 2px solid var(--exp-teal); outline-offset: 3px; }
+.opening-route nav { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.opening-route nav > * { min-height: 44px; display: inline-flex; align-items: center; color: #285f58; font-size: 11px; }
+@media (max-width: 760px), (max-width: 1100px) and (pointer: coarse) {
+  .company-operations > .opening-route { grid-area: auto; order: -1; padding: 14px; }
+  .company-operations:has(> .opening-route) > .mission-survey,
+  .camp-workspace .company-operations:has(> .opening-route) > :is(.camp-map, .camp-contract) { grid-row: auto; }
+  .opening-route header { gap: 10px; }
+  .opening-route-body { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .opening-route aside { padding-top: 12px; border-top: 1px solid #bdcbbb; }
+  .opening-route .opening-route-dismiss { max-width: 100px; padding: 6px 8px; }
+  .opening-route .opening-route-review { width: 100%; }
+}
+@media (forced-colors: active) {
+  .opening-route, .opening-route button, .opening-route aside { border-color: CanvasText; }
+  .opening-route, .opening-route button { background: Canvas; color: CanvasText; }
+  .opening-route :is(p, small, h3, h4, a) { color: CanvasText; }
+}

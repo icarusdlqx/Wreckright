@@ -1,0 +1,10 @@
+{
+  "id": "the_shared_mounts",
+  "category": "workshop",
+  "sourceLoreId": "the_shared_mounts",
+  "related": [
+    { "kind": "story", "id": "the_refit" },
+    { "kind": "story", "id": "the_welded" },
+    { "kind": "story", "id": "the_sealed" }
+  ]
+}

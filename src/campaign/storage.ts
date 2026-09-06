@@ -74,7 +74,8 @@ export function holdInvalidCampaign(raw: string, detail: string): CampaignPersis
   return memoryOnly('invalid-save', detail, raw);
 }
 
-export function readCampaignText(storedOnly = false): CampaignStorageRead {
+/** Archive reads must not clear a recovery lock or replace a newer session copy. */
+export function peekCampaignText(storedOnly = false): CampaignStorageRead {
   if (!storedOnly && persistence.mode === 'memory-only' && memoryText !== null) {
     return { kind: 'found', text: memoryText, origin: 'memory' };
   }
@@ -86,10 +87,14 @@ export function readCampaignText(storedOnly = false): CampaignStorageRead {
       ? { kind: 'missing' }
       : { kind: 'found', text, origin: 'storage' };
   } catch (error) {
-    const detail = errorDetail(error);
-    memoryOnly('storage-unavailable', detail);
-    return { kind: 'unavailable', error: detail };
+    return { kind: 'unavailable', error: errorDetail(error) };
   }
+}
+
+export function readCampaignText(storedOnly = false): CampaignStorageRead {
+  const result = peekCampaignText(storedOnly);
+  if (result.kind === 'unavailable') memoryOnly('storage-unavailable', result.error);
+  return result;
 }
 
 export function writeCampaignText(

@@ -23,6 +23,26 @@ function airEvents(world: World, x: number, y: number): [SimEvent, SimEvent] {
 }
 
 describe('support-call presentation', () => {
+  it('keeps repeated same-point requests distinct and preserves each approach heading', () => {
+    const world = playerWorld('overlapping-support-runs');
+    const at = { x: 500, y: 400 };
+    const calls = [0, Math.PI / 2, Math.PI / 2].map(heading => ({
+      call: 'air_strike' as const, team: 0, target: at, heading, resolveTick: world.tick + 80,
+    }));
+    world.support.pending.push(...calls);
+    const effects = presentation(world);
+    const [called, resolved] = airEvents(world, at.x, at.y);
+    effects.consume(world, [called, called, called]);
+    effects.draw(world, 0);
+    world.support.pending = [];
+    effects.consume(world, [resolved, resolved, resolved]);
+    effects.draw(world, 0.2);
+    for (const [index, call] of calls.entries()) {
+      const plane = effects.group.getObjectByName(`support-aircraft-${index}`)!;
+      expect(plane.visible).toBe(true); expect(plane.rotation.y).toBeCloseTo(-call.heading);
+    }
+    effects.dispose();
+  });
   it('plots a pending air lane and sweeps its ETA toward the target end', () => {
     const world = playerWorld('support-pending-lane');
     world.tick = 20;

@@ -1,0 +1,16 @@
+{
+  "id": "cairn_crn3",
+  "designId": "cairn_battery",
+  "provenance": "The Ferrous Guild rebuilt Cairns around recovered roots whose original hulls could not be saved. Their shoulder magazines, carriage and armour are workshop products; the roots are not.",
+  "serviceHistory": [
+    "The bridge above the fire-control cabin leaves the machine looking like a piece of yard equipment that walked off its pad. Cairn crews do not object. Their working routine already involves loading crews, surveyed firing positions and somebody checking that the route out will carry the weight.",
+    "Districts hire a Cairn to make a road difficult to take. Disputes then develop over who should pay for keeping it loaded on quiet days. The Guild's invoices distinguish the machine's presence from ammunition expenditure, a distinction employers tend to discover only after the first serious exchange."
+  ],
+  "fieldNotes": "A Cairn rewards preparation and protection. The stock battery can work from behind a screen, but its bins are finite and exposed movement wastes the advantage of a settled firing position. Energy mounts allow alternative refits; using them changes the company’s supply needs without changing the inherited heavy frame.",
+  "related": [
+    { "kind": "story", "id": "the_welded" },
+    { "kind": "story", "id": "the_shared_mounts" },
+    { "kind": "mech", "id": "trestle_trs1" },
+    { "kind": "mech", "id": "bulwark_bwk3" }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "id": "the_custodians",
+  "category": "factions",
+  "sourceLoreId": "the_custodians",
+  "related": [
+    { "kind": "story", "id": "the_sealed" },
+    { "kind": "story", "id": "the_line" },
+    { "kind": "story", "id": "the_employers" }
+  ]
+}

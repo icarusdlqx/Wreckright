@@ -96,7 +96,7 @@
   },
   "role": "Heavy striker",
   "summary": "A fast heavy with broad shoulder mounts and carefully balanced cooling. It reaches the firing line before most heavy opponents.",
-  "lore": "The HLB frames stood in the depot without weapons. Their shoulders end in smooth powered faces that still accept a load and still refuse every tool on Tessell. Sarn builds a cradle around each face and hangs local racks from the cradle; those are the bolts and feed chutes crews can see. Beneath them the hull remains closed. A Halberd walks at the speed of a medium and sheds heat through surfaces nobody can remove. When one of those surfaces fails, the whole shoulder goes cold.",
+  "lore": "Recovered Halberds stood in their depot without weapons. Sarn fitted cradles to the surviving shoulder interfaces and hung local racks where certified replacements were missing. Later service restored advanced emitters and carefully balanced cooling without always removing those practical additions. Tall shoulder pylons identify the fast heavy at a distance. Its cooling surfaces can be serviced, but precise work takes time and replacement Aurelian components remain scarce. A polished Halberd may carry a thoroughly mixed repair history.",
   "traits": [
     "long_stride",
     "oversized_sinks"

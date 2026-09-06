@@ -1,0 +1,16 @@
+{
+  "id": "colossus_cls1",
+  "designId": "colossus_siege",
+  "provenance": "Sarn's Colossus register began with eleven matched Compact roots. The foundry raised new hulls around them using surviving plans; it never reproduced the roots those plans assumed would be available.",
+  "serviceHistory": [
+    "Each machine accumulated a name, repair accounts and a town that considered its continued service a local achievement. The deep chest and working gantry display how much of the hull Sarn could replace. The collar beneath them records the part it could not.",
+    "Moving a Colossus is a district concern. Workshops check the route, freight offices rearrange departures and somebody has to settle who pays if a bridge needs work. That dependence gives local claims unusual weight: the people arguing that the machine belongs to them may also be the only people prepared to bring it home."
+  ],
+  "fieldNotes": "Its stock heavy guns reward a prepared line of fire, while close weapons provide an answer to threats that get through. Cooling helps sustained work but does not make high heat harmless. Payload and protection cannot compensate for reaching the wrong position after the rest of the company has already committed.",
+  "related": [
+    { "kind": "story", "id": "the_foundry_winter" },
+    { "kind": "story", "id": "the_employers" },
+    { "kind": "story", "id": "the_refit" },
+    { "kind": "mech", "id": "rampart_rmp4" }
+  ]
+}

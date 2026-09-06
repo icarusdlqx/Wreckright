@@ -1,0 +1,16 @@
+{
+  "id": "wisp_wsp1",
+  "designId": "wisp_scout",
+  "provenance": "Karst Reach's register calls the Vesper a boundary reader. Recovered examples retained buried optical glass beneath preservation covers that had rotted around them.",
+  "serviceHistory": [
+    "A Vesper once checked survey lines for the Compact. The Continuance uses the same inherited class to inspect the approaches to places it intends to reclaim. Fresh optics and precise servicing can make a returned machine look newly built, although its root predates the office now sending it out.",
+    "Tessellan companies learned to use recovered Vespers for the same reason their former owners had: seeing a problem early can spare a heavier machine from finding it the expensive way. Local crews tend to mark uncertain crossings on the hull beside the depot labels. Aurelian inspectors regard the chalk as untidy. Tow crews find it useful."
+  ],
+  "fieldNotes": "The low split nose surrounds a deeply recessed optical strip. Its standard equipment favours reconnaissance and escape over prolonged fire. Specialist service can keep it working, but damaged Aurelian optics or emitters need recovered stock or an actual supply allocation; the local Yard cannot sell replacements.",
+  "related": [
+    { "kind": "story", "id": "the_sealed" },
+    { "kind": "story", "id": "the_line" },
+    { "kind": "mech", "id": "hornet_hnt2" },
+    { "kind": "mech", "id": "votive_vtv2" }
+  ]
+}

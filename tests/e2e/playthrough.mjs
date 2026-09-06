@@ -4,6 +4,10 @@ import { runMechbayCrewChecks } from './mechbay-crew.mjs';
 import { runCommandRefinementChecks } from './command-refinement.mjs';
 import { runRefinementTouchChecks } from './refinement-touch.mjs';
 import { runCompanyOutcomeChecks } from './company-outcome-review.mjs';
+import { runLoreWikiChecks } from './lore-wiki.mjs';
+import { runOpeningRouteChecks } from './opening-route.mjs';
+import { runSensorActivationChecks } from './sensor-activation.mjs';
+import { runSupportServicesChecks } from './support-services.mjs';
 import { checkHomeTheatre } from './home-theatre.mjs';
 import { companyFile, restartCompany, checkRestartCancellation, checkCompanyWorkspaces } from './campaign-navigation.mjs';
 import { spawn } from 'node:child_process';
@@ -1777,6 +1781,10 @@ async function main() {
     await runCommandRefinementChecks({ browser, url: URL, shots: SHOTS, check });
     await runRefinementTouchChecks({ browser, url: URL, shots: SHOTS, check });
     await runCompanyOutcomeChecks({ browser, url: URL, shots: SHOTS, check });
+    await runLoreWikiChecks({ browser, url: URL, shots: SHOTS, check });
+    await runOpeningRouteChecks({ browser, url: URL, shots: SHOTS, check });
+    await runSensorActivationChecks({ browser, url: URL, shots: SHOTS, check });
+    await runSupportServicesChecks({ browser, url: URL, shots: SHOTS, check });
     await runLastSilentMomentsChecks({ browser, url: URL, check });
     await runMobilePlaythrough({ browser, url: URL, shots: SHOTS, check });
   } finally {

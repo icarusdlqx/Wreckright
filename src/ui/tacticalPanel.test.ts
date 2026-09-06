@@ -36,6 +36,9 @@ describe('TacticalReadout', () => {
     expect(html).toContain(`${Math.round(unit.sightRange)}m current`);
     expect(html).toContain(`${Math.round(unit.sensorRange)}m current reach`);
     expect(html).toContain('Current weather is included');
+    expect(html).toContain('Sensors work automatically');
+    expect(html).toContain('without a separate activation');
+    expect(html).toContain('small signatures and concealment shorten detection');
     expect(html).toContain('Sensor returns do not provide line of sight');
 
     const hostile = renderToStaticMarkup(createElement(TacticalReadout, { unit }));

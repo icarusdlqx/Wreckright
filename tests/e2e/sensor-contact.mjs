@@ -3,8 +3,8 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
     const { engine, useGame, world } = globalThis.__wreckright;
     const wasPaused = useGame.getState().paused;
     // Isolate the probe from ordinary observer movement while comparing the
-    // optical fog buffers. forceStep still advances the two deterministic
-    // support/vision ticks below, but the browser clock cannot add extra ones.
+    // optical fog buffers. The setup takes one controlled positioning tick;
+    // probe placement and its result must not advance the battle afterward.
     useGame.getState().patch({ paused: true });
     for (const menu of document.querySelectorAll('.battle-menu[open]')) {
       menu.removeAttribute('open');
@@ -25,7 +25,7 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
     }
     // The support checks that precede this fixture advance a live battle. Do
     // not let an old target or an in-flight volley erase the chosen contact
-    // between placement and the delayed probe resolution.
+    // during the positioning tick before probe placement.
     world.projectiles.length = 0;
     world.reveals.length = 0;
     for (const entity of world.entities) {
@@ -105,10 +105,10 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
     // Read the balance here rather than trusting a figure captured earlier in
     // the run: objectives and zone captures award RP mid-mission, so the only
     // reading the probe can be measured against is the one taken once the sim
-    // is already paused. `callSupport` debits at the click, before either tick
-    // below, so nothing can move this number but the probe itself.
+    // is already paused. No tick follows the click, so only the probe can debit it.
     const rpBefore = world.resources.get(world.playerTeam ?? 0);
-    return { enemyId: enemy.id, friendlyId: friendly.id, screen, wasPaused, rpBefore };
+    return { enemyId: enemy.id, friendlyId: friendly.id, screen, wasPaused, rpBefore,
+      tick: world.tick, rng: world.rng.save(), position: { ...enemy.pos } };
   });
   const revealsBefore = await page.evaluate(() => globalThis.__wreckright.world.reveals.length);
   await page.locator('[data-testid="support-sensor_probe"]').click();
@@ -117,17 +117,17 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
     canvasBox.y + probeSetup.screen.y,
   );
   const sensorOutcome = await page.evaluate((enemyId) => {
-    const { engine, world } = globalThis.__wreckright;
-    // The debit lands with the call, so bank it before the resolution ticks:
-    // once the sim advances again a zone can claim and credit the same purse.
+    const { world } = globalThis.__wreckright;
+    // A zero-delay probe resolves at the click even while the commander is paused.
     const rp = world.resources.get(world.playerTeam ?? 0);
-    engine.forceStep();
-    engine.forceStep();
     const before = globalThis.__probeFogBefore;
     delete globalThis.__probeFogBefore;
     const track = world.vision?.tracks.get(enemyId);
     return {
       reveals: world.reveals.length,
+      tick: world.tick,
+      rng: world.rng.save(),
+      position: world.entities.find(entity => entity.id === enemyId)?.pos,
       rp,
       detected: world.vision?.detected.has(enemyId) ?? false,
       visible: world.vision?.visible.has(enemyId) ?? false,
@@ -152,12 +152,15 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
     };
   }, probeSetup.enemyId);
   check(
-    'the sensor probe spends RP, classifies a coarse contact, and leaves optical fog unchanged',
+    'the paused sensor probe spends RP, classifies immediately, and leaves time and optical fog unchanged',
     sensorOutcome.reveals > revealsBefore &&
       sensorOutcome.rp === probeSetup.rpBefore - mission.sensorCost &&
       sensorOutcome.detected &&
       !sensorOutcome.visible &&
       sensorOutcome.track?.id === probeSetup.enemyId &&
+      sensorOutcome.tick === probeSetup.tick &&
+      JSON.stringify(sensorOutcome.rng) === JSON.stringify(probeSetup.rng) &&
+      JSON.stringify(sensorOutcome.position) === JSON.stringify(probeSetup.position) &&
       sensorOutcome.log?.includes('contact') &&
       sensorOutcome.fogUnchanged,
     JSON.stringify(sensorOutcome),

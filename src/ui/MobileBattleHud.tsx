@@ -9,6 +9,7 @@ import { Minimap } from './Minimap';
 import { HostileBar, LanceBar, SupportPalette } from './Panels';
 import { selectedUnit, useGame } from './store';
 import type { SupportOption } from './supportOptions';
+import { SupportStatus } from './SupportStatus';
 import { TrainingHeatReadout } from './TrainingHeatReadout';
 import {
   trainingCommandIds,
@@ -108,6 +109,7 @@ export function MobileBattleHud({
         }`}
         data-testid="mobile-dock"
       >
+        {fullHud ? <SupportStatus world={engine?.world ?? null} paused={state.paused} /> : null}
         <div className="mobile-lance-row">
           <button
             type="button"
@@ -208,6 +210,7 @@ export function MobileBattleHud({
                 active={state.supportMode}
                 notice={state.supportNotice}
                 reservesLeft={state.reservesLeft}
+                paused={state.paused}
                 embedded
                 onPick={(call) => state.setSupportMode(state.supportMode === call ? null : call)}
               />

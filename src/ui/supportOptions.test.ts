@@ -33,9 +33,18 @@ describe('support explanations', () => {
     const reserve = options.find((option) => option.id === 'reinforcement');
 
     expect(air?.cost).toBe(catalog.rules.support.air_strike.cost);
+    expect(air?.delaySeconds).toBe(catalog.rules.support.air_strike.delaySeconds);
     expect(air?.effect).toContain(`${catalog.rules.support.air_strike.length} ×`);
     expect(air?.effect).toContain(`${catalog.rules.support.air_strike.delaySeconds}s`);
     expect(reserve?.effect).toContain(`${catalog.rules.support.reinforcement.delaySeconds}s`);
+  });
+
+  it('states the repair zone limitations and directs damaged machines into its circle', () => {
+    const truck = buildSupportOptions(catalog.rules.support, 0).find((option) => option.id === 'repair_truck');
+    expect(truck?.effect).toContain('Armour only: no internal, weapon or ammunition repairs.');
+    expect(truck?.effect).toContain(`within ${catalog.rules.support.repair_truck.radius}m`);
+    expect(truck?.placement).toContain('move damaged mechs into the repair circle');
+    expect(truck?.delaySeconds).toBe(catalog.rules.support.repair_truck.delaySeconds);
   });
 
   it('returns placement radii only for calls that cover an area on the ground', () => {

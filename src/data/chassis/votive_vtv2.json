@@ -96,7 +96,7 @@
   },
   "role": "Sensor picket",
   "summary": "A precise light hunter. Jump jets and a narrow frame let it choose the range; its armour leaves little room for mistakes.",
-  "lore": "The Votives were found upright in a service vault, twelve to a row, with no racks or lifting points and a white shell that continues through every joint. Nothing on Tessell opens one without breaking it. The intact machines are quick, quiet and heavily armed for thirty-five tonnes. The damaged ones stand where they stopped, because the part that failed has never been identified twice.",
+  "lore": "Votives were found upright in a Compact service vault, their narrow white armour forms aligned in regular rows. Restoring the survivors required careful calibration and scarce replacements, work Aurelian crews regard as proof of proper custody. Tessellan fitters can service them too; the invoice is longer and the local Yard cannot supply a replacement emitter. The restored machine is a quick, precise hunter. Its clean shell does not spare a careless pilot from heat or incoming fire.",
   "traits": [
     "long_stride",
     "narrow_profile"

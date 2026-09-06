@@ -365,6 +365,7 @@ export class Engine {
   useAbilities(): void {
     this.hudDirty = true;
     useSelectionAbilities(this);
+    this.presentation.presentEvents();
   }
 
   alphaStrike(): void {
@@ -396,6 +397,7 @@ export class Engine {
     const team = this.world.playerTeam ?? 0;
     const result = callSupport(this.world, team, call, target, this.headingFor(target, runTo));
     if (!result.ok && result.reason !== null) useGame.getState().pushLog(result.reason);
+    if (result.ok) this.presentation.presentEvents();
     return result;
   }
 

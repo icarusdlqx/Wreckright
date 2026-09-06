@@ -96,7 +96,7 @@
   },
   "role": "Mobile duellist",
   "summary": "A polished duellist. Jets and reach buy the first answer; heat decides the second.",
-  "lore": "The FAL cradles at Vasi were marked INTERCEPT and faced the door. Each frame is all arms and legs, with lift channels buried behind the same white shell as the cockpit and no separate jet housings. Local racks bolt to four shallow sockets. Nothing else comes off. A Falchion can cross a firing lane, answer a heavy and leave before the return shot. If it stays for the next exchange, the heat does what the enemy could not.",
+  "lore": "The Falchion cradles at Vasi were marked INTERCEPT and faced the door. Long limbs and integrated lift channels survived beneath the preservation armour. Modern service work restores the alignment; shared mounts let workshop racks serve beside advanced emitters when replacements are scarce. A Falchion can cross a firing lane and answer a heavier machine, but its pilot still has to leave. Staying for another exchange spends cooling margin that precise maintenance cannot supply in the field.",
   "traits": [
     "long_stride",
     "narrow_profile"

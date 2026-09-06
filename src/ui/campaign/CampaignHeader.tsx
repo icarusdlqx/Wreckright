@@ -6,6 +6,7 @@ import { usePlaytest } from '../playtest';
 import { CampaignRecoveryNotice } from './CampaignRecoveryNotice';
 import { CampaignRestartDialog } from './CampaignRestartDialog';
 import './campaignHeader.css';
+import { WikiLink } from '../wiki/WikiLink';
 
 export interface CampaignHeaderProps {
   title: string;
@@ -143,6 +144,7 @@ export function CampaignHeader({
             </div>
           </details>
           <nav className="camp-utility-actions" aria-label="Company help and settings">
+            <WikiLink className="camp-wiki-link" data-testid="camp-wiki">Story & machines</WikiLink>
             <button type="button" onClick={onToggleManual} data-testid="camp-manual-toggle"
               aria-expanded={manualOpen}>
               {manualOpen ? 'Close Manual' : 'Field Manual'}

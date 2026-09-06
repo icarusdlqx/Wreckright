@@ -1,0 +1,16 @@
+{
+  "id": "trestle_trs1",
+  "designId": "trestle_battery",
+  "provenance": "The Trestle arrangement began with a quarry walker whose upper hull was beyond recovery. A bolted shoulder crossmember carried the replacement launchers clear of its surviving keel.",
+  "serviceHistory": [
+    "Each feed can be reached without opening the other. That detail mattered more to the workshop than a clean silhouette, and the exposed truss gave the rebuild its name. Halloran retained a direct-fire gun because a spotter is not always in the right place when somebody starts shooting.",
+    "Smaller freight companies favour the Trestle when they need a battery that can follow their normal route. Its crews learn loading schedules as carefully as firing drills. A missed ammunition delivery can turn an impressive shoulder assembly into dead weight for the remainder of a contract."
+  ],
+  "fieldNotes": "The low cab and high crossbeam distinguish a Trestle from a front-line brawler. Its stock fit is most useful with another machine finding targets and holding close threats away. Local supply keeps the launchers serviceable, but bins still occupy real space and the armour does not forgive being left in the front rank.",
+  "related": [
+    { "kind": "story", "id": "the_welded" },
+    { "kind": "story", "id": "the_shared_mounts" },
+    { "kind": "mech", "id": "cairn_crn3" },
+    { "kind": "mech", "id": "hornet_hnt2" }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "id": "the_foundry_winter",
+  "category": "history",
+  "sourceLoreId": "the_foundry_winter",
+  "related": [
+    { "kind": "story", "id": "the_refit" },
+    { "kind": "story", "id": "a_short_chronology" },
+    { "kind": "story", "id": "the_line" }
+  ]
+}

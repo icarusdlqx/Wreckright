@@ -1,0 +1,68 @@
+[
+  {
+    "campaignId": "border_dispute",
+    "title": "Follow the service trail",
+    "steps": [
+      {
+        "nodeId": "militia_raid",
+        "purpose": "The Recall names the machines already in your bay. Halloran needs the registry copied before the Authority closes it. Clear its guard and bring your company home.",
+        "practice": "Pause to choose your orders, then let the lance work together. After the drop, the company report points to repairs, crew training and salvage.",
+        "links": [
+          { "kind": "story", "id": "the_line", "label": "Why the Recall matters" },
+          { "kind": "story", "id": "the_welded", "label": "Linewrought crews" }
+        ]
+      },
+      {
+        "nodeId": "marker_survey",
+        "purpose": "The registry is safe, but its service trail is incomplete. A light scout can follow the western readers while the road guard stays on its station. This optional job opens a recovery claim.",
+        "practice": "Choose one fieldable scout in the manifest. A stock Gadfly fits this lift; use the planning map and Hold Fire to follow the western route.",
+        "links": [
+          { "kind": "mech", "id": "hornet_hnt2", "label": "Gadfly field record" },
+          { "kind": "story", "id": "the_refit", "label": "What makes a walker root" }
+        ]
+      },
+      {
+        "nodeId": "recovery_window",
+        "purpose": "The trail leads to a stranded repair crew. Secure its cradle to earn a damaged workshop hulk. Holding the field can also preserve enemy machines for salvage, subject to recovery chance and your contract terms.",
+        "practice": "Build a smaller detail around the ground you must hold. After a successful return, inspect the hulk in the Workshop and price its rebuild before booking it.",
+        "links": [
+          { "kind": "story", "id": "the_code", "label": "How wreckright works" },
+          { "kind": "story", "id": "the_shared_mounts", "label": "Fitting recovered parts" }
+        ]
+      }
+    ]
+  },
+  {
+    "campaignId": "aurelian_recall",
+    "title": "Complete the custody chain",
+    "steps": [
+      {
+        "nodeId": "first_warrant",
+        "purpose": "Your company carries the Authority's warrant into the field. The claim is written; your lance must make it enforceable while keeping its own machines in service.",
+        "practice": "Pause to choose your orders and watch the heat of your emitters. After the drop, review repair costs and crew experience before taking another warrant.",
+        "links": [
+          { "kind": "story", "id": "the_line", "label": "Why the Recall matters" },
+          { "kind": "story", "id": "the_sealed", "label": "Aurelian service doctrine" }
+        ]
+      },
+      {
+        "nodeId": "custody_survey",
+        "purpose": "The first warrant leaves a gap in the service record. One survey machine can record the western posts without destroying the road guard. This optional job locates a stranded service tender.",
+        "practice": "Choose one fieldable scout in the manifest. A stock Votive fits this lift; read the western posts with Hold Fire and weigh the optional ledger detour.",
+        "links": [
+          { "kind": "mech", "id": "votive_vtv2", "label": "Votive field record" },
+          { "kind": "story", "id": "the_custodians", "label": "The Custodians' account" }
+        ]
+      },
+      {
+        "nodeId": "custody_resupply",
+        "purpose": "The completed record locates a stranded service tender. Protect its transfer to earn replacement emitters. The company still pays for its own repairs, and any battlefield recovery follows the negotiated custody share.",
+        "practice": "Choose a smaller detail that can protect the loading stand. After a successful return, compare the delivered weapons with your current fittings before committing a refit.",
+        "links": [
+          { "kind": "story", "id": "the_sealed", "label": "Aurelian replacements" },
+          { "kind": "story", "id": "the_shared_mounts", "label": "Fitting recovered parts" }
+        ]
+      }
+    ]
+  }
+]

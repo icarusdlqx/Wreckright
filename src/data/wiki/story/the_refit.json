@@ -1,0 +1,10 @@
+{
+  "id": "the_refit",
+  "category": "workshop",
+  "sourceLoreId": "the_refit",
+  "related": [
+    { "kind": "story", "id": "the_shared_mounts" },
+    { "kind": "story", "id": "the_welded" },
+    { "kind": "story", "id": "the_foundry_winter" }
+  ]
+}

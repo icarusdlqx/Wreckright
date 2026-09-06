@@ -1,0 +1,16 @@
+{
+  "id": "halberd_hlb4",
+  "designId": "halberd_prime",
+  "provenance": "Recovered Halberds stood in their depot without weapons. Powered shoulder interfaces survived, and Sarn built external cradles to carry local racks while suitable Aurelian weapons were sought.",
+  "serviceHistory": [
+    "Those early service refits made the difference between a valuable stored root and a machine that could earn its upkeep. Later work restored calibrated cooling and energy armament without always removing the practical local additions. A bright Halberd can therefore carry a thoroughly mixed maintenance history.",
+    "The tall shoulder pylons make an approaching Halberd easy to recognise. Freight guards learned not to assume that a heavy-looking contact would take a heavy machine's usual time to arrive. Custodian pilots take pride in that reputation; their workshops take equal care over the cooling surfaces that make repeated engagements affordable."
+  ],
+  "fieldNotes": "The standard Halberd combines Aurelian energy weapons with workshop missile racks. Its stride and cooling make it a useful heavy striker, provided there is room for the armament to work. It has no jump escape. A forward position that becomes cramped can waste both the frame's speed and the battery's reach.",
+  "related": [
+    { "kind": "story", "id": "the_sealed" },
+    { "kind": "story", "id": "the_shared_mounts" },
+    { "kind": "mech", "id": "warden_wrd5" },
+    { "kind": "mech", "id": "obsequy_obq3" }
+  ]
+}
