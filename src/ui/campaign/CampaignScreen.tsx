@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { abandonContract, acceptContract, advanceDays, availableNodes, campaignOf,
+import { abandonContract, acceptContract, advanceDays, availableNodes, campaignOf, standDownCampaign,
   deployableLance, negotiationOptions } from '../../campaign/campaign';
 import {
   campaignBlob,
@@ -28,6 +28,7 @@ import { resolveCurrentEmployer } from './campaignEmployer';
 import { visibleCampaignLore } from './campaignLore';
 import { ContractPanel } from './ContractPanel';
 import { CompanyStatus } from './CompanyStatus';
+import { CrewStandDown } from './CrewStandDown';
 import { debriefedCount, resetDebriefed, revealLatestDebrief } from './Debrief';
 import { FieldManual } from './FieldManual';
 import { HiringHall } from './HiringHall';
@@ -91,7 +92,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
   const guidedFirstDrop = guideDismissed ? 'done' : firstDrop;
   const surveyMission = previewMissionId(state.contract, node);
   const survey = useMemo(() => missionPreviewData(catalog, surveyMission), [surveyMission]);
-  const previewsActive = prep === null && refitting === null && !manualOpen && !choosingCampaign && outcomeCount <= debriefed;
+  const previewsActive = state.difficultyConfigured && prep === null && refitting === null && !manualOpen && !choosingCampaign && outcomeCount <= debriefed;
 
   useEffect(() => {
     record({ name: 'campaign_opened' });
@@ -146,7 +147,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
     setStatus(saved.ok ? message : 'Campaign opened in memory; the save was not written.');
   };
 
-  const startNewCampaign = (campaignId: string): void => {
+  const startNewCampaign = (campaignId: string, difficulty: string): void => {
     resetDebriefed();
     setDebriefed(0);
     let saved = campaignPersistenceStatus();
@@ -155,7 +156,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
       const result = saveCampaign(next, { recover: true });
       saved = result.status;
       stored = result.ok;
-    });
+    }, difficulty);
     setPrep(null);
     setGuideDismissed(false);
     setRefitting(null);
@@ -222,6 +223,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         day={state.day}
         balance={cbills(state.cbills)}
         seed={state.seed}
+        difficulty={state.difficulty}
         manualOpen={manualOpen}
         muted={score.muted}
         persistence={persistence}
@@ -246,7 +248,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
           else restore(loaded.state, 'Save imported.', true);
         }}
         onChooseCampaign={() => setChoosingCampaign(true)}
-        onRestart={() => startNewCampaign(state.campaignId)}
+        onRestart={(difficulty) => startNewCampaign(state.campaignId, difficulty)}
         onToggleManual={() => setManualOpen((open) => !open)}
         onToggleMuted={score.toggleMuted}
         onExit={() => {
@@ -259,11 +261,13 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
           onExit();
         }}
       />
-      {!choosingCampaign ? null : (
+      {!choosingCampaign && state.difficultyConfigured ? null : (
         <CampaignChooser
           campaigns={[...catalog.campaigns.values()]}
           currentId={state.campaignId}
-          onClose={() => setChoosingCampaign(false)}
+          difficulty={state.difficulty}
+          initial={!state.difficultyConfigured}
+          onClose={() => state.difficultyConfigured ? setChoosingCampaign(false) : onExit()}
           onStart={startNewCampaign}
         />
       )}
@@ -311,6 +315,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         employer={employer}
         employers={employers}
         companyStatus={
+          <><CrewStandDown catalog={catalog} state={state} onStandDown={() => mutate((draft) => standDownCampaign(catalog, draft).reason)} />
           <CompanyStatus
             report={solvency}
             contractActive={state.contract !== null}
@@ -323,7 +328,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
                 return result.ok ? 'Company retired. This campaign is over.' : result.reason;
               })
             }
-          />
+          /></>
         }
         onSelectTerms={setSelectedTerms}
         onAccept={(termsId) => {

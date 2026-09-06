@@ -1,3 +1,4 @@
+import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { mkdir } from 'node:fs/promises';
@@ -25,6 +26,8 @@ try {
   if (!fonts || await page.locator('.home-machine canvas').count() !== 2) throw new Error('Missing inline font or machine preview');
   await page.screenshot({ path: `${shots}/home.png` });
   await page.locator('[data-testid="home-campaign"]').click();
+  await page.waitForSelector('[data-testid="campaign"]');
+  await completeInitialCampaignSetup(page);
   await page.locator('[data-testid="campaign-guide-dismiss"]').click();
   await page.locator('[data-testid="camp-area-workshop"]').click();
   await page.locator('[data-testid^="camp-refit-"]:enabled').first().click();

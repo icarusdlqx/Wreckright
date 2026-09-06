@@ -14,22 +14,22 @@ export interface MachineCulturePresentation {
 const CULTURES: Record<Faction, MachineCulturePresentation> = {
   linewrought: {
     originLabel: 'Linewrought',
-    badgeLabel: 'Linewrought — Workshop',
-    explanation: 'Workshop-serviced around exposed systems; mixed-pattern refits are expected.',
+    badgeLabel: 'Linewrought',
+    explanation: 'Patched armour, proven guns and field repairs. Built to keep working with whatever the crew can recover.',
     className: 'culture-linewrought',
   },
   aurelian: {
     originLabel: 'Aurelian Stock',
-    badgeLabel: 'Aurelian Stock — Sealed',
-    explanation: 'Factory-sealed around integrated systems; the bay can still refit compatible parts.',
+    badgeLabel: 'Aurelian Stock',
+    explanation: 'Factory-refurbished armour and advanced energy weapons. Efficient firepower, demanding heat and scarce spares.',
     className: 'culture-aurelian',
   },
 };
 
 export const CULTURE_FIT_GUIDE =
-  'Culture is informational; mount, slots, tonnage, and stock decide fit.';
+  'Both origins can be mixed. Mount type, size, boxes, weight and stock decide fit; cooling and ammunition decide how it fights.';
 
-export const FOREIGN_PATTERN_BADGE = 'Foreign pattern — origin only';
+export const FOREIGN_PATTERN_BADGE = 'Mixed refit';
 
 export function machineCulturePresentation(faction: Faction): MachineCulturePresentation {
   return CULTURES[faction];

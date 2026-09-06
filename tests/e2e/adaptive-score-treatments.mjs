@@ -1,3 +1,4 @@
+import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import {
   advanceAudioClock,
   audioProbe,
@@ -115,6 +116,7 @@ async function checkCampaignAndNestedRefit({ browser, url, check }) {
     await page.waitForSelector('[data-testid="briefing"]');
     await page.locator('[data-testid="training-skip"]').click();
     await page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(page);
     await page.waitForFunction(() => globalThis.__audioProbe.snapshot().length === 1);
     const campaign = (await audioProbe(page))[0];
     check('training skip creates the campaign score before any second strategic gesture',
@@ -361,6 +363,7 @@ async function checkBattleOutfitterReuse({ browser, url, check }) {
     await openDesktopMenu(page);
     await page.locator('[data-testid="open-campaign"]').click();
     await page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(page);
     await page.waitForFunction(() => globalThis.__audioProbe.snapshot().length === 2);
     await waitForClosed(page, 0);
     const separated = await audioProbe(page);

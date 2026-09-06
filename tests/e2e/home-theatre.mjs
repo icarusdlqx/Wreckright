@@ -1,3 +1,4 @@
+import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 export async function checkHomeTheatre({ browser, url, shots, check }) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   try {
@@ -31,6 +32,7 @@ export async function checkHomeTheatre({ browser, url, shots, check }) {
     await page.waitForSelector('[data-testid="home-theatre-fallback"][data-preview-state="unavailable"]');
     await page.locator('[data-testid="home-campaign"]').click();
     await page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(page);
     check('a failed decorative model download still allows entering the campaign', rejected &&
       (await page.locator('[data-testid="crash"]').count()) === 0);
   } finally {

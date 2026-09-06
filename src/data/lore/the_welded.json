@@ -1,13 +1,14 @@
 {
   "id": "the_welded",
-  "title": "The Welded",
+  "title": "Linewrought",
   "order": 5,
-  "summary": "Linewrought machines are repair records with legs, built to be back at work next week.",
+  "summary": "Patched armour, practical guns and crews who refuse to quit. Linewrought machines are repair records with legs.",
   "body": [
     "A named walker reaches a repair yard on a recovery crawler. The shop records the root serial, cuts away whatever seized, measures the holes that remain and orders plate from Sarn. Nothing is put back where the Compact put it unless the old mount happens to fit. The foundries call the result Linewrought. Crews call it welded or shopwork.",
-    "A Linewrought gun is something Tessell can make: a tube, a breech, a feed chute and a shell. The racks are built the same way. They run cool enough to fire all afternoon, right up to the minute the bins run dry. Every Tessellan pilot knows the sound of an empty feed striking twice.",
+    "A Linewrought gun is something Tessell can make: a tube, a breech, a feed chute and a shell. The missile racks follow the same argument. Much of that firepower runs cooler than an Aurelian emitter, but the bins run dry and a breached ammunition store can kill its own machine. Every Tessellan pilot knows the sound of an empty feed striking twice.",
     "Old Compact emitters survive on a few shop marks, carried from one opened hull to the next. No town makes one and no yard stocks a replacement.",
-    "The seams show and the plate does not match. That is useful. A fitter can reach every pump, cable and bearing without asking a dead factory for permission. A damaged machine comes home on Tuesday and may walk again by Friday, provided the shop has steel, ammunition and somebody willing to work through the night.",
+    "The seams show and the plate does not match. A fitter can reach the working systems, use a borrowed crane and turn a failed shift into a repair plan. Crews share tools, tow one another home and learn which gun can be kept alive with the parts already on the truck. Their toughness is a habit of working together under bad conditions, not an immunity to damage.",
+    "A captured emitter is welcome. The old mount standards still match if the socket, physical size and rack space do. The gun keeps its performance; the fitter has to find cooling capacity and accept that the next replacement will come from another recovery. A Bulwark carrying three Aurelian lasers is a successful mixed refit, not a contradiction.",
     "No two examples are identical. The mark number records trips through the shop, not a production series. A Linewrought machine is not a chassis Tessell manufactured. It is an Aurelian root that local hands refused to let die."
   ]
 }

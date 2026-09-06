@@ -4,7 +4,7 @@ import type { CampaignState, MechRecord } from '../../campaign/types';
 import type { RepairEstimate, RepairQueueEntry } from '../../campaign/repair';
 import { payrollThrough } from '../../campaign/ledger';
 import { machineDisplayName, designIdentityLabel } from '../designLabel';
-import { ChassisSilhouette } from '../mechbay/ChassisSilhouette';
+import { MachinePortrait } from '../mechbay/MachinePortrait';
 import { factionLabel } from './factionEconomy';
 import './preparation.css';
 
@@ -15,7 +15,7 @@ export function MachineIdentity({ catalog, design }: { catalog: Catalog; design:
     <div className="exp-machine-identity" data-faction={chassis.faction}
       role="group" aria-label={designIdentityLabel(catalog, design)}>
       <div className="exp-machine-portrait" aria-hidden="true">
-        <ChassisSilhouette chassis={chassis} design={design} />
+        <MachinePortrait chassis={chassis} />
       </div>
       <div className="exp-machine-copy">
         <span className="exp-machine-culture">{factionLabel(chassis.faction)}</span>

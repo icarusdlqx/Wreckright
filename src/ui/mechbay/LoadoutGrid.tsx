@@ -5,6 +5,7 @@ import type { Catalog } from '../../schema/load';
 import type { Loadout } from '../../sim/loadout';
 import type { LocationFit } from './autoFit';
 import { LocationCard, MECH_LOCATION_NAMES, type DropPayload } from './LocationCard';
+import { SlotBoxes } from './SlotBoxes';
 import './locationWorkbench.css';
 
 interface Props {
@@ -67,8 +68,9 @@ export function LoadoutGrid({
         ? ''
         : `${catalog.weapons.get(targeting.id)?.name ?? targeting.id}${targeting.kind === 'ammo' ? ' ammo' : ''}`;
   const currentStep = targeting !== null ? 2 : null;
+  const massWarning = [...locationFits.values()].find((fit) => fit.ok)?.massWarning ?? null;
   const statusText = targeting !== null
-    ? `${armed === null ? `Dragging ${targetName}` : `Step 2 of 3: holding ${targetName}`}. Targeting details revealed; choose a green location marked Fits held part.`
+    ? `${armed === null ? `Dragging ${targetName}` : `Step 2 of 3: holding ${targetName}`}. Match its boxes to a location marked Fits held part. Drag and release to snap in, or select that location.`
     : selectedLocation !== null
       ? `${MECH_LOCATION_NAMES[selectedLocation]} is selected as a shelf filter. Pick a compatible part, or inspect and remove fitted parts here.`
       : 'Ready to fit or review: pick a part from the shelf, select a location to filter, or inspect a fitted part.';
@@ -82,7 +84,7 @@ export function LoadoutGrid({
       <header className={`location-workbench__guide ${guideExpanded ? 'is-expanded' : 'is-folded'}`}>
         <div className="location-workbench__heading">
           <span className="location-workbench__eyebrow">Loadout workbench</span>
-          <h3 id="location-workbench-title">Fit parts in three steps</h3>
+          <h3 id="location-workbench-title">Match the boxes. Drop to fit.</h3>
         </div>
         <button
           type="button"
@@ -125,6 +127,12 @@ export function LoadoutGrid({
             );
           })}
         </ol>
+        <div className="fitting-box-key" aria-label="One box equals one fitting slot. Filled boxes are occupied; hollow boxes are free.">
+          <span><SlotBoxes count={1} /> Fitted</span>
+          <span className="fitting-box-key__free"><SlotBoxes count={1} /> Free</span>
+          <span>1 box = 1 slot · match mount type &amp; size</span>
+        </div>
+        {massWarning === null ? null : <p className="fitting-mass-warning" role="status">{massWarning}</p>}
         <p className="location-workbench__status" role="status" aria-live="polite" data-testid="bay-fit-status">
           {statusText}
         </p>

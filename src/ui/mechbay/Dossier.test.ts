@@ -44,7 +44,7 @@ describe('mechbay catalog inspector', () => {
     expect(html).toContain('data-testid="range-damage-chart"');
     expect(html).toContain('Longshot 10 expected damage by range, 0 to 600 metres');
     expect(html).toContain('weapon-range-strip');
-    expect(html).toContain('Foreign pattern — origin only');
+    expect(html).toContain('Mixed refit');
     expect(html).toContain('Right Torso has no free missile hardpoint.');
     expect(html).toContain('1 ton of ammo lasts 48s at full cycle.');
     expect(html).toContain('line of sight is still required');

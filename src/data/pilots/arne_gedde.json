@@ -8,5 +8,14 @@
     "marksman",
     "butcher"
   ],
-  "bio": "Gedde is the best shot on the register and cannot walk a mech through a gate without scraping it. Both facts are load-bearing."
+  "bio": "Gedde is the best shot on the register and cannot walk a mech through a gate without scraping it. Both facts are load-bearing.",
+  "portrait": {
+    "skin": "#e4c3a3",
+    "hair": "#a8967c",
+    "jacket": "#344959",
+    "accent": "#7ecac3",
+    "style": "crop",
+    "face": "angular",
+    "detail": "visor"
+  }
 }

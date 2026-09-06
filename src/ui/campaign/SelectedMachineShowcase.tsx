@@ -3,6 +3,8 @@ import type { MechRecord } from '../../campaign/types';
 import type { Catalog } from '../../schema/load';
 import { machineDisplayName } from '../designLabel';
 import { MechPreview } from '../mechbay/MechPreview';
+import { MachineDossier } from '../mechbay/MachineDossier';
+import { weaponConfiguration } from '../mechbay/fittingTradeoffs';
 import { ChassisSilhouette } from '../mechbay/ChassisSilhouette';
 import { factionLabel } from './factionEconomy';
 import { workshopPreviewCondition } from './workshopPreviewCondition';
@@ -13,6 +15,7 @@ export function SelectedMachineShowcase({ catalog, mech, active }: { catalog: Ca
   const condition = useMemo(() => chassis === undefined ? undefined : workshopPreviewCondition(chassis, mech), [chassis, mech]);
   if (chassis === undefined) return null;
   const armaments = new Map<string, number>();
+  const configuration = weaponConfiguration(catalog, mech.design);
   for (const mount of mech.design.mounts) armaments.set(mount.weaponId, (armaments.get(mount.weaponId) ?? 0) + 1);
   return (
     <aside className="selected-machine-showcase" data-testid="camp-selected-machine" aria-label="Selected machine inspection">
@@ -23,7 +26,9 @@ export function SelectedMachineShowcase({ catalog, mech, active }: { catalog: Ca
         <span className="showcase-stage-caption">{mech.status === 'hulk' ? 'Recovered chassis' : 'Company machine'} · current equipment &amp; condition</span>
         <span className="showcase-scale" aria-hidden="true">{chassis.tonnage}t</span>
       </div>
+      <MachineDossier chassis={chassis} portrait={false} />
       <div className="showcase-loadout"><h4>Installed armament</h4>
+        {configuration === null ? null : <p className="showcase-note"><strong>{configuration.label}.</strong> {configuration.summary}</p>}
         {armaments.size === 0 ? <p>No weapons installed. Refit before deployment.</p> : <ul>{[...armaments].map(([id, count]) => <li key={id}><span>{catalog.weapons.get(id)?.name ?? id}</span><strong>×{count}</strong></li>)}</ul>}
         <p className="showcase-note">Select Inspect on a roster card to change this view. Repair and refit orders stay with the machine’s record.</p>
       </div>

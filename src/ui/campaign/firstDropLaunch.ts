@@ -1,6 +1,6 @@
 import { dropTeam, PLAYER_TEAM } from '../../campaign/campaign';
 import { pristineCondition } from '../../campaign/repair';
-import { findMech, type CampaignState, type MechRecord } from '../../campaign/types';
+import { findMech, isPilotAvailable, type CampaignState, type MechRecord } from '../../campaign/types';
 import { LOCATIONS } from '../../schema/common';
 import { validateDesign } from '../../schema/designValidation';
 import type { Catalog } from '../../schema/load';
@@ -30,8 +30,7 @@ export function canLaunchFirstDropDirectly(catalog: Catalog, state: CampaignStat
   for (const pilot of state.pilots) {
     const mechId = pilot.mechId;
     if (
-      pilot.dead ||
-      pilot.injuredUntilDay > state.day ||
+      !isPilotAvailable(state, pilot) ||
       state.benched.includes(pilot.id) ||
       mechId === null ||
       assignedMechs.has(mechId)

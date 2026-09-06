@@ -4,7 +4,7 @@ import type { Design } from '../../schema/design';
 import { validateDesign, type DesignReport } from '../../schema/designValidation';
 import type { Catalog } from '../../schema/load';
 import type { Weapon } from '../../schema/weapon';
-import { weaponSize } from '../../sim/loadout';
+import { weaponSize, weaponSizeLabel } from '../../sim/loadout';
 
 export type EditIntent =
   | { type: 'install_weapon'; weaponId: string; location: MechLocation }
@@ -122,13 +122,13 @@ export function editLine(
  * what is missing rather than reciting both sides of the arithmetic.
  */
 function slotShortfall(missing: number): string {
-  return `Not enough room here — ${missing} slot${missing === 1 ? '' : 's'} short.`;
+  return `Not enough room here — ${missing} fitting box${missing === 1 ? '' : 'es'} short.`;
 }
 
 function hardpointShortfall(type: string, capacity: number): string {
   return capacity === 0
-    ? `This location has no ${type} hardpoints.`
-    : `Every ${type} hardpoint here is already taken.`;
+    ? `This part has no ${type} weapon mounts.`
+    : `Every ${type} weapon mount here is already taken.`;
 }
 
 
@@ -178,7 +178,7 @@ export function placementReasons(
   if (size > next.size) {
     reasons.push(editReason(
       'hardpoint_size', 'local', 'weapon',
-      `${weapon.name} needs a size-${size} hardpoint; this location accepts size ${next.size}.`,
+      `${weapon.name} needs a ${weaponSizeLabel(catalog, size)} ${weapon.type} mount; this part takes ${weaponSizeLabel(catalog, next.size)} weapons or smaller.`,
       itemId, location,
       { required: size, available: next.size, missing: size - next.size },
     ));

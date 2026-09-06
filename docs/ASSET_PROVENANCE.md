@@ -24,6 +24,15 @@ clearance the repository cannot prove.
 
 ## Generated presentation
 
+The nineteen chassis portraits in `src/assets/machines/` are local WebP renders
+of the same authored models and standard designs used in battle. Their source
+is retained in the repository; `tools/render-machine-portraits.mjs` produces
+them with one disposable headless renderer. `provenance.json` in that directory
+records the design IDs and model bounds. The asset register records each image's
+exact bytes and introducing commit. No external image or mesh input was used.
+Pilot portraits remain editable, authored SVG geometry in `PilotPortrait.tsx`
+with individual appearance data in the pilot JSON files.
+
 No external meshes, textures, music, or sound recordings are checked
 in. Battlefield geometry and visual effects are assembled at runtime from the
 project's TypeScript, JSON, and CSS. Sound is synthesized at runtime with the

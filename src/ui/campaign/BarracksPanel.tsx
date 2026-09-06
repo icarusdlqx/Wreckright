@@ -23,6 +23,8 @@ import {
   traitEffects,
 } from '../pilotProgression';
 import { designIdentityLabel } from '../designLabel';
+import { PilotProfile } from '../PilotProfile';
+import { PilotPortrait } from '../PilotPortrait';
 import './progression.css';
 
 const catalog = getCatalog();
@@ -129,16 +131,21 @@ function TrainingButton({ pilot, skill, mutate }: { pilot: PilotRecord; skill: S
 }
 
 function PilotCard({ pilot, state, mutate }: { pilot: PilotRecord; state: CampaignState; mutate: Props['mutate'] }) {
+  const lastMission = state.history.at(-1)?.pilotReports.find((report) => report.pilotId === pilot.id);
   return (
     <li className="pilot-card" data-testid={`camp-pilot-${pilot.id}`}>
       <header title={pilot.bio}>
-        <span className="pilot-name">{pilot.name}</span>
+        <span>Crew record</span>
         <span className="pilot-state">
           {pilot.dead
             ? 'KIA'
-            : `${availableXp(pilot)} XP banked${isPilotAvailable(state, pilot) ? '' : ` · injured to day ${pilot.injuredUntilDay}`}`}
+            : `${availableXp(pilot)} XP banked${isPilotAvailable(state, pilot) ? '' : (pilot.recoveryMissions ?? 0) > 0 ? ' · misses next mission' : ` · injured to day ${pilot.injuredUntilDay}`}`}
         </span>
       </header>
+      <PilotProfile pilot={pilot} />
+      {lastMission === undefined ? null : <p className="pilot-last-mission">
+        Last mission: +{lastMission.xp} XP · {lastMission.kills} kills · {lastMission.damage} damage
+      </p>}
 
       {pilot.traits.length === 0 ? null : (
         <div className="pilot-traits">
@@ -186,11 +193,8 @@ function HireRow({ hire, state, mutate }: { hire: Pilot; state: CampaignState; m
   const salary = catalog.rules.economy.pilot.salaryPerDay;
   return (
     <li key={hire.id} title={hire.bio} data-testid={`camp-hire-${hire.id}`}>
-      <span className="pilot-name">
-        {hire.name}
-        {hire.traits.map((traitId) => <TraitReadout key={traitId} traitId={traitId} />)}
-      </span>
-      <span className="pilot-skills">{hire.gunnery}/{hire.piloting}/{hire.sensors}</span>
+      <PilotProfile pilot={hire} />
+      <div className="pilot-traits">{hire.traits.map((traitId) => <TraitReadout key={traitId} traitId={traitId} />)}</div>
       <span className="pilot-state">{credits(cost)} · {credits(salary)}/day</span>
       <button
         type="button"
@@ -213,6 +217,8 @@ export function BarracksPanel({ state, mutate }: Props) {
   const payroll = dailyPayroll(catalog, state);
   const hires = availableHires(catalog, state);
   const trainable = state.pilots.filter((pilot) => readyToTrain(catalog, pilot)).length;
+  const crew = state.pilots.filter((pilot) => !pilot.dead);
+  const fallen = state.pilots.filter((pilot) => pilot.dead);
   return (
     <section className="camp-roster progression-roster" data-testid="camp-roster">
       <header className="roster-ledger">
@@ -226,8 +232,15 @@ export function BarracksPanel({ state, mutate }: Props) {
         </h3>
         <strong>{credits(payroll)}/day</strong>
       </header>
-      <p className="ledger-note">Wages leave the account whenever the calendar moves. Injured crew remain on payroll.</p>
-      <ul>{state.pilots.map((pilot) => <PilotCard key={pilot.id} pilot={pilot} state={state} mutate={mutate} />)}</ul>
+      <p className="ledger-note">Earn XP on campaign missions, then train a skill below. Gunnery improves fire, piloting resists knockdown and shutdown, sensors extend detection.</p>
+      <p className="ledger-note">Wounded pilots miss the next mission; hire reserves to cover them. Waiting days does not clear a mission injury. Injured crew remain on payroll.</p>
+      <ul>{crew.map((pilot) => <PilotCard key={pilot.id} pilot={pilot} state={state} mutate={mutate} />)}</ul>
+      {fallen.length === 0 ? null : <details className="pilot-memorial" data-testid="pilot-memorial">
+        <summary>Roll of honour · {fallen.length} lost</summary>
+        <ul>{fallen.map((pilot) => <li key={pilot.id} data-testid={`memorial-${pilot.id}`}>
+          <PilotPortrait pilot={pilot} compact /><span>{pilot.name} · Killed in action</span>
+        </li>)}</ul>
+      </details>}
 
       <h4>Hiring hall</h4>
       <ul className="camp-hires">

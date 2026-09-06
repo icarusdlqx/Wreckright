@@ -37,8 +37,8 @@ export function MachineCultureBadge({
       ) : null}
       {foreignComponents ? (
         <span className="machine-culture__foreign-note" role="note">
-          Mixed-pattern fit installed. Foreign components are allowed; mount, slots, tonnage, and
-          stock still decide fit.
+          Mixed refit installed. Captured weapons can fit compatible mounts. Check the boxes,
+          cooling and ammunition before committing.
         </span>
       ) : null}
     </>

@@ -7,5 +7,14 @@
   "traits": [
     "green"
   ],
-  "bio": "Nyen drove ore crawlers before Kestrel gave him a cockpit. He still measures a good day by what reaches the far gate."
+  "bio": "Nyen drove ore crawlers before Kestrel gave him a cockpit. He still measures a good day by what reaches the far gate.",
+  "portrait": {
+    "skin": "#b58261",
+    "hair": "#41362d",
+    "jacket": "#59675c",
+    "accent": "#e3a46a",
+    "style": "crop",
+    "face": "broad",
+    "detail": "none"
+  }
 }

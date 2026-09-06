@@ -1,3 +1,6 @@
+import { completeInitialCampaignSetup } from './campaign-setup.mjs';
+import { checkCampaignHaul } from './campaign-haul.mjs';
+import { runMechbayCrewChecks } from './mechbay-crew.mjs';
 import { checkHomeTheatre } from './home-theatre.mjs';
 import { companyFile, restartCompany, checkRestartCancellation, checkCompanyWorkspaces } from './campaign-navigation.mjs';
 import { spawn } from 'node:child_process';
@@ -153,6 +156,7 @@ async function verifyAlternateTrainingRoutes(browser, url) {
     await skipped.page.waitForSelector('[data-testid="briefing"]');
     await skipped.page.locator('[data-testid="training-skip"]').click();
     await skipped.page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(skipped.page);
     check(
       'training briefing skip opens the campaign explicitly',
       (await skipped.page.locator('[data-testid="home-screen"]').count()) === 0 &&
@@ -179,6 +183,7 @@ async function verifyAlternateTrainingRoutes(browser, url) {
     );
     await failed.page.locator('[data-testid="training-continue-anyway"]').click();
     await failed.page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(failed.page);
     check(
       'continue anyway records the training exit',
       (await failed.page.evaluate(() =>
@@ -202,6 +207,7 @@ async function freshCampaignFixture(browser, url) {
   await page.waitForSelector('[data-testid="home-screen"]');
   await page.locator('[data-testid="home-campaign"]').click();
   await page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(page);
   return { context, page };
 }
 
@@ -210,6 +216,7 @@ async function reopenSavedCampaign(page) {
   await page.waitForSelector('[data-testid="home-screen"]');
   await page.locator('[data-testid="home-campaign"]').click();
   await page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(page);
 }
 
 async function verifyFirstDropLaunchPaths({ browser, url, shots, check: recordCheck }) {
@@ -431,6 +438,7 @@ async function main() {
     );
     await page.locator('[data-testid="training-start-campaign"]').click();
     await page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(page);
     check(
       'successful training reaches first-contract guidance',
       (await page.locator('[data-testid="campaign-guide"]').innerText()).includes(
@@ -1099,6 +1107,7 @@ async function main() {
     await openDesktopBattleMenu(page);
     await page.locator('[data-testid="open-campaign"]').click();
     await page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(page);
 
     const day = async () =>
       Number((await page.locator('[data-testid="camp-day"]').innerText()).replace('Day ', ''));
@@ -1240,17 +1249,20 @@ async function main() {
     await checkRestartCancellation({ page, check });
     const firstRunCode = await page.locator('[data-testid="camp-seed"]').innerText();
     check(
-      'a new campaign exposes a readable run code',
-      /^Run [a-z]+-[a-z]+-[0-9a-f]{8}$/.test(firstRunCode),
+      'a new campaign exposes a readable run code and fixed difficulty',
+      /^Run [a-z]+-[a-z]+-[0-9a-f]{8} · regular difficulty$/.test(firstRunCode),
       firstRunCode,
     );
     await restartCompany(page);
     const restartedCode = await page.locator('[data-testid="camp-seed"]').innerText();
-    const persistedRun = await page.evaluate(() =>
-      JSON.parse(localStorage.getItem('ironline.campaign')).state.seed,
-    );
+    const persistedRun = await page.evaluate(() => {
+      const { seed, difficulty } = JSON.parse(localStorage.getItem('ironline.campaign')).state;
+      return { seed, difficulty };
+    });
     check('restart rolls a fresh run code', restartedCode !== firstRunCode, restartedCode);
-    check('the fresh run is saved immediately', restartedCode === `Run ${persistedRun}`);
+    check('the fresh run and its difficulty are saved immediately',
+      restartedCode === `Run ${persistedRun.seed} · ${persistedRun.difficulty} difficulty`
+      && persistedRun.difficulty === 'regular', JSON.stringify(persistedRun));
 
     await runCampaignRecovery({ page, shots: SHOTS, check });
 
@@ -1428,6 +1440,10 @@ async function main() {
     // The bay opens on one of the company's own machines, stocked from its own
     // stores — mission prep is who drops, in what, carrying what.
     await runCampaignRefitMechbayJourney({ page, check });
+    const beforeDrop = await page.evaluate(() => {
+      const { store, mechs } = JSON.parse(localStorage.getItem('ironline.campaign')).state;
+      return { store, mechs };
+    });
 
     await page.locator('[data-testid="manifest-launch"]').click();
     await page.waitForSelector('[data-testid="briefing"]');
@@ -1464,6 +1480,7 @@ async function main() {
     await page.locator('[data-testid="return-to-campaign"]').click();
     await page.locator('[data-testid="return-to-campaign"]').click();
     await page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(page);
 
     // Coming home opens the debrief: what the drop earned each pilot.
     await page.waitForSelector('[data-testid="debrief"]');
@@ -1513,6 +1530,7 @@ async function main() {
         salvagedItems: latest.salvagedItems,
         salvageCandidates: latest.salvageCandidates ?? [],
         salvageOffered: latest.salvageOffered ?? [],
+        salvageFinalized: latest.salvageFinalized,
         pilotReportCount: latest.pilotReports.length,
       };
     });
@@ -1565,7 +1583,8 @@ async function main() {
       await adjustPicks.focus();
       check(
         'the editable salvage disclosure is named Adjust picks',
-        (await adjustPicks.innerText()) === 'Adjust picks',
+        !debriefOutcome.salvageFinalized && (await adjustPicks.textContent())?.trim() === 'Adjust picks',
+        JSON.stringify({ label: await adjustPicks.innerText(), finalized: debriefOutcome.salvageFinalized }),
       );
       await page.keyboard.press('Enter');
       check(
@@ -1692,9 +1711,9 @@ async function main() {
       rosterText.includes('XP banked') && rosterText.includes('/day'),
     );
 
+    checkCampaignHaul({ before: beforeDrop, after: resolvedState, check });
     if (resolvedState.history[0].won) {
       check('winning paid out', (await cash()) > cashBefore, `${cashBefore} → ${await cash()}`);
-      check('salvage reached stores', resolvedState.store.length > 0);
       check(
         'the next contracts unlocked',
         (await page.locator('.camp-node.available').count()) >= 1,
@@ -1730,6 +1749,7 @@ async function main() {
     await runAdaptiveScoreChecks({ browser, url: URL, check });
     await runAdaptiveScoreTreatmentChecks({ browser, url: URL, check });
     await verifyFirstDropLaunchPaths({ browser, url: URL, shots: SHOTS, check });
+    await runMechbayCrewChecks({ browser, url: URL, shots: SHOTS, check });
     await runLastSilentMomentsChecks({ browser, url: URL, check });
     await runMobilePlaythrough({ browser, url: URL, shots: SHOTS, check });
   } finally {

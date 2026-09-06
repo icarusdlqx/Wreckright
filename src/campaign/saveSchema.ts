@@ -44,6 +44,7 @@ const PilotRecordSchema = z.strictObject({
   // Saves written before the register carried biographies still load.
   bio: z.string().default(''),
   injuredUntilDay: z.number().int(),
+  recoveryMissions: z.number().int().nonnegative().default(0),
   dead: z.boolean(),
   mechId: z.string().nullable(),
 });
@@ -170,6 +171,9 @@ const CampaignEventEffectsSchema = z.strictObject({
 
 export const CampaignStateSchema = z.strictObject({
   campaignId: IdSchema,
+  // Older campaigns used the normal simulation tier; freeze that rule on load.
+  difficulty: z.enum(['green', 'regular', 'veteran', 'elite']).default('regular'),
+  difficultyConfigured: z.boolean().default(true),
   seed: z.string(),
   rng: RngStateSchema,
   day: z.number().int().nonnegative(),

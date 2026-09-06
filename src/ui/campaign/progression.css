@@ -131,31 +131,6 @@
   margin-top: 2px;
 }
 
-.progression-roster .camp-hires li {
-  grid-template-columns: 1fr auto;
-  grid-template-areas:
-    'hire-name hire-button'
-    'hire-skills hire-state';
-}
-
-.progression-roster .camp-hires .pilot-name {
-  grid-area: hire-name;
-  white-space: normal;
-}
-
-.progression-roster .camp-hires .pilot-skills {
-  grid-area: hire-skills;
-}
-
-.progression-roster .camp-hires .pilot-state {
-  grid-area: hire-state;
-}
-
-.progression-roster .camp-hires > li > button {
-  grid-area: hire-button;
-  grid-row: 1 / span 2;
-}
-
 /* The one line that stops training from being a secret. */
 .roster-ledger .train-ready {
   margin-left: 8px;

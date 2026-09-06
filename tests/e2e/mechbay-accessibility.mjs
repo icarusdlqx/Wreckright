@@ -21,7 +21,7 @@ export async function quietLocationState(page, allowArmourReveal = false) {
         slotGrid !== null && freeSlots !== null && visible(card.querySelector('.rack-cell')) &&
         armourIsSequenced && /^\d+\+\d+$/.test(armour?.textContent ?? '') &&
         card.querySelector('.bay-slots') === null &&
-        card.querySelector('.bay-hardpoints') === null &&
+        visible(card.querySelector('.bay-hardpoints')) &&
         card.querySelector('.bay-location-flags') === null &&
         card.querySelector('.bay-location-refusal') === null &&
         card.getAttribute('data-targeting') !== 'true' &&

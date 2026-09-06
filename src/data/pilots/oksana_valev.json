@@ -8,5 +8,14 @@
     "hard_to_kill",
     "veteran"
   ],
-  "bio": "Valev came back alone from the north cut and never corrected the official account. Nobody at Kestrel asks her to."
+  "bio": "Valev came back alone from the north cut and never corrected the official account. Nobody at Kestrel asks her to.",
+  "portrait": {
+    "skin": "#d8b18b",
+    "hair": "#80716a",
+    "jacket": "#536466",
+    "accent": "#dda469",
+    "style": "braid",
+    "face": "oval",
+    "detail": "scar"
+  }
 }

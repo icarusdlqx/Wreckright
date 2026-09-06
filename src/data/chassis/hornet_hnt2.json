@@ -101,5 +101,13 @@
     "long_stride",
     "narrow_profile",
     "recon_optics"
+  ],
+  "strengths": [
+    "Jump capable",
+    "Long stride and recon optics"
+  ],
+  "weaknesses": [
+    "Light protection",
+    "Limited payload"
   ]
 }

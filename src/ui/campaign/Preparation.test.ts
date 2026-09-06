@@ -136,7 +136,7 @@ describe('expedition preparation readouts', () => {
     expect(html).toContain(`<dt>Ready</dt><dd>Day ${projected.readyOnDay}</dd>`);
     expect(html).toContain(`Company payroll until ready: <strong>${wages.toLocaleString('en-GB')} C</strong>`);
     expect(html).toContain('Charged as days pass.');
-    expect(html).toContain('data-testid="chassis-silhouette"');
+    expect(html).toContain('class="machine-portrait"');
     expect(html).toContain('Linewrought');
     expect(JSON.stringify(state)).toBe(saved);
   });

@@ -47,7 +47,7 @@ export function deployableLance(state: CampaignState): DeployablePair[] {
 
   for (const pilot of state.pilots) {
     if (pilot.mechId === null) continue;
-    spoken.add(pilot.mechId);
+    if (isPilotAvailable(state, pilot)) spoken.add(pilot.mechId);
     if (!isPilotAvailable(state, pilot) || held(pilot.id)) continue;
     const mech = findMech(state, pilot.mechId);
     if (mech === null || !isFieldable(state, mech)) continue;
@@ -142,7 +142,7 @@ export function prepareDeployment(catalog: Catalog, state: CampaignState): Deplo
     throw new DeploymentError(
       anyReady
         ? `Nothing the company can field fits the ${dropTonnageFor(catalog, contract.missionId)}t drop allowance for this contract.`
-        : 'No mech is ready to deploy. Repair a mech, rebuild a hulk, or wait for a pilot to recover.',
+        : 'No mech is ready to deploy. Repair a mech, rebuild a hulk, or hire a fit reserve pilot. Wounded pilots miss the next mission.',
     );
   }
 

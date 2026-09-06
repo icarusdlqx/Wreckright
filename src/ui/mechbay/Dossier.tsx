@@ -3,6 +3,7 @@ import type { Catalog } from '../../schema/load';
 import type { Weapon } from '../../schema/weapon';
 import { weaponSize, weaponSizeLabel } from '../../sim/loadout';
 import { equipmentEffectLines } from './equipmentPresentation';
+import { weaponFittingTradeoffs } from './fittingTradeoffs';
 import {
   foreignComponentPresentation,
   machineCulturePresentation,
@@ -169,6 +170,7 @@ export function Dossier({
   const heatPerSecond = weapon.heat / weapon.cooldown;
   const sinks = Math.ceil(heatPerSecond / dissipationPerSink(catalog, heatSinkId));
   const traits = weaponTraitLines(catalog, weapon);
+  const tradeoffs = weaponFittingTradeoffs(catalog, weapon, chassisFaction, heatSinkId);
   // A ton of ammunition, spent as fast as the weapon will fire it.
   const seconds = weapon.ammoPerTon === null ? null : weapon.ammoPerTon * weapon.cooldown;
 
@@ -191,6 +193,12 @@ export function Dossier({
       <CultureLine faction={weapon.faction} chassisFaction={chassisFaction} />
       <FitStatus fit={fit} />
       <WeaponMeters catalog={catalog} weapon={weapon} />
+      <div className="dossier-integration" data-testid="weapon-fitting-tradeoffs">
+        <p>{tradeoffs.integration}</p>
+        <details><summary>Running costs &amp; spares</summary>
+          <p>{tradeoffs.operation}</p><p>{tradeoffs.source}</p>
+        </details>
+      </div>
 
       <dl className="dossier-stats">
         <div>

@@ -6,6 +6,8 @@ import { mechIntegrity } from '../../campaign/integrity';
 import { assign } from '../../campaign/roster';
 import { isMechAvailable, isPilotAvailable, type CampaignState, type PilotRecord } from '../../campaign/types';
 import { PilotStats } from '../PilotStats';
+import { PilotPortrait } from '../PilotPortrait';
+import { PilotAssessment } from '../PilotProfile';
 import { authoredDesignName, designIdentityLabel } from '../designLabel';
 import { ContractBriefing } from './ContractBriefing';
 import { useDialogFocus } from '../useDialogFocus';
@@ -146,7 +148,7 @@ export function LanceManifest({ catalog, state, mutate, onLaunch, onCancel, onRe
               seated === null ? 0 : (catalog.chassis.get(seated.design.chassisId)?.tonnage ?? 0);
 
             const status = !available
-              ? `Infirmary until day ${pilot.injuredUntilDay}`
+              ? (pilot.recoveryMissions ?? 0) > 0 ? 'Infirmary — misses next mission' : `Infirmary until day ${pilot.injuredUntilDay}`
               : benched(pilot)
                 ? 'Held back'
                 : seated === null
@@ -168,8 +170,11 @@ export function LanceManifest({ catalog, state, mutate, onLaunch, onCancel, onRe
                 data-testid={`manifest-${pilot.id}`}
               >
                 <div className="manifest-pilot">
+                  <PilotPortrait pilot={pilot} compact />
                   <span className={`exp-readiness ${drops ? 'is-dropping' : 'is-reserve'}`}>{drops ? `Aboard ${String(order + 1).padStart(2, '0')}` : 'Reserve'}</span>
                   <span className="pilot-name">{pilot.name}</span>
+                  <p className="pilot-bio">{pilot.bio || catalog.pilots.get(pilot.templateId)?.bio}</p>
+                  <PilotAssessment pilot={pilot} />
                   {pilot.traits.length === 0 ? null : (
                     <small className="pilot-traits">
                       {pilot.traits

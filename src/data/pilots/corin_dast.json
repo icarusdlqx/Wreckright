@@ -7,5 +7,14 @@
   "traits": [
     "butcher"
   ],
-  "bio": "Dast learned where machines come apart before he learned how they move. He still aims for the bolts nobody else notices."
+  "bio": "Dast learned where machines come apart before he learned how they move. He still aims for the bolts nobody else notices.",
+  "portrait": {
+    "skin": "#a87051",
+    "hair": "#343032",
+    "jacket": "#65524b",
+    "accent": "#dd9361",
+    "style": "sweep",
+    "face": "oval",
+    "detail": "beard"
+  }
 }

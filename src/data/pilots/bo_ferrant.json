@@ -7,5 +7,14 @@
   "traits": [
     "green"
   ],
-  "bio": "Ferrant flew freight and thinks a mech is a truck that argues. He is not entirely wrong and it is not entirely helping."
+  "bio": "Ferrant flew freight and thinks a mech is a truck that argues. He is not entirely wrong and it is not entirely helping.",
+  "portrait": {
+    "skin": "#d2aa83",
+    "hair": "#683d2b",
+    "jacket": "#526b66",
+    "accent": "#e5ad65",
+    "style": "curls",
+    "face": "broad",
+    "detail": "freckles"
+  }
 }

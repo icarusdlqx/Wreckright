@@ -3,9 +3,8 @@ import type { Catalog } from '../schema/load';
 import { missionTickBudget } from '../schema/missionClock';
 import { pruneMarket } from './market';
 import { isSideContract, pruneSideOffers, sideContracts } from './sidework';
-import { createRng } from '../sim/rng';
 import { runBattle, type BattleResult } from '../sim/world';
-import { completeRepair, pristineCondition } from './repair';
+import { completeRepair } from './repair';
 import { applyContractFailure, recoveryNotice } from './recovery';
 import { availableXp, awardXp, resolveCasualty, returnedFromField } from './roster';
 import { applySalvage, resolveSalvage, type SalvageReport } from './salvage';
@@ -13,12 +12,13 @@ import { recoveredHulk } from './salvagedHull';
 import { negotiationOptions } from './contractTerms';
 import { dailyPayroll } from './ledger';
 import { employerById, recordEmployerFailure } from './employers';
-import { emptyHistoryArchive, pruneCampaignHistory } from './history';
+import { pruneCampaignHistory } from './history';
 import { fillEmptySeats, PLAYER_TEAM, prepareDeployment, type DeployablePair } from './deployment';
 import { logCampaign, withCampaignRng } from './campaignState';
 import { applyRestDayEvent } from './events';
+import { needsCrewStandDown, recoverRestingCrew } from './crewRecovery';
 import {
-  findMech, findPilot, type CampaignState, type MechRecord, type MissionOutcome, type PilotReport,
+  findMech, findPilot, type CampaignState, type MissionOutcome, type PilotReport,
 } from './types';
 
 export { negotiationOptions } from './contractTerms';
@@ -36,75 +36,7 @@ function completedVictory(campaign: Campaign, completedNodes: readonly string[])
   return completedNodes.some((nodeId) => isVictoryNode(campaign, nodeId));
 }
 
-export function startCampaign(catalog: Catalog, campaignId: string, seed: string): CampaignState {
-  const campaign = catalog.campaigns.get(campaignId);
-  if (campaign === undefined) throw new Error(`unknown campaign "${campaignId}"`);
-
-  const state: CampaignState = {
-    campaignId,
-    seed,
-    rng: createRng(`${seed}:campaign`).save(),
-    day: campaign.startingDay,
-    cbills: campaign.startingCbills,
-    mechs: [],
-    pilots: [],
-    benched: [],
-    store: [],
-    completedNodes: [],
-    failedNodes: [],
-    sideTaken: [],
-    marketBought: [],
-    contract: null,
-    history: [],
-    historyArchive: emptyHistoryArchive(),
-    employerFailures: [],
-    eventEffects: { supplierDiscountThroughDay: null, freeRepairDays: 0 },
-    log: [],
-    finished: false,
-    won: false,
-    nextId: 1,
-  };
-
-  campaign.startingDesignIds.forEach((designId, index) => {
-    const design = catalog.designs.get(designId);
-    if (design === undefined) throw new Error(`unknown design "${designId}"`);
-
-    const mech: MechRecord = {
-      id: `mech-${state.nextId}`,
-      design: JSON.parse(JSON.stringify(design)) as typeof design,
-      condition: pristineCondition(catalog, design),
-      status: 'ready',
-      readyOnDay: state.day,
-      rebuildCost: 0,
-    };
-    state.nextId += 1;
-    state.mechs.push(mech);
-
-    const pilotId = campaign.startingPilotIds[index];
-    const template = pilotId === undefined ? undefined : catalog.pilots.get(pilotId);
-    if (template === undefined) return;
-
-    state.pilots.push({
-      id: `pilot-${state.nextId}`,
-      templateId: template.id,
-      name: template.name,
-      gunnery: template.gunnery,
-      piloting: template.piloting,
-      sensors: template.sensors,
-      xp: 0,
-      spentXp: 0,
-      traits: [...template.traits],
-      bio: template.bio,
-      injuredUntilDay: state.day,
-      dead: false,
-      mechId: mech.id,
-    });
-    state.nextId += 1;
-  });
-
-  logCampaign(state, `${campaign.name} begins.`);
-  return state;
-}
+export { startCampaign } from './campaignStart';
 
 export function campaignOf(catalog: Catalog, state: CampaignState) {
   const campaign = catalog.campaigns.get(state.campaignId);
@@ -205,6 +137,7 @@ export function runMission(catalog: Catalog, state: CampaignState): MissionRun {
     missionId: deployment.missionId,
     playerTeam: deployment.playerTeam,
     playerLance: deployment.entries,
+    difficulty: state.difficulty,
     maxTicks: missionTickBudget(catalog, deployment.missionId),
     // Auto-resolving a contract should play the lance properly, not park it.
     playerController: 'tactical',
@@ -217,6 +150,7 @@ export function resolveMission(
   state: CampaignState,
   battle: BattleResult,
   lance: DeployablePair[],
+  restDayEvents = true,
 ): MissionRun {
   const contract = state.contract;
   if (contract === null) throw new Error('no active contract');
@@ -225,6 +159,10 @@ export function resolveMission(
   const casualties: string[] = [];
   const mechsLost: string[] = [];
   const pilotReports: PilotReport[] = [];
+
+  // Only a resolved company deployment spends an infirmary mission. New
+  // casualties are applied afterward so this battle cannot heal its own wounds.
+  recoverRestingCrew(state);
 
   battle.units
     .filter((unit) => unit.team === PLAYER_TEAM)
@@ -254,7 +192,7 @@ export function resolveMission(
 
       if (casualty.died) casualties.push(`${pair.pilot.name} (killed)`);
       else if (casualty.injuredDays > 0) {
-        casualties.push(`${pair.pilot.name} (out ${casualty.injuredDays} days)`);
+        casualties.push(`${pair.pilot.name} (misses the next mission)`);
       }
 
       // Banking the award leaves the commander a real training decision; the
@@ -335,11 +273,27 @@ export function resolveMission(
     logCampaign(state, `${campaign.name} won.`);
   }
 
-  advanceDays(catalog, state, 1 + (failure?.recoveryDays ?? 0));
+  advanceDays(catalog, state, 1 + (failure?.recoveryDays ?? 0), restDayEvents);
   return { outcome, battle, salvage };
 }
 
-export function advanceDays(catalog: Catalog, state: CampaignState, days: number): void {
+export function standDownCampaign(catalog: Catalog, state: CampaignState): { ok: boolean; reason: string } {
+  const contract = state.contract;
+  if (contract === null) return { ok: false, reason: 'Accept a real contract to forfeit first.' };
+  if (!needsCrewStandDown(catalog, state)) {
+    return { ok: false, reason: 'Stand-down is reserved for an entirely wounded crew without affordable relief.' };
+  }
+  resolveMission(catalog, state, {
+    seed: `${state.seed}:${contract.nodeId}:stand-down`, missionId: contract.missionId,
+    missionStatus: 'failure', missionReason: 'objectives-failed', objectives: [],
+    ticks: 0, durationSeconds: 0, winner: null, decided: true, units: [], weapons: [],
+  }, [], false);
+  const reason = 'Contract forfeited. No XP, payout or salvage earned; the crew has missed a mission and can return to duty.';
+  logCampaign(state, reason);
+  return { ok: true, reason };
+}
+
+export function advanceDays(catalog: Catalog, state: CampaignState, days: number, restDayEvents = true): void {
   let remaining = days;
   let payrollPaid = 0;
 
@@ -367,7 +321,7 @@ export function advanceDays(catalog: Catalog, state: CampaignState, days: number
       remaining += failure.recoveryDays;
     }
 
-    if (!state.finished) {
+    if (!state.finished && restDayEvents) {
       withCampaignRng(state, (rng) => {
         applyRestDayEvent(catalog, state, rng.fork(`rest-day:${state.day}`));
       });

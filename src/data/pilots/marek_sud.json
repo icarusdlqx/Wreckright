@@ -7,5 +7,14 @@
   "traits": [
     "spotter"
   ],
-  "bio": "Ran a relay mast for eleven years and can tell a lance from a convoy by the shape of the return alone."
+  "bio": "Ran a relay mast for eleven years and can tell a lance from a convoy by the shape of the return alone.",
+  "portrait": {
+    "skin": "#c4976f",
+    "hair": "#807365",
+    "jacket": "#3f635b",
+    "accent": "#efb56b",
+    "style": "crop",
+    "face": "angular",
+    "detail": "earpiece"
+  }
 }

@@ -7,5 +7,14 @@
   "traits": [
     "veteran"
   ],
-  "bio": "Twenty-two contracts. Ostrow has no speciality except having already seen it, which turns out to be one."
+  "bio": "Twenty-two contracts. Ostrow has no speciality except having already seen it, which turns out to be one.",
+  "portrait": {
+    "skin": "#c69a7b",
+    "hair": "#b7b6ae",
+    "jacket": "#536052",
+    "accent": "#df9b62",
+    "style": "crop",
+    "face": "broad",
+    "detail": "scar"
+  }
 }

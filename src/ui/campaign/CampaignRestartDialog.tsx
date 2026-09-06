@@ -1,18 +1,21 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useDialogFocus } from '../useDialogFocus';
+import { CampaignDifficulty } from './CampaignDifficulty';
 
 interface CampaignRestartDialogProps {
   title: string;
   onCancel: () => void;
-  onConfirm: () => void;
+  onConfirm: (difficulty: string) => void;
+  difficulty?: string;
   returnFocus: () => HTMLElement | null;
 }
 
 export function CampaignRestartDialog({
-  title, onCancel, onConfirm, returnFocus,
+  title, onCancel, onConfirm, returnFocus, difficulty = 'regular',
 }: CampaignRestartDialogProps) {
   const dialogRef = useRef<HTMLElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const [selectedDifficulty, setSelectedDifficulty] = useState(difficulty);
   useDialogFocus(dialogRef, cancelRef, onCancel, returnFocus);
 
   return (
@@ -26,11 +29,12 @@ export function CampaignRestartDialog({
           This replaces your current company in <strong>{title}</strong> with a new run.
           Export your campaign from Company files first if you want to keep a copy.
         </p>
+        <CampaignDifficulty value={selectedDifficulty} onChange={setSelectedDifficulty} />
         <div className="camp-restart-actions">
           <button type="button" ref={cancelRef} onClick={onCancel} data-testid="camp-restart-cancel">
             Keep current run
           </button>
-          <button type="button" className="camp-restart-confirm" onClick={onConfirm}
+          <button type="button" className="camp-restart-confirm" onClick={() => onConfirm(selectedDifficulty)}
             data-testid="camp-restart-confirm">
             Restart campaign
           </button>

@@ -8,5 +8,14 @@
     "green",
     "quick_study"
   ],
-  "bio": "Two simulator hours and a signature. Havel is cheap, keen, and learning faster than anyone wants to admit."
+  "bio": "Two simulator hours and a signature. Havel is cheap, keen, and learning faster than anyone wants to admit.",
+  "portrait": {
+    "skin": "#b87c59",
+    "hair": "#492c28",
+    "jacket": "#526674",
+    "accent": "#df985b",
+    "style": "curls",
+    "face": "oval",
+    "detail": "freckles"
+  }
 }
