@@ -1,4 +1,5 @@
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
+import { checkCampaignHaul } from './campaign-haul.mjs';
 import { runMechbayCrewChecks } from './mechbay-crew.mjs';
 import { checkHomeTheatre } from './home-theatre.mjs';
 import { companyFile, restartCompany, checkRestartCancellation, checkCompanyWorkspaces } from './campaign-navigation.mjs';
@@ -1439,6 +1440,10 @@ async function main() {
     // The bay opens on one of the company's own machines, stocked from its own
     // stores — mission prep is who drops, in what, carrying what.
     await runCampaignRefitMechbayJourney({ page, check });
+    const beforeDrop = await page.evaluate(() => {
+      const { store, mechs } = JSON.parse(localStorage.getItem('ironline.campaign')).state;
+      return { store, mechs };
+    });
 
     await page.locator('[data-testid="manifest-launch"]').click();
     await page.waitForSelector('[data-testid="briefing"]');
@@ -1706,9 +1711,9 @@ async function main() {
       rosterText.includes('XP banked') && rosterText.includes('/day'),
     );
 
+    checkCampaignHaul({ before: beforeDrop, after: resolvedState, check });
     if (resolvedState.history[0].won) {
       check('winning paid out', (await cash()) > cashBefore, `${cashBefore} → ${await cash()}`);
-      check('salvage reached stores', resolvedState.store.length > 0);
       check(
         'the next contracts unlocked',
         (await page.locator('.camp-node.available').count()) >= 1,
