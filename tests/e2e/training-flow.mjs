@@ -41,19 +41,24 @@ async function gateScreenPoint(page) {
     if (zone === undefined || !(canvas instanceof HTMLCanvasElement)) {
       throw new Error('training gate or battlefield canvas is missing');
     }
-    engine.renderer.camera.skipDropIn();
-    engine.renderer.camera.centreOn(zone);
-    engine.renderer.camera.update(engine.renderer.viewport);
     const height = engine.renderer.terrain.heightAt(zone.x, zone.y);
     const screen = engine.renderer.camera.worldToScreen(zone, engine.renderer.viewport, height);
     const bounds = canvas.getBoundingClientRect();
-    return { x: bounds.left + screen.x, y: bounds.top + screen.y };
+    const point = { x: bounds.left + screen.x, y: bounds.top + screen.y };
+    const recipient = document.elementFromPoint(point.x, point.y);
+    if (recipient !== canvas) {
+      throw new Error(`Show range gate leaves its destination covered: ${JSON.stringify({ point,
+        recipient: recipient?.getAttribute('data-testid') ?? recipient?.className ?? null,
+        coach: document.querySelector('[data-testid="training-coach"]')?.getBoundingClientRect() })}`);
+    }
+    return point;
   });
 }
 
 async function issueGateMove(page, touch) {
   const move = page.locator('[data-testid="command-move"]');
   await activate(move, touch);
+  await page.waitForFunction(() => globalThis.__wreckright.useGame.getState().orderMode === 'move');
   await activate(page.locator('[data-testid="training-show-gate"]'), touch);
   const gate = await gateScreenPoint(page);
   if (touch) await page.touchscreen.tap(gate.x, gate.y);
