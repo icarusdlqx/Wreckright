@@ -22,26 +22,26 @@
   {
     "file": "crew-after.png",
     "source": "reports/mechbay-crew/crew-roster-desktop.png",
-    "sha256": "26a8b55f3f4e68c9a0234dafa3dd5475420feeb268c23b1c9db46c444c6eb78d"
+    "sha256": "6d831ef49ca70fb29b2fdc636d95ec379efb16771d5eee137522d6f605cd486e"
   },
   {
     "file": "crew-mobile.png",
     "source": "reports/mechbay-crew/crew-roster-mobile.png",
-    "sha256": "6bd3402bba9a926ed0ee7a776a8d34b9fb383db5884a4550edcc2ccd60108ca1"
+    "sha256": "d46df6e5e22679750faa82701b7746d54a855a6f2bd029301f9e3a3368ab7d93"
   },
   {
     "file": "campaign-setup.png",
     "source": "reports/mechbay-crew/crew-campaign-setup.png",
-    "sha256": "14f99d80f31ff1dd1c2341415b93c8e5dbad177bfcddb3918248b5b73c6a8935"
+    "sha256": "68090492e0c2a62558d5ce075c0eb8a105ea5f5c59fe94c847fa9ee3512ece99"
   },
   {
     "file": "bay-mobile.png",
     "source": "reports/mechbay-crew/crew-mobile-snapped.png",
-    "sha256": "c895afec8e8840150b87a0a41f6eb0c09dc0e944667e86ad126049d34671f06f"
+    "sha256": "b8e53ecfbc861b3a279b3d82af8c7cce45ab2ba116d2c3b50376377193b61a9c"
   },
   {
     "file": "machine-profile.png",
     "source": "reports/mechbay-crew/crew-machine-profile.png",
-    "sha256": "db4e09840f8211cfe9754ab6673cf7c5472ec00171ed93bd11e9c20e04a032c5"
+    "sha256": "30676d41c97153945e68d4e467cd0edee6a2dc717dc1469963a3fa2f5fdfffbc"
   }
 ]

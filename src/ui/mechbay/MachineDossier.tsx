@@ -1,4 +1,5 @@
 import type { Chassis } from '../../schema/chassis';
+import { replaceSerialDesignation } from '../designLabel';
 import { MachinePortrait } from './MachinePortrait';
 import './machineDossier.css';
 
@@ -6,7 +7,7 @@ export function MachineDossier({ chassis, portrait = true }: { chassis: Chassis;
   return <section className="machine-dossier" data-testid="machine-dossier" aria-label={`${chassis.name} field guide`}>
     <div className="machine-dossier-intro">
       {portrait ? <MachinePortrait chassis={chassis} /> : null}
-      <p>{chassis.summary}</p>
+      <p className="dossier-summary" title={replaceSerialDesignation(chassis.lore, chassis.name)}>{chassis.summary}</p>
     </div>
     <dl className="machine-dossier-tradeoffs">
       <div><dt>Strengths</dt><dd>{chassis.strengths.join(' · ') || chassis.role}</dd></div>

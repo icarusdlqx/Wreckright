@@ -122,7 +122,13 @@ export async function runMechbayCrewChecks({ browser, url, shots, check }) {
     if (await guide.isVisible()) await guide.tap();
     await mobile.locator('[data-testid="camp-area-crew"]').tap();
     await mobile.locator('.pilot-person').first().scrollIntoViewIfNeeded();
-    check('pilot portraits and bios fit a phone without horizontal scrolling', await mobile.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    check('pilot portraits, bios and assignments fit their cards and the phone', await mobile.evaluate(() => {
+      const elements = [...document.querySelectorAll('.pilot-card, .pilot-person, .pilot-seat, .pilot-mech')];
+      return elements.length > 0 && elements.every(element => {
+        const bounds = element.getBoundingClientRect();
+        return bounds.left >= -1 && bounds.right <= innerWidth + 1 && element.scrollWidth <= element.clientWidth + 1;
+      });
+    }));
     await mobile.screenshot({ path: `${shots}/crew-roster-mobile.png`, fullPage: true });
     await mobile.locator('[data-testid="camp-area-workshop"]').tap();
     await mobile.locator('[data-testid^="camp-refit-"]:enabled').first().tap();

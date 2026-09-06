@@ -1,6 +1,9 @@
 .pilot-portrait { display: block; flex: none; width: 88px; height: 107px; border-radius: 8px; }
 .pilot-portrait.is-compact { width: 42px; height: 51px; }
 .pilot-person { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 14px; align-items: start; }
+.progression-roster .pilot-card { min-width: 0; grid-template-columns: minmax(0, 1fr); }
+.pilot-person, .pilot-person > div, .pilot-seat { min-width: 0; }
+.pilot-seat select { min-width: 0; flex: 1; }
 .pilot-person h4, .pilot-person p { margin: 0 0 6px; }
 .pilot-person .pilot-name { font-size: 15px; white-space: normal; }
 .pilot-bio { color: var(--muted); font-size: 12px; line-height: 1.55; }
@@ -20,6 +23,8 @@
 .manifest-pilot > .pilot-portrait { float: left; margin: 0 9px 7px 0; }
 .manifest-pilot .pilot-assessment { clear: both; }
 @media (max-width: 520px) {
+  .pilot-seat { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .pilot-seat select { width: 100%; }
   .pilot-person { grid-template-columns: 66px minmax(0, 1fr); gap: 10px; }
   .pilot-person > .pilot-portrait { width: 66px; height: 80px; }
   .pilot-bio { font-size: 11px; }
