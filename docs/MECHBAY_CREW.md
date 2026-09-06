@@ -74,13 +74,15 @@ injuries follow the mission rule. Corrupt-save recovery stays memory-only and
 does not prompt for a replacement campaign or overwrite the damaged bytes.
 
 ![Campaign difficulty at the start](images/mechbay-crew/campaign-setup.png)
+![Reachable campaign controls on a landscape phone](images/mechbay-crew/campaign-landscape.png)
 
 ## Verification
 
-The dedicated headless journey exercises twenty-three checks: first-run difficulty,
+The dedicated headless journey exercises twenty-eight checks: first-run difficulty,
 saved difficulty, portraits, explicit mount/slot information, named previews,
 invalid and valid native drops, draft isolation, undo, keyboard placement,
-commit persistence and phone layout. It also runs inside the full browser
+commit persistence and phone layout, including reachable setup and restart dialogs
+on a short landscape display. It also runs inside the full browser
 playthrough. Focused tests cover injury holds, repeated resolution, KIA,
 recovery forfeiture, training, save migration and mixed-faction fitting.
 

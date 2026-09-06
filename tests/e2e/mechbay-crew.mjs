@@ -8,7 +8,47 @@ async function openCompany(page, url) {
   await page.waitForSelector('[data-testid="campaign"]');
 }
 
+async function checkLandscapeSetup({ browser, url, shots, check }) {
+  const context = await browser.newContext({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', error => errors.push(String(error)));
+  await page.addInitScript(() => localStorage.setItem('ironline.muted', '1'));
+  try {
+    await openCompany(page, url);
+    check('new campaign setup stays inside a short landscape phone', await page.locator('[data-testid="campaign-chooser"]').evaluate(dialog => {
+      const bounds = dialog.getBoundingClientRect();
+      return bounds.top >= 0 && bounds.bottom <= innerHeight && bounds.left >= 0 && bounds.right <= innerWidth && dialog.scrollWidth <= dialog.clientWidth;
+    }));
+    await page.locator('[data-testid="campaign-difficulty-picker"]').selectOption('veteran');
+    const start = page.locator('[data-testid="campaign-choice-start"]');
+    await start.scrollIntoViewIfNeeded();
+    check('landscape setup scrolls its start button into an unobstructed touch target', await start.evaluate(button => {
+      const bounds = button.getBoundingClientRect();
+      const centre = document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+      return bounds.top >= 0 && bounds.bottom <= innerHeight && bounds.height >= 44 && button.contains(centre);
+    }));
+    await page.screenshot({ path: `${shots}/crew-campaign-landscape.png` });
+    await start.tap();
+    await page.locator('[data-testid="campaign-chooser"]').waitFor({ state: 'hidden' });
+    check('landscape touch starts the selected difficulty without browser errors', (await company(page)).difficulty === 'veteran' && errors.length === 0, errors.join('\n'));
+    const original = JSON.stringify(await company(page));
+    const guide = page.locator('[data-testid="campaign-guide-dismiss"]');
+    if (await guide.isVisible()) await guide.tap();
+    await page.locator('[data-testid="camp-files-toggle"]').tap();
+    await page.locator('[data-testid="camp-restart"]').tap();
+    check('restart difficulty dialog also fits a short landscape screen', await page.locator('[data-testid="camp-restart-dialog"]').evaluate(dialog => {
+      const bounds = dialog.getBoundingClientRect();
+      return bounds.top >= 0 && bounds.bottom <= innerHeight && dialog.scrollWidth <= dialog.clientWidth;
+    }));
+    await page.locator('[data-testid="campaign-difficulty-picker"]').selectOption('regular');
+    await page.locator('[data-testid="camp-restart-cancel"]').tap();
+    check('landscape cancellation preserves the current campaign and difficulty', JSON.stringify(await company(page)) === original);
+  } finally { await context.close(); }
+}
+
 export async function runMechbayCrewChecks({ browser, url, shots, check }) {
+  await checkLandscapeSetup({ browser, url, shots, check });
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
   const errors = [];
