@@ -1,0 +1,184 @@
+.home-screen.contemporary-home {
+  --home-cream: #fff2d8;
+  --home-muted: #d1d8cb;
+  --home-orange: #f3a060;
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+  gap: 24px 40px;
+  overflow: auto;
+  padding: max(26px, env(safe-area-inset-top)) max(5.2vw, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(5.2vw, env(safe-area-inset-left));
+  color: var(--home-cream);
+  background: radial-gradient(ellipse at 88% 30%, #9c754f 0, #426b67 36%, #122e32 68%, #081c22 100%);
+  font-family: var(--font-body, sans-serif);
+  touch-action: pan-y;
+}
+
+.contemporary-home .home-artwork,
+.contemporary-home .home-scrim {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  user-select: none;
+}
+
+.contemporary-home .home-artwork {
+  z-index: -3;
+  object-fit: cover;
+  object-position: 64% center;
+  opacity: 0;
+  transition: opacity 350ms ease;
+}
+
+.contemporary-home[data-artwork="ready"] .home-artwork { opacity: 1; }
+.contemporary-home[data-artwork="fallback"] .home-artwork { visibility: hidden; }
+.contemporary-home .home-scrim {
+  z-index: -2;
+  background: linear-gradient(90deg, #071d25f5, #09262ac9 29%, #0b292d45 62%, #0b252814), linear-gradient(0deg, #06191ee8, transparent 36%, transparent 78%, #09222773);
+}
+
+.contemporary-home .home-masthead {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 44px;
+}
+
+.contemporary-home .home-company-mark { display: flex; align-items: center; gap: 12px; }
+.contemporary-home .home-company-mark svg { color: var(--home-orange); }
+.contemporary-home .home-company-mark > span { font-size: 9px; font-weight: 600; line-height: 1.5; letter-spacing: .2em; }
+.contemporary-home .audio-settings__trigger {
+  min-height: 44px;
+  padding: 10px 17px;
+  border: 1px solid #fff2d849;
+  border-radius: 2px;
+  background: #0c292bc9;
+  color: var(--home-cream);
+  font-size: 12px;
+}
+.contemporary-home .audio-settings__trigger:hover { background: #254745; border-color: var(--home-cream); }
+.contemporary-home .audio-settings__trigger:focus-visible { outline: 3px solid var(--home-cream); outline-offset: 4px; }
+
+.contemporary-home .home-menu { align-self: center; min-width: 0; padding-block: 22px 32px; }
+.contemporary-home .home-edition { color: var(--home-orange); font-size: 10px; font-weight: 650; letter-spacing: .27em; }
+.contemporary-home h1 {
+  width: max-content;
+  max-width: 100%;
+  margin: 10px 0 12px;
+  color: var(--home-cream);
+  font-family: var(--font-display, Impact, sans-serif);
+  font-size: clamp(64px, 7.7vw, 136px);
+  font-weight: 700;
+  line-height: .86;
+  letter-spacing: -.035em;
+}
+.contemporary-home .home-kicker { margin: 0; color: var(--home-cream); font-size: clamp(13px, 1.2vw, 16px); line-height: 1.4; letter-spacing: .025em; text-transform: none; }
+.contemporary-home .home-premise { margin: 14px 0 0; color: var(--home-muted); font-size: 12px; line-height: 1.6; }
+.contemporary-home .home-routes { display: grid; grid-template-columns: 1fr; gap: 6px; width: min(430px, 100%); margin-top: 34px; }
+.contemporary-home .home-route {
+  width: 100%;
+  min-height: 78px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 13px 18px;
+  border: 1px solid transparent;
+  border-bottom-color: #fff2d82b;
+  border-radius: 2px;
+  background: #0b292c8c;
+  color: var(--home-cream);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+.contemporary-home .home-route-copy { display: grid; gap: 5px; min-width: 0; }
+.contemporary-home .home-route strong { font-size: 20px; font-weight: 600; line-height: 1.18; letter-spacing: -.025em; }
+.contemporary-home .home-route-copy > span { color: var(--home-muted); font-size: 11px; line-height: 1.4; }
+.contemporary-home .home-route-arrow { flex-shrink: 0; color: var(--home-orange); font-size: 21px; line-height: 1; }
+.contemporary-home .home-wiki-subtitle { font-size: .84em; font-weight: 450; letter-spacing: -.02em; }
+.contemporary-home .home-route:hover { background: #284d4ae6; border-color: #fff2d881; }
+.contemporary-home .home-route.primary { background: var(--home-orange); border-color: var(--home-orange); color: #1e302d; }
+.contemporary-home .home-route.primary .home-route-copy > span,
+.contemporary-home .home-route.primary .home-route-arrow { color: #2c4038; }
+.contemporary-home .home-route.primary:hover { background: #ffb979; border-color: #ffb979; }
+.contemporary-home .home-route:focus-visible { outline: 3px solid var(--home-cream); outline-offset: 3px; }
+
+.contemporary-home .home-location { align-self: end; justify-self: end; max-width: 370px; margin: 0 0 32px; text-align: right; text-shadow: 0 2px 14px #071d25; }
+.contemporary-home .home-location > span { color: var(--home-orange); font-size: 10px; font-weight: 650; letter-spacing: .2em; }
+.contemporary-home .home-location p { margin: 12px 0 0; color: var(--home-cream); font-size: 12px; line-height: 1.8; }
+.contemporary-home .home-field-note { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; padding-top: 16px; border-top: 1px solid #fff2d82b; color: var(--home-muted); }
+.contemporary-home .home-field-note > span:first-child { color: var(--home-orange); font-size: 20px; }
+.contemporary-home .home-field-note p { margin: 0; font-size: 10px; line-height: 1.6; }
+.contemporary-home .home-field-note-end { margin-left: auto; font-size: 9px; letter-spacing: .15em; }
+
+@media (max-width: 900px) {
+  .home-screen.contemporary-home { column-gap: 20px; padding-inline: max(28px, env(safe-area-inset-left)) max(28px, env(safe-area-inset-right)); }
+  .contemporary-home .home-menu { grid-column: 1 / -1; width: min(470px, 70%); }
+  .contemporary-home .home-location { display: none; }
+  .contemporary-home .home-field-note-end { display: none; }
+}
+
+@media (max-width: 600px) {
+  .home-screen.contemporary-home { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr auto; row-gap: 20px; padding: max(14px, env(safe-area-inset-top)) max(22px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(22px, env(safe-area-inset-left)); }
+  .contemporary-home .home-artwork { object-position: 69% center; }
+  .contemporary-home .home-scrim { background: linear-gradient(90deg, #071d25eb, #0b292d73), linear-gradient(0deg, #06191eed, #09222759 72%, #09222766); }
+  .contemporary-home .home-company-mark > span { font-size: 8px; }
+  .contemporary-home .home-company-mark { gap: 8px; }
+  .contemporary-home .home-menu { align-self: start; width: 100%; padding-block: 15px 6px; }
+  .contemporary-home .home-edition { font-size: 9px; letter-spacing: .2em; }
+  .contemporary-home h1 { font-size: clamp(48px, 16.6vw, 88px); margin-top: 12px; margin-bottom: 12px; }
+  .contemporary-home .home-kicker { font-size: 12px; }
+  .contemporary-home .home-premise { margin-top: 8px; font-size: 10px; }
+  .contemporary-home .home-routes { width: 100%; margin-top: 25px; gap: 6px; }
+  .contemporary-home .home-route { min-height: 72px; padding: 12px 15px; }
+  .contemporary-home .home-route strong { font-size: 19px; }
+  .contemporary-home .home-route-copy > span { font-size: 10px; }
+  .contemporary-home .home-field-note { gap: 10px; padding-top: 12px; }
+  .contemporary-home .home-field-note p { max-width: 31ch; font-size: 9px; }
+}
+
+@media (max-height: 700px) and (min-width: 601px) {
+  .home-screen.contemporary-home { row-gap: 12px; padding-block: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-bottom)); }
+  .contemporary-home .home-menu { padding-block: 8px; }
+  .contemporary-home h1 { font-size: clamp(56px, 7vw, 90px); }
+  .contemporary-home .home-routes { margin-top: 20px; gap: 4px; }
+  .contemporary-home .home-route { min-height: 64px; padding-block: 10px; }
+  .contemporary-home .home-field-note { padding-top: 10px; }
+}
+
+@media (max-height: 500px) and (min-width: 601px) {
+  .contemporary-home .home-menu { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 1fr); gap: 30px; width: 100%; grid-column: 1 / -1; }
+  .contemporary-home .home-introduction { align-self: center; }
+  .contemporary-home h1 { font-size: clamp(48px, 7vw, 80px); }
+  .contemporary-home .home-routes { margin-top: 0; justify-self: end; }
+  .contemporary-home .home-route { min-height: 54px; padding: 8px 13px; }
+  .contemporary-home .home-route strong { font-size: 17px; }
+  .contemporary-home .home-route-copy { gap: 3px; }
+  .contemporary-home .home-route-copy > span { font-size: 9px; }
+  .contemporary-home .home-location { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contemporary-home .home-artwork, .contemporary-home .home-route { transition: none; }
+}
+
+@media (forced-colors: active) {
+  .home-screen.contemporary-home { background: Canvas; color: CanvasText; }
+  .contemporary-home .home-artwork, .contemporary-home .home-scrim { display: none; }
+  .contemporary-home :is(h1, .home-edition, .home-kicker, .home-premise, .home-route, .home-route-copy > span, .home-route-arrow, .home-location > span, .home-location p, .home-field-note, .home-field-note > span:first-child) { color: CanvasText; text-shadow: none; }
+  .contemporary-home .home-route, .contemporary-home .audio-settings__trigger { background: Canvas; color: ButtonText; border: 1px solid ButtonText; }
+  .contemporary-home .home-route.primary { background: Highlight; color: HighlightText; border-color: Highlight; }
+  .contemporary-home .home-route.primary .home-route-copy > span, .contemporary-home .home-route.primary .home-route-arrow { color: HighlightText; }
+  .contemporary-home :is(.home-route, .audio-settings__trigger):focus-visible { outline-color: Highlight; }
+}

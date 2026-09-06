@@ -33,6 +33,13 @@ exact bytes and introducing commit. No external image or mesh input was used.
 Pilot portraits remain editable, authored SVG geometry in `PilotPortrait.tsx`
 with individual appearance data in the pilot JSON files.
 
+The main menu's Tessell crossing is original generated artwork from a text-only
+prompt, with no source-image inputs. Its [generation record](art/TESSELL_CROSSING.md)
+retains the prompt and PNG master; the runtime WebP is a locally compressed
+rendition. The register records its introducing commit and exact shipped bytes
+as `generated-original-art-with-source-record`. This inventory entry records
+provenance without assigning the artwork a software licence.
+
 No external meshes, textures, music, or sound recordings are checked
 in. Battlefield geometry and visual effects are assembled at runtime from the
 project's TypeScript, JSON, and CSS. Sound is synthesized at runtime with the

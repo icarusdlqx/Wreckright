@@ -86,7 +86,11 @@ export async function runIronworkUiChecks({ browser, url, check, shots }) {
   try {
     await page.goto(url);
     await page.evaluate(() => document.fonts.ready);
-    await page.waitForFunction(() => document.querySelectorAll('.home-machine canvas').length === 2);
+    await page.waitForFunction(() => {
+      const art = document.querySelector('[data-testid="home-artwork"]');
+      return art instanceof HTMLImageElement && art.complete && art.naturalWidth > 0;
+    });
+    check('the illustrated home allocates no WebGL context before campaign entry', (await graphics(page)).length === 0);
     await openCompany(page);
     const initialSave = await savedCampaign(page);
     const initial = JSON.parse(initialSave).state;
@@ -95,7 +99,7 @@ export async function runIronworkUiChecks({ browser, url, check, shots }) {
     check('mission survey renders a real terrain image and releases its off-screen WebGL context',
       survey.src.startsWith('data:image/png;') && survey.colourSamples > 8 && survey.alt.includes('authored terrain')
         && survey.text.includes('Contacts and reinforcements must be discovered in the field.')
-        && surveyed.length >= 3 && surveyed.every((entry) => entry.lost),
+        && surveyed.length >= 1 && surveyed.every((entry) => entry.lost),
       JSON.stringify({ name: survey.name, width: survey.width, height: survey.height, colours: survey.colourSamples, contexts: surveyed }));
     if (shots) await page.screenshot({ path: `${shots}/ironwork-operations.png` });
 
