@@ -1248,17 +1248,20 @@ async function main() {
     await checkRestartCancellation({ page, check });
     const firstRunCode = await page.locator('[data-testid="camp-seed"]').innerText();
     check(
-      'a new campaign exposes a readable run code',
-      /^Run [a-z]+-[a-z]+-[0-9a-f]{8}$/.test(firstRunCode),
+      'a new campaign exposes a readable run code and fixed difficulty',
+      /^Run [a-z]+-[a-z]+-[0-9a-f]{8} · regular difficulty$/.test(firstRunCode),
       firstRunCode,
     );
     await restartCompany(page);
     const restartedCode = await page.locator('[data-testid="camp-seed"]').innerText();
-    const persistedRun = await page.evaluate(() =>
-      JSON.parse(localStorage.getItem('ironline.campaign')).state.seed,
-    );
+    const persistedRun = await page.evaluate(() => {
+      const { seed, difficulty } = JSON.parse(localStorage.getItem('ironline.campaign')).state;
+      return { seed, difficulty };
+    });
     check('restart rolls a fresh run code', restartedCode !== firstRunCode, restartedCode);
-    check('the fresh run is saved immediately', restartedCode === `Run ${persistedRun}`);
+    check('the fresh run and its difficulty are saved immediately',
+      restartedCode === `Run ${persistedRun.seed} · ${persistedRun.difficulty} difficulty`
+      && persistedRun.difficulty === 'regular', JSON.stringify(persistedRun));
 
     await runCampaignRecovery({ page, shots: SHOTS, check });
 
@@ -1522,6 +1525,7 @@ async function main() {
         salvagedItems: latest.salvagedItems,
         salvageCandidates: latest.salvageCandidates ?? [],
         salvageOffered: latest.salvageOffered ?? [],
+        salvageFinalized: latest.salvageFinalized,
         pilotReportCount: latest.pilotReports.length,
       };
     });
@@ -1574,7 +1578,8 @@ async function main() {
       await adjustPicks.focus();
       check(
         'the editable salvage disclosure is named Adjust picks',
-        (await adjustPicks.innerText()) === 'Adjust picks',
+        !debriefOutcome.salvageFinalized && (await adjustPicks.textContent())?.trim() === 'Adjust picks',
+        JSON.stringify({ label: await adjustPicks.innerText(), finalized: debriefOutcome.salvageFinalized }),
       );
       await page.keyboard.press('Enter');
       check(
