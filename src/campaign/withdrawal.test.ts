@@ -170,7 +170,7 @@ describe('campaign withdrawal resolution', () => {
     expect(safe.pilot.dead).toBe(false);
     expect(wounded.pilot.dead).toBe(false);
     expect(wounded.pilot.injuredUntilDay).toBe(startingDay + woundDays);
-    expect(run.outcome.pilotCasualties).toEqual([`${wounded.pilot.name} (out ${woundDays} days)`]);
+    expect(run.outcome.pilotCasualties).toEqual([`${wounded.pilot.name} (misses the next mission)`]);
 
     const reports = run.outcome.pilotReports;
     expect(reports.map((report) => report.fate)).toEqual(['returned', 'injured']);

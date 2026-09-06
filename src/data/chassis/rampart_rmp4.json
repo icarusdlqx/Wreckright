@@ -100,5 +100,13 @@
   "traits": [
     "hardened_mantlet",
     "wide_stance"
+  ],
+  "strengths": [
+    "Protected gun mount",
+    "Stable breaching platform"
+  ],
+  "weaknesses": [
+    "Slow to reposition",
+    "Heavy weapons consume payload"
   ]
 }

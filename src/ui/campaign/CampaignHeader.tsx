@@ -12,6 +12,7 @@ export interface CampaignHeaderProps {
   day: number;
   balance: string;
   seed: string;
+  difficulty?: string;
   manualOpen: boolean;
   muted: boolean;
   persistence: CampaignPersistenceState;
@@ -23,7 +24,7 @@ export interface CampaignHeaderProps {
   onExportRecovery: () => void;
   onImport: (text: string) => void;
   onChooseCampaign: () => void;
-  onRestart: () => void;
+  onRestart: (difficulty: string) => void;
   onToggleManual: () => void;
   onToggleMuted: () => void;
   onExit: () => void;
@@ -34,6 +35,7 @@ export function CampaignHeader({
   day,
   balance,
   seed,
+  difficulty = 'regular',
   manualOpen,
   muted,
   persistence,
@@ -75,7 +77,7 @@ export function CampaignHeader({
               <h2>{title}</h2>
               <span className="camp-seed" data-testid="camp-seed"
                 title="This code reproduces the campaign board and battles.">
-                Run {seed}
+                Run {seed} · {difficulty} difficulty
               </span>
             </div>
           </div>
@@ -161,10 +163,10 @@ export function CampaignHeader({
         <CampaignRecoveryNotice persistence={persistence} onExportOriginal={onExportRecovery} />
       </header>
       {restartOpen ? (
-        <CampaignRestartDialog title={title} onCancel={() => setRestartOpen(false)}
-          onConfirm={() => {
+        <CampaignRestartDialog title={title} difficulty={difficulty} onCancel={() => setRestartOpen(false)}
+          onConfirm={(selectedDifficulty) => {
             setRestartOpen(false);
-            onRestart();
+            onRestart(selectedDifficulty);
           }} returnFocus={() => restartRef.current ?? filesToggleRef.current} />
       ) : null}
     </>

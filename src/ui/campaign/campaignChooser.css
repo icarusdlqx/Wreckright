@@ -68,6 +68,32 @@
   margin: 9px 0 0;
 }
 
+.campaign-difficulty {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0;
+  color: var(--text);
+  font-size: 12px;
+}
+
+.campaign-difficulty select {
+  min-height: 44px;
+  padding: 8px;
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  color: var(--text);
+  background: var(--panel);
+  font: inherit;
+}
+
+.campaign-difficulty small {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
 .campaign-chooser-actions {
   display: flex;
   justify-content: flex-end;

@@ -7,5 +7,14 @@
   "traits": [
     "marksman"
   ],
-  "bio": "Sarn foundry security before the Recall Authority sealed the west yard. Vale shoots the way she was taught to inspect castings: slowly, once, and at the flaw."
+  "bio": "Sarn foundry security before the Recall Authority sealed the west yard. Vale shoots the way she was taught to inspect castings: slowly, once, and at the flaw.",
+  "portrait": {
+    "skin": "#be8861",
+    "hair": "#342b29",
+    "jacket": "#476162",
+    "accent": "#efaa65",
+    "style": "sweep",
+    "face": "angular",
+    "detail": "scar"
+  }
 }

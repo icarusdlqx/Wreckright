@@ -48,7 +48,9 @@ export function Battle(props: BattleProps = {}) {
   const [muted, setMuted] = useState(false);
   const [lowFx, setLowFx] = useState(false);
   const missionId = useGame((game) => game.skirmishMissionId);
-  const difficulty = useGame((game) => game.difficulty);
+  const skirmishDifficulty = useGame((game) => game.difficulty);
+  const [campaignDifficulty] = useState(() => state.campaignPending ? loadCampaign().state?.difficulty : null);
+  const difficulty = campaignDifficulty ?? skirmishDifficulty;
   const [battleCodeDraft, setBattleCodeDraft] = useState(state.battleCode);
   const battleCodeCheck = checkBattleCode(battleCodeDraft);
 
@@ -134,7 +136,7 @@ export function Battle(props: BattleProps = {}) {
             seed: deployment.seed,
             playerTeam: deployment.playerTeam,
             playerLance: deployment.entries,
-            difficulty: setup.engine.difficulty,
+            difficulty: saved.difficulty,
           };
         } catch (error: unknown) {
           // Nothing fit to field. Say so and go back rather than tearing down

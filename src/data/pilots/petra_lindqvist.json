@@ -8,5 +8,14 @@
     "spotter",
     "evasive"
   ],
-  "bio": "Scout by preference and by temperament. Lindqvist has never fired first at anything and has never been fired at twice."
+  "bio": "Scout by preference and by temperament. Lindqvist has never fired first at anything and has never been fired at twice.",
+  "portrait": {
+    "skin": "#e2b797",
+    "hair": "#51392f",
+    "jacket": "#3e645d",
+    "accent": "#e6b075",
+    "style": "braid",
+    "face": "angular",
+    "detail": "earpiece"
+  }
 }

@@ -8,5 +8,14 @@
     "spotter",
     "quick_study"
   ],
-  "bio": "Sensors officer off a Kestrel picket. Demir reads a return the way other people read a face."
+  "bio": "Sensors officer off a Kestrel picket. Demir reads a return the way other people read a face.",
+  "portrait": {
+    "skin": "#ba8662",
+    "hair": "#282528",
+    "jacket": "#314d58",
+    "accent": "#79c6bc",
+    "style": "bob",
+    "face": "oval",
+    "detail": "visor"
+  }
 }

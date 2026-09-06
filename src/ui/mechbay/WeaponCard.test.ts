@@ -47,18 +47,18 @@ describe('weapon card', () => {
     expect(foreign).toContain('data-faction="aurelian"');
     expect(foreign).toContain('faction-aurelian');
     expect(foreign).toContain('Aurelian Stock');
-    expect(foreign).toContain('Foreign pattern — origin only');
-    expect(foreign).toContain('Culture is informational; mount, slots, tonnage, and stock decide fit.');
+    expect(foreign).toContain('Mixed refit');
+    expect(foreign).toContain('Both origins can be mixed. Mount type, size, boxes, weight and stock decide fit; cooling and ammunition decide how it fights.');
 
     const domestic = render('large_laser', { chassisFaction: 'aurelian' });
-    expect(domestic).not.toContain('Foreign pattern');
+    expect(domestic).not.toContain('Mixed refit');
   });
 
   it('shows fit state and keeps expanded operating prose out of every row', () => {
     const html = render('lrm10');
     expect(html).toContain('data-fit="true"');
     expect(html).toContain('>Fit<');
-    expect(html).toContain('Ready to place.');
+    expect(html).toContain('Drag to a matching part, or pick and place.');
     expect(html).not.toContain('1 ton of ammo lasts');
     expect(html).not.toContain('line of sight is still required');
   });

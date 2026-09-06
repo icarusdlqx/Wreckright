@@ -7,5 +7,14 @@
   "traits": [
     "veteran"
   ],
-  "bio": "Verrin keeps Kestrel's oldest contract marks in a paper ledger. She has outlived enough of them to know which promises survive contact."
+  "bio": "Verrin keeps Kestrel's oldest contract marks in a paper ledger. She has outlived enough of them to know which promises survive contact.",
+  "portrait": {
+    "skin": "#b88462",
+    "hair": "#766656",
+    "jacket": "#43555e",
+    "accent": "#80c4b4",
+    "style": "braid",
+    "face": "broad",
+    "detail": "scar"
+  }
 }

@@ -35,6 +35,7 @@
     "salaryPerDay": 1200,
     "injuryDaysBase": 6,
     "injuryDaysPerWound": 4,
+    "recoveryMissions": 1,
     "injuryChanceOnMechLoss": 0.5,
     "deathChanceOnMechLoss": 0.18
   },

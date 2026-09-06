@@ -1,3 +1,4 @@
+import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 /** Fresh-context campaign checks; callable by either the main or a standalone headless harness. */
 async function installGraphicsProbe(page) {
   await page.addInitScript(() => {
@@ -44,6 +45,7 @@ async function waitForLiveContexts(page, count) {
 async function openCompany(page) {
   await page.locator('[data-testid="home-campaign"]').click();
   await page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(page);
   const guide = page.locator('[data-testid="campaign-guide-dismiss"]');
   if (await guide.isVisible()) await guide.click();
   await page.waitForSelector('[data-testid="camp-area-workshop"]');

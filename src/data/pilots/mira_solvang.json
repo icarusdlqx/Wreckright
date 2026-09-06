@@ -8,5 +8,14 @@
     "snap_shot",
     "marksman"
   ],
-  "bio": "Solvang holds a gun steady at a dead run, which is the one thing gunnery ratings never capture. She charges accordingly."
+  "bio": "Solvang holds a gun steady at a dead run, which is the one thing gunnery ratings never capture. She charges accordingly.",
+  "portrait": {
+    "skin": "#e1b494",
+    "hair": "#d2b891",
+    "jacket": "#465869",
+    "accent": "#df985b",
+    "style": "sweep",
+    "face": "oval",
+    "detail": "freckles"
+  }
 }

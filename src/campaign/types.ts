@@ -35,6 +35,8 @@ export interface PilotRecord {
   /** Who they are, carried over from the register so the barracks can say. */
   bio: string;
   injuredUntilDay: number;
+  /** A wound benches the pilot for subsequent resolved campaign missions. */
+  recoveryMissions?: number;
   dead: boolean;
   /** Instance id of the mech this pilot is assigned to, if any. */
   mechId: string | null;
@@ -166,6 +168,8 @@ export interface CampaignHistoryArchive {
 
 export interface CampaignState {
   campaignId: string;
+  difficulty: string;
+  difficultyConfigured: boolean;
   seed: string;
   rng: RngState;
   day: number;
@@ -214,7 +218,7 @@ export function isMechAvailable(state: CampaignState, mech: MechRecord): boolean
 }
 
 export function isPilotAvailable(state: CampaignState, pilot: PilotRecord): boolean {
-  return !pilot.dead && pilot.injuredUntilDay <= state.day;
+  return !pilot.dead && (pilot.recoveryMissions ?? 0) === 0 && pilot.injuredUntilDay <= state.day;
 }
 
 export function storeCount(state: CampaignState, kind: StoreKind, itemId: string): number {

@@ -8,5 +8,14 @@
     "marksman",
     "cool_hand"
   ],
-  "bio": "Senn quotes the articles of wreckright before every deployment. He has become selective about which paragraphs he finishes."
+  "bio": "Senn quotes the articles of wreckright before every deployment. He has become selective about which paragraphs he finishes.",
+  "portrait": {
+    "skin": "#c28e65",
+    "hair": "#332c2d",
+    "jacket": "#2e425a",
+    "accent": "#81ccc0",
+    "style": "curls",
+    "face": "angular",
+    "detail": "none"
+  }
 }

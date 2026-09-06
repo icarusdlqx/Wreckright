@@ -51,13 +51,14 @@ describe('loadout fitting guide', () => {
   it('keeps the guide neutral until it can observe a held part', () => {
     const html = render();
 
-    expect(html).toContain('Fit parts in three steps');
+    expect(html).toContain('Match the boxes. Drop to fit.');
+    expect(html).toContain('1 box = 1 slot');
     expect(html).toContain('Ready to fit or review');
     expect(html).toContain('<span>1</span><strong>Pick</strong>');
     expect(html).toContain('<span>3</span><strong>Review</strong>');
     expect(html).not.toContain('aria-current="step"');
     expect(html.match(/data-testid="bay-location-/g)).toHaveLength(8);
-    expect(html).not.toContain('class="bay-hardpoints"');
+    expect(html.match(/class="bay-hardpoints"/g)).toHaveLength(8);
     expect(html).not.toContain('class="bay-slots');
   });
 

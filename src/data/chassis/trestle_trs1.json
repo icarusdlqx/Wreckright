@@ -100,5 +100,13 @@
   "lore": "A Trestle wears its repair around the shoulders. Separate launcher bins hang from a bolted crossmember, clear of the old root keel, and a fitter can reach either feed without opening the other. The arrangement came from a quarry walker whose original upper hull could not be recovered. Halloran kept the gun arm for the minutes before a spotter finds a firing lane. The smaller battery follows a moving company more easily than a Cairn, but the foreman paints the same instruction inside every cab: this is not the front rank.",
   "traits": [
     "wide_stance"
+  ],
+  "strengths": [
+    "Stable firing stance",
+    "Standoff missile support"
+  ],
+  "weaknesses": [
+    "Light for a sustained brawl",
+    "Missile ammunition needs space"
   ]
 }

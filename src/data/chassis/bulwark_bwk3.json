@@ -100,5 +100,13 @@
   "traits": [
     "wide_stance",
     "reinforced_legs"
+  ],
+  "strengths": [
+    "Stable line holder",
+    "Reinforced legs"
+  ],
+  "weaknesses": [
+    "No jump jets",
+    "Heavy frame commits to its position"
   ]
 }

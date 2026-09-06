@@ -100,5 +100,13 @@
   "lore": "The first Prybar in the Halloran books was a survey root returned with its sealed instruments missing. A road crew fitted an offset cab, two feed boxes and enough plate to get the driver home. The name followed the machine through four yards. Later rebuilds keep the narrow shoulders and ordinary gait bearings because those are the parts small shops can reach. There is no beacon and no jump assembly. A Prybar carries the message, watches the next bend and leaves the argument to whoever arrives behind it.",
   "traits": [
     "narrow_profile"
+  ],
+  "strengths": [
+    "Fast courier",
+    "Narrow target"
+  ],
+  "weaknesses": [
+    "Thin protection",
+    "Small weapon mounts"
   ]
 }

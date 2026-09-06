@@ -1,18 +1,23 @@
 import { useRef, useState } from 'react';
 import type { Campaign } from '../../schema/campaign';
 import { useDialogFocus } from '../useDialogFocus';
+import { CampaignDifficulty } from './CampaignDifficulty';
 import './campaignChooser.css';
 
 interface CampaignChooserProps {
   campaigns: readonly Campaign[];
   currentId: string;
   onClose: () => void;
-  onStart: (campaignId: string) => void;
+  onStart: (campaignId: string, difficulty: string) => void;
+  initial?: boolean;
+  difficulty?: string;
 }
 
-export function CampaignChooser({ campaigns, currentId, onClose, onStart }: CampaignChooserProps) {
+export function CampaignChooser({ campaigns, currentId, onClose, onStart,
+  initial = false, difficulty = 'regular' }: CampaignChooserProps) {
   const choices = [...campaigns].sort((left, right) => left.name.localeCompare(right.name));
   const [selectedId, setSelectedId] = useState(currentId);
+  const [selectedDifficulty, setSelectedDifficulty] = useState(difficulty);
   const current = campaigns.find((campaign) => campaign.id === currentId);
   const selected = campaigns.find((campaign) => campaign.id === selectedId);
   const isCurrent = selectedId === currentId;
@@ -31,12 +36,12 @@ export function CampaignChooser({ campaigns, currentId, onClose, onStart }: Camp
         tabIndex={-1}
         data-testid="campaign-chooser"
       >
-        <p className="campaign-chooser-kicker">Campaign archive</p>
+        <p className="campaign-chooser-kicker">{initial ? 'New company' : 'Campaign archive'}</p>
         <h3 id="campaign-chooser-title">Choose a side of the Recall</h3>
-        <p>
+        {initial ? <p>Choose your company and the opposition it will face. Difficulty stays with this campaign.</p> : <p>
           The current save is <strong>{current?.name ?? currentId}</strong>. Starting another
           campaign replaces that save slot; export it first if you want to keep a copy.
-        </p>
+        </p>}
         <label>
           Campaign
           <select
@@ -56,17 +61,18 @@ export function CampaignChooser({ campaigns, currentId, onClose, onStart }: Camp
             ))}
           </select>
         </label>
+        <CampaignDifficulty value={selectedDifficulty} onChange={setSelectedDifficulty} />
         <p className="campaign-chooser-selection">
-          {isCurrent ? 'This is the campaign already in progress.' : `Selected: ${selected?.name ?? selectedId}`}
+          {isCurrent && !initial ? 'This is the campaign already in progress.' : `Selected: ${selected?.name ?? selectedId}`}
         </p>
         <div className="campaign-chooser-actions">
           <button type="button" onClick={onClose} data-testid="campaign-choice-cancel">
-            Keep current run
+            {initial ? 'Back to home' : 'Keep current run'}
           </button>
           <button
             type="button"
-            disabled={isCurrent}
-            onClick={() => onStart(selectedId)}
+            disabled={isCurrent && !initial}
+            onClick={() => onStart(selectedId, selectedDifficulty)}
             data-testid="campaign-choice-start"
           >
             Start selected campaign

@@ -96,6 +96,8 @@ export function CompanyStatus({
       : report.recoverOnDay === null
         ? terminalText(report, contractActive)
         : `The recovery date falls after the signed deadline. Withdraw under the contract terms, then reassess the calendar.`;
+  } else if (report.action === 'stand_down') {
+    text = 'Every living pilot is wounded, and no relief pilot is affordable. Forfeit one mission to let the crew recover.';
   } else if (report.action === 'call_up') {
     text = 'Fit crew and a fieldable mech remain. Prepare the drop and call a pilot up.';
   } else if (report.action === 'reassign') {

@@ -200,6 +200,7 @@ export const EconomyRulesSchema = z.strictObject({
     salaryPerDay: z.number().nonnegative(),
     injuryDaysBase: z.number().int().nonnegative(),
     injuryDaysPerWound: z.number().int().nonnegative(),
+    recoveryMissions: z.number().int().positive().max(3),
     injuryChanceOnMechLoss: Probability,
     deathChanceOnMechLoss: Probability,
   }),

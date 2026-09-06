@@ -1,3 +1,5 @@
+import { completeInitialCampaignSetup } from './campaign-setup.mjs';
+import { runMechbayCrewChecks } from './mechbay-crew.mjs';
 import { checkHomeTheatre } from './home-theatre.mjs';
 import { companyFile, restartCompany, checkRestartCancellation, checkCompanyWorkspaces } from './campaign-navigation.mjs';
 import { spawn } from 'node:child_process';
@@ -153,6 +155,7 @@ async function verifyAlternateTrainingRoutes(browser, url) {
     await skipped.page.waitForSelector('[data-testid="briefing"]');
     await skipped.page.locator('[data-testid="training-skip"]').click();
     await skipped.page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(skipped.page);
     check(
       'training briefing skip opens the campaign explicitly',
       (await skipped.page.locator('[data-testid="home-screen"]').count()) === 0 &&
@@ -179,6 +182,7 @@ async function verifyAlternateTrainingRoutes(browser, url) {
     );
     await failed.page.locator('[data-testid="training-continue-anyway"]').click();
     await failed.page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(failed.page);
     check(
       'continue anyway records the training exit',
       (await failed.page.evaluate(() =>
@@ -202,6 +206,7 @@ async function freshCampaignFixture(browser, url) {
   await page.waitForSelector('[data-testid="home-screen"]');
   await page.locator('[data-testid="home-campaign"]').click();
   await page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(page);
   return { context, page };
 }
 
@@ -210,6 +215,7 @@ async function reopenSavedCampaign(page) {
   await page.waitForSelector('[data-testid="home-screen"]');
   await page.locator('[data-testid="home-campaign"]').click();
   await page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(page);
 }
 
 async function verifyFirstDropLaunchPaths({ browser, url, shots, check: recordCheck }) {
@@ -431,6 +437,7 @@ async function main() {
     );
     await page.locator('[data-testid="training-start-campaign"]').click();
     await page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(page);
     check(
       'successful training reaches first-contract guidance',
       (await page.locator('[data-testid="campaign-guide"]').innerText()).includes(
@@ -1099,6 +1106,7 @@ async function main() {
     await openDesktopBattleMenu(page);
     await page.locator('[data-testid="open-campaign"]').click();
     await page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(page);
 
     const day = async () =>
       Number((await page.locator('[data-testid="camp-day"]').innerText()).replace('Day ', ''));
@@ -1464,6 +1472,7 @@ async function main() {
     await page.locator('[data-testid="return-to-campaign"]').click();
     await page.locator('[data-testid="return-to-campaign"]').click();
     await page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(page);
 
     // Coming home opens the debrief: what the drop earned each pilot.
     await page.waitForSelector('[data-testid="debrief"]');
@@ -1730,6 +1739,7 @@ async function main() {
     await runAdaptiveScoreChecks({ browser, url: URL, check });
     await runAdaptiveScoreTreatmentChecks({ browser, url: URL, check });
     await verifyFirstDropLaunchPaths({ browser, url: URL, shots: SHOTS, check });
+    await runMechbayCrewChecks({ browser, url: URL, shots: SHOTS, check });
     await runLastSilentMomentsChecks({ browser, url: URL, check });
     await runMobilePlaythrough({ browser, url: URL, shots: SHOTS, check });
   } finally {

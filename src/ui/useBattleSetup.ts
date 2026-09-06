@@ -47,7 +47,7 @@ export function useBattleSetup(options: SetupLifecycleOptions): SetupLifecycle {
   };
 
   const selectDifficulty = (difficulty: string): void => {
-    if (locked) return;
+    if (locked || options.campaignPending) return;
     setDeployed(null);
     storeDifficulty(difficulty);
     options.patch({ ...battleRemountState(), difficulty });

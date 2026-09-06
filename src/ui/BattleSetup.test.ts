@@ -40,6 +40,9 @@ describe('briefing setup', () => {
 
     expect(html).toContain('data-testid="briefing-mission-fixed"');
     expect(html).toContain('Fixed by contract');
+    expect(html).toContain('data-testid="briefing-difficulty-fixed"');
+    expect(html).toContain('Fixed for this campaign');
+    expect(html).not.toContain('data-testid="briefing-difficulty-picker"');
     expect(html).not.toContain('data-testid="briefing-mission-picker"');
     expect(html).not.toContain('data-testid="briefing-battle-code"');
   });
@@ -79,6 +82,8 @@ describe('deployed setup controls', () => {
     expect(html).toContain('data-testid="restart-battle"');
     expect(html).toContain('data-testid="mission-fixed"');
     expect(html).toContain('Foundry Sweep');
+    expect(html).toContain('data-testid="campaign-difficulty-fixed"');
+    expect(html).not.toContain('data-testid="difficulty-picker"');
     expect(html).not.toContain('data-testid="choose-mission"');
   });
 });

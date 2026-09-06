@@ -55,6 +55,139 @@
       "licenseFile": "src/ui/assets/fonts/DMSans-OFL.txt",
       "name": "DM Sans",
       "clearance": "licensed-open-font"
+    },
+    {
+      "path": "src/assets/machines/bulwark_bwk3.webp",
+      "sha256": "d8f6999b8af1e2d437bcc902893516c78045ae6f93c927e82e4d04d71099c00a",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Per-chassis bounds and design IDs are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/cairn_crn3.webp",
+      "sha256": "528d1019544d494f9b7bf7e36bb0782b045a2452a259070be5713ccf36c87432",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Per-chassis bounds and design IDs are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/colossus_cls1.webp",
+      "sha256": "df7e56baea71000673517935509f1a0a8ef0dfef180fdabba4c7cc706da23aef",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Per-chassis bounds and design IDs are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/courser_crs1.webp",
+      "sha256": "3eed760a097430c78cb37d2305860f338614986ba745922010b5b3af922f5a60",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Per-chassis bounds and design IDs are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/drover_dvr2.webp",
+      "sha256": "19024644e2bb9e25a72a21cc005cf99cedef47d79ea72f236889923ad0675906",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Per-chassis bounds and design IDs are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/falchion_fal2.webp",
+      "sha256": "a77aa98324e5812ca4dff8d0d0fc9eb877d5c1f43846ae96cb31ea6444849be1",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Per-chassis bounds and design IDs are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/halberd_hlb4.webp",
+      "sha256": "e4e74b792feba60ae13ebb1a35ea48e88b9ed5191ee3ccd8d798b75af90d10d9",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Per-chassis bounds and design IDs are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/hornet_hnt2.webp",
+      "sha256": "e70ec647d324da95715346d39d9b9edcbb2a91622d12f99bf2d151bb67a0e928",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Per-chassis bounds and design IDs are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/obsequy_obq3.webp",
+      "sha256": "09c2cf33b0e0269dec639da3b7bc150621588e9729965d4fd395a1bb6775dc1f",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Per-chassis bounds and design IDs are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/pallvault_plv1.webp",
+      "sha256": "f0f0aab70fadc0002f3b710d4fd77c9e7c9fe7f0c0d01184f29ef9abc5b9e138",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Per-chassis bounds and design IDs are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/prybar_pry1.webp",
+      "sha256": "ac9db836539bcd363ece9aa4ef598aa23e32425b7209f57d162f217e561cacdc",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Per-chassis bounds and design IDs are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/rampart_rmp4.webp",
+      "sha256": "9cf839b33fdafdfb112bf8891cca095c85fd7c17a639c2225507c8b42bd382df",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Per-chassis bounds and design IDs are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/redoubt_rdt1.webp",
+      "sha256": "f32b93a731c012433a2c50dbde97336ae745c4166b253ad8566dfb44785b1ec7",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Per-chassis bounds and design IDs are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/rivet_rvt1.webp",
+      "sha256": "90a9086a0891d93025f2947284d615b5982c27dc4c20e854a40ab368c56f1caa",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Per-chassis bounds and design IDs are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/sentinel_snl2.webp",
+      "sha256": "3f21dd0211b658240647e61795be766b14bdecde32d6e293adac30429a1c18d5",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Per-chassis bounds and design IDs are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/trestle_trs1.webp",
+      "sha256": "81e9bb5ac136875589967e019850936c2b79a4cb7d07fc7b0a1d3e4a2aca97f8",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Per-chassis bounds and design IDs are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/votive_vtv2.webp",
+      "sha256": "4745ebfc174e0f7ab2770b6d48b20b92b9554c055cb1f696870847fec05ca7a8",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Per-chassis bounds and design IDs are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/warden_wrd5.webp",
+      "sha256": "6d9cba5057f67de96cbaf9f493c78f12335b010661848a9f42dd750098f27382",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Per-chassis bounds and design IDs are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/wisp_wsp1.webp",
+      "sha256": "9e2eb688aa4f0c6de42e3bce630ae4b911df88a9e48b7e1091db0dbb4f82aec5",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Per-chassis bounds and design IDs are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
     }
   ]
 }

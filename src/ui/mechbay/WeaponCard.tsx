@@ -2,7 +2,9 @@ import type { DragEvent } from 'react';
 import type { Faction } from '../../schema/faction';
 import type { Catalog } from '../../schema/load';
 import type { Weapon } from '../../schema/weapon';
+import { weaponSize, weaponSizeLabel } from '../../sim/loadout';
 import { foreignComponentPresentation } from './machineCulturePresentation';
+import { SlotBoxes } from './SlotBoxes';
 import { WeaponGlyph } from './WeaponGlyph';
 import {
   factionPresentation,
@@ -57,10 +59,11 @@ export function WeaponCard({
   const unavailable = exhausted || unavailableReason !== null;
   const reason = unavailableReason ?? (exhausted ? `No ${weapon.name} left in stores.` : null);
   const fitLabel = unavailable ? "Doesn't fit" : 'Fit';
-  const fitDetail = reason ?? 'Ready to place.';
+  const fitDetail = reason ?? 'Drag to a matching part, or pick and place.';
   const statusId = `weapon-card-${weapon.id}-fit`;
   const detailId = `weapon-card-${weapon.id}-fit-detail`;
   const metrics = weaponMetrics(weapon);
+  const mountSize = weaponSizeLabel(catalog, weaponSize(catalog, weapon));
   const classes = [
     'weapon-card',
     'weapon-card--compact',
@@ -135,11 +138,14 @@ export function WeaponCard({
           )}
         </span>
 
-        <span className="weapon-card__quick-stats" aria-label="Weapon summary">
-          <span>
-            {formatWeaponNumber(weapon.tonnage)}t · {weapon.slots} slot
-            {weapon.slots === 1 ? '' : 's'}
+        <span className="weapon-card__footprint" data-testid={`weapon-footprint-${weapon.id}`}>
+          <span className="weapon-card__boxes" aria-label={`${weapon.slots} fitting boxes`}>
+            <SlotBoxes count={weapon.slots} />
+            <strong>{weapon.slots} box{weapon.slots === 1 ? '' : 'es'}</strong>
           </span>
+          <span>{mountSize} {weapon.type} mount · {formatWeaponNumber(weapon.tonnage)}t</span>
+        </span>
+        <span className="weapon-card__quick-stats" aria-label="Weapon summary">
           <span>{formatWeaponNumber(metrics.damage)}/s damage</span>
           <span>{formatWeaponNumber(metrics.reach)}m reach</span>
           <span>{formatWeaponNumber(metrics.heat)}/s heat</span>

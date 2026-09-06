@@ -77,7 +77,11 @@ export function BriefingSetup(props: BriefingSetupProps) {
         ) : null}
         <label className="setup-field">
           <span>Difficulty</span>
-          <select
+          {props.campaignMissionName !== null ? (
+            <span className="setup-fixed" data-testid="briefing-difficulty-fixed">
+              {difficulty?.label ?? props.difficultyId}<small>Fixed for this campaign</small>
+            </span>
+          ) : <select
             value={props.difficultyId}
             onChange={(event) => props.onDifficulty(event.target.value)}
             data-testid="briefing-difficulty-picker"
@@ -87,7 +91,7 @@ export function BriefingSetup(props: BriefingSetupProps) {
                 {choice.label}
               </option>
             ))}
-          </select>
+          </select>}
           <small className="setup-description" data-testid="difficulty-description">
             {difficulty?.description ?? 'Enemy behaviour follows the selected tier.'}
           </small>
@@ -116,7 +120,10 @@ export function SetupToolbar({
 
   return (
     <>
-      <select
+      {props.campaignMissionName !== null ? (
+        <span className="pause setup-contract" data-testid="campaign-difficulty-fixed"
+          title="Chosen when this campaign began.">{difficulty?.label ?? props.difficultyId} campaign</span>
+      ) : <select
         className="pause"
         value={props.difficultyId}
         disabled={locked}
@@ -129,7 +136,7 @@ export function SetupToolbar({
             {choice.label}
           </option>
         ))}
-      </select>
+      </select>}
       {props.campaignMissionName === null ? (
         <select
           className="pause"

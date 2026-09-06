@@ -8,5 +8,14 @@
     "green",
     "quick_study"
   ],
-  "bio": "Kell signed after one live-fire circuit and asked for another. The instructors disagreed about whether that was courage."
+  "bio": "Kell signed after one live-fire circuit and asked for another. The instructors disagreed about whether that was courage.",
+  "portrait": {
+    "skin": "#8e5d44",
+    "hair": "#212329",
+    "jacket": "#405b69",
+    "accent": "#75bfb8",
+    "style": "curls",
+    "face": "oval",
+    "detail": "earpiece"
+  }
 }

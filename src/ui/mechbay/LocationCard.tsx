@@ -5,6 +5,10 @@ import type { Catalog } from '../../schema/load';
 import { armourFacesForDesign } from '../../sim/designArmour';
 import { weaponSizeLabel, type LocationUsage } from '../../sim/loadout';
 import { buildLocationOccupants, type LocationOccupant } from './locationOccupants';
+import { parsedDrop, type DropPayload } from './dropPayload';
+import { payloadFootprint, payloadName, SlotBoxes } from './SlotBoxes';
+
+export type { DropPayload } from './dropPayload';
 
 export const MECH_LOCATION_NAMES: Record<MechLocation, string> = {
   head: 'Head',
@@ -16,11 +20,6 @@ export const MECH_LOCATION_NAMES: Record<MechLocation, string> = {
   left_leg: 'Left Leg',
   right_leg: 'Right Leg',
 };
-
-export interface DropPayload {
-  kind: 'weapon' | 'equipment' | 'ammo';
-  id: string;
-}
 
 export function mutateAfterStableFocus(
   focusTarget: Pick<HTMLElement, 'focus'> | null,
@@ -43,28 +42,6 @@ export function stableRemovalFocusTarget(removeControl: HTMLElement): HTMLButton
     ?? mechbay?.querySelector<HTMLButtonElement>('[data-workspace-tab][aria-selected="true"]')
     ?? mechbay?.querySelector<HTMLButtonElement>('[data-testid="bay-exit"]')
     ?? null;
-}
-
-/** One consistently sized cell per slot makes footprints comparable across locations. */
-function RackCells({ count, incoming = 0 }: { count: number; incoming?: number }) {
-  return (
-    <span className="rack-cells" aria-hidden="true">
-      {Array.from({ length: count }, (_, index) => (
-        <i
-          key={index}
-          className={`rack-cell${index < incoming ? ' rack-cell--incoming' : ''}`}
-        />
-      ))}
-    </span>
-  );
-}
-
-function armedFootprint(catalog: Catalog, armed: DropPayload | null): number {
-  if (armed === null) return 0;
-  if (armed.kind === 'weapon') return catalog.weapons.get(armed.id)?.slots ?? 1;
-  if (armed.kind === 'equipment') return catalog.equipment.get(armed.id)?.slots ?? 1;
-  // A bin is always one slot per ton, placed a ton at a time.
-  return 1;
 }
 
 interface Props {
@@ -113,7 +90,8 @@ export function LocationCard({
   snapTarget = null,
   snapPhase = 0,
 }: Props) {
-  const hardpoints = chassis.hardpoints[location];
+  const hardpoints = usage.hardpointsAvailable;
+  const hasWeaponMounts = hardpoints.energy + hardpoints.ballistic + hardpoints.missile > 0;
   const slotsOver = usage.slotsUsed > usage.slotsAvailable;
 
   const overHardpointTypes = (['energy', 'ballistic', 'missile'] as const).filter(
@@ -140,7 +118,8 @@ export function LocationCard({
 
   const plate = armourFacesForDesign(catalog.rules.construction, design, location);
   const target = targeting ?? armed;
-  const targetFits = target === null || compatible;
+  const targetFits = target !== null && compatible;
+  const incoming = targetFits ? Math.min(empty, payloadFootprint(catalog, target)) : 0;
   const invalid = slotsOver || hardpointOver || sizeOver;
   const locationName = MECH_LOCATION_NAMES[location];
   const issueStates = [
@@ -180,14 +159,20 @@ export function LocationCard({
       onPointerEnter={() => onHover?.(location)}
       onPointerLeave={() => onHover?.(null)}
       onDragOver={(event) => {
+        if (target === null) return;
         event.preventDefault();
-        event.dataTransfer.dropEffect = 'copy';
+        event.dataTransfer.dropEffect = compatible ? 'copy' : 'none';
+        onHover?.(location);
+      }}
+      onDragLeave={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) onHover?.(null);
       }}
       onDrop={(event) => {
         event.preventDefault();
-        const raw = event.dataTransfer.getData('application/wreckright');
-        if (raw === '') return;
-        onDrop(JSON.parse(raw) as DropPayload, location);
+        const payload = parsedDrop(event.dataTransfer.getData('application/wreckright'));
+        if (payload === null) return;
+        onDrop(payload, location);
+        onHover?.(null);
       }}
       onClick={() => {
         if (armed !== null) {
@@ -231,30 +216,28 @@ export function LocationCard({
         </p>
       )}
 
-      {target === null ? null : (
-        <div className="bay-hardpoints">
+      <div className="bay-hardpoints" aria-label={`Weapon mounts in ${locationName}`}>
           {(['energy', 'ballistic', 'missile'] as const).map((type) =>
             hardpoints[type] === 0 ? null : (
               <span
                 key={type}
                 className={`pip ${type} ${usage.hardpointsUsed[type] > hardpoints[type] ? 'over' : ''}`}
-                title={`${type} hardpoints`}
+                title={`${type} weapon mounts`}
                 aria-label={`${type} hardpoints: ${usage.hardpointsUsed[type]} of ${hardpoints[type]} used`}
               >
-                {type.slice(0, 1).toUpperCase()} {usage.hardpointsUsed[type]}/{hardpoints[type]}
+                {type.slice(0, 1).toUpperCase()}{type.slice(1)} {Math.max(0, hardpoints[type] - usage.hardpointsUsed[type])} free
               </span>
             ),
           )}
-          <span
+          {!hasWeaponMounts ? <span className="bay-mounts-none">Ammo &amp; gear only</span> : <span
             className={`pip size ${sizeOver ? 'over' : ''}`}
             title={`Takes ${weaponSizeLabel(catalog, usage.size)} weapons and smaller`}
             data-testid={`size-${location}`}
             aria-label={`Maximum weapon size: ${weaponSizeLabel(catalog, usage.size)}`}
           >
-            ≤ {weaponSizeLabel(catalog, usage.size)}
-          </span>
-        </div>
-      )}
+            Up to {weaponSizeLabel(catalog, usage.size)}
+          </span>}
+      </div>
 
       <ul
         className="bay-slotgrid"
@@ -283,7 +266,7 @@ export function LocationCard({
               onFocus={() => onInspect?.({ kind: item.kind, id: item.id })}
             >
               <span>{item.label}</span>
-              <RackCells count={item.slots} />
+              <SlotBoxes count={item.slots} />
               <small>{item.kind === 'ammo' ? 'Ammo' : item.kind === 'equipment' ? 'Gear' : 'Weapon'} · {item.slots} slot{item.slots === 1 ? '' : 's'}</small>
             </button>
             <button
@@ -314,12 +297,17 @@ export function LocationCard({
             'No fitting space'
           ) : (
             <>
-              <RackCells
+              {targetFits ? <strong className="rack-drop-preview">
+                {hovered ? 'Release to fit' : 'Fit here'} · {payloadName(catalog, target)}
+              </strong> : null}
+              <SlotBoxes
                 count={empty}
-                incoming={targetFits && target !== null ? Math.min(empty, armedFootprint(catalog, target)) : 0}
+                incoming={incoming}
               />
               <small className="rack-free-count">
-                {empty} slot{empty === 1 ? '' : 's'} free
+                {targetFits
+                  ? `${incoming} box${incoming === 1 ? '' : 'es'} needed · ${empty - incoming} left after fit`
+                  : `${empty} of ${usage.slotsAvailable} box${usage.slotsAvailable === 1 ? '' : 'es'} free`}
               </small>
             </>
           )}

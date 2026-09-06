@@ -1,3 +1,4 @@
+import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import {
   verifyTouchDockControls,
   verifyTouchNavigation,
@@ -243,6 +244,7 @@ async function runOrientation({ browser, url, shots, check, viewport, label, sho
     await openBattleMenu(page);
     await page.locator('[data-testid="open-campaign"]').tap();
     await page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(page);
 
     const campaign = await overflowOf(page, '[data-testid="campaign"]');
     check(`${prefix} campaign operations are one column`, await oneColumn(page, '.company-operations'));

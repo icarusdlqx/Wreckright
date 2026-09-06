@@ -140,6 +140,7 @@ export function resolveCasualty(
     if (unit.pilotWounds <= 0) return { died: false, injuredDays: 0 };
     const days = rules.injuryDaysPerWound * unit.pilotWounds;
     pilot.injuredUntilDay = day + days;
+    pilot.recoveryMissions = rules.recoveryMissions;
     return { died: false, injuredDays: days };
   }
 
@@ -161,12 +162,13 @@ export function resolveCasualty(
   const wounds = rng.int(1, 4);
   const days = rules.injuryDaysBase + rules.injuryDaysPerWound * wounds;
   pilot.injuredUntilDay = day + days;
+  pilot.recoveryMissions = rules.recoveryMissions;
   return { died: false, injuredDays: days };
 }
 
 export function assign(state: CampaignState, pilotId: string, mechId: string | null): void {
   const pilot = state.pilots.find((entry) => entry.id === pilotId);
-  if (pilot === undefined) return;
+  if (pilot === undefined || pilot.dead) return;
 
   if (mechId !== null) {
     for (const other of state.pilots) {
@@ -234,6 +236,7 @@ export function hirePilot(
     traits: [...template.traits],
     bio: template.bio,
     injuredUntilDay: state.day,
+    recoveryMissions: 0,
     dead: false,
     mechId: null,
   };

@@ -8,5 +8,14 @@
     "hard_to_kill",
     "veteran"
   ],
-  "bio": "Krysa was in the Barrow Reach column and does not discuss it. He is the last man anyone would bet against coming home."
+  "bio": "Krysa was in the Barrow Reach column and does not discuss it. He is the last man anyone would bet against coming home.",
+  "portrait": {
+    "skin": "#cc9f7f",
+    "hair": "#aaa9a3",
+    "jacket": "#40505b",
+    "accent": "#8fd4c0",
+    "style": "shaved",
+    "face": "angular",
+    "detail": "beard"
+  }
 }

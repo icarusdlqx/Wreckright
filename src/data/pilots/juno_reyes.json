@@ -7,5 +7,14 @@
   "traits": [
     "cool_hand"
   ],
-  "bio": "Runs a reactor past the amber and talks about the manual as a suggestion. Two techs have refused to sign her mech off."
+  "bio": "Runs a reactor past the amber and talks about the manual as a suggestion. Two techs have refused to sign her mech off.",
+  "portrait": {
+    "skin": "#ac7353",
+    "hair": "#20262b",
+    "jacket": "#6a5347",
+    "accent": "#e88452",
+    "style": "bob",
+    "face": "broad",
+    "detail": "visor"
+  }
 }

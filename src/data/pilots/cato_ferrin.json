@@ -7,5 +7,14 @@
   "traits": [
     "butcher"
   ],
-  "bio": "Learned gunnery on salvage, cutting hulls apart for parts. He still aims at the joins."
+  "bio": "Learned gunnery on salvage, cutting hulls apart for parts. He still aims at the joins.",
+  "portrait": {
+    "skin": "#a77759",
+    "hair": "#313336",
+    "jacket": "#594b40",
+    "accent": "#df8955",
+    "style": "shaved",
+    "face": "angular",
+    "detail": "beard"
+  }
 }

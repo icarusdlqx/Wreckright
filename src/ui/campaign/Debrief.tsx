@@ -14,6 +14,7 @@ import type {
 } from '../../campaign/types';
 import { stripSerialDesignation } from '../designLabel';
 import { useDialogFocus } from '../useDialogFocus';
+import { PilotPortrait } from '../PilotPortrait';
 import { salvageItemFacts, salvageSummary } from './salvageFacts';
 import './salvage.css';
 
@@ -296,6 +297,7 @@ export function Debrief({
                 data-testid={`debrief-${report.pilotId}`}
               >
                 <div className="manifest-pilot">
+                  <PilotPortrait pilot={state.pilots.find((pilot) => pilot.id === report.pilotId) ?? { id: report.pilotId, name: report.name }} compact />
                   <span className="pilot-name">{report.name}</span>
                   <small className="manifest-status">
                     {stripSerialDesignation(report.mech)}
@@ -336,7 +338,7 @@ export function Debrief({
                     {report.fate === 'killed'
                       ? 'Killed in action'
                       : report.fate === 'injured'
-                        ? 'Wounded'
+                        ? 'Wounded · misses next mission'
                         : 'Returned'}
                   </span>
                 </div>

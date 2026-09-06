@@ -100,5 +100,13 @@
   "traits": [
     "wide_stance",
     "reinforced_legs"
+  ],
+  "strengths": [
+    "Stable missile platform",
+    "Reinforced legs"
+  ],
+  "weaknesses": [
+    "Ammo-heavy standard loadout",
+    "No jump escape"
   ]
 }

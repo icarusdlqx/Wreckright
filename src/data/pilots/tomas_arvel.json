@@ -7,5 +7,14 @@
   "traits": [
     "snap_shot"
   ],
-  "bio": "Arvel fires while the ground is still moving under him. The misses are expensive. The hits are why Kestrel keeps paying."
+  "bio": "Arvel fires while the ground is still moving under him. The misses are expensive. The hits are why Kestrel keeps paying.",
+  "portrait": {
+    "skin": "#af7b59",
+    "hair": "#523b2d",
+    "jacket": "#465d68",
+    "accent": "#81c2b8",
+    "style": "sweep",
+    "face": "broad",
+    "detail": "freckles"
+  }
 }

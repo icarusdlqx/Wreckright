@@ -126,14 +126,17 @@ describe('location workbench card', () => {
     expect(html).toContain('aria-label="Armour: 47 front, 5 rear, 52 of 52 total"');
   });
 
-  it('keeps the resting card to its name, rack, and compressed armour line', () => {
+  it('keeps mount requirements and free box capacity visible before picking a part', () => {
     const html = renderToStaticMarkup(createElement(LocationCard, fixtureProps('right_torso')));
 
     expect(html).toContain('aria-label="Right Torso location, 2 of 6 slots used');
     expect(html).toContain('data-testid="slots-grid-right_torso"');
     expect(html).toContain('bay-armour-compact');
     expect(html).not.toContain('class="bay-slots');
-    expect(html).not.toContain('class="bay-hardpoints"');
+    expect(html).toContain('class="bay-hardpoints"');
+    expect(html).toContain('Energy 2 free');
+    expect(html).toContain('Up to medium');
+    expect(html).toContain('4 of 6 boxes free');
     expect(html).not.toContain('class="bay-location-flags"');
     expect(html).not.toContain('bay-location-refusal');
   });
