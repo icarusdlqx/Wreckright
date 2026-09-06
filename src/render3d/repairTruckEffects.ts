@@ -91,6 +91,18 @@ export class RepairTruckEffects {
     visual.boom.scale.x = working ? this.reducedMotion ? 1 : Math.min(1, 0.45 + visual.age * 1.5) : 0.45;
     visual.beacon.scale.setScalar(this.reducedMotion ? 1 : 0.9 + 0.25 * Math.sin(this.elapsed * 7));
     visual.radius.visible = visual.phase !== 'departing'; visual.radius.scale.setScalar(radius);
+    const boundary = visual.radius.geometry.getAttribute('position') as BufferAttribute;
+    for (let index = 0; index < boundary.count; index += 1) {
+      const x = boundary.getX(index) * radius, y = -boundary.getY(index) * radius;
+      boundary.setZ(index, (this.heightAt(visual.x + x, visual.y + y) - ground + 0.4) / radius);
+    }
+    boundary.needsUpdate = true;
+    visual.hub.visible = working;
+    visual.tether.visible = working && Math.hypot(visual.parkX, visual.parkY) > 1;
+    effectPoint(visual.tether, 0, visual.parkX, parkedHeight + 3, visual.parkY);
+    effectPoint(visual.tether, 1, visual.parkX / 2, Math.max(2, parkedHeight + 2), visual.parkY / 2);
+    effectPoint(visual.tether, 2, 0, 2, 0);
+    (visual.tether.geometry.getAttribute('position') as BufferAttribute).needsUpdate = true;
     const ratio = working ? Math.max(0, Math.min(1, remaining / world.rules.support.repair_truck.durationSeconds)) : 0;
     visual.progress.visible = working;
     for (let i = 0; i <= 48; i++) {

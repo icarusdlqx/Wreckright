@@ -69,7 +69,8 @@ export function CampaignPrep({
 
 function RefitDialog({ bay, onClose }: { bay: BayCommission; onClose: () => void }) {
   const dialogRef = useRef<HTMLDivElement>(null);
-  useDialogFocus(dialogRef, dialogRef, onClose);
+  // The bay owns Escape so its unsaved draft guard also covers keyboard exits.
+  useDialogFocus(dialogRef, dialogRef);
   return (
     <div className="manifest-backdrop" data-testid="refit-bay">
       <div

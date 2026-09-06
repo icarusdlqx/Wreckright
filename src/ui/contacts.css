@@ -1,21 +1,21 @@
 .sensor-contact {
   grid-template-columns: auto minmax(0, 1fr) auto;
   border-style: dashed;
-  border-color: rgba(255, 190, 82, 0.72);
+  border-color: rgba(255, 100, 110, 0.72);
   background: rgba(18, 20, 18, 0.92);
   color: var(--text);
   cursor: default;
 }
 
 .sensor-contact-glyph {
-  color: var(--warn);
+  color: #ff8990;
   font-size: 15px;
   line-height: 1;
 }
 
 .sensor-contact-note {
   grid-column: 1 / -1;
-  color: var(--warn);
+  color: #ff8990;
   font-size: 9px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -27,3 +27,5 @@
     min-width: 230px;
   }
 }
+
+.sensor-contact.memory { opacity: 0.62; }

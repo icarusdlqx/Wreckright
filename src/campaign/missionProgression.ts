@@ -34,3 +34,15 @@ export function awardSharedMissionXp(catalog: Catalog, state: CampaignState, con
   }
   return shared;
 }
+
+/** Team credit is explicit: old results do not identify which individual occupied a capture zone. */
+export function missionServiceNotes(catalog: Catalog, battle: BattleResult, unit: BattleResult['units'][number]): string[] {
+  const objectives = completedPlayerObjectives(catalog, battle);
+  const notes: string[] = [];
+  if (objectives.length > 0) notes.push(`Deployed with the team that completed: ${objectives.map((objective) => objective.label).join('; ')}.`.slice(0, 600));
+  if (unit.alive || unit.withdrew) {
+    if (unit.shotsFired === 0) notes.push('Returned without firing a shot. Mission and objective experience still counts.');
+    else if (unit.withdrew) notes.push('Withdrew from the field with the pilot and machine recovered.');
+  }
+  return notes;
+}

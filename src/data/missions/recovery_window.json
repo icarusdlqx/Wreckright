@@ -1,10 +1,10 @@
 {
   "id": "recovery_window",
-  "name": "Recovery \u2014 The Quiet Claim",
+  "name": "Recovery — The Quiet Claim",
   "type": "extraction",
-  "mapId": "ridge_pass",
-  "briefing": "The survey found a repair crew pinned beside its recovery cradle. Keep that ground under company seal for 120 seconds; the contract then closes under wreckright even if opposing walkers survive. The freight cradle permits 140 tonnes and three machines. Called shots to both legs can leave a recoverable hull: press Hold Fire when it is legged, because Attack keeps firing. A legged enemy can still shoot. The optional service cabinet funds field support. Hull recovery remains a chance, not a promise.",
-  "maxDurationSeconds": 120,
+  "mapId": "foundry_district",
+  "briefing": "Halloran has a repair crew trapped in a foundry service yard. Keep their recovery cradle secure, take the winch controls at the road junction, then hold both for a 25-second lift. The contract ends when the crew is clear; opposing walkers may survive. Bring up to 140 tonnes and three machines. The optional service cabinet releases field support. If both enemy legs are disabled, use Hold Fire to preserve a recovery chance; a legged machine can still shoot.",
+  "maxDurationSeconds": 180,
   "startingResourcePoints": 350,
   "dropTonnage": 140,
   "maxPlayerUnits": 3,
@@ -17,8 +17,8 @@
           "designId": "hornet_spotter",
           "pilotId": "kessa_vale",
           "spawn": {
-            "x": 444,
-            "y": 612
+            "x": 540,
+            "y": 780
           },
           "facingDegrees": -90
         },
@@ -26,8 +26,8 @@
           "designId": "cairn_battery",
           "pilotId": "ilse_brant",
           "spawn": {
-            "x": 492,
-            "y": 660
+            "x": 588,
+            "y": 828
           },
           "facingDegrees": -90
         },
@@ -35,8 +35,8 @@
           "designId": "hornet_spotter",
           "pilotId": "marek_sud",
           "spawn": {
-            "x": 540,
-            "y": 612
+            "x": 636,
+            "y": 780
           },
           "facingDegrees": -90
         }
@@ -51,7 +51,7 @@
           "pilotId": "corin_dast",
           "spawn": {
             "x": 492,
-            "y": 324
+            "y": 444
           },
           "facingDegrees": 90
         },
@@ -59,8 +59,8 @@
           "designId": "prybar_courier",
           "pilotId": "leda_morcant",
           "spawn": {
-            "x": 252,
-            "y": 444
+            "x": 300,
+            "y": 492
           },
           "facingDegrees": 90
         }
@@ -71,8 +71,8 @@
     {
       "id": "recovery_ground",
       "name": "Recovery Cradle",
-      "x": 492,
-      "y": 612,
+      "x": 588,
+      "y": 780,
       "radius": 78,
       "owner": 0,
       "captureSeconds": 14,
@@ -81,24 +81,46 @@
     {
       "id": "service_cabinet",
       "name": "Optional Service Cabinet",
-      "x": 252,
-      "y": 492,
-      "radius": 52,
+      "x": 300,
+      "y": 684,
+      "radius": 44,
       "owner": null,
       "captureSeconds": 8,
       "resourcePoints": 200
+    },
+    {
+      "id": "winch_controls",
+      "name": "Recovery Winch Controls",
+      "x": 492,
+      "y": 684,
+      "radius": 44,
+      "owner": null,
+      "captureSeconds": 8,
+      "resourcePoints": 0
     }
   ],
   "objectives": [
     {
       "id": "keep_recovery_ground",
-      "label": "Keep the recovery cradle secure for 120 seconds",
+      "label": "Protect the recovery cradle",
       "type": "protect_zones",
       "team": 0,
       "required": true,
       "zoneIds": [
         "recovery_ground"
       ]
+    },
+    {
+      "id": "complete_recovery_lift",
+      "label": "Run the lift: hold cradle and winch for 25 seconds",
+      "type": "hold_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": [
+        "recovery_ground",
+        "winch_controls"
+      ],
+      "holdSeconds": 25
     },
     {
       "id": "recover_service_stock",
@@ -126,7 +148,7 @@
       "zoneId": "recovery_ground",
       "behavior": "retake",
       "units": 1,
-      "pursuitRadius": 330
+      "pursuitRadius": 420
     },
     {
       "id": "cabinet_watch",
@@ -148,7 +170,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Halloran recovery desk: 120 seconds under your seal wins the ground. You do not need to destroy the opposing walkers."
+          "text": "Recovery desk: take the road-junction winch controls and keep the cradle. Twenty-five seconds on both sites lifts the crew clear."
         }
       ]
     },
@@ -162,7 +184,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Recovery desk: LL, then RL. At two lost legs, Hold Fire. The guns may still work; keep cover and keep the cradle."
+          "text": "Recovery desk: both enemy legs disabled? Hold Fire if you want the hull. The guns may still work. Your job is the crew and the winch."
         }
       ]
     },
@@ -184,14 +206,30 @@
     {
       "id": "claim_closing",
       "when": {
-        "type": "elapsed",
-        "seconds": 100
+        "type": "zone_captured",
+        "zoneId": "winch_controls",
+        "team": 0
       },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Recovery desk: twenty seconds to close the claim. Keep the cradle under your seal; do not turn a recoverable hull into scrap."
+          "text": "Recovery desk: winch live. Hold the controls and cradle for the lift cycle shown in Objectives. The cabinet is optional; the crew comes first."
+        }
+      ]
+    },
+    {
+      "id": "claimant_warning",
+      "when": {
+        "type": "elapsed",
+        "seconds": 6
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "speakerPilotId": "corin_dast",
+          "text": "That winch runs on our meter. Leave the controls alone and take your patched machines home."
         }
       ]
     }

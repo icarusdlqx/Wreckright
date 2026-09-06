@@ -6,6 +6,7 @@ import { SUPPORT_CALLS } from '../sim/support';
 import { BattleEffects } from './battleEffects';
 import { BattlefieldWear } from './battlefieldWear';
 import { TacticalCamera } from './camera';
+import { TracerLayer } from './tracers';
 
 const MATRIX = new Matrix4();
 
@@ -71,6 +72,23 @@ describe('battlefield memory events', () => {
     expect(crater?.[1]).toBeCloseTo(2.396);
     expect(crater?.[2]).toBeCloseTo(29);
     expect(crater?.[3]).toBeGreaterThan(10);
+    active.destroy();
+  });
+
+  it('uses transient water ripples instead of floating impact, ammunition or wreck discs', () => {
+    const world = testWorld('water-battlefield-wear');
+    const tile = world.terrain.toTile({ x: 17, y: 29 });
+    world.terrain.replaceTypeAt(tile.column, tile.row, 'water');
+    const ripple = vi.spyOn(TracerLayer.prototype, 'footfall');
+    const scene = new Scene(); const active = feedback(scene);
+    active.consume(world, [
+      { type: 'projectile_hit', tick: 1, shooterId: 1, targetId: 2, weaponId: 'ac5', location: 'centre_torso', damage: 8, arc: 'front' },
+      { type: 'ammo_explosion', tick: 2, entityId: 2, location: 'centre_torso', damage: 25 },
+      { type: 'mech_destroyed', tick: 3, entityId: 2, method: 'head' },
+    ]);
+    expect(ripple).toHaveBeenCalledWith({ x: 17, y: 29 }, expect.any(Number), 'water', expect.any(Number));
+    const scars = scene.getObjectByName('scars') as InstancedMesh;
+    expect(placements(scars)).toEqual([]);
     active.destroy();
   });
 

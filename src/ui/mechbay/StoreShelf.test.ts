@@ -146,7 +146,7 @@ describe('compact mechbay catalog', () => {
     expect(css).toContain('@media (max-width: 420px)');
     expect(css).toMatch(/@media \(max-width: 420px\)[\s\S]*grid-template-columns: minmax\(0, 1fr\)/);
     expect(css).toContain('min-height: 44px;');
-    expect(css).toMatch(/\.bay-catalog > \.bay-catalog-inspector\s*{[^}]*order: 2;/s);
+    expect(css).toMatch(/\.bay-catalog > \.bay-inspector-shell\s*{[^}]*order: 2;/s);
     expect(css).toContain('max-height: min(42dvh, 300px);');
     expect(css).toContain('overflow-wrap: anywhere;');
   });

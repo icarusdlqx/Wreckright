@@ -1,6 +1,13 @@
 {
   "id": "border_dispute",
   "name": "The Great Recall",
+  "presentation": {
+    "faction": "linewrought",
+    "title": "Linewrought",
+    "premise": "A working company of patched machines and people who refuse to be written off. Keep the crossings open while the Recall turns familiar ground into someone else’s property.",
+    "strength": "Rugged frames, flexible salvage rights and side contracts. Repair, adapt and keep the company moving.",
+    "tradeoff": "Older weapons demand positioning and teamwork. Captured Aurelian weapons fit compatible mounts, but their heat and supply demands require a considered refit."
+  },
   "startingCbills": 3200000,
   "startingDay": 0,
   "startingDesignIds": [
@@ -26,16 +33,46 @@
     "depot_take"
   ],
   "employers": [
-    { "id": "kestrel_combine", "name": "Kestrel Combine" },
-    { "id": "halloran_freight", "name": "Halloran Freight" },
-    { "id": "sarn_foundry", "name": "Sarn Foundry" },
-    { "id": "ridgeward_assembly", "name": "Ridgeward Assembly" },
-    { "id": "halloran_combine", "name": "Halloran Combine" },
-    { "id": "vasi_reclamation", "name": "Vasi Reclamation" },
-    { "id": "ferrous_guild", "name": "the Ferrous Guild" },
-    { "id": "kestrel_freight", "name": "Kestrel Freight" },
-    { "id": "harrow_compact", "name": "the Harrow Compact" },
-    { "id": "ostrow_holdings", "name": "Ostrow Holdings" }
+    {
+      "id": "kestrel_combine",
+      "name": "Kestrel Combine"
+    },
+    {
+      "id": "halloran_freight",
+      "name": "Halloran Freight"
+    },
+    {
+      "id": "sarn_foundry",
+      "name": "Sarn Foundry"
+    },
+    {
+      "id": "ridgeward_assembly",
+      "name": "Ridgeward Assembly"
+    },
+    {
+      "id": "halloran_combine",
+      "name": "Halloran Combine"
+    },
+    {
+      "id": "vasi_reclamation",
+      "name": "Vasi Reclamation"
+    },
+    {
+      "id": "ferrous_guild",
+      "name": "the Ferrous Guild"
+    },
+    {
+      "id": "kestrel_freight",
+      "name": "Kestrel Freight"
+    },
+    {
+      "id": "harrow_compact",
+      "name": "the Harrow Compact"
+    },
+    {
+      "id": "ostrow_holdings",
+      "name": "Ostrow Holdings"
+    }
   ],
   "sideWork": {
     "missionIds": [
@@ -93,7 +130,11 @@
           "label": "Road ledger: two ammunition isolation cases",
           "objectiveId": "copy_road_ledger",
           "items": [
-            { "kind": "equipment", "itemId": "case", "count": 2 }
+            {
+              "kind": "equipment",
+              "itemId": "case",
+              "count": 2
+            }
           ],
           "afterword": "Halloran trades the copied ledger for two unopened ammunition isolation cases from its freight stock. These supplies are separate from battlefield salvage."
         }
@@ -104,7 +145,7 @@
       "name": "The Quiet Claim",
       "missionId": "recovery_window",
       "employerId": "halloran_freight",
-      "brief": "The survey found a repair crew and a contested recovery cradle. Hold its seal for 120 seconds with a light detail: 140 tonnes, three machines. The field result can preserve legged walkers under wreckright. The service cabinet is an optional second job; hull recovery remains a chance.",
+      "brief": "The survey has found a repair crew trapped in a foundry service yard. Protect their cradle, secure the road-junction winch, then hold both for a 25-second lift. Bring up to 140 tonnes and three machines. The optional service cabinet supplies field support. You are paid to get the crew out.",
       "requires": [
         "marker_survey"
       ],
@@ -120,7 +161,10 @@
           "id": "unclaimed_prybar",
           "label": "Released Prybar workshop hulk",
           "hulls": [
-            { "designId": "prybar_courier", "integrityFraction": 0.55 }
+            {
+              "designId": "prybar_courier",
+              "integrityFraction": 0.55
+            }
           ],
           "afterword": "The repair crew signs over an unclaimed Prybar cradle from a sealed workshop rack. It is a damaged hulk, distinct from the opposing machines recovered under your salvage terms; rebuilding still takes credits and bay time."
         },
@@ -129,7 +173,11 @@
           "label": "Service cabinet: Canister Cannon",
           "objectiveId": "recover_service_stock",
           "items": [
-            { "kind": "weapon", "itemId": "lbx_ac10", "count": 1 }
+            {
+              "kind": "weapon",
+              "itemId": "lbx_ac10",
+              "count": 1
+            }
           ],
           "afterword": "The cabinet contains one crated Canister Cannon. Cluster fire spreads damage; its slug setting concentrates it. Fit and supply it in the workshop before the next drop."
         }
@@ -155,14 +203,18 @@
         {
           "id": "gantry_repair_days",
           "label": "Two workshop day credits",
-          "effects": { "freeRepairDays": 2 },
+          "effects": {
+            "freeRepairDays": 2
+          },
           "afterword": "Sarn banks two workshop day credits. Each later repair or rebuild booking can use one to shorten its duration by a day. Parts, labour and payroll remain payable."
         },
         {
           "id": "stores_supplier_terms",
           "label": "Stores cabinet: seven days of supplier terms",
           "objectiveId": "recover_workshop_stock",
-          "effects": { "supplierDiscountDays": 7 },
+          "effects": {
+            "supplierDiscountDays": 7
+          },
           "afterword": "The recovered stores records establish the company with Sarn's suppliers. Preferential terms last seven campaign days."
         }
       ]

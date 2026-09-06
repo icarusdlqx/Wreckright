@@ -71,6 +71,8 @@ export interface Reveal {
   y: number;
   radius: number;
   expiresTick: number;
+  /** Probe acquisitions remain live for this sweep, including after leaving its circle. */
+  trackedIds?: number[];
 }
 
 export interface SupportState {
@@ -187,6 +189,7 @@ function resolvePending(world: World, pending: PendingCall): void {
       world.reveals.push({
         team: pending.team,
         kind: 'sensor',
+        trackedIds: [],
         x: pending.target.x,
         y: pending.target.y,
         radius: config.sensor_probe.radius,

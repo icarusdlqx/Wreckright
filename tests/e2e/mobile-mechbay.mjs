@@ -1,3 +1,4 @@
+import { discardRefitIfPrompted } from './mechbay-exit.mjs';
 import {
   explainerState,
   fitTrainingStored,
@@ -407,6 +408,7 @@ export async function runMobileMechbayJourney({
   );
 
   await page.locator('[data-testid="bay-exit"]').click();
+  await discardRefitIfPrompted(page);
   await page.waitForSelector('[data-testid="briefing"]');
   check(`${prefix} mechbay exit remains reachable`, true);
 }

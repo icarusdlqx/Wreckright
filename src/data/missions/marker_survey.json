@@ -1,6 +1,6 @@
 {
   "id": "marker_survey",
-  "name": "Survey \u2014 Marker Eleven",
+  "name": "Survey — Marker Eleven",
   "type": "recon",
   "mapId": "ridge_pass",
   "briefing": "The registry copy is missing its service trail. Read the west marker and upper reader while Kestrel watches the main road. The company transport cannot land on the old survey terrace: its single-machine lift carries 45 tonnes. A stock Gadfly is enough. Use Move and Hold Fire to take the western route; neither guard has to die. The optional road ledger must be copied before the second required reader closes the contract.",
@@ -62,7 +62,7 @@
     },
     {
       "id": "upper_reader",
-      "name": "Upper Service Reader",
+      "name": "Upper Reader · Completes contract",
       "x": 228,
       "y": 252,
       "radius": 54,
@@ -158,7 +158,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Survey desk: first mark copied. The service trail leads north along the western slope."
+          "text": "Survey desk: first mark copied. The upper reader completes the contract. If you want the optional road ledger, copy it before reading that last post."
         }
       ]
     },

@@ -1,3 +1,4 @@
+import { readoutFrameSeconds } from './damageReadoutPolicy';
 import {
   Mesh,
   Object3D,
@@ -117,6 +118,7 @@ export class Renderer {
     this.scene.add(this.landscape.group);
 
     this.fog = new FogLayer(world.terrain, this.terrain.heightAt);
+    this.fog.setLowFx(this.lowFx);
     this.scene.add(this.fog.mesh);
     this.units = new UnitViews(this.scene, this.terrain.heightAt, this.camera.reducedMotion);
     this.effects = new BattleEffects(
@@ -221,6 +223,7 @@ export class Renderer {
     this.supportEffects.setPresentationMode(low);
     this.terrainFire.setPresentationMode(low, this.camera.reducedMotion);
     this.terrain.setLowFx(low);
+    this.fog.setLowFx(low);
     this.landscape.setLowFx(low);
     this.resize();
     this.scene.traverse((node) => {
@@ -336,7 +339,7 @@ export class Renderer {
     }
     this.units.finishFrame();
 
-    this.effects.finishFrame(presentationDelta);
+    this.effects.finishFrame(presentationDelta, readoutFrameSeconds(deltaSeconds, presentationDelta));
     this.supportEffects.draw(world, presentationDelta);
     this.terrainFire.draw(world, presentationDelta);
     this.markers.draw(world, view, deltaSeconds, this.camera.reducedMotion);

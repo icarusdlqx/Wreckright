@@ -69,6 +69,11 @@ export function readoutBudget(width: number, height = Number.POSITIVE_INFINITY):
   return compactReadouts(width, height) ? 4 : 8;
 }
 
+/** Text uses real seconds while pause freezes it alongside the battlefield. */
+export function readoutFrameSeconds(wallSeconds: number, motionSeconds: number): number {
+  return Number.isFinite(wallSeconds) && motionSeconds > 0 ? Math.max(0, wallSeconds) : 0;
+}
+
 export function readoutLife(priority: number): number {
   return LIFE_SECONDS[priority] ?? LIFE_SECONDS[READOUT_PRIORITY.terminal];
 }

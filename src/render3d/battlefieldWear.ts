@@ -1,5 +1,4 @@
 import {
-  CircleGeometry,
   Color,
   DynamicDrawUsage,
   InstancedBufferAttribute,
@@ -14,23 +13,20 @@ import type { SimEvent } from '../sim/events';
 import { tileVisible } from '../sim/sensors';
 import type { Vec2, World } from '../sim/types';
 import { disposeObjectResources } from './sceneResources';
+import { ScarLayer } from './scarLayer';
+export { ScarLayer } from './scarLayer';
 
 const HIDDEN = new Matrix4().makeScale(0, 0, 0);
 const NO_TURN = new Quaternion();
-const FLAT = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2);
 const AT = new Vector3();
 const SIZE = new Vector3();
 const MATRIX = new Matrix4();
 const TINT = new Color();
-const EARTH = new Color(0x4a3524);
-const CRATER = new Color(0x21170f);
 
 const PUFFS = 9;
 const CYCLE_SECONDS = 5.5;
 const SMOKE_SECONDS = 60;
 const RISE = 95;
-const DEFAULT_SCAR_CAPACITY = 512;
-const DEFAULT_CRATER_CAPACITY = 128;
 
 interface SmokeColumn {
   active: boolean;
@@ -193,74 +189,6 @@ export class SmokeLayer {
   }
 }
 
-/** One fixed mesh with independent rings for routine scars and lasting craters. */
-export class ScarLayer {
-  readonly mesh: InstancedMesh;
-
-  private nextScar = 0;
-  private nextCrater = 0;
-  private laidScars = 0;
-  private laidCraters = 0;
-  private disposed = false;
-
-  constructor(
-    private readonly scarCapacity = DEFAULT_SCAR_CAPACITY,
-    private readonly craterCapacity = DEFAULT_CRATER_CAPACITY,
-  ) {
-    const capacity = Math.max(0, scarCapacity) + Math.max(0, craterCapacity);
-    const material = new MeshBasicMaterial({ transparent: true, opacity: 0.46, depthWrite: false });
-    this.mesh = new InstancedMesh(new CircleGeometry(1, 10), material, capacity);
-    this.mesh.name = 'scars';
-    this.mesh.frustumCulled = false;
-    this.mesh.count = 0;
-    this.mesh.instanceMatrix.setUsage(DynamicDrawUsage);
-    preallocateColours(this.mesh, capacity);
-    this.mesh.renderOrder = 1;
-    for (let slot = 0; slot < capacity; slot += 1) this.mesh.setMatrixAt(slot, HIDDEN);
-  }
-
-  get scarCount(): number { return this.laidScars; }
-  get craterCount(): number { return this.laidCraters; }
-
-  mark(at: Vec2, ground: number, radius: number, heat: number): void {
-    if (this.disposed || this.scarCapacity <= 0) return;
-    const slot = this.nextScar;
-    this.nextScar = (this.nextScar + 1) % this.scarCapacity;
-    this.laidScars = Math.min(this.scarCapacity, this.laidScars + 1);
-    this.place(slot, at, ground, radius, TINT.setHex(0x140f0c).lerp(EARTH, 1 - heat));
-  }
-
-  /** Routine gunfire cannot claim these reserved slots. */
-  crater(at: Vec2, ground: number, radius: number, depth = 0.5): void {
-    if (this.disposed || this.craterCapacity <= 0) return;
-    const slot = this.scarCapacity + this.nextCrater;
-    this.nextCrater = (this.nextCrater + 1) % this.craterCapacity;
-    this.laidCraters = Math.min(this.craterCapacity, this.laidCraters + 1);
-    this.place(slot, at, ground, radius, TINT.copy(CRATER).lerp(EARTH, Math.max(0, Math.min(1, depth))));
-  }
-
-  dispose(): void {
-    if (this.disposed) return;
-    this.disposed = true;
-    disposeObjectResources(this.mesh);
-    this.nextScar = 0;
-    this.nextCrater = 0;
-    this.laidScars = 0;
-    this.laidCraters = 0;
-    this.mesh.count = 0;
-  }
-
-  private place(slot: number, at: Vec2, ground: number, radius: number, colour: Color): void {
-    this.mesh.count = Math.max(this.mesh.count, slot + 1);
-    AT.set(at.x, ground + 0.35, at.y);
-    SIZE.set(radius, radius, radius);
-    this.mesh.setMatrixAt(slot, MATRIX.compose(AT, FLAT, SIZE));
-    this.mesh.setColorAt(slot, colour);
-    this.mesh.instanceMatrix.needsUpdate = true;
-    if (this.mesh.instanceColor !== null) this.mesh.instanceColor.needsUpdate = true;
-  }
-}
-
 /** Persistent battlefield memory, kept out of the already-full event router. */
 export class BattlefieldWear {
   readonly smoke: SmokeLayer;
@@ -274,7 +202,11 @@ export class BattlefieldWear {
     this.objects = [this.smoke.mesh, this.scars.mesh];
   }
 
-  update(deltaSeconds: number): void { if (!this.disposed) this.smoke.update(deltaSeconds); }
+  update(deltaSeconds: number): void {
+    if (this.disposed) return;
+    this.smoke.update(deltaSeconds);
+    this.scars.update(deltaSeconds);
+  }
 
   consumeSupport(world: World, event: SimEvent): void {
     if (this.disposed || event.type !== 'ground_impact' || event.kind !== 'artillery') return;
@@ -284,17 +216,17 @@ export class BattlefieldWear {
     const canSeeImpact = world.playerTeam === null || event.team === world.playerTeam ||
       tileVisible(world.vision, cell);
     if (!canSeeImpact) return;
-    this.artillery(event);
+    if (world.terrain.idAtPoint(event) !== 'water') this.artillery(event);
   }
 
-  wreck(key: number, at: Vec2, smokeGround: number): void {
+  wreck(key: number, at: Vec2, smokeGround: number, water = false): void {
     if (this.disposed) return;
     this.smoke.start(at, smokeGround, key);
-    this.scars.mark(at, this.heightAt(at.x, at.y), 22, 0.55);
+    if (!water) this.scars.crater(at, this.heightAt(at.x, at.y), 19, 0.55);
   }
 
-  ammo(at: Vec2, damage: number): void {
-    if (this.disposed) return;
+  ammo(at: Vec2, damage: number, water = false): void {
+    if (this.disposed || water) return;
     this.scars.crater(
       at,
       this.heightAt(at.x, at.y),

@@ -2,7 +2,6 @@ import {
   BoxGeometry,
   BufferAttribute,
   BufferGeometry,
-  CircleGeometry,
   Group,
   Line,
   LineBasicMaterial,
@@ -12,6 +11,7 @@ import {
   RingGeometry,
   SphereGeometry,
 } from 'three';
+import { softScarGeometry } from './scarLayer';
 import { UI } from '../render/palette';
 import type { MechEntity } from '../sim/types';
 import type { PendingCall } from '../sim/support';
@@ -95,8 +95,8 @@ export function airImpact(run: number, index: number): AirImpact {
     new MeshBasicMaterial({ color: UI.smoke, transparent: true, opacity: 0, depthWrite: false }),
   );
   const scar = new Mesh(
-    new CircleGeometry(1, 12),
-    new MeshBasicMaterial({ color: 0x17110d, transparent: true, opacity: 0.62, depthWrite: false }),
+    softScarGeometry(),
+    new MeshBasicMaterial({ color: 0x17110d, vertexColors: true, transparent: true, opacity: 0.55, depthWrite: false }),
   );
   scar.name = `support-air-scar-${run}-${index}`;
   scar.rotation.x = -Math.PI / 2;

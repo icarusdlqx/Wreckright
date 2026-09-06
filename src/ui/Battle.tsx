@@ -333,7 +333,13 @@ export function Battle(props: BattleProps = {}) {
       ) : null}
       {state.briefingSeen && !state.campaignPending ? (
         activeTraining ? (
-          <TrainingCoach active step={training.step} onStep={training.onStep} />
+          <TrainingCoach active step={training.step} onStep={training.onStep} onShowGate={() => {
+            const engine = engineRef.current;
+            const gate = engine?.world.zones.find((zone) => zone.id === 'range_gate');
+            if (engine === null || gate === undefined) return;
+            engine.renderer.camera.skipDropIn();
+            engine.renderer.camera.centreOn({ x: gate.x, y: gate.y });
+          }} />
         ) : (
           <BattleCoach missionId={missionId} />
         )

@@ -118,7 +118,7 @@ export class SupportEffects {
       const seconds = Math.max(0, call.resolveTick - world.tick) * world.dt;
       visual.craft.visible = !this.reducedMotion && seconds > 0 && seconds <= 1.6;
       if (visual.craft.visible) {
-        const distance = -rules.length / 2 - 150 * seconds / 1.6;
+        const distance = -(rules.length / 2 + 150) * seconds / 1.6;
         const x = call.target.x + Math.cos(call.heading) * distance;
         const y = call.target.y + Math.sin(call.heading) * distance;
         visual.craft.position.set(x, this.heightAt(x, y) + 58, y);
@@ -206,7 +206,7 @@ export class SupportEffects {
       const along = -run.length / 2 + spacing * (index + 0.5);
       const ix = x + ax * along; const iz = y + az * along;
       impact.root.position.set(ix, this.heightAt(ix, iz), iz);
-      impact.scar.visible = true;
+      impact.scar.visible = world.terrain.idAtPoint({ x: ix, y: iz }) !== 'water';
       impact.flash.visible = false; impact.ring.visible = false; impact.smoke.visible = false;
     }
   }
@@ -215,8 +215,8 @@ export class SupportEffects {
     for (const run of this.air) {
       if (!run.active) continue;
       run.age += Math.max(0, deltaSeconds);
-      const travel = this.reducedMotion ? 0.5 : Math.min(1, run.age / 1.55);
-      const along = -run.length / 2 + (run.length + 220) * travel;
+      const travel = this.reducedMotion ? 0 : Math.min(1, run.age / 1.55);
+      const along = (run.length / 2 + 220) * travel;
       const x = run.x + Math.cos(run.heading) * along;
       const z = run.y + Math.sin(run.heading) * along;
       run.craft.position.set(x, this.heightAt(x, z) + 58, z);
@@ -226,7 +226,9 @@ export class SupportEffects {
       for (let index = 0; index < run.impacts.length; index += 1) {
         const impact = run.impacts[index];
         if (impact === undefined) continue;
-        const age = run.age - (this.reducedMotion ? 0 : 0.2 + index * 0.075);
+        // The simulation resolves the whole lane on this tick. Every flash
+        // starts together; the aircraft is already over the lane centre.
+        const age = run.age;
         const flashAge = Math.max(0, age);
         const showFlash = age >= 0 && age < 0.24;
         impact.flash.visible = showFlash;

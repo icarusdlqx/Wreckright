@@ -4,6 +4,7 @@ import { defaultDropBerths, missionSlots } from '../../campaign/campaign';
 import { deploymentCandidates } from '../../campaign/deployment';
 import { dailyPayroll } from '../../campaign/ledger';
 import type { Catalog } from '../../schema/load';
+import { CompanyJournal } from './CompanyJournal';
 import { cbills } from './Panels';
 import './campaignWorkspace.css';
 import type { CompanyArea } from './campaignNavigation';
@@ -13,6 +14,7 @@ const AREAS = [
   { id: 'workshop', label: 'Workshop', detail: 'Machines & repairs' },
   { id: 'crew', label: 'Crew', detail: 'Pilots & progression' },
   { id: 'supplies', label: 'Stores & yard', detail: 'Parts & trade' },
+  { id: 'journal', label: 'Journal', detail: 'Service & discoveries' },
 ] as const;
 type WorkspaceContent = ReactNode | ((active: boolean) => ReactNode);
 
@@ -26,16 +28,17 @@ interface CampaignWorkspaceProps {
   workshop: WorkspaceContent;
   crew: ReactNode;
   supplies: ReactNode;
+  journalNodeId?: string;
 }
 
 /** Navigation is transient. All financial and deployment decisions stay in campaign. */
 export function CampaignWorkspace({
-  catalog, state, fullCompany, operations, workshop, crew, supplies, area: controlledArea, onAreaChange,
+  catalog, state, fullCompany, operations, workshop, crew, supplies, area: controlledArea, onAreaChange, journalNodeId,
 }: CampaignWorkspaceProps) {
   const [localArea, setLocalArea] = useState<CompanyArea>('operations');
   const area = controlledArea ?? localArea;
   const setArea = onAreaChange ?? setLocalArea;
-  const selected = !fullCompany || state.finished ? 'operations' : area;
+  const selected = !fullCompany ? 'operations' : state.finished && area !== 'journal' ? 'operations' : area;
   const ready = deploymentCandidates(state).length;
   const completion = state.won ? 'Campaign complete'
     : state.log.some((entry) => entry.text.startsWith('The company retired.')) ? 'Company retired' : 'Campaign over';
@@ -47,9 +50,9 @@ export function CampaignWorkspace({
         <span className="company-contract-state"><i aria-hidden="true" />{state.finished ? completion : state.contract === null ? 'Available for contract' : 'Contract signed'}
           <small>{state.finished ? `Company record · day ${state.day}` : `${state.contract === null ? defaultDropBerths(catalog) : missionSlots(catalog, state.contract.missionId)} drop berths · mission tonnage applies`}</small></span>
       </div>
-      {!fullCompany || state.finished ? null : (
+      {!fullCompany ? null : (
         <nav className="company-navigation" aria-label="Company work areas">
-          {AREAS.map((entry, index) => (
+          {AREAS.filter((entry) => !state.finished || entry.id === 'operations' || entry.id === 'journal').map((entry, index) => (
             <button
               key={entry.id}
               type="button"
@@ -75,6 +78,9 @@ export function CampaignWorkspace({
       </div>
       <div id="company-area-supplies" className="company-area company-supplies" hidden={selected !== 'supplies'}>
         {fullCompany && !state.finished ? supplies : null}
+      </div>
+      <div id="company-area-journal" className="company-area" hidden={selected !== 'journal'}>
+        <CompanyJournal catalog={catalog} state={state} selectedNodeId={journalNodeId} />
       </div>
     </main>
   );

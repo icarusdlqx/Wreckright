@@ -19,7 +19,7 @@ import { isPlayerConsoleCue, lifecyclePlacement, preferredLifecycleEntity } from
 import { readAudioMuted, writeAudioMuted } from './audioPreference';
 import { fieldPlacement } from './audioPlacement';
 import { SCORE_CLOSE_DELAY_MS } from './audioScore';
-import { playSupportResolution } from './audioSupport';
+import { playSupportAcknowledgment, playSupportResolution } from './audioSupport';
 import {
   playAbility,
   playAlphaStrike,
@@ -303,6 +303,9 @@ export class AudioDirector {
           if (event.type === 'unit_withdrew') withdrawalVoiced = true;
           break;
         }
+        case 'support_called':
+          if (event.team === (world.playerTeam ?? 0)) playSupportAcknowledgment(graph, event.call);
+          break;
         case 'support_resolved':
           if (event.team === (world.playerTeam ?? 0)) {
             playSupportResolution(

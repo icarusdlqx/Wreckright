@@ -13,7 +13,7 @@ export function combatIntent(world: World, unit: UnitSnapshot): CommandIntent | 
   if (entity.shutdownRemaining > 0 || entity.downRemaining > 0) return null;
   // Orders can change while paused, before the next throttled HUD snapshot is published.
   if (isHoldingFire(entity)) return { label: 'Holding fire', detail: 'Weapons are safed. Useful when preserving a disabled machine.', tone: 'warn' };
-  if (entity.orders.move !== null) return { label: entity.orders.move.engage ? 'Advancing through contacts' : 'Following your route', detail: entity.orders.queue.length > 0 ? `${entity.orders.queue.length} further waypoint${entity.orders.queue.length === 1 ? '' : 's'} queued.` : 'A Move order takes priority over pursuing a target.', tone: 'normal' };
+  if (entity.orders.move !== null) return { label: entity.orders.move.engage ? 'Advancing through contacts' : 'Following your route', detail: entity.orders.queue.length > 0 ? `${entity.orders.queue.length} further waypoint${entity.orders.queue.length === 1 ? '' : 's'} queued.` : 'Your route takes priority over chasing a target. Guard cancels the route and keeps the priority target.', tone: 'normal' };
   const target = findEntity(world, entity.orders.attack?.targetId ?? entity.targetId);
   const preview = target === null ? null : hitPreview(world, entity, target);
   const plan = selectedAttackIntent(world, entity);

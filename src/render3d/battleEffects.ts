@@ -119,7 +119,7 @@ export class BattleEffects {
     this.elapsed += deltaSeconds;
     this.jets.begin();
   }
-  finishFrame(deltaSeconds: number): void {
+  finishFrame(deltaSeconds: number, readoutDeltaSeconds = deltaSeconds): void {
     if (this.destroyed) return;
     this.shakeTime += deltaSeconds;
     this.shakeAmplitude *= Math.exp(-deltaSeconds * 7);
@@ -138,7 +138,7 @@ export class BattleEffects {
 
     this.jets.commit();
     this.wear.smoke.followAnchors(this.resolveWreckAnchor);
-    this.readouts?.advance(deltaSeconds);
+    this.readouts?.advance(readoutDeltaSeconds);
   }
   advance(deltaSeconds: number): void {
     if (this.destroyed) return;
@@ -168,7 +168,7 @@ export class BattleEffects {
               TERMINAL_COLOUR,
               scale,
             );
-            this.wear.wreck(event.entityId, this.effectAt, this.effectPoint.y - 6);
+            this.wear.wreck(event.entityId, this.effectAt, this.effectPoint.y - 6, world.terrain.idAtPoint(this.effectAt) === 'water');
           } else {
             this.tracers.burst(
               this.effectAt,
@@ -178,7 +178,7 @@ export class BattleEffects {
               0.8 + Math.min(1, event.damage / 60),
             );
             this.tracers.spawnSmoke(this.effectAt, this.effectPoint.y - 14);
-            this.wear.ammo(this.effectAt, event.damage);
+            this.wear.ammo(this.effectAt, event.damage, world.terrain.idAtPoint(this.effectAt) === 'water');
           }
         }
         continue;
@@ -241,13 +241,7 @@ export class BattleEffects {
           this.toGroundPoint(this.effectPoint);
           this.emitBurst('hit', colour, 0.75 + Math.min(1.25, event.damage / 18),
             weapon?.type ?? 'generic', bearing + Math.PI);
-          const damage = weapon?.damage ?? 5;
-          this.wear.scars.mark(
-            this.effectAt,
-            this.heightAt(this.effectAt.x, this.effectAt.y),
-            3 + Math.min(9, damage * 0.35),
-            weapon?.type === 'energy' ? 1 : 0.25,
-          );
+          this.groundHit(world, event.damage, weapon?.type === 'energy');
           if (event.damage >= 14) this.addShake(1.6 * this.nearness(this.effectAt));
         }
         continue;
@@ -362,6 +356,15 @@ export class BattleEffects {
     this.mechanical.dispose();
     this.flashes.destroy();
     this.camera.shake.set(0, 0, 0);
+  }
+
+  private groundHit(world: World, damage: number, hot: boolean): void {
+    const ground = this.heightAt(this.effectAt.x, this.effectAt.y);
+    if (world.terrain.idAtPoint(this.effectAt) === 'water') {
+      this.tracers.footfall(this.effectAt, ground, 'water', 0.65 + Math.min(0.7, damage / 30));
+    } else if (damage >= 4) {
+      this.wear.scars.mark(this.effectAt, ground, 1.8 + Math.min(4.2, damage * 0.14), hot ? 1 : 0.25);
+    }
   }
 
   private locationOf(id: EntityId, location: MechLocation, out: Vector3): boolean {

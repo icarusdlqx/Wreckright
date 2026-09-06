@@ -1,0 +1,42 @@
+.camp .camp-store > ul:not(.camp-strip), .camp .market-part-stock {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(270px, 100%), 1fr));
+  align-items: start;
+  gap: 10px;
+}
+.camp .camp-store > ul:not(.camp-strip) > li,
+.camp .camp-market .market-part-stock > li { display: block; padding: 0; border: 0; }
+.supply-part-card { border: 1px solid #b8cabc; border-radius: 8px; padding: 13px; background: #f7f7ed; color: #244347; }
+.supply-part-card header { display: flex; align-items: center; gap: 9px; }
+.supply-part-card header > div { flex: 1; }
+.supply-part-card header strong { display: block; font-size: 14px; }
+.supply-part-card header small { display: block; margin-top: 3px; font-size: 10px; color: #526b67; }
+.supply-part-card .weapon-glyph { width: 44px; height: 35px; flex: none; }
+.supply-gear-icon { font-size: 29px; color: #397d76; }
+.supply-part-count { font-weight: 700; }
+.supply-part-card p { font-size: 11px; line-height: 1.5; margin: 6px 0; }
+.supply-part-card .supply-compatible { border-top: 1px solid #cbd4c3; padding-top: 8px; color: #426254; }
+.supply-fit-detail { font-size: 11px; }
+.supply-fit-detail summary { cursor: pointer; color: #2a6461; padding-block: 5px; }
+.supply-footprint { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 11px; margin: 12px 0 8px; }
+.supply-part-card .slot-boxes, .yard-machine-details .slot-boxes { display: flex; gap: 3px; flex-wrap: wrap; }
+.supply-part-card .rack-cell, .yard-machine-details .rack-cell { width: 15px; height: 15px; flex: 0 0 15px; border: 1.5px solid #285963; border-radius: 2px; background: #397c76; box-sizing: border-box; }
+.supply-part-card select, .supply-part-card button { width: 100%; min-height: 38px; margin-top: 8px; white-space: normal; }
+.camp .camp-strip > li > span > small { display: block; color: #536e67; margin-top: 4px; }
+.camp .camp-market .market-machine-stock > li { display: block; padding: 12px; border: 1px solid #c2ccbc; border-radius: 8px; }
+.market-machine-heading { display: flex; justify-content: space-between; gap: 12px; }
+.market-machine-stock details { margin-top: 10px; }
+.market-machine-stock summary { color: #2a6461; font-size: 12px; cursor: pointer; padding-block: 6px; }
+.yard-machine-details { color: #294d4e; background: #f0f2e5; padding: 12px; margin: 8px 0; border-radius: 6px; }
+.yard-machine-details p { font-size: 12px; line-height: 1.5; margin: 5px 0; }
+.yard-machine-details h5 { font-size: 11px; margin: 12px 0 6px; text-transform: uppercase; }
+.camp .yard-machine-details ul, .yard-machine-details ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.camp .yard-machine-details li, .yard-machine-details li { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; font-size: 11px; }
+.market-undo { display: flex; gap: 15px; align-items: center; background: #e4efd8; padding: 12px; border: 1px solid #98b293; font-size: 12px; }
+.market-sale-backdrop { position: fixed; inset: 0; z-index: 220; display: grid; place-items: center; padding: 20px; background: #173f48b8; }
+.market-sale-dialog { width: min(620px, 100%); max-height: calc(100dvh - 40px); overflow-y: auto; border-radius: 12px; padding: 24px; background: #fffdf4; color: #183d43; box-shadow: 0 18px 70px #12383e66; }
+.market-sale-dialog h2 { margin: 8px 0; font-size: 25px; }
+.market-sale-dialog p { line-height: 1.5; }
+.market-sale-dialog footer { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.market-sale-dialog button { min-height: 44px; padding: 9px 15px; }
+@media (max-width: 640px) { .supply-part-card select, .supply-part-card button { min-height: 44px; } }

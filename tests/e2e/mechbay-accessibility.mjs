@@ -1,3 +1,4 @@
+import { discardRefitIfPrompted } from './mechbay-exit.mjs';
 import { openDesktopBattleMenu } from './input-safety.mjs';
 
 export async function quietLocationState(page, allowArmourReveal = false) {
@@ -251,6 +252,7 @@ export async function verifyFoldPersistenceAfterReload({ page, check }) {
     JSON.stringify(folded),
   );
   await page.locator('[data-testid="bay-exit"]').click();
+  await discardRefitIfPrompted(page);
   await page.waitForSelector('[data-testid="briefing"]');
 }
 

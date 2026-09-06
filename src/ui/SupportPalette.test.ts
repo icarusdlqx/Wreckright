@@ -68,6 +68,13 @@ describe('compact support palette', () => {
     expect(air).toContain('aria-disabled="true"');
   });
 
+  it('reserves every description but exposes only the selected one to assistive technology', () => {
+    const html = markup(true, 'air_strike');
+    expect((html.match(/class="support-detail-reserve" aria-hidden="true"/g) ?? []).length).toBe(OPTIONS.length);
+    expect((html.match(/class="support-detail" aria-live="polite"/g) ?? []).length).toBe(1);
+    expect(html).toContain('data-testid="support-details"');
+  });
+
   it('surfaces a rejected placement next to the still-armed call', () => {
     const html = markup(false, 'sensor_probe', 'that point is off the map');
 

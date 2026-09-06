@@ -14,6 +14,7 @@ interface Props {
   stateOf: (node: CampaignNode) => NodeState;
   selectedId: string | null;
   onSelect: (id: string) => void;
+  onReview?: (id: string) => void;
 }
 
 /** What the contract actually asks you to do, from the mission it points at. */
@@ -31,7 +32,7 @@ function missionGlyph(catalog: Catalog, missionId: string): { glyph: string; kin
   return { glyph: '✳', kind: 'Strike' };
 }
 
-export function CampaignMap({ campaign, catalog, stateOf, selectedId, onSelect }: Props) {
+export function CampaignMap({ campaign, catalog, stateOf, selectedId, onSelect, onReview }: Props) {
   const mapRef = useRef<HTMLElement>(null);
   const [measured, setMeasured] = useState({ ...MAP_SSR_SIZE, borderHeight: 2, heights: {} as Record<string, number> });
   const nodes = campaign.nodes;
@@ -118,8 +119,8 @@ export function CampaignMap({ campaign, catalog, stateOf, selectedId, onSelect }
             className={`camp-node ${state} ${selectedId === node.id ? 'selected' : ''}`}
             style={{ left: `${position.x}%`, top: `${position.y}%`,
               '--camp-node-height': `${mapLabelHeight(state === 'available')}px` } as CSSProperties}
-            disabled={state !== 'available'}
-            onClick={() => onSelect(node.id)}
+            disabled={state === 'locked' || (state !== 'available' && onReview === undefined)}
+            onClick={() => state === 'available' ? onSelect(node.id) : onReview?.(node.id)}
             data-testid={`camp-node-${node.id}`}
             data-map-node={node.id}
             title={`${employer} · ${kind}`}
@@ -135,7 +136,7 @@ export function CampaignMap({ campaign, catalog, stateOf, selectedId, onSelect }
               <span className="node-state">
                 {state === 'available'
                   ? `${(node.basePayout / 1000).toFixed(0)}k · salvage to ${(node.maxSalvageShare * 100).toFixed(0)}%`
-                  : state}
+                  : state === 'locked' ? 'locked' : `${state} · Review`}
               </span>
             </span>
           </button>

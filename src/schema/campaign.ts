@@ -29,6 +29,7 @@ export const CampaignSchema = z
   .strictObject({
     id: IdSchema,
     name: NameSchema,
+    presentation: z.strictObject({ faction: z.enum(['linewrought', 'aurelian']), title: z.string().max(80), premise: z.string().max(400), strength: z.string().max(250), tradeoff: z.string().max(250) }).optional(),
     startingCbills: z.number().int().positive(),
     startingDay: z.number().int().nonnegative(),
     startingDesignIds: z.array(IdSchema).min(1).max(12),

@@ -7,7 +7,7 @@ export interface RepairVisual {
   phase: 'hidden' | 'incoming' | 'working' | 'departing';
   seen: boolean; team: number; x: number; y: number; endTick: number; age: number;
   parkX: number; parkY: number;
-  root: Group; vehicle: Group; boom: Group; radius: Mesh; progress: Line;
+  root: Group; vehicle: Group; boom: Group; radius: Mesh; progress: Line; hub: Group; tether: Line;
   colour: MeshStandardMaterial; beacon: Mesh; dust: Mesh; lift: Group; links: Line[]; welds: Mesh[];
 }
 
@@ -46,8 +46,13 @@ export function repairTruckModel(slot: number): RepairVisual {
     positions.setXYZ(0, -8, 11, side * 5); positions.setXYZ(1, 0, 45, side * 12); positions.setXYZ(2, 8, 12, side * 5); positions.needsUpdate = true;
     cable.visible = true; lift.add(cable);
   }
-  const radius = new Mesh(new RingGeometry(0.982, 1, 56), new MeshBasicMaterial({ color: 0x9ae5c3, transparent: true, opacity: 0.32, depthWrite: false }));
+  const radius = new Mesh(new RingGeometry(0.982, 1, 56), new MeshBasicMaterial({ color: 0x9ae5c3, transparent: true, opacity: 0.68, depthWrite: false }));
   radius.name = `support-repair-radius-${slot}`; radius.rotation.x = -Math.PI / 2; radius.position.y = 1; root.add(radius);
+  const hub = new Group(); hub.name = `repair-service-hub-${slot}`; root.add(hub);
+  const hubMaterial = new MeshStandardMaterial({ color: 0xbfe5d1, emissive: 0x51b994, emissiveIntensity: 0.4, roughness: 0.75 });
+  box(hub, [8, 0.8, 2], [0, 1.5, 0], hubMaterial);
+  box(hub, [2, 0.8, 8], [0, 1.5, 0], hubMaterial);
+  const tether = effectLine(`repair-service-tether-${slot}`, 3, 0x9ae5c3, 0.85); root.add(tether);
   const progress = effectLine(`repair-service-clock-${slot}`, 49, 0xffd09b, 0.85); root.add(progress);
   const dust = new Mesh(new RingGeometry(0.65, 1, 24), new MeshBasicMaterial({ color: 0xe2c594, transparent: true, opacity: 0, depthWrite: false }));
   dust.rotation.x = -Math.PI / 2; dust.position.y = 1.2; root.add(dust);
@@ -58,5 +63,5 @@ export function repairTruckModel(slot: number): RepairVisual {
     weld.name = `repair-weld-${slot}-${index}`; weld.visible = false; welds.push(weld); root.add(weld);
   }
   return { phase: 'hidden', seen: false, team: -1, x: 0, y: 0, endTick: -1, age: 0,
-    parkX: 0, parkY: 0, root, vehicle, boom, radius, progress, colour, beacon, dust, lift, links, welds };
+    parkX: 0, parkY: 0, root, vehicle, boom, radius, progress, hub, tether, colour, beacon, dust, lift, links, welds };
 }

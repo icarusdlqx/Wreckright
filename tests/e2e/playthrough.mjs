@@ -1,3 +1,5 @@
+import { runSuppliesRefitUpgradeChecks } from './supplies-refit-upgrades.mjs';
+import { runCompanyJournalChecks } from './company-journal.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import { checkCampaignHaul } from './campaign-haul.mjs';
 import { runMechbayCrewChecks } from './mechbay-crew.mjs';
@@ -721,9 +723,27 @@ async function main() {
     await page.locator('[data-testid="command-hold_fire"]').click();
 
     process.stdout.write('\ncalled shot\n');
-    await page.locator('[data-testid="doll-left_leg"]').click();
-    check('called shot mode arms from the paper doll', (await state(page)).orderMode === 'called_shot');
-    check('called shot location is recorded', (await state(page)).calledShotLocation === 'left_leg');
+    check('own armour is an inspection view, not a called-shot control',
+      await page.locator('[data-testid="doll-left_leg"]').isDisabled());
+    // A controlled optical fixture lets this input test inspect a real hostile body section.
+    const aimTarget = await page.evaluate(() => {
+      const { engine, world } = globalThis.__wreckright;
+      const enemy = world.entities.find(entity => entity.team !== world.playerTeam && !entity.destroyed);
+      world.reveals.push({ kind: 'optical', team: world.playerTeam, x: enemy.pos.x, y: enemy.pos.y,
+        radius: 260, expiresTick: world.tick + 400 });
+      engine.forceStep();
+      return enemy.id;
+    });
+    await page.locator('[data-testid="command-called_shot"]').click();
+    await page.locator('[data-testid="called-shot-hostile"]').selectOption(String(aimTarget));
+    await page.locator('[data-testid="called-shot-target"] [data-testid="doll-left_leg"]').click();
+    check('called shot targets the chosen hostile section through its armour panel',
+      (await state(page)).orderMode === 'called_shot' && (await state(page)).calledShotLocation === 'left_leg'
+      && await page.evaluate(({ selectedId, aimTarget }) => {
+        const entity = globalThis.__wreckright.world.entities.find(entity => entity.id === selectedId);
+        return entity.orders.attack?.targetId === aimTarget && entity.orders.attack?.calledShot === 'left_leg';
+      }, { selectedId, aimTarget }));
+    await page.locator('[data-testid="called-shot-target"] button').filter({ hasText: 'Done' }).click();
 
     process.stdout.write('\ncamera\n');
     const zoomPointer = { x: box.width * 0.72, y: box.height * 0.46 };
@@ -1213,7 +1233,7 @@ async function main() {
     await page.screenshot({ path: `${SHOTS}/06b-aurelian-campaign.png` });
     await companyFile(page, 'camp-campaigns');
     await page.locator('[data-testid="campaign-choice"]').selectOption('border_dispute');
-    await page.locator('[data-testid="campaign-choice-start"]').click();
+    await page.locator('[data-testid="campaign-choice-resume"]').click();
     await page.waitForSelector('[data-testid="camp-node-militia_raid"]');
 
     const campaignNodeIds = await page.locator('.camp-node').evaluateAll((nodes) =>
@@ -1431,12 +1451,20 @@ async function main() {
       .locator('option:not([value=""])')
       .allInnerTexts();
     check(
-      'the manifest offers weight, class, authored role and culture without serials',
-      manifestMachineLabels.length > 0 && manifestMachineLabels.every((label) =>
-        /^[^—]+ — \d+t (Light|Medium|Heavy|Assault) · [^·]+ · (Linewrought|Aurelian Stock)( \([^)]+\))?$/.test(label) &&
+      'manifest assignments distinguish company bays and show tonnage and the current occupant',
+      manifestMachineLabels.length > 0 && new Set(manifestMachineLabels).size === manifestMachineLabels.length && manifestMachineLabels.every((label) =>
+        /^[^·]+ · Bay \d+ · \d+t · .+$/.test(label) &&
+        manifestCrew.some((pilot) => label.endsWith(` · ${pilot.name}`)) &&
         !/\b[A-Z]{3}-\d+\b/.test(label)),
       manifestMachineLabels.join(' | '),
     );
+    const manifestIdentities = await page.locator('.manifest-mech .exp-machine-identity').evaluateAll((cards) =>
+      cards.map((card) => ({ identity: card.getAttribute('aria-label'), visible: card.textContent })));
+    check('manifest cards retain machine class, authored role and faction beside the shorter assignment picker',
+      manifestIdentities.length > 0 && manifestIdentities.every(({ identity, visible }) =>
+        /^[^—]+ — \d+t (Light|Medium|Heavy|Assault) · [^·]+ · (Linewrought|Aurelian Stock)$/.test(identity ?? '') &&
+        /\d+t (Light|Medium|Heavy|Assault) · .+/i.test(visible ?? '') && /Linewrought|Aurelian Stock/.test(visible ?? '')),
+      JSON.stringify(manifestIdentities));
     check(
       'the manifest marks who is actually dropping',
       (await page.locator('.manifest-row.drops').count()) > 0,
@@ -1783,6 +1811,8 @@ async function main() {
     await runCommandRefinementChecks({ browser, url: URL, shots: SHOTS, check });
     await runRefinementTouchChecks({ browser, url: URL, shots: SHOTS, check });
     await runCompanyOutcomeChecks({ browser, url: URL, shots: SHOTS, check });
+    await runSuppliesRefitUpgradeChecks({ browser, url: URL, shots: SHOTS, check });
+    await runCompanyJournalChecks({ browser, url: URL, shots: SHOTS, check });
     await runLoreWikiChecks({ browser, url: URL, shots: SHOTS, check });
     await runOpeningRouteChecks({ browser, url: URL, shots: SHOTS, check });
     await runSensorActivationChecks({ browser, url: URL, shots: SHOTS, check });

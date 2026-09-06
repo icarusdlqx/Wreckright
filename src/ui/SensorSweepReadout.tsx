@@ -63,7 +63,7 @@ export function SensorSweepReadout({ world }: { world: World | null }) {
           {' · '}{mechs.remainingSeconds}s remaining · {mechs.count > 1 ? 'up to ' : ''}{mechs.maximumRange}m instrument range
         </span>}
         {status === null ? null : <span><strong>{status.count === 1 ? 'Sensor sweep' : `${status.count} sensor sweeps`}</strong>
-          {' · '}probe coverage · {status.remainingSeconds}s remaining</span>}
+          {' · '}probe tracking · {status.remainingSeconds}s remaining</span>}
         <span className="sensor-sweep-contacts">Lance: {contacts} live sensor return{contacts === 1 ? '' : 's'} · optics required for direct fire</span>
       </div>
     </aside>

@@ -1,3 +1,4 @@
+import { checkSensorFieldTracking } from './sensor-field-tracking.mjs';
 const state = page => page.evaluate(() => {
   const { world, useGame } = globalThis.__wreckright;
   return { tick: world.tick, rng: world.rng.save(), contacts: useGame.getState().contacts,
@@ -179,6 +180,9 @@ export async function runSensorActivationChecks({ browser, url, shots, check }) 
         await page.evaluate(() => globalThis.__wreckright.useGame.getState().orderMode === 'move'));
       await shot(layout);
     }
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.evaluate(() => { for (const entity of globalThis.__wreckright.world.entities) if (entity.team === globalThis.__wreckright.world.playerTeam) entity.sensorRange = 0; });
+    await checkSensorFieldTracking({ page, url, id: fixture.enemyId, check, shot });
     check('sensor activation review has no browser errors', errors.length === 0, errors.join('\n'));
   } catch (error) { await shot('error').catch(() => {}); throw error; }
   finally { await context.close(); }

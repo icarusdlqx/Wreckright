@@ -179,10 +179,10 @@ describe('training steps', () => {
     ).toBe(1);
   });
 
-  it('catches up when the player has already performed later actions', () => {
+  it('advances only one lesson when later actions have already occurred', () => {
     expect(
       advanceTrainingStep(1, { selected: true, moved: true, engaged: true, heated: true }),
-    ).toBe(4);
+    ).toBe(2);
   });
 });
 
@@ -193,6 +193,14 @@ describe('the range mission', () => {
     expect(
       mission?.triggers.flatMap((trigger) => trigger.effects).some((effect) => effect.type === 'spawn'),
     ).toBe(false);
+  });
+
+  it('keeps all range targets on the north station while the player is at the start', () => {
+    const world = createWorld(catalog, { missionId: TRAINING_MISSION_ID, playerTeam: 0, seed: 'range-station' });
+    for (let tick = 0; tick < 200; tick += 1) stepWorld(world, catalog.rules.simulation.maxBattleTicks);
+    const targets = world.entities.filter((entity) => entity.team === 1);
+    expect(targets.every((entity) => entity.pos.y < 320 && entity.targetId === null)).toBe(true);
+    expect(world.objectives.find((objective) => objective.id === 'cross_range_gate')?.status).toBe('active');
   });
 
   it('keeps the drill running after the first target falls', () => {

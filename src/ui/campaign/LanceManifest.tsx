@@ -3,7 +3,7 @@ import type { Catalog } from '../../schema/load';
 import { deploymentCandidates, deploymentPlan } from '../../campaign/deployment';
 import { chooseDeployment } from '../../campaign/lancePresets';
 import { employerNameFor } from '../../campaign/employers';
-import { assign } from '../../campaign/roster';
+import { assignWithReceipt } from './companyLabels';
 import type { CampaignState } from '../../campaign/types';
 import { ContractBriefing } from './ContractBriefing';
 import { useDialogFocus } from '../useDialogFocus';
@@ -15,7 +15,7 @@ import './lanceSelection.css';
 interface Props {
   catalog: Catalog;
   state: CampaignState;
-  mutate: (change: (draft: CampaignState) => void, message?: string) => void;
+  mutate: (change: (draft: CampaignState) => string | null | void, message?: string) => void;
   onLaunch: () => void;
   onCancel: () => void;
   onRefit: (mechId: string) => void;
@@ -49,7 +49,7 @@ export function LanceManifest({ catalog, state, mutate, onLaunch, onCancel, onRe
         aboard ? plan.pilotIds.filter((entry) => entry !== id) : [...plan.pilotIds, id]))}
       onSeat={(mechId) => mutate((draft) => {
         chooseDeployment(draft, plan.pilotIds);
-        assign(draft, id, mechId === '' ? null : mechId);
+        return assignWithReceipt(catalog, draft, id, mechId === '' ? null : mechId);
       })} />;
   };
   return <div className="manifest-backdrop" data-testid="lance-manifest">

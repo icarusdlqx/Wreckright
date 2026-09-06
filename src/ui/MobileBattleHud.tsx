@@ -8,6 +8,7 @@ import { FormationPicker } from './FormationPicker';
 import { Minimap } from './Minimap';
 import { HostileBar, LanceBar, SupportPalette } from './Panels';
 import { selectedUnit, useGame } from './store';
+import { selectionAfterClick } from './selectionAfterClick';
 import type { SupportOption } from './supportOptions';
 import { SupportStatus } from './SupportStatus';
 import { TrainingHeatReadout } from './TrainingHeatReadout';
@@ -19,6 +20,7 @@ import {
 } from './trainingPresentation';
 import type { TrainingStep } from './trainingProgress';
 import { UnitPanel } from './UnitPanel';
+import { selectionAbilities } from './selectionAbilities';
 
 type DockPanel = 'orders' | 'support' | 'contacts' | 'unit';
 
@@ -39,6 +41,7 @@ export function MobileBattleHud({
   const unit = selectedUnit(state);
   const [panel, setPanel] = useState<DockPanel>('orders');
   const playerControlled = unit !== null && unit.team === state.playerTeam && unit.alive;
+  const abilities = selectionAbilities(state.units, state.selection, state.playerTeam, engine);
   const fullHud = trainingShowsFullHud(trainingStep);
   const showsContacts = trainingShowsContacts(trainingStep);
   const showsHeat = trainingShowsHeatReadout(trainingStep);
@@ -88,6 +91,10 @@ export function MobileBattleHud({
     if (!panelAllowed && fallbackPanel !== null) setPanel(fallbackPanel);
   }, [fallbackPanel, panelAllowed]);
 
+  useEffect(() => {
+    if (fullHud && state.orderMode === 'called_shot') setPanel('unit');
+  }, [fullHud, state.orderMode]);
+
   const choosePanel = (next: DockPanel): void => {
     setPanel(next);
     if (next !== 'support') state.setSupportMode(null);
@@ -128,7 +135,7 @@ export function MobileBattleHud({
           <LanceBar
             units={state.units}
             selection={state.selection}
-            onSelect={(id) => state.setSelection([id])}
+            onSelect={(id, additive) => state.setSelection(selectionAfterClick(state.selection, id, additive))}
           />
           <CentreSelectionButton engine={engine} className="mobile-lance-action" />
           {fullHud ? <CommanderToggle compact disabled={engine === null} /> : null}
@@ -194,6 +201,7 @@ export function MobileBattleHud({
                 holdingFire={unit?.holdingFire ?? false}
                 heatSafety={unit?.heatSafety ?? false}
                 ability={unit?.ability ?? null}
+                abilitySelection={abilities}
                 alpha={unit?.alpha ?? null}
                 jump={
                   unit === null
@@ -220,7 +228,7 @@ export function MobileBattleHud({
                 contacts={state.contacts}
                 targetIds={targetIds}
                 hasSelection={selectedAlive}
-                onTarget={(id) => engine?.orderAttack(id, null)}
+                onTarget={(id) => engine?.orderAttack(id, state.orderMode === 'called_shot' ? state.calledShotLocation : null)}
                 onContact={(contact) => engine?.engageContact(contact.id, contact.position)}
               />
             ) : showsHeat ? (

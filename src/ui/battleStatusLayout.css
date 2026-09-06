@@ -1,0 +1,63 @@
+/* A shared flow column keeps live contacts and scan feedback clear of the pause notice. */
+.battle-field-status {
+  position: absolute;
+  z-index: 9;
+  top: 98px;
+  left: 274px;
+  right: 300px;
+  display: grid;
+  gap: 6px;
+  pointer-events: none;
+}
+.battle-field-status > .hostiles,
+.battle-field-status > .sensor-sweep-readout {
+  position: static;
+  transform: none;
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  box-sizing: border-box;
+}
+.battle-field-status > .hostiles { pointer-events: auto; }
+.app .battle-field-status .hostile {
+  width: 192px;
+  min-width: 176px;
+  max-height: 70px;
+  box-sizing: border-box;
+}
+.app .hostile-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hostile-state { grid-column: 1 / -1; color: #b6c8c2; font-size: 9px; }
+.app .battle-field-status .sensor-contact-note { font-size: 9px; letter-spacing: 0; white-space: nowrap; }
+.app .paused-banner { top: 58px; white-space: nowrap; }
+.app .field-radio { top: auto; bottom: 216px; }
+.commander-mode .battle-field-status,
+.commander-mode .paused-banner { display: none; }
+
+.selection-abilities { flex-basis: 100%; font-size: 11px; color: #c9ddd2; }
+.selection-abilities > summary { cursor: pointer; min-height: 30px; display: flex; align-items: center; }
+.selection-abilities ul { list-style: none; margin: 0; padding: 0; max-height: 170px; overflow: auto; }
+.selection-abilities li { padding: 7px 0; border-top: 1px solid #aac6bd33; }
+.selection-abilities li > span { margin-left: 8px; color: #e9c991; }
+.selection-abilities p { margin: 4px 0 0; line-height: 1.4; }
+.called-shot-target { margin: 10px 0; padding: 10px; border: 1px solid #dd857a; border-radius: 5px; background: #452c2a55; }
+.called-shot-target header { display: flex; gap: 6px; align-items: center; justify-content: space-between; font-size: 12px; }
+.called-shot-target button { cursor: pointer; }
+.called-shot-target header button { min-height: 32px; padding: 4px 8px; }
+.called-shot-target label { display: grid; gap: 5px; margin-top: 9px; font-size: 10px; }
+.called-shot-target select { min-height: 34px; width: 100%; }
+.called-shot-target p { font-size: 10px; line-height: 1.5; }
+.called-shot-target .doll-cell { border-color: #de9185; }
+
+@media (min-width: 641px) and (max-width: 1180px) {
+  .battle-field-status { left: 216px; right: 208px; }
+}
+@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+  .app .paused-banner { top: calc(var(--mobile-top) + 5px); font-size: 13px; }
+  .app .field-radio { bottom: calc(var(--mobile-dock) + 16px + var(--safe-bottom)); }
+  .called-shot-target select, .called-shot-target header button { min-height: 44px; }
+  .selection-abilities > summary { min-height: 44px; }
+  .commander-mode .sensor-sweep-readout { display: none; }
+}
+
+.command-intent > button { margin-top: 7px; padding: 6px 9px; min-height: 34px; border: 1px solid #8eb6a4; border-radius: 5px; background: #294b42; color: #edf3df; cursor: pointer; }

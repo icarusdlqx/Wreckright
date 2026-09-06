@@ -1,4 +1,3 @@
-import type { MechLocation } from '../schema/common';
 import type { Engine } from './engine';
 import { EventLog, HeatBar, WeaponGroups } from './Panels';
 import { PaperDoll } from './PaperDoll';
@@ -9,6 +8,7 @@ import { selectionReadiness } from './selectionReadiness';
 import './tacticalWorkspace.css';
 import { CommandIntent } from './CommandIntent';
 import { FieldHints } from './FieldHints';
+import { CalledShotTarget } from './CalledShotTarget';
 
 
 /** A trait's painted name; the id only if the rules no longer know it. */
@@ -30,11 +30,6 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
           ?.name ?? preview.targetName;
   const playerControlled = unit !== null && unit.team === state.playerTeam && unit.alive;
   const readiness = unit === null ? null : selectionReadiness(unit);
-
-  const onSelectLocation = (location: MechLocation): void => {
-    state.setCalledShotLocation(location);
-    state.setOrderMode('called_shot');
-  };
 
   return (
     <aside
@@ -63,11 +58,19 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
             </p>
           ) : null}
           {readiness === null ? null : <div className={`selection-readiness ${readiness.tone}`}><span>{readiness.label}</span><strong>{unit.tonnage}t</strong></div>}
-          <p className="unit-system-label">Armour &amp; structure <span>front / rear / internal</span></p>
+          {playerControlled && state.orderMode === 'called_shot' ? <CalledShotTarget
+            enemies={state.enemies}
+            currentTargetId={unit.targetId}
+            location={state.calledShotLocation}
+            onAim={(id, location) => {
+              state.setCalledShotLocation(location);
+              engine?.orderAttack(id, location);
+            }}
+            onCancel={() => state.setOrderMode(null)}
+          /> : null}
+          <p className="unit-system-label">{playerControlled ? 'Own armour' : 'Observed armour'} &amp; structure <span>front / rear / internal</span></p>
           <PaperDoll
             locations={unit.locations}
-            {...(playerControlled ? { onSelectLocation } : {})}
-            activeLocation={state.orderMode === 'called_shot' ? state.calledShotLocation : null}
           />
           <HeatBar heat={unit.heat} capacity={unit.heatCapacity} thresholds={state.heatTiers} />
           <div className="target-line">

@@ -145,10 +145,9 @@ export function advanceTrainingStep(
   current: TrainingStep,
   signals: TrainingSignals,
 ): TrainingStep {
-  let next = current;
-  if (next === 0 && signals.selected) next = 1;
-  if (next === 1 && signals.moved) next = 2;
-  if (next === 2 && signals.engaged) next = 3;
-  if (next === 3 && signals.heated) next = 4;
-  return next;
+  if (current === 0 && signals.selected) return 1;
+  if (current === 1 && signals.moved) return 2;
+  if (current === 2 && signals.engaged) return 3;
+  if (current === 3 && signals.heated) return 4;
+  return current;
 }

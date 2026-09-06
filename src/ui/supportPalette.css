@@ -112,7 +112,8 @@
 .support-availability { grid-column: 2; font-size: 9px; color: var(--muted); }
 .support-availability.blocked { color: var(--warn); }
 
-.support-detail {
+.support-detail,
+.support-detail-reserve {
   margin-top: 7px;
   padding-top: 7px;
   display: grid;
@@ -124,13 +125,15 @@
   line-height: 1.35;
 }
 
-.support-detail strong {
+.support-detail strong,
+.support-detail-reserve strong {
   grid-row: 1 / 4;
   color: var(--text);
   font-size: 10px;
 }
 
-.support-detail .blocked {
+.support-detail .blocked,
+.support-detail-reserve .blocked {
   color: var(--warn);
 }
 
@@ -185,7 +188,8 @@
   min-height: 44px;
 }
 
-.support.embedded .support-detail {
+.support.embedded .support-detail,
+.support.embedded .support-detail-reserve {
   width: 260px;
   min-width: 260px;
   margin: 0;
@@ -193,7 +197,7 @@
   grid-template-columns: 1fr;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 4px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .support-notice {
@@ -222,7 +226,8 @@
   align-self: stretch;
 }
 
-.support.embedded .support-detail strong {
+.support.embedded .support-detail strong,
+.support.embedded .support-detail-reserve strong {
   grid-row: auto;
 }
 
@@ -230,4 +235,34 @@
   .support.embedded .support-drawer {
     overflow-x: auto;
   }
+}
+
+
+/* Overlaid intrinsic rows reserve the longest description, so hovering cannot move the buttons. */
+.support-details {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  max-height: min(180px, calc(100dvh - 230px));
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+.support-details > .support-detail,
+.support-details > .support-detail-reserve {
+  grid-area: 1 / 1;
+  align-content: start;
+  min-width: 0;
+}
+.support-detail-reserve { visibility: hidden; pointer-events: none; }
+.support.embedded .support-details {
+  flex: none;
+  width: 280px;
+  min-width: 280px;
+  height: 100%;
+  max-height: 100%;
+}
+.support.embedded .support-details > div {
+  width: auto;
+  min-width: 0;
+  box-sizing: border-box;
 }

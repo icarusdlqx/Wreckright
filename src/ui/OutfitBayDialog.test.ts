@@ -53,9 +53,9 @@ describe('skirmish outfit dialog', () => {
     expect(html).toContain('tabindex="-1"');
 
     const source = readFileSync(new URL('./OutfitBayDialog.tsx', import.meta.url), 'utf8');
-    expect(source).toContain('useDialogFocus(dialogRef, dialogRef, onClose)');
+    expect(source).toContain('useDialogFocus(dialogRef, dialogRef)');
     expect(source.indexOf('useModalBackgroundIsolation(backdropRef)')).toBeLessThan(
-      source.indexOf('useDialogFocus(dialogRef, dialogRef, onClose)'),
+      source.indexOf('useDialogFocus(dialogRef, dialogRef)'),
     );
 
     const battleSource = readFileSync(new URL('./Battle.tsx', import.meta.url), 'utf8');

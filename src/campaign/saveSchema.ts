@@ -124,6 +124,7 @@ const MissionOutcomeSchema = z.strictObject({
     supplierDiscountThroughDay: z.number().int().nonnegative().nullable(),
     afterword: z.string().max(500),
   })).max(8).optional(),
+  objectiveReports: z.array(z.strictObject({ id: IdSchema, label: z.string(), required: z.boolean(), status: z.string() })).optional(),
   pilotCasualties: z.array(z.string()),
   mechsLost: z.array(z.string()),
   // Saves written before debriefs were recorded load with none.
@@ -139,6 +140,7 @@ const MissionOutcomeSchema = z.strictObject({
         // Older debriefs did not snapshot the pilot's bank after a drop.
         xpBanked: z.number().nonnegative().nullable().default(null),
         sharedXp: z.number().int().nonnegative().optional(),
+        serviceNotes: z.array(z.string().max(600)).max(6).optional(),
         promotions: z.array(z.string()),
         fate: z.enum(['returned', 'injured', 'killed']),
       }),

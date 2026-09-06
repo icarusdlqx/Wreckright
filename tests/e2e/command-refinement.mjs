@@ -1,3 +1,4 @@
+import { discardRefitIfPrompted } from './mechbay-exit.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import { nativeBayDrag } from './native-bay-drag.mjs';
 
@@ -61,6 +62,7 @@ export async function runCommandRefinementChecks({ browser, url, shots, check })
     await page.locator('[data-testid="bay-redo"]').click();
     check('redo reapplies one atomic replacement without mutating the company', await arm.getByRole('button', { name: 'Inspect Medium Laser', exact: true }).count() === 1 && JSON.stringify(await company(page)) === original);
     await page.locator('[data-testid="bay-exit"]').click();
+    await discardRefitIfPrompted(page);
     await page.locator('[data-testid="refit-bay"]').waitFor({ state: 'hidden' });
     await page.locator('[data-testid="camp-area-operations"]').click();
     await page.locator('[data-testid="camp-accept"]').click();

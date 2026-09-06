@@ -1,6 +1,13 @@
 {
   "id": "aurelian_recall",
   "name": "The Great Recall: Custodians",
+  "presentation": {
+    "faction": "aurelian",
+    "title": "Aurelian Stock",
+    "premise": "A custody detachment with immaculate machines and orders to reclaim Tessell. The paperwork calls the locals obsolete. The battlefield may disagree.",
+    "strength": "Precision weapons, advanced systems and disciplined crews. Concentrate superior firepower where it matters.",
+    "tradeoff": "Costly recovery, tighter salvage rights and fewer ways to earn between warrants. Every damaged machine strains the detachment."
+  },
   "startingCbills": 1600000,
   "startingDay": 0,
   "startingDesignIds": [
@@ -41,7 +48,7 @@
       "name": "First Warrant",
       "missionId": "raid_ridge",
       "employerId": "continuance_tender",
-      "brief": "The Recall Authority has attested three Linewrought roots moving through the ridge pass under foundry marks. Break the militia screen and hold the warrant ground long enough for the custody readers to record the machines. The Tender pays for compliance, not wreckage.",
+      "brief": "Clear the ridge supply route for the Recall Authority, the Aurelian body ordering this repossession. Destroy the Linewrought militia walker and two escort vehicles so the custody tender convoy can advance. Your precision weapons give you an edge; repairs stay on the company account.",
       "requires": [],
       "basePayout": 650000,
       "maxSalvageShare": 0.1,
@@ -73,7 +80,11 @@
           "label": "Dispatch ledger: Deep Scanner",
           "objectiveId": "copy_dispatch_ledger",
           "items": [
-            { "kind": "equipment", "itemId": "active_probe", "count": 1 }
+            {
+              "kind": "equipment",
+              "itemId": "active_probe",
+              "count": 1
+            }
           ],
           "afterword": "The Tender releases a Deep Scanner from survey stock against the copied dispatch ledger. This is supplied equipment, not a recovered hostile component."
         }
@@ -84,7 +95,7 @@
       "name": "Under Civil Seal",
       "missionId": "custody_resupply",
       "employerId": "continuance_tender",
-      "brief": "The survey locates a stranded service tender. Hold its loading stand for 120 seconds with up to 135 tonnes and three machines. Surviving claimants do not block the transfer. The optional seal cabinet releases field support; any recovered hull still follows the negotiated custody share.",
+      "brief": "The survey locates a stranded tender beside the causeway. Protect its loading stand, secure the causeway relay, and hold both for a 30-second transfer. Bring up to 135 tonnes and three machines. The optional seal cabinet supplies field support; surviving claimants do not block completion.",
       "requires": [
         "custody_survey"
       ],
@@ -100,7 +111,11 @@
           "id": "tender_optics",
           "label": "Tender stock: two Focused Medium Lasers",
           "items": [
-            { "kind": "weapon", "itemId": "er_medium_laser", "count": 2 }
+            {
+              "kind": "weapon",
+              "itemId": "er_medium_laser",
+              "count": 2
+            }
           ],
           "afterword": "The closed transfer releases two crated Focused Medium Lasers to the company. Their custody papers permit fitting; they do not erase repair costs."
         },
@@ -109,9 +124,15 @@
           "label": "Seal cabinet: burst optics and one workshop day credit",
           "objectiveId": "recover_sealed_stock",
           "items": [
-            { "kind": "weapon", "itemId": "medium_pulse_laser", "count": 2 }
+            {
+              "kind": "weapon",
+              "itemId": "medium_pulse_laser",
+              "count": 2
+            }
           ],
-          "effects": { "freeRepairDays": 1 },
+          "effects": {
+            "freeRepairDays": 1
+          },
           "afterword": "The cabinet carries two Medium Burst Lasers and banks one workshop day credit for a later repair or rebuild booking. Parts, labour and payroll remain payable. The burst optics trade reach for close-range accuracy."
         }
       ]

@@ -115,9 +115,15 @@ export async function runMechbayCrewChecks({ browser, url, shots, check }) {
       await right.locator('.rack-cell--incoming').count() === 1
       && (await right.innerText()).includes('Flamer')
       && (await right.innerText()).includes('Fits held part'));
-    check('an incompatible head explains why the weapon cannot fit',
+    await head.hover();
+    check('inspecting an incompatible head explains why the weapon cannot fit',
       (await head.innerText()).includes('Cannot fit held part')
       && await head.locator('.bay-location-refusal').isVisible());
+    await head.locator('[data-testid="armour-faces-head"]').focus();
+    await page.mouse.move(0, 0);
+    check('keyboard inspection also keeps the incompatible location reason visible',
+      await head.locator('.bay-location-refusal').isVisible()
+      && (await head.locator('.bay-location-refusal').innerText()).trim().length > 0);
     await page.screenshot({ path: `${shots}/crew-fit-preview.png` });
     await right.scrollIntoViewIfNeeded();
     await page.screenshot({ path: `${shots}/crew-fit-targets.png` });
