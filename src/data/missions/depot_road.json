@@ -130,5 +130,15 @@
       ]
     }
   ],
-  "dropTonnage": 225
+  "dropTonnage": 225,
+  "enemyDirectives": [
+    {
+      "id": "reader_counterattack",
+      "team": 1,
+      "zoneId": "survey_key",
+      "behavior": "retake",
+      "units": 4,
+      "pursuitRadius": 400
+    }
+  ]
 }

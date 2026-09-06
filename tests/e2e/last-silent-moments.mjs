@@ -93,6 +93,7 @@ function sourceSignature(sources) {
 async function renderWorstCaseMix(page) {
   return page.evaluate(async () => {
     const voices = await import('/src/ui/audioVoices.ts');
+    const radio = await import('/src/ui/audioRadio.ts');
     const sampleRate = 48_000;
     const context = new OfflineAudioContext(1, sampleRate * 2, sampleRate);
     const compressor = context.createDynamicsCompressor();
@@ -137,6 +138,8 @@ async function renderWorstCaseMix(page) {
     voices.playLifecycleMoment(bus, 'pilot_ejected', { level: 1, distance: 0 });
     voices.playLifecycleMoment(bus, 'unit_withdrew', { level: 1, distance: 0 });
     voices.playHeatWarning(bus, 3);
+    radio.playPilotRadio(bus, 'linewrought');
+    radio.playPilotRadio(bus, 'aurelian');
 
     const rendered = await context.startRendering();
     const samples = rendered.getChannelData(0);

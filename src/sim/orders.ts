@@ -61,6 +61,7 @@ export function setPosture(entity: MechEntity, posture: Posture): void {
 
   // Told to hold this ground: whatever it was walking towards is cancelled.
   entity.orders.move = null;
+  entity.orders.queue = [];
   replacePath(entity, []);
   entity.motion = 'stationary';
   entity.intendedMotion = 'stationary';
@@ -104,7 +105,7 @@ export function issueMove(
   // way; attack-move keeps the engagement, since fighting through is its
   // entire point.
   if (options.engage !== true) entity.orders.attack = null;
-  entity.orders.queue = options.queued === true ? entity.orders.queue : [];
+  entity.orders.queue = [];
   replacePath(entity, path);
   // A new order starts with a clean record of how it is going. Carrying the
   // last one's counters over meant a mech that had been wedged took a stall
@@ -191,6 +192,7 @@ export function issueAlphaStrike(world: World, entity: MechEntity): boolean {
 
 export function issueStop(entity: MechEntity): void {
   entity.orders.move = null;
+  entity.orders.queue = [];
   replacePath(entity, []);
   entity.stallStrikes = 0;
   entity.motion = 'stationary';

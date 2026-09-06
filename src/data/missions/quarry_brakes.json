@@ -190,5 +190,31 @@
         }
       ]
     }
+  ],
+  "enemyDirectives": [
+    {
+      "id": "west_brake_guard",
+      "team": 1,
+      "zoneId": "west_brake",
+      "behavior": "defend",
+      "units": 1,
+      "pursuitRadius": 260
+    },
+    {
+      "id": "lift_intercept",
+      "team": 1,
+      "zoneId": "lift_table",
+      "behavior": "intercept",
+      "units": 2,
+      "pursuitRadius": 300
+    },
+    {
+      "id": "east_brake_relief",
+      "team": 1,
+      "zoneId": "east_brake",
+      "behavior": "retake",
+      "units": 3,
+      "pursuitRadius": 340
+    }
   ]
 }

@@ -1,252 +1,98 @@
+import { useEffect, useRef, useState } from 'react';
 import { dailyPayroll } from '../../campaign/ledger';
-import {
-  assign,
-  availableHires,
-  availableXp,
-  chooseTrait,
-  hireCost,
-  hirePilot,
-  offeredTraits,
-  pendingTraitPicks,
-  raiseSkill,
-  skillTotal,
-  SKILLS,
-  type Skill,
-} from '../../campaign/roster';
+import { availableHires, availableXp, pendingTraitPicks } from '../../campaign/roster';
 import { isPilotAvailable, type CampaignState, type PilotRecord } from '../../campaign/types';
 import { getCatalog } from '../../schema/load';
-import type { Pilot } from '../../schema/pilot';
-import {
-  nextSpecialityThreshold,
-  readyToTrain,
-  skillTraining,
-  traitEffects,
-} from '../pilotProgression';
-import { designIdentityLabel } from '../designLabel';
-import { PilotProfile } from '../PilotProfile';
+import { readyToTrain } from '../pilotProgression';
+import { authoredDesignName } from '../designLabel';
 import { PilotPortrait } from '../PilotPortrait';
+import { HireRow, PilotDetail } from './PilotDetail';
+import type { CampaignNavigationTarget } from './campaignNavigation';
 import './progression.css';
+import './crewOverview.css';
 
 const catalog = getCatalog();
-
+type CrewFilter = 'all' | 'available' | 'wounded' | 'training';
+const FILTERS: { id: CrewFilter; label: string }[] = [
+  { id: 'all', label: 'All crew' }, { id: 'available', label: 'Available' },
+  { id: 'wounded', label: 'Wounded' }, { id: 'training', label: 'Ready to train' },
+];
 interface Props {
   state: CampaignState;
   mutate: (change: (draft: CampaignState) => string | null | void, message?: string) => void;
+  focus?: CampaignNavigationTarget | null;
 }
 
-function credits(value: number): string {
-  return `${Math.round(value).toLocaleString('en-GB')} C`;
+export function crewCanTrain(pilot: PilotRecord): boolean {
+  return !pilot.dead && (readyToTrain(catalog, pilot) || pendingTraitPicks(catalog, pilot) > 0);
 }
 
-function TraitReadout({ traitId }: { traitId: string }) {
-  const trait = catalog.rules.pilotTraits.entries[traitId];
-  if (trait === undefined) return <small>{traitId}</small>;
-  return (
-    <small className="pilot-trait" title={trait.note}>
-      <strong>{trait.label}</strong>
-      <span>{traitEffects(trait).join(' · ')}</span>
-    </small>
-  );
-}
-
-function SpecialityProgress({ pilot, mutate }: { pilot: PilotRecord; mutate: Props['mutate'] }) {
-  if (pilot.dead) return <p className="pilot-milestone">Record closed.</p>;
-  const pending = pendingTraitPicks(catalog, pilot);
-  if (pending > 0) {
-    return (
-      <div className="pilot-picks" data-testid={`camp-pick-${pilot.id}`}>
-        <p>Speciality earned. Choose one:</p>
-        {offeredTraits(catalog, pilot).map((traitId) => {
-          const trait = catalog.rules.pilotTraits.entries[traitId];
-          if (trait === undefined) return null;
-          return (
-            <button
-              type="button"
-              key={traitId}
-              title={trait.note}
-              onClick={() =>
-                mutate((draft) => {
-                  const target = draft.pilots.find((entry) => entry.id === pilot.id);
-                  if (target === undefined) return null;
-                  const result = chooseTrait(catalog, target, traitId);
-                  return result.ok
-                    ? `${target.name} trained ${trait.label}: ${traitEffects(trait).join(', ')}.`
-                    : result.reason;
-                })
-              }
-              data-testid={`camp-pick-${pilot.id}-${traitId}`}
-            >
-              <strong>{trait.label}</strong>
-              <small>{traitEffects(trait).join(' · ')}</small>
-            </button>
-          );
-        })}
-      </div>
-    );
-  }
-
-  const threshold = nextSpecialityThreshold(catalog, pilot);
-  if (threshold === null) return <p className="pilot-milestone">Speciality track complete.</p>;
-  const levels = threshold - skillTotal(pilot);
-  return (
-    <p className="pilot-milestone">
-      Next speciality at {threshold} total skill — {levels} level{levels === 1 ? '' : 's'} to go.
-    </p>
-  );
-}
-
-function TrainingButton({ pilot, skill, mutate }: { pilot: PilotRecord; skill: Skill; mutate: Props['mutate'] }) {
-  const training = skillTraining(catalog, pilot, skill);
-  const bank = availableXp(pilot);
-  const disabled = pilot.dead || training.cost === null || bank < training.cost;
-
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={() =>
-        mutate((draft) => {
-          const target = draft.pilots.find((entry) => entry.id === pilot.id);
-          if (target === undefined) return null;
-          const result = raiseSkill(catalog, target, skill);
-          return result.ok
-            ? `${target.name}: ${skill} ${target[skill]}. ${training.nextEffect ?? ''} ${availableXp(target)} XP remains.`
-            : result.reason;
-        })
-      }
-      data-testid={`camp-skill-${pilot.id}-${skill}`}
-    >
-      <span>
-        {skill} {training.currentLevel}
-        {training.nextLevel === null ? ' — maximum' : ` → ${training.nextLevel}`}
-      </span>
-      <small>
-        {training.nextEffect === null
-          ? training.currentEffect
-          : `${training.currentEffect} → ${training.nextEffect}`}
-      </small>
-      <b>{training.cost === null ? '—' : `${training.cost} XP`}</b>
-    </button>
-  );
-}
-
-function PilotCard({ pilot, state, mutate }: { pilot: PilotRecord; state: CampaignState; mutate: Props['mutate'] }) {
-  const lastMission = state.history.at(-1)?.pilotReports.find((report) => report.pilotId === pilot.id);
-  return (
-    <li className="pilot-card" data-testid={`camp-pilot-${pilot.id}`}>
-      <header title={pilot.bio}>
-        <span>Crew record</span>
-        <span className="pilot-state">
-          {pilot.dead
-            ? 'KIA'
-            : `${availableXp(pilot)} XP banked${isPilotAvailable(state, pilot) ? '' : (pilot.recoveryMissions ?? 0) > 0 ? ' · misses next mission' : ` · injured to day ${pilot.injuredUntilDay}`}`}
-        </span>
-      </header>
-      <PilotProfile pilot={pilot} />
-      {lastMission === undefined ? null : <p className="pilot-last-mission">
-        Last mission: +{lastMission.xp} XP · {lastMission.kills} kills · {lastMission.damage} damage
-      </p>}
-
-      {pilot.traits.length === 0 ? null : (
-        <div className="pilot-traits">
-          {pilot.traits.map((traitId) => <TraitReadout key={traitId} traitId={traitId} />)}
-        </div>
-      )}
-
-      <label className="pilot-seat">
-        Assigned mech
-        <select
-          className="pilot-mech"
-          disabled={pilot.dead}
-          value={pilot.mechId ?? ''}
-          onChange={(event) =>
-            mutate((draft) => {
-              assign(draft, pilot.id, event.target.value === '' ? null : event.target.value);
-            }, `${pilot.name} reassigned.`)
-          }
-          data-testid={`camp-seat-${pilot.id}`}
-        >
-          <option value="">— no mech —</option>
-          {state.mechs.map((mech) => (
-            <option key={mech.id} value={mech.id}>
-              {designIdentityLabel(catalog, mech.design)}
-              {mech.status === 'ready' ? '' : ` (${mech.status})`}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      {pilot.dead ? null : (
-        <div className="pilot-training">
-          {SKILLS.map((skill) => (
-            <TrainingButton key={skill} pilot={pilot} skill={skill} mutate={mutate} />
-          ))}
-        </div>
-      )}
-      <SpecialityProgress pilot={pilot} mutate={mutate} />
-    </li>
-  );
-}
-
-function HireRow({ hire, state, mutate }: { hire: Pilot; state: CampaignState; mutate: Props['mutate'] }) {
-  const cost = hireCost(catalog, hire);
-  const salary = catalog.rules.economy.pilot.salaryPerDay;
-  return (
-    <li key={hire.id} title={hire.bio} data-testid={`camp-hire-${hire.id}`}>
-      <PilotProfile pilot={hire} />
-      <div className="pilot-traits">{hire.traits.map((traitId) => <TraitReadout key={traitId} traitId={traitId} />)}</div>
-      <span className="pilot-state">{credits(cost)} · {credits(salary)}/day</span>
-      <button
-        type="button"
-        disabled={state.cbills < cost}
-        onClick={() =>
-          mutate((draft) => {
-            const result = hirePilot(catalog, draft, hire.id);
-            return result.ok ? `${hire.name} signed. Payroll rises by ${credits(salary)} a day.` : result.reason;
-          })
-        }
-        data-testid={`camp-sign-${hire.id}`}
-      >
-        Sign
-      </button>
-    </li>
-  );
-}
-
-export function BarracksPanel({ state, mutate }: Props) {
-  const payroll = dailyPayroll(catalog, state);
-  const hires = availableHires(catalog, state);
-  const trainable = state.pilots.filter((pilot) => readyToTrain(catalog, pilot)).length;
+export function BarracksPanel({ state, mutate, focus }: Props) {
+  const [section, setSection] = useState<'crew' | 'hiring'>(focus?.hiring ? 'hiring' : 'crew');
+  const [filter, setFilter] = useState<CrewFilter>('all');
+  const [selectedId, setSelectedId] = useState<string | null>(focus?.pilotId ?? null);
+  const detailRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (focus?.area !== 'crew') return;
+    setSection(focus.hiring ? 'hiring' : 'crew');
+    setFilter('all');
+    setSelectedId(focus.pilotId ?? null);
+  }, [focus]);
   const crew = state.pilots.filter((pilot) => !pilot.dead);
   const fallen = state.pilots.filter((pilot) => pilot.dead);
-  return (
-    <section className="camp-roster progression-roster" data-testid="camp-roster">
-      <header className="roster-ledger">
-        <h3>
-          Barracks
-          {trainable > 0 ? (
-            <span className="train-ready" data-testid="train-ready">
-              {trainable} ready to train
-            </span>
-          ) : null}
-        </h3>
-        <strong>{credits(payroll)}/day</strong>
-      </header>
-      <p className="ledger-note">Earn XP on campaign missions, then train a skill below. Gunnery improves fire, piloting resists knockdown and shutdown, sensors extend detection.</p>
-      <p className="ledger-note">Wounded pilots miss the next mission; hire reserves to cover them. Waiting days does not clear a mission injury. Injured crew remain on payroll.</p>
-      <ul>{crew.map((pilot) => <PilotCard key={pilot.id} pilot={pilot} state={state} mutate={mutate} />)}</ul>
+  const hires = availableHires(catalog, state);
+  const trainable = crew.filter(crewCanTrain).length;
+  const matches = (pilot: PilotRecord, choice: CrewFilter): boolean => choice === 'all'
+    || (choice === 'available' && isPilotAvailable(state, pilot))
+    || (choice === 'wounded' && !isPilotAvailable(state, pilot))
+    || (choice === 'training' && crewCanTrain(pilot));
+  const visible = crew.filter((pilot) => matches(pilot, filter));
+  const selected = visible.find((pilot) => pilot.id === selectedId) ?? visible[0];
+  return <section className="camp-roster progression-roster crew-overview" data-testid="camp-roster">
+    <header className="roster-ledger"><h3>Barracks{trainable > 0 ? <span className="train-ready"
+      data-testid="train-ready">{trainable} ready to train</span> : null}</h3>
+      <strong>{Math.round(dailyPayroll(catalog, state)).toLocaleString('en-GB')} C/day</strong>
+    </header>
+    <div className="crew-sections" aria-label="Crew services">
+      <button type="button" aria-pressed={section === 'crew'} data-testid="crew-overview-tab" onClick={() => setSection('crew')}>Company crew · {crew.length}</button>
+      <button type="button" aria-pressed={section === 'hiring'} data-testid="crew-hiring-tab" onClick={() => setSection('hiring')}>Hiring hall · {hires.length}</button>
+    </div>
+    <p className="ledger-note">Earn XP on campaign missions, then choose a skill to train. Wounded pilots miss the next mission; waiting days does not clear a mission injury. Injured crew remain on payroll.</p>
+    <div hidden={section !== 'crew'}>
+      <div className="crew-filters" aria-label="Filter crew">{FILTERS.map((entry) => <button key={entry.id}
+        type="button" aria-pressed={filter === entry.id} data-testid={`crew-filter-${entry.id}`}
+        onClick={() => setFilter(entry.id)}>{entry.label} · {crew.filter((pilot) => matches(pilot, entry.id)).length}</button>)}</div>
+      <div className="crew-workspace">
+        <ul className="crew-list" aria-label="Company crew">{visible.map((pilot) => {
+          const mech = state.mechs.find((entry) => entry.id === pilot.mechId);
+          const ready = isPilotAvailable(state, pilot);
+          return <li key={pilot.id} data-testid={`camp-pilot-${pilot.id}`}>
+            <button type="button" aria-pressed={selected?.id === pilot.id} data-testid={`crew-select-${pilot.id}`}
+              onClick={() => {
+                setSelectedId(pilot.id);
+                if (window.matchMedia('(max-width: 850px)').matches) {
+                  requestAnimationFrame(() => detailRef.current?.scrollIntoView({ block: 'start', behavior: 'instant' }));
+                }
+              }}>
+              <PilotPortrait pilot={pilot} compact /><span className="crew-row-identity"><strong>{pilot.name}</strong>
+                <small>{mech === undefined ? 'No machine assigned' : authoredDesignName(catalog, mech.design)}</small>
+                <small className={ready ? 'crew-ready' : 'crew-wounded'}>{ready ? 'Available' : (pilot.recoveryMissions ?? 0) > 0 ? 'Wounded · misses next mission' : `Wounded until day ${pilot.injuredUntilDay}`}</small>
+              </span><span className="crew-row-training">{availableXp(pilot)} XP<small>{crewCanTrain(pilot) ? 'Ready to train' : 'Building experience'}</small></span>
+            </button>
+          </li>;
+        })}</ul>
+        {selected === undefined ? <p className="camp-empty">No crew in this view.</p> : <div ref={detailRef} className="crew-detail-anchor"><PilotDetail pilot={selected} state={state} mutate={mutate} /></div>}
+      </div>
       {fallen.length === 0 ? null : <details className="pilot-memorial" data-testid="pilot-memorial">
-        <summary>Roll of honour · {fallen.length} lost</summary>
-        <ul>{fallen.map((pilot) => <li key={pilot.id} data-testid={`memorial-${pilot.id}`}>
+        <summary>Roll of honour · {fallen.length} lost</summary><ul>{fallen.map((pilot) => <li key={pilot.id} data-testid={`memorial-${pilot.id}`}>
           <PilotPortrait pilot={pilot} compact /><span>{pilot.name} · Killed in action</span>
         </li>)}</ul>
       </details>}
-
-      <h4>Hiring hall</h4>
-      <ul className="camp-hires">
-        {hires.slice(0, 6).map((hire) => <HireRow key={hire.id} hire={hire} state={state} mutate={mutate} />)}
-        {hires.length === 0 ? <li className="camp-empty">Nobody left on the register.</li> : null}
-      </ul>
-    </section>
-  );
+    </div>
+    <div hidden={section !== 'hiring'} data-testid="crew-hiring-panel"><h4>Hiring hall</h4>
+      <p className="ledger-note">Sign a reserve to cover an injury, then assign a machine in their crew record. Signing costs and daily wages are shown before you hire.</p>
+      <ul className="camp-hires">{hires.map((hire) => <HireRow key={hire.id} hire={hire} state={state} mutate={mutate} />)}
+        {hires.length === 0 ? <li className="camp-empty">Nobody left on the register.</li> : null}</ul>
+    </div>
+  </section>;
 }

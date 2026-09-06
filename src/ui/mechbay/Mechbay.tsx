@@ -26,17 +26,19 @@ import {
   undoDesign,
 } from './designHistory';
 import {
-  bestAmmoLocation,
   bestLocationFor,
   compatibleFrom,
   fitByLocation,
 } from './autoFit';
-import { evaluateEdit, type EditEvaluation, type EditIntent } from './editPreview';
+import { evaluateEdit, type EditIntent } from './editPreview';
 import { LoadoutGrid } from './LoadoutGrid';
-import { MECH_LOCATION_NAMES, type DropPayload } from './LocationCard';
+import type { DropPayload } from './LocationCard';
 import { MachinePanel } from './MachinePanel';
 import { evaluateDrop } from './mechbayEdits';
 import { StoreShelf, type Shelf } from './StoreShelf';
+import { createBayEditAcceptor } from './acceptBayEdit';
+import { useWeaponReplacement } from './useWeaponReplacement';
+import { WeaponReplacementDialog } from './WeaponReplacementDialog';
 import { useArmedPlacementFocus } from './useArmedPlacementFocus';
 import './mechbayWorkspaceLayout.css';
 import './quietBay.css';
@@ -117,14 +119,6 @@ export function Mechbay({
   );
   const compatible = useMemo(() => new Set(compatibleFrom(locationFits)), [locationFits]);
 
-  useArmedPlacementFocus({
-    armed,
-    bayRef,
-    compatibleLocations: compatible,
-    selectedLocation,
-  });
-
-  if (chassis === undefined) return <div className="bay">unknown chassis {design.chassisId}</div>;
 
   const commitDraft = (next: Design): void => {
     if (next.chassisId !== design.chassisId) {
@@ -139,6 +133,26 @@ export function Mechbay({
     setStatus(null);
   };
 
+  const replacement = useWeaponReplacement({
+    catalog, design, inventory, targeting, onCommit: commitDraft,
+    onClearDrag: quietBay.clearDrag,
+    onFinished: (location, payload) => {
+      setSelectedLocation(location);
+      setArmed(null);
+      quietBay.recordFit(location, payload);
+      setStatus({ tone: 'ok', text: 'Weapon replaced in the draft. Undo restores the complete previous fit.' });
+    },
+  });
+  useArmedPlacementFocus({
+    armed,
+    bayRef,
+    compatibleLocations: compatible,
+    selectedLocation,
+    replacementMounts: replacement.fits,
+  });
+
+  if (chassis === undefined) return <div className="bay">unknown chassis {design.chassisId}</div>;
+
   const previewDraft = (transaction: string, next: Design): void => {
     setHistory((current) => previewDesign(current, transaction, next));
     setStatus(null);
@@ -149,66 +163,9 @@ export function Mechbay({
     setStatus({ tone: 'ok', text: direction === 'undo' ? 'Last fit undone.' : 'Fit restored.' });
   };
 
-  const acceptEvaluation = (
-    evaluation: EditEvaluation,
-    location: MechLocation | null = null,
-  ): boolean => {
-    if (evaluation.status === 'blocked') {
-      if (location !== null) setSelectedLocation(location);
-      setStatus({
-        tone: 'error',
-        text: evaluation.reasons[0]?.message ?? 'That change cannot be made.',
-      });
-      return false;
-    }
-
-    if (evaluation.status === 'needs_ammo') {
-      const { weaponId, locations } = evaluation.continuation;
-      const weaponName = catalog.weapons.get(weaponId)?.name ?? weaponId;
-      // A gun with no feed is not a decision, it is a chore. Stow the first ton
-      // somewhere survivable and say where it went; moving or removing it is
-      // still one click, and the player never meets an illegal build they did
-      // not ask for.
-      const berth = bestAmmoLocation(catalog, evaluation.nextDesign, locations);
-      const stowed =
-        berth === null
-          ? null
-          : evaluateEdit(
-              catalog,
-              evaluation.nextDesign,
-              { type: 'add_ammo', weaponId, location: berth },
-              inventory,
-            );
-
-      if (berth !== null && stowed?.status === 'applied') {
-        commitDraft(stowed.nextDesign);
-        if (location !== null) setSelectedLocation(location);
-        setArmed(null);
-        setStatus({
-          tone: 'ok',
-          text: `${weaponName} fitted — one ton of ammunition stowed in the ${MECH_LOCATION_NAMES[berth].toLowerCase()}.`,
-        });
-        return true;
-      }
-
-      // No berth would take it automatically; fall back to letting the player place it.
-      commitDraft(evaluation.nextDesign);
-      const payload: DropPayload = { kind: 'ammo', id: weaponId };
-      setSelectedLocation(null);
-      setShelf('ammo');
-      setInspected(payload);
-      setArmed(payload);
-      setStatus({ tone: 'ok', text: evaluation.reasons[0]?.message ?? 'Choose an ammunition bin.' });
-      return true;
-    }
-
-    commitDraft(evaluation.nextDesign);
-
-    if (location !== null) setSelectedLocation(location);
-    setArmed(null);
-    setStatus(null);
-    return true;
-  };
+  const acceptEvaluation = createBayEditAcceptor({
+    catalog, inventory, commitDraft, setStatus, setSelectedLocation, setArmed, setShelf, setInspected,
+  });
 
   const applyIntent = (intent: EditIntent): boolean =>
     acceptEvaluation(evaluateEdit(catalog, design, intent, inventory));
@@ -245,8 +202,10 @@ export function Mechbay({
   };
 
   return (
+    <>
     <div
       ref={bayRef}
+      inert={replacement.request !== null || undefined}
       className="bay bay--workspace"
       data-testid="mechbay"
       data-workspace={workspace}
@@ -328,6 +287,8 @@ export function Mechbay({
           onGuideExpandedChange={quietBay.setGuideExpanded}
           onAutoFit={autoFit}
           onDrop={onDrop}
+          onReplace={replacement.open}
+          replacements={replacement.fits}
           onRemoveMount={(index) => applyIntent({ type: 'remove_weapon', index })}
           onRemoveAmmo={(index) => {
             const bin = design.ammo[index];
@@ -394,6 +355,12 @@ export function Mechbay({
           onNavigate={setWorkspace}
         />
       </BayWorkspacePanel>
-    </div>
+      </div>
+      {replacement.request !== null && replacement.preview !== null ? (
+        <WeaponReplacementDialog catalog={catalog} request={replacement.request} preview={replacement.preview}
+          stocked={inventory !== undefined} error={replacement.error}
+          onConfirm={replacement.confirm} onCancel={replacement.close} />
+      ) : null}
+    </>
   );
 }

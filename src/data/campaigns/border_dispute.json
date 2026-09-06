@@ -72,6 +72,102 @@
       }
     },
     {
+      "id": "marker_survey",
+      "name": "The Missing Trail",
+      "missionId": "marker_survey",
+      "employerId": "halloran_freight",
+      "brief": "A page in the Marker Eleven copy points to two western service readers. The old survey terrace takes one 45-tonne lift; the company transport cannot land. Send a Gadfly, read the trail and avoid the road guard. This optional survey opens a recovery claim without delaying the original attestation route.",
+      "requires": [
+        "militia_raid"
+      ],
+      "basePayout": 350000,
+      "maxSalvageShare": 0.5,
+      "deadlineDays": 28,
+      "position": {
+        "x": 0.08,
+        "y": 0.52
+      },
+      "rewards": [
+        {
+          "id": "road_ledger_supplies",
+          "label": "Road ledger: two ammunition isolation cases",
+          "objectiveId": "copy_road_ledger",
+          "items": [
+            { "kind": "equipment", "itemId": "case", "count": 2 }
+          ],
+          "afterword": "Halloran trades the copied ledger for two unopened ammunition isolation cases from its freight stock. These supplies are separate from battlefield salvage."
+        }
+      ]
+    },
+    {
+      "id": "recovery_window",
+      "name": "The Quiet Claim",
+      "missionId": "recovery_window",
+      "employerId": "halloran_freight",
+      "brief": "The survey found a repair crew and a contested recovery cradle. Hold its seal for 120 seconds with a light detail: 140 tonnes, three machines. The field result can preserve legged walkers under wreckright. The service cabinet is an optional second job; hull recovery remains a chance.",
+      "requires": [
+        "marker_survey"
+      ],
+      "basePayout": 650000,
+      "maxSalvageShare": 0.95,
+      "deadlineDays": 30,
+      "position": {
+        "x": 0.14,
+        "y": 0.34
+      },
+      "rewards": [
+        {
+          "id": "unclaimed_prybar",
+          "label": "Released Prybar workshop hulk",
+          "hulls": [
+            { "designId": "prybar_courier", "integrityFraction": 0.55 }
+          ],
+          "afterword": "The repair crew signs over an unclaimed Prybar cradle from a sealed workshop rack. It is a damaged hulk, distinct from the opposing machines recovered under your salvage terms; rebuilding still takes credits and bay time."
+        },
+        {
+          "id": "service_cannon",
+          "label": "Service cabinet: Canister Cannon",
+          "objectiveId": "recover_service_stock",
+          "items": [
+            { "kind": "weapon", "itemId": "lbx_ac10", "count": 1 }
+          ],
+          "afterword": "The cabinet contains one crated Canister Cannon. Cluster fire spreads damage; its slug setting concentrates it. Fit and supply it in the workshop before the next drop."
+        }
+      ]
+    },
+    {
+      "id": "workshop_defence",
+      "name": "Keep the Gantries",
+      "missionId": "workshop_defence",
+      "employerId": "sarn_foundry",
+      "brief": "The service trail has led Kestrel to a working Sarn repair hall. Defend gantry control for 150 seconds with up to 205 tonnes. A scout can secure the stores cabinet while the main lance holds the workshop. This optional contract pays for the company to prepare before the Recall grows.",
+      "requires": [
+        "recovery_window"
+      ],
+      "basePayout": 950000,
+      "maxSalvageShare": 0.75,
+      "deadlineDays": 34,
+      "position": {
+        "x": 0.35,
+        "y": 0.58
+      },
+      "rewards": [
+        {
+          "id": "gantry_repair_days",
+          "label": "Two workshop day credits",
+          "effects": { "freeRepairDays": 2 },
+          "afterword": "Sarn banks two workshop day credits. Each later repair or rebuild booking can use one to shorten its duration by a day. Parts, labour and payroll remain payable."
+        },
+        {
+          "id": "stores_supplier_terms",
+          "label": "Stores cabinet: seven days of supplier terms",
+          "objectiveId": "recover_workshop_stock",
+          "effects": { "supplierDiscountDays": 7 },
+          "afterword": "The recovered stores records establish the company with Sarn's suppliers. Preferential terms last seven campaign days."
+        }
+      ]
+    },
+    {
       "id": "pass_skirmish",
       "name": "First Attestation",
       "missionId": "sealed_contact",
@@ -188,6 +284,13 @@
       "position": {
         "x": 0.93,
         "y": 0.2
+      },
+      "ending": {
+        "title": "The Unwritten Claim",
+        "body": [
+          "The master manifest burns behind the depot doors. The Recall Authority loses its cleanest chain of proof, and the foundries keep their named roots in service. Halloran has the crossing it paid for. Your company has chosen what no court can now reconstruct.",
+          "Freedom has an invoice. Certified service is harder to obtain, the old repairs still need doing, and every surviving crew must carry its own account of the field. The company leaves with its machines, its scars and a claim nobody can close for it."
+        ]
       }
     },
     {
@@ -205,6 +308,13 @@
       "position": {
         "x": 0.93,
         "y": 0.46
+      },
+      "ending": {
+        "title": "The Company Seal",
+        "body": [
+          "The attestation key accepts the company seal. The master manifest survives, and with it the record linking old workshop names to serialized roots. Your company holds evidence both the foundries and the Recall Authority need.",
+          "Custody grants no command over a cockpit. The pilots still choose whom to serve, and every repaired machine returns under a human hand. You have kept the proof and accepted the responsibility of deciding who may read it."
+        ]
       }
     },
     {

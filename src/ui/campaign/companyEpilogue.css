@@ -1,0 +1,18 @@
+.company-epilogue { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr); gap: 40px; padding: 32px; border: 1px solid #91aa96; background: #e9eedf; border-radius: 5px; color: #193744; }
+.epilogue-story, .epilogue-company { min-width: 0; }
+.epilogue-story { max-width: 68ch; }
+.epilogue-company { border-left: 1px solid #b8c6b2; padding-left: 32px; }
+.camp-workspace .company-epilogue h3 { font-size: 34px; line-height: 1.15; margin-bottom: 22px; }
+.company-epilogue h4 { font-size: 15px; margin: 24px 0 14px; }
+.company-epilogue .epilogue-kicker { text-transform: uppercase; letter-spacing: .08em; font-size: 10px; color: #32766d; }
+.company-epilogue p { line-height: 1.7; font-size: 14px; }
+.company-epilogue dl { display: flex; flex-wrap: wrap; gap: 24px; margin: 0 0 20px; }
+.company-epilogue dt { font-size: 11px; color: #52665e; }.company-epilogue dd { font-size: 25px; margin: 4px 0 0; }
+.company-epilogue ul { display: grid; gap: 10px; list-style: none; margin: 0; padding: 0; }
+.company-epilogue li { display: flex; align-items: center; gap: 12px; }.company-epilogue li span { display: grid; gap: 5px; }
+.company-epilogue small { font-size: 11px; color: #52665e; }.company-epilogue .epilogue-memorial { border-top: 1px solid #b8c6b2; padding-top: 12px; }
+@media (max-width: 850px) {
+  .company-epilogue { grid-template-columns: minmax(0, 1fr); gap: 24px; padding: 20px; }
+  .epilogue-company { border-left: 0; border-top: 1px solid #b8c6b2; padding: 24px 0 0; }
+  .camp-workspace .company-epilogue h3 { font-size: 30px; }
+}

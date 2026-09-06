@@ -107,7 +107,8 @@ export function applyEffect(world: World, effect: TriggerEffect): void {
       break;
 
     case 'message':
-      emit(world.events, { type: 'mission_message', tick: world.tick, text: effect.text });
+      emit(world.events, { type: 'mission_message', tick: world.tick, text: effect.text,
+        ...(effect.speakerPilotId === undefined ? {} : { speakerPilotId: effect.speakerPilotId }) });
       break;
 
     case 'reveal':

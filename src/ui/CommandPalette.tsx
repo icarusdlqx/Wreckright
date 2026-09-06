@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { actionStatus } from './combatTelemetry';
 import type { OrderMode, TimedActionSnapshot } from './store';
 import './battleChrome.css';
+import { ActiveOrderHelp, OrderGuide } from './OrderGuide';
 
 export interface Command {
   id: string;
@@ -238,9 +239,11 @@ export function CommandPalette({
             {advanced.map((command) => (
               <CommandButton key={command.id} command={command} {...buttonProps} />
             ))}
+            <OrderGuide jumpNote={jumpTitle(jump)} />
           </div>
         </details>
       )}
+      <ActiveOrderHelp mode={orderMode} />
     </div>
   );
 }

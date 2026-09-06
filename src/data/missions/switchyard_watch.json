@@ -245,5 +245,15 @@
       ]
     }
   ],
-  "dropTonnage": 210
+  "dropTonnage": 210,
+  "enemyDirectives": [
+    {
+      "id": "registry_counterattack",
+      "team": 1,
+      "zoneId": "freight_switch",
+      "behavior": "retake",
+      "units": 6,
+      "pursuitRadius": 620
+    }
+  ]
 }

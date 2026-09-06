@@ -54,7 +54,7 @@ export function BattleMenu({ fullHud, variant, ...props }: BattleMenuProps) {
           >
             {muted ? 'Sound off' : 'Sound on'}
           </button>
-          <AudioSettings compact onPrepare={() => props.engine?.audio.unlock()} />
+          <AudioSettings compact onPrepare={() => props.engine?.audio.unlock()} onDisplayChange={props.onLowFx} />
           <button
             type="button"
             className={`pause ${props.lowFx ? 'active' : ''}`}
@@ -127,11 +127,10 @@ export function BattleMenu({ fullHud, variant, ...props }: BattleMenuProps) {
             </button>
             <section className="battle-menu-help" aria-label="Battle controls">
               <strong>Controls</strong>
-              <p>
-                Space pauses · , and . change speed · right-click moves · Shift queues · click a
-                hostile to attack
-              </p>
-              <p>Drag selects · arrows pan · wheel zooms · Centre recentres · P shows performance</p>
+              {mobile ? <><p>Tap a lance card, choose an order, then tap its destination. Queue adds another waypoint.</p>
+                <p>Drag empty ground to pan · pinch to zoom · Pause gives you time to plan.</p></> : <>
+                <p>Space pauses · , and . change speed · right-click moves · Shift queues · click a hostile to attack</p>
+                <p>Drag selects · arrows pan · wheel zooms · Centre recentres · P shows performance</p></>}
             </section>
           </>
         ) : null}

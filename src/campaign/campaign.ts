@@ -8,6 +8,8 @@ import { completeRepair } from './repair';
 import { applyContractFailure, recoveryNotice } from './recovery';
 import { availableXp, awardXp, resolveCasualty, returnedFromField } from './roster';
 import { applySalvage, resolveSalvage, type SalvageReport } from './salvage';
+import { awardSharedMissionXp } from './missionProgression';
+import { earnedCampaignRewards, validateRewardGrants, applyCampaignRewards } from './missionRewards';
 import { recoveredHulk } from './salvagedHull';
 import { negotiationOptions } from './contractTerms';
 import { dailyPayroll } from './ledger';
@@ -23,7 +25,7 @@ import {
 
 export { negotiationOptions } from './contractTerms';
 export {
-  deployableLance, DeploymentError, DROP_BERTHS, dropTeam, dropTonnageFor,
+  deployableLance, DeploymentError, defaultDropBerths, dropTeam, dropTonnageFor,
   fillEmptySeats, missionSlots, PLAYER_TEAM, prepareDeployment,
 } from './deployment';
 export type { DeployablePair, Deployment } from './deployment';
@@ -145,6 +147,26 @@ export function runMission(catalog: Catalog, state: CampaignState): MissionRun {
   return resolveMission(catalog, state, battle, deployment.lance);
 }
 
+/** Validate before spending claim IDs, changing a pilot, or touching the company account. */
+function validateSettlement(state: CampaignState, battle: BattleResult, lance: readonly DeployablePair[]): void {
+  if (battle.missionStatus === 'active') throw new Error('battle has not finished');
+  const units = battle.units.filter((unit) => unit.team === PLAYER_TEAM);
+  const pilots = new Set<string>();
+  const mechs = new Set<string>();
+  for (const [index, pair] of lance.entries()) {
+    const unit = units[index];
+    if (pilots.has(pair.pilot.id) || mechs.has(pair.mech.id)) throw new Error('duplicate deployment identity');
+    pilots.add(pair.pilot.id);
+    mechs.add(pair.mech.id);
+    // Legacy callers used company pilot IDs; live simulation uses the template ID.
+    const pilotMatches = unit?.pilotId === pair.pilot.templateId || unit?.pilotId === pair.pilot.id;
+    if (findMech(state, pair.mech.id) !== pair.mech || findPilot(state, pair.pilot.id) !== pair.pilot ||
+      unit === undefined || !pilotMatches || unit.designId !== pair.mech.design.id) {
+      throw new Error('battle does not match the deployed company');
+    }
+  }
+}
+
 export function resolveMission(
   catalog: Catalog,
   state: CampaignState,
@@ -155,7 +177,13 @@ export function resolveMission(
   const contract = state.contract;
   if (contract === null) throw new Error('no active contract');
 
+  if (battle.missionId !== contract.missionId) throw new Error('battle does not match the active contract');
+  validateSettlement(state, battle, lance);
   const won = battle.missionStatus === 'success';
+  const participants = Math.min(lance.length, battle.units.filter((unit) => unit.team === PLAYER_TEAM).length);
+  const grants = earnedCampaignRewards(catalog, state, contract, battle, participants);
+  validateRewardGrants(catalog, grants);
+  const sharedXp = awardSharedMissionXp(catalog, state, contract, battle, participants);
   const casualties: string[] = [];
   const mechsLost: string[] = [];
   const pilotReports: PilotReport[] = [];
@@ -184,7 +212,8 @@ export function resolveMission(
         mechsLost.push(pair.mech.design.name);
       }
 
-      const xp = awardXp(catalog, { pilot: pair.pilot, unit }, won);
+      const xp = awardXp(catalog, { pilot: pair.pilot, unit }, won) + sharedXp;
+      pair.pilot.xp += sharedXp;
 
       const casualty = withCampaignRng(state, (rng) =>
         resolveCasualty(catalog, rng, pair.pilot, unit, state.day),
@@ -205,6 +234,7 @@ export function resolveMission(
         damage: Math.round(unit.damageDealt),
         xp,
         xpBanked: availableXp(pair.pilot),
+        sharedXp,
         promotions: [],
         fate: casualty.died ? 'killed' : casualty.injuredDays > 0 ? 'injured' : 'returned',
       });
@@ -234,6 +264,7 @@ export function resolveMission(
     if (!isSideContract(contract.nodeId)) state.completedNodes.push(contract.nodeId);
   }
 
+  const campaignRewards = applyCampaignRewards(catalog, state, grants);
   const outcome: MissionOutcome = {
     nodeId: contract.nodeId,
     missionId: contract.missionId,
@@ -253,6 +284,7 @@ export function resolveMission(
     pilotCasualties: casualties,
     mechsLost,
     pilotReports,
+    campaignRewards,
   };
 
   state.history.push(outcome);

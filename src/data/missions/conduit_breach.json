@@ -138,5 +138,15 @@
       ]
     }
   ],
-  "dropTonnage": 240
+  "dropTonnage": 240,
+  "enemyDirectives": [
+    {
+      "id": "breaker_counterattack",
+      "team": 1,
+      "zoneId": "east_breaker",
+      "behavior": "retake",
+      "units": 5,
+      "pursuitRadius": 380
+    }
+  ]
 }

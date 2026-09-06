@@ -32,6 +32,7 @@ export interface AnimationState {
   terminal: TerminalMotionState;
   contactCue: ContactCueState;
   weightSettle: number;
+  turnBalance: number;
   wasMoving: boolean;
 }
 
@@ -67,6 +68,7 @@ export function createAnimationState(): AnimationState {
     terminal: { fall: 0, landed: false, destroyed: false },
     contactCue: createContactCueState(),
     weightSettle: 0,
+    turnBalance: 0,
     wasMoving: false,
   };
 }

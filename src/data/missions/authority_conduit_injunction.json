@@ -204,5 +204,23 @@
         }
       ]
     }
+  ],
+  "enemyDirectives": [
+    {
+      "id": "east_isolator_guard",
+      "team": 1,
+      "zoneId": "east_isolator",
+      "behavior": "defend",
+      "units": 1,
+      "pursuitRadius": 280
+    },
+    {
+      "id": "west_isolator_counterclaim",
+      "team": 1,
+      "zoneId": "west_isolator",
+      "behavior": "retake",
+      "units": 4,
+      "pursuitRadius": 350
+    }
   ]
 }

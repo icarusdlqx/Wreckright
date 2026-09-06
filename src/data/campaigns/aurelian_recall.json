@@ -52,6 +52,71 @@
       }
     },
     {
+      "id": "custody_survey",
+      "name": "The Unbroken Chain",
+      "missionId": "custody_survey",
+      "employerId": "continuance_tender",
+      "brief": "The first warrant leaves two civil service posts unrecorded. Heavy transport cannot land on their terrace: take one machine up to 50 tonnes. A Votive can read the western route without engaging the road guard. This optional survey locates a service tender while the main warrant route remains open.",
+      "requires": [
+        "first_warrant"
+      ],
+      "basePayout": 350000,
+      "maxSalvageShare": 0.1,
+      "deadlineDays": 26,
+      "position": {
+        "x": 0.08,
+        "y": 0.57
+      },
+      "rewards": [
+        {
+          "id": "dispatch_probe",
+          "label": "Dispatch ledger: Deep Scanner",
+          "objectiveId": "copy_dispatch_ledger",
+          "items": [
+            { "kind": "equipment", "itemId": "active_probe", "count": 1 }
+          ],
+          "afterword": "The Tender releases a Deep Scanner from survey stock against the copied dispatch ledger. This is supplied equipment, not a recovered hostile component."
+        }
+      ]
+    },
+    {
+      "id": "custody_resupply",
+      "name": "Under Civil Seal",
+      "missionId": "custody_resupply",
+      "employerId": "continuance_tender",
+      "brief": "The survey locates a stranded service tender. Hold its loading stand for 120 seconds with up to 135 tonnes and three machines. Surviving claimants do not block the transfer. The optional seal cabinet releases field support; any recovered hull still follows the negotiated custody share.",
+      "requires": [
+        "custody_survey"
+      ],
+      "basePayout": 750000,
+      "maxSalvageShare": 0.1,
+      "deadlineDays": 30,
+      "position": {
+        "x": 0.14,
+        "y": 0.31
+      },
+      "rewards": [
+        {
+          "id": "tender_optics",
+          "label": "Tender stock: two Focused Medium Lasers",
+          "items": [
+            { "kind": "weapon", "itemId": "er_medium_laser", "count": 2 }
+          ],
+          "afterword": "The closed transfer releases two crated Focused Medium Lasers to the company. Their custody papers permit fitting; they do not erase repair costs."
+        },
+        {
+          "id": "sealed_burst_stock",
+          "label": "Seal cabinet: burst optics and one workshop day credit",
+          "objectiveId": "recover_sealed_stock",
+          "items": [
+            { "kind": "weapon", "itemId": "medium_pulse_laser", "count": 2 }
+          ],
+          "effects": { "freeRepairDays": 1 },
+          "afterword": "The cabinet carries two Medium Burst Lasers and banks one workshop day credit for a later repair or rebuild booking. Parts, labour and payroll remain payable. The burst optics trade reach for close-range accuracy."
+        }
+      ]
+    },
+    {
       "id": "cutbank_attestation",
       "name": "Custody Posts",
       "missionId": "base_capture_ridge",
@@ -168,6 +233,13 @@
       "position": {
         "x": 0.25,
         "y": 0.08
+      },
+      "ending": {
+        "title": "Export Under Seal",
+        "body": [
+          "The final register travels under the Tender's Continuance seal. The Authority can trace every disputed root through the old custody chain. On paper the Recall is complete; on the ground, foundry crews watch working machines become entries in an export order.",
+          "Your company has carried out the warrant it accepted. The surviving Custodians return with a closed record, repaired seals and an account of what compliance cost. The archive preserves the answer; the people left beside the cold gantries must live with it."
+        ]
       }
     },
     {
@@ -185,6 +257,13 @@
       "position": {
         "x": 0.78,
         "y": 0.08
+      },
+      "ending": {
+        "title": "Countersigned Here",
+        "body": [
+          "The Tender countersigns a century of local service as stewardship. The archive keeps the roots and their history intact, while the named machines remain under the foundries that maintained them. The Recall ends here with a lawful local reading.",
+          "Stewardship is an obligation, not an erased debt. The workshops must keep their records, crews must honour wreckright, and your company leaves its own seal beside the countersignature. The surviving Custodians carry home proof that continuity can be defended without export."
+        ]
       }
     }
   ]

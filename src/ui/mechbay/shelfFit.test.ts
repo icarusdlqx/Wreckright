@@ -9,6 +9,33 @@ function sentinel() {
 }
 
 describe('mechbay shelf fit', () => {
+  it('describes installed zero-spare gear before unrelated location errors', () => {
+    const design = sentinel();
+    const stock = { weapon: new Map([['medium_laser', 3]]), equipment: new Map([['case', 1]]) };
+    for (const selectedLocation of [null, 'left_arm'] as const) {
+      const fit = shelfFit(catalog, design, { kind: 'weapon', id: 'medium_laser' }, stock, selectedLocation);
+      expect(fit.ok).toBe(false);
+      expect(fit.label).toBe('Installed');
+      expect(fit.reason).toContain('0 spare');
+      expect(fit.reason).not.toContain('no energy');
+    }
+    expect(shelfFit(catalog, design, { kind: 'equipment', id: 'case' }, stock, null).label).toBe('Installed');
+  });
+
+  it('keeps replacement-only weapons discoverable when the selected mounts are full', () => {
+    const design = sentinel();
+    const fit = shelfFit(catalog, design, { kind: 'weapon', id: 'er_medium_laser' }, undefined, 'left_arm');
+    expect(fit).toMatchObject({ ok: true, label: 'Replace', replacementOnly: true });
+    expect(fit.reason).toContain('installed weapon');
+  });
+
+  it('reports a relevant machine-wide refusal rather than the first Head refusal', () => {
+    const fit = shelfFit(catalog, sentinel(), { kind: 'weapon', id: 'gauss_rifle' }, undefined, null);
+    expect(fit.ok).toBe(false);
+    expect(fit.reason).toContain('none on this machine is large enough');
+    expect(fit.reason).not.toContain('This part has no');
+  });
+
   it('uses the same transaction rules for weapons, bins, and gear', () => {
     const design = sentinel();
     design.equipment.push(
@@ -36,7 +63,7 @@ describe('mechbay shelf fit', () => {
     );
     expect(fit).toEqual({
       ok: true,
-      reason: 'Weapon fits here. Choose a separate ammunition-bin location next.',
+      reason: 'Fits here. One ton of ammunition will be stowed automatically.',
     });
   });
 });

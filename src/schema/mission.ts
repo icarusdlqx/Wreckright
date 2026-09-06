@@ -25,6 +25,16 @@ export const ZoneSchema = z.strictObject({
   resourcePoints: z.number().int().nonnegative().default(0),
 });
 
+/** Enemy duties are not player victory conditions and reveal no hidden contacts. */
+export const EnemyDirectiveSchema = z.strictObject({
+  id: IdSchema,
+  team: z.number().int().min(0).max(7),
+  zoneId: IdSchema,
+  behavior: z.enum(['defend', 'retake', 'intercept']),
+  units: z.number().int().positive().max(12),
+  pursuitRadius: z.number().positive().max(3000),
+});
+
 export const ObjectiveSchema = z
   .strictObject({
     id: IdSchema,
@@ -84,7 +94,11 @@ export const TriggerEffectSchema = z.discriminatedUnion('type', [
     team: z.number().int().min(0).max(7),
     amount: z.number().int().max(5000),
   }),
-  z.strictObject({ type: z.literal('message'), text: z.string().min(1).max(200) }),
+  z.strictObject({
+    type: z.literal('message'),
+    text: z.string().min(1).max(200),
+    speakerPilotId: IdSchema.optional(),
+  }),
   z.strictObject({
     type: z.literal('reveal'),
     /** Omitted hands the intel to whichever side the mission is written for. */
@@ -138,11 +152,13 @@ export const MissionSchema = z
      * lance the mission fields itself.
      */
     dropTonnage: z.number().int().positive().max(600).nullable().default(null),
+    maxPlayerUnits: z.number().int().positive().max(12).optional(),
     lances: z.array(LanceSchema).min(2),
     reserves: z.array(DeploymentSchema).max(6).default([]),
     zones: z.array(ZoneSchema).max(12).default([]),
     objectives: z.array(ObjectiveSchema).max(8).default([]),
     triggers: z.array(TriggerSchema).max(12).default([]),
+    enemyDirectives: z.array(EnemyDirectiveSchema).max(12).default([]),
   })
   .superRefine((mission, ctx) => {
     const teams = mission.lances.map((lance) => lance.team);
@@ -158,6 +174,25 @@ export const MissionSchema = z
     if (zoneIds.size !== mission.zones.length) {
       ctx.addIssue({ code: 'custom', path: ['zones'], message: 'zone ids must be unique' });
     }
+
+    const directiveIds = new Set(mission.enemyDirectives.map((directive) => directive.id));
+    if (directiveIds.size !== mission.enemyDirectives.length) {
+      ctx.addIssue({ code: 'custom', path: ['enemyDirectives'], message: 'directive ids must be unique' });
+    }
+    mission.enemyDirectives.forEach((directive, index) => {
+      if (!teams.includes(directive.team)) {
+        ctx.addIssue({ code: 'custom', path: ['enemyDirectives', index, 'team'],
+          message: `unknown team "${directive.team}"` });
+      }
+      const zone = mission.zones.find((candidate) => candidate.id === directive.zoneId);
+      if (zone === undefined) {
+        ctx.addIssue({ code: 'custom', path: ['enemyDirectives', index, 'zoneId'],
+          message: `unknown zone "${directive.zoneId}"` });
+      } else if (directive.pursuitRadius < zone.radius) {
+        ctx.addIssue({ code: 'custom', path: ['enemyDirectives', index, 'pursuitRadius'],
+          message: 'pursuit radius must contain its objective zone' });
+      }
+    });
 
     const objectiveIds = new Set(mission.objectives.map((objective) => objective.id));
     if (objectiveIds.size !== mission.objectives.length) {
@@ -210,6 +245,7 @@ export const MissionSchema = z
   });
 
 export type Mission = z.infer<typeof MissionSchema>;
+export type EnemyDirective = z.infer<typeof EnemyDirectiveSchema>;
 export type Deployment = z.infer<typeof DeploymentSchema>;
 export type MissionZone = z.infer<typeof ZoneSchema>;
 export type MissionObjective = z.infer<typeof ObjectiveSchema>;

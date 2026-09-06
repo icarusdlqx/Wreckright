@@ -102,6 +102,14 @@ export const AiRulesSchema = z.strictObject({
     approachExposureWeight: z.number().nonnegative(),
     stationWeight: z.number().nonnegative(),
   }),
+  playerApproach: z.strictObject({
+    rangeSampleStep: z.number().positive(),
+    rangeTolerance: z.number().nonnegative(),
+    incomingDamageWeight: z.number().nonnegative().max(3),
+  }),
+  directives: z.strictObject({
+    stationRadiusFraction: z.number().positive().max(1),
+  }),
   heat: z.strictObject({
     holdFireFraction: Probability,
     resumeFraction: Probability,

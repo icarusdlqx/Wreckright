@@ -1,17 +1,16 @@
 import { useCallback, useRef } from 'react';
 import type { Catalog } from '../../schema/load';
-import { deployableLance, dropTeam, dropTonnageFor, missionSlots } from '../../campaign/campaign';
+import { deploymentCandidates, deploymentPlan } from '../../campaign/deployment';
+import { chooseDeployment } from '../../campaign/lancePresets';
 import { employerNameFor } from '../../campaign/employers';
-import { mechIntegrity } from '../../campaign/integrity';
 import { assign } from '../../campaign/roster';
-import { isMechAvailable, isPilotAvailable, type CampaignState, type PilotRecord } from '../../campaign/types';
-import { PilotStats } from '../PilotStats';
-import { PilotPortrait } from '../PilotPortrait';
-import { PilotAssessment } from '../PilotProfile';
-import { authoredDesignName, designIdentityLabel } from '../designLabel';
+import type { CampaignState } from '../../campaign/types';
 import { ContractBriefing } from './ContractBriefing';
 import { useDialogFocus } from '../useDialogFocus';
-import { MachineIdentity, PreparationSteps } from './MachineIdentity';
+import { PreparationSteps } from './MachineIdentity';
+import { LanceCard } from './LanceCard';
+import { LancePresets } from './LancePresets';
+import './lanceSelection.css';
 
 interface Props {
   catalog: Catalog;
@@ -19,18 +18,9 @@ interface Props {
   mutate: (change: (draft: CampaignState) => void, message?: string) => void;
   onLaunch: () => void;
   onCancel: () => void;
-  /** Opens the bay on one of the company's machines, for a pre-drop refit. */
   onRefit: (mechId: string) => void;
 }
 
-/**
- * The dropship manifest: who is flying what, and what that buys.
- *
- * The roster existed long before this screen did, and it might as well not
- * have: pilots were seated automatically, in roster order, behind a panel the
- * player had no reason to open. Show the actual drop without changing that
- * order: holding back a pilot must not move the next button under the pointer.
- */
 export function LanceManifest({ catalog, state, mutate, onLaunch, onCancel, onRefit }: Props) {
   const dialogRef = useRef<HTMLElement>(null);
   const cancelRef = useRef(onCancel);
@@ -39,225 +29,67 @@ export function LanceManifest({ catalog, state, mutate, onLaunch, onCancel, onRe
   useDialogFocus(dialogRef, dialogRef, close);
   const contract = state.contract;
   if (contract === null) return null;
-
-  const slots = missionSlots(catalog, contract.missionId);
-  const allowance = dropTonnageFor(catalog, contract.missionId);
-  const dropping = dropTeam(catalog, state, contract.missionId);
-  const candidates = deployableLance(state);
-  const lastAboard = candidates.findIndex((pair) => pair.pilot.id === dropping.at(-1)?.pilot.id);
+  const plan = deploymentPlan(catalog, state, contract.missionId);
+  const candidates = deploymentCandidates(state);
   const mission = catalog.missions.get(contract.missionId);
-  const employer = employerNameFor(
-    catalog,
-    state.campaignId,
-    contract.employerId,
-    contract.employerName,
-  );
-  const tonnage = dropping.reduce(
-    (total, pair) => total + (catalog.chassis.get(pair.mech.design.chassisId)?.tonnage ?? 0),
-    0,
-  );
-
-  // Everyone fit to fly, whether or not they are dropping — the bench is part
-  // of the manifest, not a separate screen.
-  const roster = state.pilots.filter((pilot) => !pilot.dead);
-  const benched = (pilot: PilotRecord): boolean => state.benched.includes(pilot.id);
-  const dropIndex = (pilot: PilotRecord): number =>
-    dropping.findIndex((pair) => pair.pilot.id === pilot.id);
-
-  const toggleBench = (pilot: PilotRecord): void => {
-    mutate((draft) => {
-      const held = draft.benched.includes(pilot.id);
-      if (held) draft.benched = draft.benched.filter((id) => id !== pilot.id);
-      else draft.benched.push(pilot.id);
-    });
+  const employer = employerNameFor(catalog, state.campaignId, contract.employerId, contract.employerName);
+  const reserves = state.pilots.filter((pilot) => !pilot.dead && !plan.pilotIds.includes(pilot.id));
+  const card = (id: string, aboard: boolean, position: number) => {
+    const pilot = state.pilots.find((entry) => entry.id === id);
+    if (pilot === undefined) return <li key={id} className="lance-card unfit">Missing pilot · replace this seat
+      <button type="button" onClick={() => mutate((draft) => chooseDeployment(draft, plan.pilotIds.filter((entry) => entry !== id)))}>Remove seat</button>
+    </li>;
+    const mech = candidates.find((pair) => pair.pilot.id === id)?.mech
+      ?? state.mechs.find((entry) => entry.id === pilot.mechId) ?? null;
+    const trial = deploymentPlan(catalog, { ...state, deploymentSelection: [...plan.pilotIds, id] }, contract.missionId);
+    const refusal = aboard ? null : trial.issues[0] ?? null;
+    return <LanceCard key={id} catalog={catalog} state={state} pilot={pilot} mech={mech}
+      aboard={aboard} position={position} refusal={refusal} onRefit={onRefit}
+      onToggle={() => mutate((draft) => chooseDeployment(draft,
+        aboard ? plan.pilotIds.filter((entry) => entry !== id) : [...plan.pilotIds, id]))}
+      onSeat={(mechId) => mutate((draft) => {
+        chooseDeployment(draft, plan.pilotIds);
+        assign(draft, id, mechId === '' ? null : mechId);
+      })} />;
   };
-
-  const seat = (pilot: PilotRecord, mechId: string): void => {
-    mutate((draft) => {
-      assign(draft, pilot.id, mechId === '' ? null : mechId);
-    });
-  };
-
-  return (
-    <div className="manifest-backdrop" data-testid="lance-manifest">
-      <section
-        className="manifest exp-prep exp-drop-manifest"
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="manifest-title"
-        tabIndex={-1}
-      >
-        <header>
-          <PreparationSteps stage="manifest" />
-          <h3 id="manifest-title">Dropship manifest</h3>
-          <p>
-            {mission?.name ?? contract.missionId} — {employer}.
-          </p>
-          {/* The profile the loadout has to answer to: how many berths, how
-              much weight, and what the contract is actually asking for. */}
-          <dl className="manifest-profile" data-testid="manifest-profile">
-            <div>
-              <dt>Berths</dt>
-              <dd>
-                {dropping.length}/{slots}
-              </dd>
-            </div>
-            <div className={tonnage > allowance ? 'over' : undefined}>
-              <dt>Tonnage</dt>
-              <dd data-testid="manifest-tonnage">
-                {tonnage}/{allowance}t
-              </dd>
-            </div>
-            <div>
-              <dt>Profile</dt>
-              <dd>{mission?.type.replace('_', ' ') ?? 'contract'}</dd>
-            </div>
-          </dl>
-          <details className="exp-prep-contract">
-            <summary>Mission orders &amp; signed terms</summary>
-            <ContractBriefing catalog={catalog} state={state} missionId={contract.missionId}
-              deadlineDay={contract.deadlineDay} nodeId={contract.nodeId} terms={contract} />
-            {mission === undefined ? null : <p className="manifest-brief">{mission.briefing}</p>}
-          </details>
-          <section className="exp-actual-drop" aria-label="Machines deploying" data-testid="manifest-actual-drop">
-            <div className="exp-drop-heading"><strong>{dropping.length === 0 ? 'No machines aboard' : `${dropping.length} machine${dropping.length === 1 ? '' : 's'} aboard`}</strong><span>{Math.max(0, allowance - tonnage)}t remaining · {roster.length - dropping.length} crew in reserve</span></div>
-            <div className="exp-drop-weight" role="progressbar" aria-label="Deployment tonnage" aria-valuemin={0} aria-valuemax={allowance} aria-valuenow={tonnage}><span style={{ width: `${allowance > 0 ? Math.min(100, tonnage / allowance * 100) : 0}%` }} /></div>
-            {dropping.length === 0 ? <p>Call up a fit pilot in an armed machine within the drop allowance.</p> : (
-              <ol>{dropping.map(({ mech, pilot }, index) => (
-                <li key={pilot.id} data-testid={`manifest-aboard-${pilot.id}`}><span>{String(index + 1).padStart(2, '0')}</span><div><strong>{authoredDesignName(catalog, mech.design)}</strong><small>{pilot.name} · {catalog.chassis.get(mech.design.chassisId)?.tonnage ?? 0}t</small></div></li>
-              ))}</ol>
-            )}
-          </section>
-        </header>
-
-        <ul className="manifest-list">
-          {roster.map((pilot) => {
-            const order = dropIndex(pilot);
-            const drops = order >= 0 && order < slots;
-            const available = isPilotAvailable(state, pilot);
-            const pair = candidates.find((entry) => entry.pilot.id === pilot.id);
-            const seated = pair?.mech ?? state.mechs.find((mech) => mech.id === pilot.mechId) ?? null;
-            const autoAssigned = pair !== undefined && pilot.mechId !== pair.mech.id;
-            const seatedName =
-              seated === null ? null : authoredDesignName(catalog, seated.design);
-            const integrity = seated === null ? null : mechIntegrity(catalog, seated);
-            const health = integrity?.fraction ?? 0;
-
-            const weight =
-              seated === null ? 0 : (catalog.chassis.get(seated.design.chassisId)?.tonnage ?? 0);
-
-            const status = !available
-              ? (pilot.recoveryMissions ?? 0) > 0 ? 'Infirmary — misses next mission' : `Infirmary until day ${pilot.injuredUntilDay}`
-              : benched(pilot)
-                ? 'Held back'
-                : seated === null
-                  ? 'No fieldable machine assigned or free'
-                  : !isMechAvailable(state, seated)
-                    ? seated.status === 'hulk' ? 'Reserve — mech needs rebuilding' : `Reserve — workshop until day ${seated.readyOnDay}`
-                    : seated.design.mounts.length === 0
-                      ? 'Mech needs a weapon'
-                    : drops
-                      ? `Dropping · ${weight}t`
-                      : dropping.length >= slots && candidates.findIndex((entry) => entry.pilot.id === pilot.id) > lastAboard
-                        ? 'Reserve — no berth'
-                        : 'Reserve — over the weight allowance';
-
-            return (
-              <li
-                key={pilot.id}
-                className={`manifest-row${drops ? ' drops' : ' reserve'}${available ? '' : ' unfit'}`}
-                data-testid={`manifest-${pilot.id}`}
-              >
-                <div className="manifest-pilot">
-                  <PilotPortrait pilot={pilot} compact />
-                  <span className={`exp-readiness ${drops ? 'is-dropping' : 'is-reserve'}`}>{drops ? `Aboard ${String(order + 1).padStart(2, '0')}` : 'Reserve'}</span>
-                  <span className="pilot-name">{pilot.name}</span>
-                  <p className="pilot-bio">{pilot.bio || catalog.pilots.get(pilot.templateId)?.bio}</p>
-                  <PilotAssessment pilot={pilot} />
-                  {pilot.traits.length === 0 ? null : (
-                    <small className="pilot-traits">
-                      {pilot.traits
-                        .map((id) => catalog.rules.pilotTraits.entries[id]?.label ?? id)
-                        .join(' · ')}
-                    </small>
-                  )}
-                  <small className="manifest-status">{status}</small>
-                </div>
-
-                <PilotStats catalog={catalog} pilot={pilot} />
-
-                <div className="manifest-mech">
-                  {seated === null ? null : <MachineIdentity catalog={catalog} design={seated.design} />}
-                  {autoAssigned ? <small className="exp-auto-assignment">{drops ? 'Auto-assigned for this drop.' : 'Available automatic pairing.'} Choose a machine below to make an explicit assignment.</small> : null}
-                  <select
-                    value={pilot.mechId ?? ''}
-                    onChange={(event) => seat(pilot, event.target.value)}
-                    data-testid={`manifest-seat-${pilot.id}`}
-                    aria-label={`Mech for ${pilot.name}`}
-                  >
-                    <option value="">— no mech —</option>
-                    {state.mechs.map((mech) => (
-                      <option key={mech.id} value={mech.id}>
-                        {designIdentityLabel(catalog, mech.design)}
-                        {mech.status === 'ready' ? '' : ` (${mech.status})`}
-                      </option>
-                    ))}
-                  </select>
-                  {seated === null ? null : (
-                    <div
-                      className="manifest-health"
-                      title={`${Math.round(health * 100)}% intact · ${integrity?.current ?? 0}/${integrity?.maximum ?? 0} armour and structure`}
-                      role="progressbar"
-                      aria-label={`${seatedName ?? 'Mech'} integrity`}
-                      aria-valuemin={0}
-                      aria-valuemax={integrity?.maximum ?? 0}
-                      aria-valuenow={integrity?.current ?? 0}
-                    >
-                      <span style={{ width: `${Math.round(health * 100)}%` }} />
-                    </div>
-                  )}
-                  <div className="manifest-buttons">
-                    <button
-                      type="button"
-                      disabled={!available}
-                      onClick={() => toggleBench(pilot)}
-                      data-testid={`manifest-bench-${pilot.id}`}
-                    >
-                      {benched(pilot) ? 'Call up' : 'Hold back'}
-                    </button>
-                    <button
-                      type="button"
-                      disabled={seated === null || seated.status !== 'ready'}
-                      onClick={() => {
-                        if (seated !== null) onRefit(seated.id);
-                      }}
-                      title="Change what this machine is carrying before the drop"
-                      data-testid={`manifest-refit-${pilot.id}`}
-                    >
-                      Refit
-                    </button>
-                  </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-
-        <footer className="manifest-actions">
-          <button
-            type="button"
-            onClick={onLaunch}
-            disabled={dropping.length === 0}
-            data-testid="manifest-launch"
-          >
-            Launch ({Math.min(dropping.length, slots)})
-          </button>
-          <button type="button" onClick={onCancel} data-testid="manifest-cancel">
-            Back to the mechbay
-          </button>
-        </footer>
+  return <div className="manifest-backdrop" data-testid="lance-manifest">
+    <section className="manifest exp-prep exp-drop-manifest" ref={dialogRef} role="dialog"
+      aria-modal="true" aria-labelledby="manifest-title" tabIndex={-1}>
+      <header><PreparationSteps stage="manifest" /><h3 id="manifest-title">Choose the drop</h3>
+        <p>{mission?.name ?? contract.missionId} — {employer}.</p>
+        <dl className="manifest-profile" data-testid="manifest-profile">
+          <div><dt>Machines aboard</dt><dd>{plan.pilotIds.length}/{plan.slots}</dd></div>
+          <div className={plan.tonnage > plan.allowance ? 'over' : undefined}><dt>Tonnage</dt>
+            <dd data-testid="manifest-tonnage">{plan.tonnage}/{plan.allowance}t</dd></div>
+          <div><dt>Reserve crew</dt><dd>{reserves.length}</dd></div>
+        </dl>
+        <div className="exp-drop-weight" role="progressbar" aria-label="Deployment tonnage"
+          aria-valuemin={0} aria-valuemax={plan.allowance} aria-valuenow={Math.min(plan.tonnage, plan.allowance)}>
+          <span style={{ width: `${plan.allowance > 0 ? Math.min(100, plan.tonnage / plan.allowance * 100) : 0}%` }} />
+        </div>
+        <p>{Math.max(0, plan.allowance - plan.tonnage)}t remaining. Every seat is your choice; mission limits apply to saved lances too.</p>
+        <details className="exp-prep-contract"><summary>Mission orders &amp; signed terms</summary>
+          <ContractBriefing catalog={catalog} state={state} missionId={contract.missionId}
+            deadlineDay={contract.deadlineDay} nodeId={contract.nodeId} terms={contract} />
+        </details>
+      </header>
+      <LancePresets catalog={catalog} state={state} missionId={contract.missionId} mutate={mutate} />
+      {plan.issues.length === 0 ? null : <div className="lance-issues" role="status" data-testid="manifest-issues">
+        <strong>Before launch</strong><ul>{plan.issues.map((issue) => <li key={issue}>{issue}</li>)}</ul>
+      </div>}
+      <section aria-label="Machines deploying" data-testid="manifest-actual-drop">
+        <h4>Aboard · {plan.pilotIds.length}</h4>
+        {plan.pilotIds.length === 0 ? <p>No machines aboard. Choose a reserve below or use Autofill.</p> : null}
+        <ul className="manifest-list lance-card-grid">{plan.pilotIds.map((id, index) => card(id, true, index))}</ul>
       </section>
-    </div>
-  );
+      <section aria-label="Reserve crew"><h4>Reserve · {reserves.length}</h4>
+        {reserves.length === 0 ? <p>All active crew selected.</p> : null}
+        <ul className="manifest-list lance-card-grid">{reserves.map((pilot) => card(pilot.id, false, -1))}</ul>
+      </section>
+      <footer className="manifest-actions">
+        <button type="button" onClick={onLaunch} disabled={plan.issues.length > 0} data-testid="manifest-launch">Launch ({plan.pairs.length})</button>
+        <button type="button" onClick={onCancel} data-testid="manifest-cancel">Back to the mechbay</button>
+      </footer>
+    </section>
+  </div>;
 }

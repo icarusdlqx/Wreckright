@@ -169,5 +169,15 @@
       ]
     }
   ],
-  "dropTonnage": 240
+  "dropTonnage": 240,
+  "enemyDirectives": [
+    {
+      "id": "survey_counterattack",
+      "team": 1,
+      "zoneId": "survey_post",
+      "behavior": "retake",
+      "units": 5,
+      "pursuitRadius": 380
+    }
+  ]
 }

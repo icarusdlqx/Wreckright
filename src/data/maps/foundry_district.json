@@ -98,5 +98,21 @@
     "0000000000000000000000000000000000000000",
     "0000000000000000000000000000000000000000",
     "0000000000000000000000000000000000000000"
+  ],
+  "landmarks": [
+    {
+      "id": "kiln_gantry",
+      "name": "Kiln Gantry",
+      "kind": "gantry",
+      "column": 17,
+      "row": 8
+    },
+    {
+      "id": "pressure_silos",
+      "name": "Pressure Silos",
+      "kind": "silos",
+      "column": 24,
+      "row": 15
+    }
   ]
 }

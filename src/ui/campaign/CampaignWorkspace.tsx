@@ -1,10 +1,12 @@
 import { useState, type ReactNode } from 'react';
 import type { CampaignState } from '../../campaign/types';
-import { deployableLance, DROP_BERTHS } from '../../campaign/campaign';
+import { defaultDropBerths, missionSlots } from '../../campaign/campaign';
+import { deploymentCandidates } from '../../campaign/deployment';
 import { dailyPayroll } from '../../campaign/ledger';
 import type { Catalog } from '../../schema/load';
 import { cbills } from './Panels';
 import './campaignWorkspace.css';
+import type { CompanyArea } from './campaignNavigation';
 
 const AREAS = [
   { id: 'operations', label: 'Operations', detail: 'Contracts & route' },
@@ -12,13 +14,14 @@ const AREAS = [
   { id: 'crew', label: 'Crew', detail: 'Pilots & progression' },
   { id: 'supplies', label: 'Stores & yard', detail: 'Parts & trade' },
 ] as const;
-type Area = (typeof AREAS)[number]['id'];
 type WorkspaceContent = ReactNode | ((active: boolean) => ReactNode);
 
 interface CampaignWorkspaceProps {
   catalog: Catalog;
   state: CampaignState;
   fullCompany: boolean;
+  area?: CompanyArea;
+  onAreaChange?: (area: CompanyArea) => void;
   operations: WorkspaceContent;
   workshop: WorkspaceContent;
   crew: ReactNode;
@@ -27,17 +30,22 @@ interface CampaignWorkspaceProps {
 
 /** Navigation is transient. All financial and deployment decisions stay in campaign. */
 export function CampaignWorkspace({
-  catalog, state, fullCompany, operations, workshop, crew, supplies,
+  catalog, state, fullCompany, operations, workshop, crew, supplies, area: controlledArea, onAreaChange,
 }: CampaignWorkspaceProps) {
-  const [area, setArea] = useState<Area>('operations');
+  const [localArea, setLocalArea] = useState<CompanyArea>('operations');
+  const area = controlledArea ?? localArea;
+  const setArea = onAreaChange ?? setLocalArea;
   const selected = !fullCompany || state.finished ? 'operations' : area;
-  const ready = deployableLance(state).length;
+  const ready = deploymentCandidates(state).length;
+  const completion = state.won ? 'Campaign complete'
+    : state.log.some((entry) => entry.text.startsWith('The company retired.')) ? 'Company retired' : 'Campaign over';
   return (
-    <main className="company-workspace">
+    <main className={`company-workspace${state.finished ? ' company-workspace--finished' : ''}`}>
       <div className="company-overview" aria-label="Company readiness">
         <span><strong>{ready}</strong> fieldable machines <small>of {state.mechs.length} owned</small></span>
         <span><strong>{state.pilots.filter((pilot) => !pilot.dead).length}</strong> crew <small>{cbills(dailyPayroll(catalog, state))} wages / day</small></span>
-        <span className="company-contract-state"><i aria-hidden="true" />{state.contract === null ? 'Available for contract' : 'Contract signed'}<small>{DROP_BERTHS} drop berths · mission tonnage applies</small></span>
+        <span className="company-contract-state"><i aria-hidden="true" />{state.finished ? completion : state.contract === null ? 'Available for contract' : 'Contract signed'}
+          <small>{state.finished ? `Company record · day ${state.day}` : `${state.contract === null ? defaultDropBerths(catalog) : missionSlots(catalog, state.contract.missionId)} drop berths · mission tonnage applies`}</small></span>
       </div>
       {!fullCompany || state.finished ? null : (
         <nav className="company-navigation" aria-label="Company work areas">

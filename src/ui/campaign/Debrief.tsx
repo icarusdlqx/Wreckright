@@ -17,6 +17,9 @@ import { useDialogFocus } from '../useDialogFocus';
 import { PilotPortrait } from '../PilotPortrait';
 import { salvageItemFacts, salvageSummary } from './salvageFacts';
 import './salvage.css';
+import { RewardReceipt } from './CompanyRewards';
+import { DebriefActions } from './DebriefActions';
+import type { CampaignNavigationTarget } from './campaignNavigation';
 
 const DEBRIEFED_KEY = 'ironline.campaign.debriefed';
 
@@ -106,11 +109,13 @@ export function Debrief({
   outcome,
   onClose,
   onChooseSalvage,
+  onAction,
 }: {
   catalog: Catalog;
   state: CampaignState;
   outcome: MissionOutcome;
   onClose: () => void;
+  onAction?: (target: CampaignNavigationTarget) => void;
   /** Swaps what came home for a different pick out of the same offer. */
   onChooseSalvage?: (picks: StoreItem[]) => StoreItem[] | void;
 }) {
@@ -246,7 +251,10 @@ export function Debrief({
                       outcome.salvagedItems.find(
                         (held) => held.kind === item.kind && held.itemId === item.itemId,
                       )?.count ?? 0;
-                    const facts = salvageItemFacts(catalog, state, item, takenCount);
+                    const delivered = (outcome.campaignRewards ?? []).flatMap((reward) => reward.items)
+                      .filter((grant) => grant.kind === item.kind && grant.itemId === item.itemId)
+                      .reduce((total, grant) => total + grant.count, 0);
+                    const facts = salvageItemFacts(catalog, state, item, takenCount + delivered);
                     const sources = provenance.filter(
                       (source) => source.kind === item.kind && source.itemId === item.itemId,
                     );
@@ -286,6 +294,8 @@ export function Debrief({
           </details>
         )}
 
+        <RewardReceipt catalog={catalog} rewards={outcome.campaignRewards ?? []} />
+
         {outcome.pilotReports.length === 0 ? (
           <p className="empty">No crew records for this drop.</p>
         ) : (
@@ -316,6 +326,7 @@ export function Debrief({
                     <dd>
                       +{report.xp} XP
                       {report.xpBanked === null ? '' : ` · ${report.xpBanked} banked`}
+                      {(report.sharedXp ?? 0) > 0 ? <small className="debrief-shared-xp"> Includes {report.sharedXp} XP for shared mission progress.</small> : null}
                     </dd>
                   </div>
                   <div>
@@ -352,6 +363,9 @@ export function Debrief({
             Lost: {outcome.mechsLost.map(stripSerialDesignation).join(', ')}.
           </p>
         )}
+
+        {onAction === undefined || state.finished ? null : <DebriefActions catalog={catalog} state={state}
+          outcome={{ ...outcome, salvagedItems: receiptItems }} onAction={onAction} />}
 
         <footer className="manifest-actions">
           <button type="button" onClick={onClose} data-testid="debrief-close">

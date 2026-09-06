@@ -150,3 +150,7 @@
 .camp-workspace[data-first-drop-stage] .company-overview { min-height: 50px; }
 .camp-workspace[data-first-drop-stage] .company-overview > span { display: flex; align-items: baseline; gap: 5px; }
 .camp-workspace[data-first-drop-stage] .company-overview .company-contract-state small { display: none; }
+
+.camp-workspace .company-workspace--finished .company-operations { grid-template-columns: minmax(0, 1fr); }
+.camp-workspace .company-workspace--finished .company-operations > .camp-contract { grid-column: 1; grid-row: 1; }
+.camp-workspace .company-workspace--finished .company-operations > .camp-map { grid-column: 1; grid-row: 2; }

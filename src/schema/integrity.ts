@@ -1,3 +1,4 @@
+import { checkCampaignRewards } from './campaignRewards';
 import { validateDesign } from './designValidation';
 import type { Catalog, ContentIssue } from './load';
 import type { Deployment } from './mission';
@@ -101,6 +102,8 @@ function checkMissions(catalog: Catalog, push: Push): void {
           effect.units.forEach((unit, unitIndex) =>
             checkDeployment(unit, `${path}.units.${unitIndex}`),
           );
+        } else if (effect.type === 'message' && effect.speakerPilotId !== undefined && !catalog.pilots.has(effect.speakerPilotId)) {
+          push(file, `${path}.speakerPilotId`, `unknown pilot "${effect.speakerPilotId}"`);
         } else if (effect.type === 'reveal' && (effect.x >= extentX || effect.y >= extentY)) {
           push(
             file,
@@ -220,4 +223,5 @@ export function checkIntegrity(catalog: Catalog, issues: ContentIssue[]): void {
   checkAiFireModes(catalog, push);
   checkTerrainFire(catalog, push);
   checkCampaigns(catalog, push);
+  checkCampaignRewards(catalog, push);
 }

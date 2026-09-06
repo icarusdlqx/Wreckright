@@ -35,7 +35,7 @@ import { SupportEffects } from './supportEffects';
 import { TerrainFireLayer, type TerrainFireStats } from './terrainFire';
 import { canPresentEntity } from './visibilityPresentation';
 import { routeVisibleLegLoss } from './legLossEventPresentation';
-import { readLowFx } from './renderQuality';
+import { readLowFx, subscribeLowFx, writeLowFx } from './renderQuality';
 
 export interface ViewState extends MarkerViewState {
   hovered: EntityId | null;
@@ -65,6 +65,7 @@ export class Renderer {
   private destroyed = false;
   private contextLost = false;
   private footfallCallback: FootfallCallback | null = null;
+  private readonly unsubscribeQuality: () => void;
 
   /**
    * Raised when the GPU takes its context back — a backgrounded tab, a driver
@@ -170,6 +171,10 @@ export class Renderer {
     this.camera.beginDropIn();
     this.resize();
     this.snapshot(world);
+    this.unsubscribeQuality = subscribeLowFx(() => {
+      const low = readLowFx();
+      if (low !== this.lowFx) this.setLowFx(low);
+    });
   }
 
   get canvas(): HTMLCanvasElement {
@@ -210,11 +215,7 @@ export class Renderer {
 
   setLowFx(low: boolean): void {
     this.lowFx = low;
-    try {
-      localStorage.setItem('ironline.lowfx', low ? '1' : '0');
-    } catch {
-      // Private browsing; the preference lasts for the session.
-    }
+    writeLowFx(low);
     configureRenderer(this.renderer, low, globalThis.devicePixelRatio ?? 1);
     this.effects.setPresentationMode(low);
     this.supportEffects.setPresentationMode(low);
@@ -249,6 +250,7 @@ export class Renderer {
   destroy(): void {
     if (this.destroyed) return;
     this.destroyed = true;
+    this.unsubscribeQuality();
     this.renderer.domElement.removeEventListener('webglcontextlost', this.handleContextLost);
     this.effects.destroy();
     this.supportEffects.dispose();

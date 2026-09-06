@@ -3,6 +3,7 @@ import { sideContractProfile } from '../../campaign/sidework';
 import type { CampaignState } from '../../campaign/types';
 import type { Catalog } from '../../schema/load';
 import './contractBriefing.css';
+import { ContractRewards } from './CompanyRewards';
 
 function cbills(value: number): string {
   return `${Math.round(value).toLocaleString('en-GB')} C`;
@@ -40,7 +41,7 @@ export function ContractBriefing({
   const days = commitment.daysRemaining === 1 ? 'day' : 'days';
 
   return (
-    <dl className="contract-facts" data-testid="contract-facts">
+    <><dl className="contract-facts" data-testid="contract-facts">
       <div>
         <dt>Orders</dt>
         <dd>{profile.objectives.join(' · ')}</dd>
@@ -88,6 +89,6 @@ export function ContractBriefing({
           through deadline at current roster
         </dd>
       </div>
-    </dl>
+    </dl><ContractRewards catalog={catalog} state={state} nodeId={nodeId} /></>
   );
 }

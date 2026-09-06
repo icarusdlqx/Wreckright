@@ -85,9 +85,11 @@ function mechanicalMission(entry: Mission): object {
 }
 
 describe('Aurelian Recall campaign', () => {
-  it('authors a winnable nine-contract arc with two disposition endings', () => {
+  it('keeps the nine-contract arc and adds an optional survey and resupply branch', () => {
     expect(campaign.nodes.map((node) => [node.id, node.missionId, node.requires])).toEqual([
       ['first_warrant', 'raid_ridge', []],
+      ['custody_survey', 'custody_survey', ['first_warrant']],
+      ['custody_resupply', 'custody_resupply', ['custody_survey']],
       ['cutbank_attestation', 'base_capture_ridge', ['first_warrant']],
       ['sarn_inventory', 'switchyard_watch', ['cutbank_attestation']],
       ['root_exchange', 'authority_root_exchange', ['sarn_inventory']],
@@ -102,7 +104,8 @@ describe('Aurelian Recall campaign', () => {
     expect(campaign.sideWork).toEqual({ missionIds: [], employerIds: [] });
     expect(campaign.nodes.every((node) => node.maxSalvageShare === 0.1)).toBe(true);
 
-    const originalMissions = campaign.nodes.slice(3).map((node) => mission(node.missionId));
+    const originalMissions = campaign.nodes.filter((node) => node.missionId.startsWith('authority_'))
+      .map((node) => mission(node.missionId));
     expect(originalMissions.map((entry) => entry.id)).toEqual([
       'authority_root_exchange',
       'authority_quarry_receipt',
@@ -193,7 +196,9 @@ describe('Aurelian Recall campaign', () => {
     const restored = deserialiseCampaign(serialiseCampaign(state), catalog).state;
     expect(restored).toMatchObject({ finished: false, won: false });
     if (restored === null) throw new Error('expanded campaign save did not load');
-    expect(availableNodes(catalog, restored).map((node) => node.id)).toEqual(['root_exchange']);
+    expect(availableNodes(catalog, restored).map((node) => node.id)).toEqual([
+      'custody_survey', 'root_exchange',
+    ]);
     expect(restored.log[0]?.text).toContain('new contracts reopen this completed run');
   });
 
@@ -215,6 +220,7 @@ describe('Aurelian Recall campaign', () => {
     expect(restored).toMatchObject({ finished: false, won: false });
     if (restored === null) throw new Error('expanded campaign save did not load');
     expect(availableNodes(catalog, restored).map((node) => node.id)).toEqual([
+      'custody_survey',
       'continuance_export',
       'local_stewardship',
     ]);
@@ -223,7 +229,7 @@ describe('Aurelian Recall campaign', () => {
 
   it('frames custody as civil attestation rather than remote control', () => {
     const briefs = campaign.nodes.map((node) => node.brief);
-    expect(new Set(briefs)).toHaveLength(9);
+    expect(new Set(briefs)).toHaveLength(11);
     expect(briefs.join(' ')).toMatch(/Recall Authority.*Linewrought.*custody/is);
     expect(campaign.nodes.map((node) => mission(node.missionId).briefing).join(' '))
       .not.toMatch(/Halloran|Kestrel/);

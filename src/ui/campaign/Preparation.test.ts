@@ -64,20 +64,20 @@ function benchIds(html: string) {
 }
 
 describe('expedition preparation readouts', () => {
-  it('shows exactly the six-berth drop and keeps roster controls in place when a pilot is held back', () => {
+  it('shows the five-berth drop with distinct aboard and reserve groups', () => {
     const { state, content, mission } = largeCompany(2000);
     const before = manifest(state, content);
     expect(aboardIds(before)).toEqual(dropTeam(content, state, mission.id).map((pair) => pair.pilot.id));
-    expect(aboardIds(before)).toHaveLength(6);
-    expect(before).toContain('Reserve — no berth');
+    expect(aboardIds(before)).toHaveLength(5);
+    expect(before).toContain('This mission permits 5 machines.');
     const first = state.pilots[0];
     if (first === undefined) throw new Error('missing first pilot');
     state.benched.push(first.id);
     const after = manifest(state, content);
-    expect(benchIds(after)).toEqual(benchIds(before));
+    expect(benchIds(after).sort()).toEqual(benchIds(before).sort());
     expect(aboardIds(after)).not.toContain(first.id);
     expect(aboardIds(after)).toEqual(dropTeam(content, state, mission.id).map((pair) => pair.pilot.id));
-    expect(after).toContain('Held back');
+    expect(after).toContain('Put aboard');
   });
 
   it('reveals an automatic pairing and weight reserve without writing an assignment', () => {
@@ -89,7 +89,7 @@ describe('expedition preparation readouts', () => {
     const html = manifest(state, content);
     expect(aboardIds(html)).toEqual(dropTeam(content, state, mission.id).map((pair) => pair.pilot.id));
     expect(html).toContain('Available automatic pairing.');
-    expect(html).toContain('Reserve — over the weight allowance');
+    expect(html).toContain('over the mission allowance');
     expect(JSON.stringify(state)).toBe(saved);
 
     const full = largeCompany(2000);
@@ -115,7 +115,7 @@ describe('expedition preparation readouts', () => {
     unarmed.design.mounts = [];
     injured.injuredUntilDay = state.day + 3;
     const html = manifest(state);
-    expect(html).toContain(`Reserve — workshop until day ${workshop.readyOnDay}`);
+    expect(html).toContain(`Workshop until day ${workshop.readyOnDay}`);
     expect(html).toContain('Mech needs a weapon');
     expect(html).toContain(`Infirmary until day ${injured.injuredUntilDay}`);
     expect(aboardIds(html)).toEqual(dropTeam(catalog, state, state.contract?.missionId ?? '').map((pair) => pair.pilot.id));

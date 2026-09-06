@@ -7,6 +7,8 @@ import { selectedUnit, useGame } from './store';
 import { TacticalReadout } from './TacticalReadout';
 import { selectionReadiness } from './selectionReadiness';
 import './tacticalWorkspace.css';
+import { CommandIntent } from './CommandIntent';
+import { FieldHints } from './FieldHints';
 
 
 /** A trait's painted name; the id only if the rules no longer know it. */
@@ -80,6 +82,8 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
               </>
             )}
           </div>
+          {playerControlled ? <CommandIntent engine={engine} unit={unit} /> : null}
+          {playerControlled ? <FieldHints /> : null}
           {preview === null || preview.factors.length === 0 ? null : (
             <div className="hit-factors" data-testid="hit-factors">
               {preview.factors.map((factor) => (

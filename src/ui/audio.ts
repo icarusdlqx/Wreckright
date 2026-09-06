@@ -37,6 +37,7 @@ import {
   playSelect,
 } from './audioVoices';
 import { playCrunch, playDestruction, playImpact, playWeapon } from './audioWeapons';
+import { playPilotRadio } from './audioRadio';
 
 /**
  * Every sound in the game, synthesised.
@@ -337,8 +338,10 @@ export class AudioDirector {
   }
 
   /** Feedback for the player's own orders. */
-  order(): void {
-    if (!this.muted && this.graph !== null) playOrder(this.graph);
+  order(faction?: Faction): void {
+    if (this.muted || this.graph === null) return;
+    if (faction === undefined) playOrder(this.graph);
+    else playPilotRadio(this.graph, faction);
   }
 
   select(): void {
@@ -386,15 +389,12 @@ function presentationDelay(seconds: number, playbackSpeed: number): number {
   const speed = Number.isFinite(playbackSpeed) && playbackSpeed > 0 ? playbackSpeed : 1;
   return seconds / speed;
 }
-
 function entityOf(world: World, id: number): MechEntity | null {
   return world.entities.find((candidate) => candidate.id === id) ?? null;
 }
-
 function positionOf(world: World, id: number): Vec2 | null {
   return entityOf(world, id)?.pos ?? null;
 }
-
 function factionOf(world: World, entity: MechEntity): Faction | null {
   return world.catalog.chassis.get(entity.chassisId)?.faction ?? null;
 }

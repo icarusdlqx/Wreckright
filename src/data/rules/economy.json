@@ -1,5 +1,7 @@
 {
   "id": "economy",
+  "deployment": { "normalUnitLimit": 5 },
+  "campaignRewards": { "repairDayBankLimit": 7 },
   "negotiation": {
     "payoutFloorFactor": 0.55,
     "payoutCeilingFactor": 1.45,
@@ -44,6 +46,10 @@
     "perKill": 90,
     "missionSurvival": 60,
     "missionWin": 40,
+    "sharedMissionWin": 50,
+    "perRequiredObjective": 35,
+    "perOptionalObjective": 50,
+    "sharedObjectiveCap": 120,
     "skillCostBase": 400,
     "skillCostGrowth": 1.9,
     "perHit": 1.5

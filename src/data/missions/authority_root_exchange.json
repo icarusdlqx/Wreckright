@@ -260,5 +260,31 @@
         }
       ]
     }
+  ],
+  "enemyDirectives": [
+    {
+      "id": "north_reader_guard",
+      "team": 1,
+      "zoneId": "north_reader",
+      "behavior": "defend",
+      "units": 1,
+      "pursuitRadius": 230
+    },
+    {
+      "id": "west_splice_patrol",
+      "team": 1,
+      "zoneId": "west_splice",
+      "behavior": "intercept",
+      "units": 1,
+      "pursuitRadius": 260
+    },
+    {
+      "id": "exchange_counterclaim",
+      "team": 1,
+      "zoneId": "exchange_root",
+      "behavior": "retake",
+      "units": 4,
+      "pursuitRadius": 340
+    }
   ]
 }

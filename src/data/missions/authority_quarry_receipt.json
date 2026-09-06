@@ -229,5 +229,31 @@
         }
       ]
     }
+  ],
+  "enemyDirectives": [
+    {
+      "id": "weigh_ledger_guard",
+      "team": 1,
+      "zoneId": "weigh_ledger",
+      "behavior": "defend",
+      "units": 1,
+      "pursuitRadius": 260
+    },
+    {
+      "id": "lift_manifest_patrol",
+      "team": 1,
+      "zoneId": "lift_manifest",
+      "behavior": "intercept",
+      "units": 1,
+      "pursuitRadius": 300
+    },
+    {
+      "id": "serial_punch_relief",
+      "team": 1,
+      "zoneId": "serial_punch",
+      "behavior": "retake",
+      "units": 1,
+      "pursuitRadius": 340
+    }
   ]
 }

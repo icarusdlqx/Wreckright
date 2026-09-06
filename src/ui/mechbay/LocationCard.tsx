@@ -6,6 +6,9 @@ import { armourFacesForDesign } from '../../sim/designArmour';
 import { weaponSizeLabel, type LocationUsage } from '../../sim/loadout';
 import { buildLocationOccupants, type LocationOccupant } from './locationOccupants';
 import { parsedDrop, type DropPayload } from './dropPayload';
+import { FittedPart } from './FittedPart';
+import type { WeaponReplacement } from './weaponReplacement';
+export { mutateAfterStableFocus, stableRemovalFocusTarget } from './locationFocus';
 import { payloadFootprint, payloadName, SlotBoxes } from './SlotBoxes';
 
 export type { DropPayload } from './dropPayload';
@@ -21,29 +24,6 @@ export const MECH_LOCATION_NAMES: Record<MechLocation, string> = {
   right_leg: 'Right Leg',
 };
 
-export function mutateAfterStableFocus(
-  focusTarget: Pick<HTMLElement, 'focus'> | null,
-  mutate: () => void,
-): void {
-  focusTarget?.focus({ preventScroll: true });
-  mutate();
-}
-
-export function stableRemovalFocusTarget(removeControl: HTMLElement): HTMLButtonElement | null {
-  const ownLocation = removeControl
-    .closest('.bay-location')
-    ?.querySelector<HTMLButtonElement>('.bay-location-name') ?? null;
-  if (ownLocation !== null && !ownLocation.disabled) return ownLocation;
-
-  const mechbay = removeControl.closest('[data-testid="mechbay"]');
-  return mechbay?.querySelector<HTMLButtonElement>(
-    '.bay-location.selected .bay-location-name:not(:disabled)',
-  ) ?? mechbay?.querySelector<HTMLButtonElement>('.bay-location-name:not(:disabled)')
-    ?? mechbay?.querySelector<HTMLButtonElement>('[data-workspace-tab][aria-selected="true"]')
-    ?? mechbay?.querySelector<HTMLButtonElement>('[data-testid="bay-exit"]')
-    ?? null;
-}
-
 interface Props {
   catalog: Catalog;
   chassis: Chassis;
@@ -51,6 +31,8 @@ interface Props {
   location: MechLocation;
   usage: LocationUsage;
   onDrop: (payload: DropPayload, location: MechLocation) => void;
+  onReplace?: (payload: DropPayload, index: number) => void;
+  replacements?: ReadonlyMap<number, WeaponReplacement>;
   onRemoveMount: (index: number) => void;
   onRemoveAmmo: (index: number) => void;
   onRemoveEquipment: (index: number) => void;
@@ -75,6 +57,8 @@ export function LocationCard({
   location,
   usage,
   onDrop,
+  onReplace,
+  replacements,
   onRemoveMount,
   onRemoveAmmo,
   onRemoveEquipment,
@@ -119,6 +103,7 @@ export function LocationCard({
   const plate = armourFacesForDesign(catalog.rules.construction, design, location);
   const target = targeting ?? armed;
   const targetFits = target !== null && compatible;
+  const canReplaceHere = target?.kind === 'weapon' && occupants.some((item) => item.kind === 'weapon' && replacements?.get(item.index)?.ok);
   const incoming = targetFits ? Math.min(empty, payloadFootprint(catalog, target)) : 0;
   const invalid = slotsOver || hardpointOver || sizeOver;
   const locationName = MECH_LOCATION_NAMES[location];
@@ -131,9 +116,11 @@ export function LocationCard({
   ];
   const fitState = target === null
     ? null
-    : compatible ? 'Fits held part' : 'Cannot fit held part';
+    : compatible ? 'Fits held part' : canReplaceHere ? 'Replacement available' : 'Cannot fit held part';
   // Preserve the evaluator's actionable reason instead of reducing refusal to a red state.
-  const refusalText = target !== null && !compatible ? refusal : null;
+  const refusalText = target !== null && !compatible
+    ? canReplaceHere ? 'No empty fit here. Select an installed weapon below to preview a replacement.' : refusal
+    : null;
 
   const classes = ['bay-location', `loc-${location}`];
   if (invalid) classes.push('invalid');
@@ -194,7 +181,7 @@ export function LocationCard({
             onSelect?.(location);
           }}
         >
-          {locationName}
+          {locationName}{selected ? <span className="location-selection-label">Selected</span> : null}
         </button>
       </header>
 
@@ -245,44 +232,12 @@ export function LocationCard({
         aria-label={`Fitted parts in ${locationName}`}
       >
         {occupants.map((item) => (
-          <li
-            key={item.key}
-            className={`slot-block tone-${item.tone}${item.oversized ? ' too-big' : ''}${item.key === snapOccupantKey ? ' snap-target' : ''}`}
-            title={
-              item.oversized
-                ? `${item.label} — too large for this mount`
-                : `${item.label} — ${item.slots} slot${item.slots === 1 ? '' : 's'}`
-            }
-          >
-            <button
-              type="button"
-              className="slot-block__inspect"
-              data-testid={`inspect-${item.kind}-${item.index}`}
-              aria-label={`Inspect ${item.label}`}
-              onClick={(event) => {
-                event.stopPropagation();
-                onInspect?.({ kind: item.kind, id: item.id });
-              }}
-              onFocus={() => onInspect?.({ kind: item.kind, id: item.id })}
-            >
-              <span>{item.label}</span>
-              <SlotBoxes count={item.slots} />
-              <small>{item.kind === 'ammo' ? 'Ammo' : item.kind === 'equipment' ? 'Gear' : 'Weapon'} · {item.slots} slot{item.slots === 1 ? '' : 's'}</small>
-            </button>
-            <button
-              type="button"
-              className="slot-block__remove"
-              data-testid={`remove-${item.kind}-${item.index}`}
-              aria-label={`Remove ${item.label} from ${locationName}`}
-              title={`Remove ${item.label} from ${locationName}`}
-              onClick={(event) => {
-                event.stopPropagation();
-                mutateAfterStableFocus(stableRemovalFocusTarget(event.currentTarget), () => remove(item));
-              }}
-            >
-              Remove
-            </button>
-          </li>
+          <FittedPart
+            key={item.key} catalog={catalog} item={item} locationName={locationName}
+            snap={item.key === snapOccupantKey} target={target}
+            replacement={replacements?.get(item.index)}
+            onInspect={onInspect} onRemove={() => remove(item)} onReplace={onReplace}
+          />
         ))}
         <li
           className="slot-block empty"

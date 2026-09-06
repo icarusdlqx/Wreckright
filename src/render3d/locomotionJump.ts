@@ -23,6 +23,7 @@ export function jumpPose(
   const progress = jump.duration <= 0 ? 1 : jump.elapsed / jump.duration;
   state.amp += (0 - state.amp) * responseBlend(motion.response, dt);
   state.lean = 0;
+  state.turnBalance = 0;
   resetFootContact(state.contact, model);
   for (let index = 0; index < model.legs.length; index += 1) {
     const leg = model.legs[index];
@@ -49,6 +50,7 @@ export function resetMotion(
   state.phase = Math.PI / 2;
   state.turnPhase = Math.PI / 2;
   state.turnDirection = 0;
+  state.turnBalance = 0;
   state.amp = 0;
   state.lean = 0;
   state.lastStep = 0;

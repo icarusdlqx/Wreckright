@@ -11,6 +11,7 @@ import {
 } from '../sim/types';
 import { toResult, type BattleResult } from '../sim/world';
 import { AudioDirector } from './audio';
+import { endFieldRadio } from './fieldRadio';
 import {
   alphaStrikeSelection,
   attackSelection,
@@ -145,6 +146,7 @@ export class Engine {
   }
 
   destroy(): void {
+    endFieldRadio(this.world);
     this.running = false;
     this.audio.destroy();
     this.detachInput?.();

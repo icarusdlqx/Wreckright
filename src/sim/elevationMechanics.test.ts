@@ -215,6 +215,9 @@ describe('downhill weapon reach', () => {
     expect(approachToEngage(world, shooter, target)).toBe(false);
 
     world.terrain = flatGrid();
+    // A usable flat standoff no longer closes merely because it passed 85% of long range.
+    expect(approachToEngage(world, shooter, target)).toBe(false);
+    target.pos = { x: 290, y: 150 };
     expect(approachToEngage(world, shooter, target)).toBe(true);
 
     world.terrain = ridgeGrid();

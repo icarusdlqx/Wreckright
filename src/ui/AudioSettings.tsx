@@ -7,11 +7,13 @@ import {
   type AudioPreferences,
 } from './audioPreference';
 import './AudioSettings.css';
+import { ControlGuide, DisplayControls } from './SettingsControls';
 
 interface AudioSettingsProps {
   compact?: boolean;
   /** Unlock only from this opening gesture, never from a stored preference. */
   onPrepare?: () => void;
+  onDisplayChange?: (low: boolean) => void;
 }
 
 const VOLUMES = [
@@ -28,9 +30,10 @@ export function useAudioPreferences(): Readonly<AudioPreferences> {
 }
 
 /** Native popovers provide keyboard dismissal and stay above campaign and battle panels. */
-export function AudioSettings({ compact = false, onPrepare }: AudioSettingsProps) {
+export function AudioSettings({ compact = false, onPrepare, onDisplayChange }: AudioSettingsProps) {
   const id = useId();
   const [open, setOpen] = useState(false);
+  const [section, setSection] = useState<'sound' | 'display' | 'controls'>('sound');
   const preferences = useAudioPreferences();
   return (
     <div
@@ -46,10 +49,10 @@ export function AudioSettings({ compact = false, onPrepare }: AudioSettingsProps
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={id}
-        aria-label="Audio settings"
+        aria-label="Settings"
         onClick={() => { if (!open) onPrepare?.(); }}
       >
-        Audio settings
+        Settings
       </button>
       <div
         id={id}
@@ -61,11 +64,17 @@ export function AudioSettings({ compact = false, onPrepare }: AudioSettingsProps
         onToggle={(event) => setOpen(event.newState === 'open')}
       >
         <header className="audio-settings__heading">
-          <h2 id={`${id}-title`}>Sound settings</h2>
-          <button type="button" popoverTarget={id} popoverTargetAction="hide" aria-label="Close sound settings">
+          <h2 id={`${id}-title`}>Settings</h2>
+          <button type="button" popoverTarget={id} popoverTargetAction="hide" aria-label="Close settings">
             Close
           </button>
         </header>
+        <nav className="settings-sections" aria-label="Settings sections">
+          {(['sound', 'display', 'controls'] as const).map((entry) => <button type="button" key={entry}
+            aria-pressed={section === entry} data-testid={`settings-${entry}-tab`}
+            onClick={() => setSection(entry)}>{entry[0]!.toUpperCase() + entry.slice(1)}</button>)}
+        </nav>
+        <div hidden={section !== 'sound'}>
         <label className="audio-settings__mute">
           <input
             type="checkbox"
@@ -120,6 +129,9 @@ export function AudioSettings({ compact = false, onPrepare }: AudioSettingsProps
         >
           Reset mix
         </button>
+        </div>
+        <div hidden={section !== 'display'}><DisplayControls onChange={onDisplayChange} /></div>
+        <div hidden={section !== 'controls'}><ControlGuide /></div>
       </div>
     </div>
   );

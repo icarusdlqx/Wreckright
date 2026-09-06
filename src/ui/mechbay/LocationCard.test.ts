@@ -7,6 +7,7 @@ import {
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { catalog } from '../../../tests/support';
+import { FittedPart } from './FittedPart';
 import { computeLoadout } from '../../sim/loadout';
 import {
   LocationCard,
@@ -31,6 +32,7 @@ interface TestButtonProps {
 function descendants(node: ReactNode): ReactElement<TestButtonProps>[] {
   if (Array.isArray(node)) return node.flatMap(descendants);
   if (!isValidElement<TestButtonProps>(node)) return [];
+  if (node.type === FittedPart) return descendants(FittedPart(node.props as Parameters<typeof FittedPart>[0]));
   return [node, ...descendants(node.props.children)];
 }
 

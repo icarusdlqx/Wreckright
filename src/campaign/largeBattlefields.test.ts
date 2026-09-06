@@ -6,6 +6,11 @@ import { deserialiseCampaign, serialiseCampaign } from './save';
 
 const CAMPAIGN_ID = 'border_dispute';
 const LEAF_IDS = ['cutbank_register', 'blackglass_receipt'] as const;
+const RECOVERY_REQUIRES = {
+  marker_survey: ['militia_raid'],
+  recovery_window: ['marker_survey'],
+  workshop_defence: ['recovery_window'],
+} as const;
 const LEGACY_COMPANY_PILOTS = [
   'kessa_vale',
   'dorn_hess',
@@ -249,7 +254,7 @@ describe('large battlefield mission contracts', () => {
 });
 
 describe('large battlefield campaign compatibility', () => {
-  it('adds only two optional leaves without rewriting the existing graph', () => {
+  it('keeps the large-map leaves and optional recovery branch outside the original spine', () => {
     expect(campaign.victoryNodeId).toBe('depot_burn');
     expect(campaign.alternateVictoryNodeIds).toEqual(['depot_take']);
     expect(campaign.sideWork).toEqual({
@@ -278,9 +283,13 @@ describe('large battlefield campaign compatibility', () => {
       ),
     ).toEqual(LEGACY_REQUIRES);
     expect(campaign.nodes.slice(-2).map((node) => node.id)).toEqual(LEAF_IDS);
-    expect(campaign.nodes.slice(0, -2).map((node) => node.id)).toEqual(
+    expect(campaign.nodes.slice(0, -2).filter((node) => !(node.id in RECOVERY_REQUIRES)).map((node) => node.id)).toEqual(
       Object.keys(LEGACY_REQUIRES),
     );
+    expect(Object.fromEntries(campaign.nodes.filter((node) => node.id in RECOVERY_REQUIRES)
+      .map((node) => [node.id, node.requires]))).toEqual(RECOVERY_REQUIRES);
+    expect(campaign.nodes).toHaveLength(Object.keys(LEGACY_REQUIRES).length +
+      Object.keys(RECOVERY_REQUIRES).length + LEAF_IDS.length);
     expect(campaign.nodes.slice(-2)).toMatchObject([
       {
         id: 'cutbank_register',

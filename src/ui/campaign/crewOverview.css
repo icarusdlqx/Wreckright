@@ -1,0 +1,31 @@
+.crew-sections, .crew-filters { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.camp-workspace .crew-sections button, .camp-workspace .crew-filters button { min-height: 40px; }
+.camp-workspace .crew-sections button[aria-pressed=true], .camp-workspace .crew-filters button[aria-pressed=true] {
+  color: #fdfbf4; background: var(--exp-teal, #32766d); border-color: var(--exp-teal, #32766d);
+}
+.crew-workspace { display: grid; grid-template-columns: minmax(280px, .85fr) minmax(0, 1.4fr); gap: 16px; align-items: start; }
+.crew-overview .crew-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.crew-list > li { display: block; padding: 0; background: none; border: 0; }
+.camp-workspace .crew-list > li > button {
+  width: 100%; display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 12px;
+  text-align: left; padding: 12px; background: #f5f4ea; border: 1px solid var(--exp-line, #c6cec1); align-items: center;
+}
+.camp-workspace .crew-list > li > button[aria-pressed=true] { border-color: #789985; background: #e4ecdb; box-shadow: inset 3px 0 var(--exp-teal, #32766d); }
+.crew-row-identity, .crew-row-training { display: grid; gap: 5px; }
+.crew-row-identity strong { font-size: 15px; color: var(--exp-ink, #193744); }
+.crew-row-identity small, .crew-row-training small { color: var(--exp-muted, #52665e); font-size: 11px; }
+.crew-row-training { text-align: right; color: #8d4129; font-size: 13px; }
+.crew-row-identity .crew-wounded { color: #9d442b; }
+.crew-row-identity .crew-ready { color: #205a50; }
+.crew-selected-detail { min-width: 0; padding: 16px; background: #f5f4ea; border: 1px solid var(--exp-line, #c6cec1); }
+.crew-detail-anchor { min-width: 0; scroll-margin-top: 12px; }
+.crew-overview .camp-hires { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.crew-overview [hidden] { display: none !important; }
+@media (max-width: 850px) {
+  .crew-workspace, .crew-overview .camp-hires { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .camp-workspace .crew-sections button, .camp-workspace .crew-filters button { min-height: 44px; }
+  .camp-workspace .crew-list > li > button { grid-template-columns: 46px minmax(0, 1fr); gap: 10px; }
+  .crew-row-training { grid-column: 2; text-align: left; display: flex; gap: 8px; align-items: center; }
+}

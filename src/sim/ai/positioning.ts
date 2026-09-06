@@ -141,7 +141,7 @@ export function choosePosition(
   stance: Stance,
   tier: DifficultyTier,
   /** Ground the mech has been told to stand on; candidates outside it are dropped. */
-  bounds: { x: number; y: number; radius: number } | null = null,
+  bounds: { x: number; y: number; radius: number; radiusFactor?: number } | null = null,
 ): Vec2 | null {
   const rules = world.rules.ai.positioning;
   const preferred = engagementRange(world, mech, target);
@@ -168,7 +168,7 @@ export function choosePosition(
 
     const point = world.terrain.tileCentre(snapped.column, snapped.row);
     if (!passableAt(world, point)) continue;
-    if (bounds !== null && distance(point, bounds) > bounds.radius * 0.75) continue;
+    if (bounds !== null && distance(point, bounds) > bounds.radius * (bounds.radiusFactor ?? 0.75)) continue;
 
     candidates.push({
       point,

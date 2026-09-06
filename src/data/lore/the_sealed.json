@@ -3,6 +3,7 @@
   "title": "Aurelian Stock",
   "order": 6,
   "unlockNodeId": "pass_skirmish",
+  "knownByCampaigns": ["aurelian_recall"],
   "summary": "Factory-fresh armour over inherited roots, advanced emitters and crews taught that a workshop rebuild is beneath them.",
   "body": [
     "Aurelian Stock is the Continuance service standard: fitted armour, calibrated actuators, modern optics and advanced emitters. Some walkers have just left an overhaul dock; others came out of Compact depots with their preservation paint intact. Both can look new. Their serialized roots are inherited. The service works can renew a machine around its root, but cannot manufacture another one.",

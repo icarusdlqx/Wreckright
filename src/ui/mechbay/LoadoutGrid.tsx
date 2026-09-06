@@ -3,6 +3,7 @@ import type { Chassis } from '../../schema/chassis';
 import type { Design } from '../../schema/design';
 import type { Catalog } from '../../schema/load';
 import type { Loadout } from '../../sim/loadout';
+import type { WeaponReplacement } from './weaponReplacement';
 import type { LocationFit } from './autoFit';
 import { LocationCard, MECH_LOCATION_NAMES, type DropPayload } from './LocationCard';
 import { SlotBoxes } from './SlotBoxes';
@@ -27,6 +28,8 @@ interface Props {
   onGuideExpandedChange: (expanded: boolean) => void;
   onAutoFit: (payload: DropPayload) => void;
   onDrop: (payload: DropPayload, location: MechLocation) => void;
+  onReplace: (payload: DropPayload, index: number) => void;
+  replacements: ReadonlyMap<number, WeaponReplacement>;
   onRemoveMount: (index: number) => void;
   onRemoveAmmo: (index: number) => void;
   onRemoveEquipment: (index: number) => void;
@@ -54,6 +57,8 @@ export function LoadoutGrid({
   onGuideExpandedChange,
   onAutoFit,
   onDrop,
+  onReplace,
+  replacements,
   onRemoveMount,
   onRemoveAmmo,
   onRemoveEquipment,
@@ -70,7 +75,7 @@ export function LoadoutGrid({
   const currentStep = targeting !== null ? 2 : null;
   const massWarning = [...locationFits.values()].find((fit) => fit.ok)?.massWarning ?? null;
   const statusText = targeting !== null
-    ? `${armed === null ? `Dragging ${targetName}` : `Step 2 of 3: holding ${targetName}`}. Match its boxes to a location marked Fits held part. Drag and release to snap in, or select that location.`
+    ? `${armed === null ? `Dragging ${targetName}` : `Step 2 of 3: holding ${targetName}`}. Match its boxes to a location marked Fits held part. Drop into free space or select that location to fit. To swap, drop onto or select an installed weapon and review the replacement.`
     : selectedLocation !== null
       ? `${MECH_LOCATION_NAMES[selectedLocation]} is selected as a shelf filter. Pick a compatible part, or inspect and remove fitted parts here.`
       : 'Ready to fit or review: pick a part from the shelf, select a location to filter, or inspect a fitted part.';
@@ -140,11 +145,12 @@ export function LoadoutGrid({
       {armed === null ? null : (
         <div className="bay-armed-banner" data-testid="bay-armed">
           <span>
-            Holding <strong>{targetName}</strong> — choose a highlighted location.
+            Holding <strong>{targetName}</strong> — choose free space, or a fitted weapon to replace.
           </span>
           <button
             type="button"
             className="bay-armed-fit"
+            disabled={compatibleLocations.size === 0}
             onClick={() => onAutoFit(armed)}
             data-testid="bay-armed-autofit"
             aria-label={`Fit ${targetName} in the best location`}
@@ -171,6 +177,8 @@ export function LoadoutGrid({
             location={location}
             usage={loadout.perLocation[location]}
             onDrop={onDrop}
+            onReplace={onReplace}
+            replacements={replacements}
             onRemoveMount={onRemoveMount}
             onRemoveAmmo={onRemoveAmmo}
             onRemoveEquipment={onRemoveEquipment}

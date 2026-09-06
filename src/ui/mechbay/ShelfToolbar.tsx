@@ -133,7 +133,7 @@ export function ShelfToolbar({
           onChange={(event) => onShowAllChange(event.target.checked)}
           data-testid="shelf-show-all"
         />
-        Include Doesn't fit
+        Include unavailable
       </label>
 
       <p className="bay-catalog-count" role="status" aria-live="polite">
