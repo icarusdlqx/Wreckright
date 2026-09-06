@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { playerWorld } from '../../tests/support';
 import { AudioDirector } from './audio';
-import type { VoiceBus, VoiceFrame } from './audioGraph';
+import { AudioGraph, FIELD_VOICE_LIMIT, type VoiceBus, type VoiceFrame } from './audioGraph';
 import { SCORE_SOURCE_COUNT } from './audioScore';
-import { playSupportResolution, supportAudioCue } from './audioSupport';
+import { playSupportAcknowledgment, playSupportResolution, supportAudioCue } from './audioSupport';
 
 class FakeParam {
   value = 0;
@@ -158,6 +158,40 @@ describe('support audio voices', () => {
     expect(context.sources).toHaveLength(9);
     expect(context.sources.every((source) => source.stops.length === 1)).toBe(true);
     expect(context.sources.every((source) => Number.isFinite(source.stops[0]))).toBe(true);
+  });
+
+  it('starts the airstrike impact sound on the same instant as its damage flash', () => {
+    const { context, frame } = harness();
+    playSupportResolution({ begin: () => frame }, 'air_strike', { level: 0.8, distance: 40 });
+    expect(context.sources.map(source => source.starts[0])).toEqual([frame.now, frame.now, frame.now]);
+  });
+
+  it('acknowledges an accepted call through a saturated field mix at any camera distance', () => {
+    const { context } = harness();
+    const graph = new AudioGraph(context as unknown as AudioContext, context.createGain(), {} as AudioBuffer);
+    const now = vi.spyOn(performance, 'now').mockReturnValue(500);
+    for (let i = 0; i < FIELD_VOICE_LIMIT; i += 1) graph.begin({ level: 0.8, distance: 30 });
+    expect(graph.begin({ level: 0.8, distance: 30 })).toBeNull();
+    const begin = vi.spyOn(graph, 'begin');
+    playSupportAcknowledgment(graph, 'air_strike');
+    expect(begin).toHaveBeenCalledWith({ level: 0.46, distance: null });
+    expect(context.sources).toHaveLength(2);
+    expect(context.sources.every(source => source.stops[0]! - source.starts[0]! <= 0.12)).toBe(true);
+    graph.close(); now.mockRestore();
+  });
+
+  it('routes only the player acceptance event to the console', () => {
+    vi.stubGlobal('AudioContext', FakeContext as unknown as typeof AudioContext);
+    const world = playerWorld('audio-support-acceptance');
+    const audio = new AudioDirector(); audio.unlock();
+    const player = world.playerTeam ?? 0;
+    audio.listenAt = { x: -99999, y: -99999 };
+    audio.consume(world, [
+      { type: 'support_called', tick: world.tick, team: player, call: 'repair_truck', x: 200, y: 200, cost: 500 },
+      { type: 'support_called', tick: world.tick, team: 1 - player, call: 'air_strike', x: 200, y: 200, cost: 700 },
+    ]);
+    expect(FakeContext.instances.at(-1)?.sources).toHaveLength(SCORE_SOURCE_COUNT + 2);
+    audio.destroy();
   });
 
   it('routes resolved player support and ignores an enemy call', () => {

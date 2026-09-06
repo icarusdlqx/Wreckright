@@ -4,7 +4,7 @@ import { availableHires, availableXp, pendingTraitPicks } from '../../campaign/r
 import { isPilotAvailable, type CampaignState, type PilotRecord } from '../../campaign/types';
 import { getCatalog } from '../../schema/load';
 import { readyToTrain } from '../pilotProgression';
-import { authoredDesignName } from '../designLabel';
+import { companyMachineLabel } from './companyLabels';
 import { PilotPortrait } from '../PilotPortrait';
 import { HireRow, PilotDetail } from './PilotDetail';
 import type { CampaignNavigationTarget } from './campaignNavigation';
@@ -75,7 +75,7 @@ export function BarracksPanel({ state, mutate, focus }: Props) {
                 }
               }}>
               <PilotPortrait pilot={pilot} compact /><span className="crew-row-identity"><strong>{pilot.name}</strong>
-                <small>{mech === undefined ? 'No machine assigned' : authoredDesignName(catalog, mech.design)}</small>
+                <small>{mech === undefined ? 'No machine assigned' : companyMachineLabel(catalog, mech)}</small>
                 <small className={ready ? 'crew-ready' : 'crew-wounded'}>{ready ? 'Available' : (pilot.recoveryMissions ?? 0) > 0 ? 'Wounded · misses next mission' : `Wounded until day ${pilot.injuredUntilDay}`}</small>
               </span><span className="crew-row-training">{availableXp(pilot)} XP<small>{crewCanTrain(pilot) ? 'Ready to train' : 'Building experience'}</small></span>
             </button>

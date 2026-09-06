@@ -22,6 +22,11 @@ describe('shared mission progression', () => {
       * traitFactor(content, participants[0]!.pilot, 'xpFactor')) + shared);
     expect(run.outcome.pilotReports[1]!.xp).toBeGreaterThan(run.outcome.pilotReports[0]!.xp);
     expect(reserve.xp).toBe(reserveXp);
+    expect(run.outcome.pilotReports[0]?.serviceNotes?.join(' ')).toContain('Deployed with the team');
+    expect(run.outcome.pilotReports[0]?.serviceNotes?.join(' ')).toContain('Returned without firing a shot');
+    expect(run.outcome.objectiveReports?.some((objective) => objective.status === 'complete')).toBe(true);
+    expect(deserialiseCampaign(serialiseCampaign(state), content).state?.history.at(-1)?.pilotReports[0]?.serviceNotes)
+      .toEqual(run.outcome.pilotReports[0]?.serviceNotes);
     const after = JSON.stringify(state);
     expect(() => resolveMission(content, state, battle, participants, false)).toThrow('no active contract');
     expect(JSON.stringify(state)).toBe(after);

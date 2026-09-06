@@ -119,6 +119,9 @@ export async function runLoreWikiChecks({ browser, url, shots, check }) {
       visible: await page.locator('[data-testid="refit-bay"]').isVisible() };
     check('Escape returns to the same dirty refit and restores its link focus', Object.values(restored).every(Boolean), JSON.stringify(restored));
     await page.keyboard.press('Escape');
+    await page.locator('[data-testid="bay-unsaved-dialog"]').waitFor();
+    check('leaving the restored dirty refit asks before discarding', await saved(page) === saveBefore);
+    await page.locator('[data-testid="bay-unsaved-discard"]').click();
     await page.locator('[data-testid="refit-bay"]').waitFor({ state: 'hidden' });
     await page.locator('[data-testid="camp-wiki"]').click();
     await page.setViewportSize({ width: 390, height: 844 });

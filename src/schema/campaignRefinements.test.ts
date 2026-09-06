@@ -56,16 +56,19 @@ describe('campaign command refinements', () => {
       event.shooterId === scout.id)).toEqual([]);
   });
 
-  it.each(['recovery_window', 'custody_resupply'])('%s closes on time with surviving claimants', (id) => {
-    const world = createWorld(catalog, { seed: 'recovery-ground', missionId: id, playerTeam: 0 });
+  it.each([['recovery_window', 'winch_controls'], ['custody_resupply', 'transfer_relay']])('%s closes after the work instead of a fixed two-minute wait', (id, controlId) => {
+    const world = createWorld(catalog, { seed: 'recovery-ground', missionId: id!, playerTeam: 0 });
     for (const unit of world.entities.filter((entity) => entity.team === 0)) {
       setPosture(unit, 'hold_position');
-      setHoldFire(unit, true);
     }
+    const scout = world.entities.find(entity => entity.team === 0)!;
+    setHoldFire(scout, true);
+    const controls = world.zones.find(zone => zone.id === controlId)!;
+    expect(issueMove(world, scout, controls, true)).toBe(true);
     advance(world, () => world.finished);
-    expect(world.missionStatus).toBe('success');
-    expect(world.tick * world.dt).toBe(120);
-    expect(world.entities.some((entity) => entity.team === 1 && isOperational(entity))).toBe(true);
+    expect(world.missionStatus, JSON.stringify({ objectives: world.objectives, time: world.tick * world.dt, units: world.entities.map(e => ({ id: e.id, team: e.team, pos: e.pos, destroyed: e.destroyed })) })).toBe('success');
+    expect(controls.owner).toBe(0);
+    expect(world.tick * world.dt).toBeLessThan(120);
   });
 
   it('defends the workshop while one stock scout retrieves the optional stores', () => {
@@ -100,7 +103,7 @@ describe('campaign command refinements', () => {
       expect(campaign.nodes.find((node) => node.id === id)?.requires).toEqual(requires);
     }
     expect(catalog.missions.get('line_maintenance')?.enemyDirectives).toEqual([]);
-    for (const id of ['mirror_ridge', 'training_ground', 'salvage_tactics']) {
+    for (const id of ['mirror_ridge', 'salvage_tactics']) {
       expect(catalog.missions.get(id)?.enemyDirectives, id).toEqual([]);
     }
     expect(catalog.missions.get('mirror_ridge')?.startingResourcePoints).toBe(0);

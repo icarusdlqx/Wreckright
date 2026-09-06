@@ -59,7 +59,7 @@ describe('sensor contact controls', () => {
     expect(html).toContain('aria-label="Battlefield contacts"');
     expect(button).toContain('aria-label="Sensor contact: Heavy mech, ~350m. Current returns guide indirect missiles at 40% of sighted accuracy; other mechs investigate."');
     expect(button).not.toContain('disabled');
-    expect(html).toContain('Sensor return · indirect 40% of sighted / investigate');
+    expect(html).toContain('Live · indirect 40% / investigate');
     expect(html).not.toContain('hostile-health');
   });
 
@@ -102,7 +102,7 @@ describe('sensor contact controls', () => {
     }));
 
     expect(html).toContain('last known ~350m');
-    expect(html).toContain('Frozen last known · investigate track');
+    expect(html).toContain('Last known · investigate');
     expect(contactButton(html)).toContain('Frozen last-known returns cannot guide fire');
     expect(contactButton(html)).not.toContain('Current returns guide indirect missiles');
   });

@@ -199,6 +199,8 @@ export function StoreShelf({
         onClearLocation={onClearLocation}
       />
 
+      <details className="bay-inspector-shell" open>
+        <summary>Part details &amp; firing profile</summary>
       <Dossier
         catalog={catalog}
         inspected={inspector}
@@ -208,6 +210,7 @@ export function StoreShelf({
         chassisFaction={chassis.faction}
         fit={inspectorFit}
       />
+      </details>
 
       <div
         id="bay-shelf-results"

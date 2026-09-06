@@ -98,6 +98,43 @@ describe('support-call presentation', () => {
     effects.dispose();
   });
 
+  it('flashes the entire damage lane at resolution with the aircraft above its centre', () => {
+    const world = playerWorld('support-damage-synchrony');
+    const at = { x: 500, y: 400 };
+    world.support.pending.push({
+      call: 'air_strike', team: 0, target: at, heading: 0, resolveTick: world.tick + 80,
+    });
+    const effects = presentation(world);
+    const [called, resolved] = airEvents(world, at.x, at.y);
+    effects.consume(world, [called]);
+    world.support.pending.length = 0;
+    effects.consume(world, [resolved]);
+    effects.draw(world, 0);
+    const plane = effects.group.getObjectByName('support-aircraft-0')!;
+    expect(plane.position.x).toBe(at.x);
+    expect(plane.position.z).toBe(at.y);
+    for (let i = 0; i < world.rules.support.air_strike.shots; i += 1) {
+      const impact = effects.group.getObjectByName(`support-air-impact-0-${i}`)!;
+      expect(impact.children[0]?.visible).toBe(true);
+    }
+    effects.dispose();
+  });
+
+  it('does not leave airstrike discs floating on water', () => {
+    const world = playerWorld('support-water-impacts');
+    const at = world.terrain.tileCentre(5, 5);
+    for (let column = 0; column < world.terrain.width; column += 1) world.terrain.replaceTypeAt(column, 5, 'water');
+    world.support.pending.push({ call: 'air_strike', team: 0, target: at, heading: 0, resolveTick: world.tick + 80 });
+    const effects = presentation(world);
+    const [called, resolved] = airEvents(world, at.x, at.y);
+    effects.consume(world, [called]); world.support.pending.length = 0;
+    effects.consume(world, [resolved]); effects.draw(world, 0);
+    for (let i = 0; i < world.rules.support.air_strike.shots; i += 1) {
+      expect(effects.group.getObjectByName(`support-air-scar-0-${i}`)?.visible).toBe(false);
+    }
+    effects.dispose();
+  });
+
   it('keeps the strike readable without sweeping motion in reduced-motion mode', () => {
     const world = playerWorld('support-air-reduced');
     const at = { x: 500, y: 400 };
@@ -159,6 +196,8 @@ describe('support-call presentation', () => {
     expect(effects.group.getObjectByName('support-repair-truck-0')?.visible).toBe(true);
     const radius = effects.group.getObjectByName('support-repair-radius-0') as Mesh;
     expect(radius.scale.x).toBe(45);
+    expect(effects.group.getObjectByName('repair-service-hub-0')?.visible).toBe(true);
+    expect(effects.group.getObjectByName('repair-service-tether-0')?.visible).toBe(true);
     const visibleLinks = Array.from({ length: 6 }, (_, index) =>
       effects.group.getObjectByName(`support-repair-link-0-${index}`))
       .filter((link) => link?.visible === true);

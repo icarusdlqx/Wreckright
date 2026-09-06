@@ -26,6 +26,7 @@ import { useGame } from './store';
 import { buildSupportOptions } from './supportOptions';
 import { BattleCoach } from './BattleCoach';
 import { TrainingCoach, useTrainingPresentation } from './TrainingCoach';
+import { showTrainingGate } from './trainingCamera';
 import { skipTraining, TRAINING_MISSION_ID } from './trainingProgress';
 import { battleStartsPaused, trainingShowsFullHud } from './trainingPresentation';
 import { useBattleSetup } from './useBattleSetup';
@@ -333,7 +334,8 @@ export function Battle(props: BattleProps = {}) {
       ) : null}
       {state.briefingSeen && !state.campaignPending ? (
         activeTraining ? (
-          <TrainingCoach active step={training.step} onStep={training.onStep} />
+          <TrainingCoach active step={training.step} onStep={training.onStep}
+            onShowGate={() => showTrainingGate(engineRef.current)} />
         ) : (
           <BattleCoach missionId={missionId} />
         )

@@ -9,6 +9,9 @@ import { Minimap } from './Minimap';
 import { MobileBattleHud } from './MobileBattleHud';
 import { HostileBar, LanceBar, SupportPalette } from './Panels';
 import { selectedUnit, useGame } from './store';
+import { selectionAfterClick } from './selectionAfterClick';
+import { useEffect } from 'react';
+import { resetCommanderView } from './commanderViewState';
 import type { SupportOption } from './supportOptions';
 import { SensorSweepReadout } from './SensorSweepReadout';
 import { SupportStatus } from './SupportStatus';
@@ -23,6 +26,8 @@ import type { TrainingStep } from './trainingProgress';
 import { UnitPanel } from './UnitPanel';
 import { useCompactLayout } from './useCompactLayout';
 import { FieldRadioPanel } from './FieldRadioPanel';
+import { selectionAbilities } from './selectionAbilities';
+import './battleStatusLayout.css';
 
 interface BattleHudProps {
   engine: Engine | null;
@@ -35,9 +40,11 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
   const compact = useCompactLayout();
   const unit = selectedUnit(state);
   const playerControlled = unit !== null && unit.team === state.playerTeam && unit.alive;
+  const abilities = selectionAbilities(state.units, state.selection, state.playerTeam, engine);
   const fullHud = trainingShowsFullHud(trainingStep);
   const showsContacts = trainingShowsContacts(trainingStep);
   const visibleCommands = trainingCommandIds(trainingStep);
+  useEffect(() => { if (!fullHud) resetCommanderView(); }, [fullHud]);
 
   const onCommand = (command: Command): void => {
     if (engine === null) return;
@@ -47,6 +54,11 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
       state.patch({ queueOrders: false });
     }
 
+    if (command.id === 'stop') {
+      engine.orderStop();
+      state.setOrderMode(null);
+      return;
+    }
     if (command.id === 'hold_fire') {
       engine.toggleHoldFire();
       return;
@@ -89,9 +101,9 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
   return (
     <>
       {fullHud ? <CommanderView engine={engine} /> : null}
-      <SensorSweepReadout world={engine?.world ?? null} />
       {fullHud ? <FieldRadioPanel /> : null}
       {fullHud ? <UnitPanel engine={engine} /> : null}
+      <div className="battle-field-status">
       {showsContacts ? (
         <HostileBar
           enemies={state.enemies}
@@ -100,10 +112,12 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
           hasSelection={state.units.some(
             (entry) => state.selection.includes(entry.id) && entry.alive,
           )}
-          onTarget={(id) => engine?.orderAttack(id, null)}
+          onTarget={(id) => engine?.orderAttack(id, state.orderMode === 'called_shot' ? state.calledShotLocation : null)}
           onContact={(contact) => engine?.engageContact(contact.id, contact.position)}
         />
       ) : null}
+      <SensorSweepReadout world={engine?.world ?? null} />
+      </div>
       {fullHud ? <Minimap engine={engine} /> : null}
       <footer className={`bottombar tactical-command-deck${fullHud ? '' : ' training-bottombar'}`}>
         {fullHud ? <SupportStatus world={engine?.world ?? null} paused={state.paused} /> : null}
@@ -112,11 +126,11 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
         ) : null}
         <div className="camera-lance-row">
           <CentreSelectionButton engine={engine} className="command camera-centre" />
-          <CommanderToggle disabled={engine === null} />
+          {fullHud ? <CommanderToggle disabled={engine === null} /> : null}
           <LanceBar
             units={state.units}
             selection={state.selection}
-            onSelect={(id) => state.setSelection([id])}
+            onSelect={(id, additive) => state.setSelection(selectionAfterClick(state.selection, id, additive))}
           />
         </div>
         {fullHud || visibleCommands === null || visibleCommands.size > 0 ? (
@@ -137,6 +151,7 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
                 holdingFire={unit?.holdingFire ?? false}
                 heatSafety={unit?.heatSafety ?? false}
                 ability={unit?.ability ?? null}
+                abilitySelection={abilities}
                 alpha={unit?.alpha ?? null}
                 jump={
                   unit === null

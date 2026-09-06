@@ -185,6 +185,15 @@ export function buildTerrain(
         colour = mix(colour, patch > 0 ? 0xb5af78 : 0x6c9267, Math.abs(patch) * 1.2);
       }
 
+      // Pale dry shoulders and damp banks describe the existing terrain boundary.
+      if (tile === 'open' || tile === 'rough') {
+        const neighbours = [[-1, 0], [1, 0], [0, -1], [0, 1]] as const;
+        const beside = (kind: string): boolean => neighbours.some(([dx, dy]) =>
+          terrainIdAt(data, tileColumn + dx, tileRow + dy) === kind);
+        if (beside('water')) colour = mix(colour, 0x9cb39b, 0.26);
+        else if (beside('road')) colour = mix(colour, 0xc9b58a, 0.2);
+      }
+
       // Ground too steep to hold soil shows the rock underneath. Terraces and
       // scarps are elevation data, not a terrain type, so without this a cliff
       // face is grass standing on its end.
@@ -253,7 +262,7 @@ export function buildTerrain(
 
   const mesh = new Mesh(
     geometry,
-    new MeshLambertMaterial({ vertexColors: true, flatShading: true }),
+    new MeshLambertMaterial({ vertexColors: true, flatShading: false }),
   );
   mesh.receiveShadow = true;
   mesh.name = 'terrain';

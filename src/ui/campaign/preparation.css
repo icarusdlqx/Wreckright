@@ -121,3 +121,7 @@
   .exp-repair-facts { gap: 8px; }
   .exp-repair-facts dd { font-size: 13px; }
 }
+
+.manifest-condition { display: flex; gap: 6px 14px; flex-wrap: wrap; padding: 6px 0; font-size: 12px; color: #275a50; }
+.manifest-condition .is-damaged { color: #993f29; }
+.pilot-service-note { border-left: 3px solid #63887b; padding-left: 10px; font-size: 12px; line-height: 1.5; color: #35594f; }

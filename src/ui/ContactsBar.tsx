@@ -77,10 +77,11 @@ export function HostileBar({
             onClick={() => onTarget(enemy.id)}
             data-testid={`hostile-${enemy.id}`}
           >
-            <span className="hostile-name">{enemy.identity}</span>
+            <span className="hostile-name">{enemy.identity.split(' — ')[0]}</span>
             <span className="hostile-range">
               {enemy.rangeToLance === null ? '—' : `${Math.round(enemy.rangeToLance)}m`}
             </span>
+            <span className="hostile-state">{enemy.downRemaining > 0 ? 'Down' : enemy.shutdownRemaining > 0 ? 'Shutdown' : enemy.lostLocations.length > 0 ? 'Damaged' : targetIds.has(enemy.id) ? 'Priority target' : 'Optical'} · {Math.round(health * 100)}% armour / structure</span>
             <span className="hostile-health" aria-hidden="true">
               <span style={{ width: `${Math.round(health * 100)}%` }} />
             </span>
@@ -96,7 +97,7 @@ export function HostileBar({
           <button
             key={`sensor-${contact.id}`}
             type="button"
-            className="hostile sensor-contact"
+            className={`hostile sensor-contact ${contact.current ? 'current' : 'memory'}`}
             disabled={!hasSelection}
             title={hasSelection
               ? guidance
@@ -105,11 +106,11 @@ export function HostileBar({
             onClick={() => onContact(contact)}
             data-testid={`sensor-contact-${contact.id}`}
           >
-            <span className="sensor-contact-glyph" aria-hidden="true">◇</span>
+            <span className="sensor-contact-glyph" aria-hidden="true">{contact.current ? '●' : '○'}</span>
             <span className="hostile-name">{contact.label}</span>
             <span className="hostile-range">{range}</span>
             <span className="sensor-contact-note">
-              {contact.current ? `Sensor return · indirect ${indirectAccuracy}% of sighted / investigate` : 'Frozen last known · investigate track'}
+              {contact.current ? `Live · indirect ${indirectAccuracy}% / investigate` : 'Last known · investigate'}
             </span>
           </button>
         );

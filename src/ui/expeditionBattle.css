@@ -97,7 +97,7 @@
 .app .support-toggle { border-left: 3px solid var(--exp-orange); }
 .app .support-call { background: #20404a; }
 .app .support-label { font-size: 12px; }
-.app .support-detail { font-size: 11px; border-color: var(--edge); }
+.app .support-detail, .app .support-detail-reserve { font-size: 11px; border-color: var(--edge); }
 .app .support-cost { font-size: 10px; }
 .app .support-mark { font-family: var(--font-display); font-size: 14px; }
 

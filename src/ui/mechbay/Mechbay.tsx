@@ -45,12 +45,14 @@ import './quietBay.css';
 import { useMechbayScore } from './useMechbayScore';
 import { useMechbayPersistence } from './useMechbayPersistence';
 import { useQuietBay } from './useQuietBay';
+import { DraftExitDialog, useDraftExit } from './useDraftExit';
 
 const catalog = getCatalog();
 export interface BayCommission {
   title: string;
   design: Design;
   cancelLabel?: string;
+  initialPart?: DropPayload;
   /** Omitted for the unlimited skirmish workshop. */
   inventory?: RefitAvailability;
   onCommit: (design: Design) => { ok: boolean; reason: string | null };
@@ -73,13 +75,15 @@ export function Mechbay({
   const [history, setHistory] = useState(() => beginDesignHistory(initial));
   const design = history.present;
   const [status, setStatus] = useState<BayStatus | null>(null);
-  const [shelf, setShelf] = useState<Shelf>('weapons');
-  const [inspected, setInspected] = useState<DropPayload | null>(null);
-  const [armed, setArmed] = useState<DropPayload | null>(null);
+  const initialPart = commission?.initialPart ?? null;
+  const coolingPart = initialPart?.kind === 'equipment' && catalog.equipment.get(initialPart.id)?.category === 'heat_sink';
+  const [shelf, setShelf] = useState<Shelf>(initialPart?.kind === 'equipment' ? 'equipment' : 'weapons');
+  const [inspected, setInspected] = useState<DropPayload | null>(initialPart);
+  const [armed, setArmed] = useState<DropPayload | null>(coolingPart ? null : initialPart);
   const [showAll, setShowAll] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<MechLocation | null>(null);
   const [hoveredLocation, setHoveredLocation] = useState<MechLocation | null>(null);
-  const [workspace, setWorkspace] = useState<BayWorkspaceTab>('loadout');
+  const [workspace, setWorkspace] = useState<BayWorkspaceTab>(coolingPart ? 'armour' : 'loadout');
   const quietBay = useQuietBay(armed);
   const bayRef = useRef<HTMLDivElement>(null);
 
@@ -93,6 +97,7 @@ export function Mechbay({
     setWorkspace('loadout');
     quietBay.resetSnap();
     setHistory(beginDesignHistory(next));
+    draftExit.reset(next);
     setStatus(null);
   };
   const persistence = useMechbayPersistence({
@@ -103,6 +108,7 @@ export function Mechbay({
     onStatus: setStatus,
   });
 
+  const draftExit = useDraftExit({ design, bayRef, onExit: commission?.onCancel ?? onExit, onSave: persistence.save });
   const chassis = catalog.chassis.get(design.chassisId);
   const score = useMechbayScore(chassis?.faction ?? null, battleAudio, onBattleMuted);
   const loadout = useMemo(() => computeLoadout(catalog, design), [design]);
@@ -205,10 +211,11 @@ export function Mechbay({
     <>
     <div
       ref={bayRef}
-      inert={replacement.request !== null || undefined}
+      inert={replacement.request !== null || draftExit.confirming || undefined}
       className="bay bay--workspace"
       data-testid="mechbay"
       data-workspace={workspace}
+      data-dirty={draftExit.dirty}
       onDragStart={(event) => quietBay.beginDrag(
         event.dataTransfer.getData('application/wreckright'))}
       onDragEnd={quietBay.clearDrag}
@@ -240,8 +247,8 @@ export function Mechbay({
           commitDraft(structuredClone(factory));
           setStatus({ tone: 'ok', text: `Back to the stock ${factory.name} loadout.` });
         }}
-        onExit={commission?.onCancel ?? onExit}
-        onSave={persistence.save}
+        onExit={draftExit.requestExit}
+        onSave={draftExit.save}
         onExport={persistence.exportFile}
         onImport={(file) => void persistence.importFile(file)}
         onLoad={persistence.load}
@@ -356,6 +363,8 @@ export function Mechbay({
         />
       </BayWorkspacePanel>
       </div>
+      {draftExit.confirming ? <DraftExitDialog saveable={saveable} onSave={draftExit.saveAndExit}
+        onDiscard={draftExit.discard} onKeep={draftExit.keepEditing} /> : null}
       {replacement.request !== null && replacement.preview !== null ? (
         <WeaponReplacementDialog catalog={catalog} request={replacement.request} preview={replacement.preview}
           stocked={inventory !== undefined} error={replacement.error}

@@ -183,6 +183,19 @@ function withinSweep(candidate: MechEntity, sweeps: World['reveals']): boolean {
   );
 }
 
+function withinSensorSweeps(candidate: MechEntity, sweeps: World['reveals']): boolean {
+  let detected = false;
+  // Visit every sweep so overlapping probes each retain their own acquisitions.
+  for (const sweep of sweeps) {
+    const inside = distance(candidate.pos, { x: sweep.x, y: sweep.y }) <= sweep.radius;
+    if (inside && sweep.trackedIds !== undefined && !sweep.trackedIds.includes(candidate.id)) {
+      sweep.trackedIds.push(candidate.id);
+    }
+    detected ||= inside || sweep.trackedIds?.includes(candidate.id) === true;
+  }
+  return detected;
+}
+
 function sensorDetects(world: World, observer: MechEntity, candidate: MechEntity): boolean {
   const concealment = world.terrain.typeAtPoint(candidate.pos).signatureFactor;
   const reach =
@@ -279,7 +292,10 @@ export function updateVision(world: World, vision: TeamVision): void {
   }
   for (const observer of observers) markObserverFootprint(world, vision, observer);
 
-  const teamSweeps = world.reveals.filter((reveal) => reveal.team === vision.team);
+  // Vision refresh precedes support cleanup; expiry must apply at this tick.
+  const teamSweeps = world.reveals.filter(
+    (reveal) => reveal.team === vision.team && reveal.expiresTick > world.tick,
+  );
   const opticalSweeps = teamSweeps.filter((reveal) => reveal.kind === 'optical');
   const sensorSweeps = teamSweeps.filter((reveal) => reveal.kind === 'sensor');
   for (const sweep of opticalSweeps) {
@@ -294,7 +310,7 @@ export function updateVision(world: World, vision: TeamVision): void {
       withinSweep(candidate, opticalSweeps) ||
       observers.some((observer) => opticallySights(world, observer, candidate));
     const detected =
-      withinSweep(candidate, sensorSweeps) ||
+      withinSensorSweeps(candidate, sensorSweeps) ||
       observers.some((observer) => sensorDetects(world, observer, candidate));
 
     if (sighted) {

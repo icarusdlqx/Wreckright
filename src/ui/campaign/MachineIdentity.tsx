@@ -8,9 +8,9 @@ import { MachinePortrait } from '../mechbay/MachinePortrait';
 import { factionLabel } from './factionEconomy';
 import './preparation.css';
 
-export function MachineIdentity({ catalog, design }: { catalog: Catalog; design: Design }) {
+export function MachineIdentity({ catalog, design, companyLabel }: { catalog: Catalog; design: Design; companyLabel?: string }) {
   const chassis = catalog.chassis.get(design.chassisId);
-  if (chassis === undefined) return <strong>{machineDisplayName(catalog, design)}</strong>;
+  if (chassis === undefined) return <strong>{companyLabel ?? machineDisplayName(catalog, design)}</strong>;
   return (
     <div className="exp-machine-identity" data-faction={chassis.faction}
       role="group" aria-label={designIdentityLabel(catalog, design)}>
@@ -19,7 +19,7 @@ export function MachineIdentity({ catalog, design }: { catalog: Catalog; design:
       </div>
       <div className="exp-machine-copy">
         <span className="exp-machine-culture">{factionLabel(chassis.faction)}</span>
-        <strong>{machineDisplayName(catalog, design)}</strong>
+        <strong>{companyLabel ?? machineDisplayName(catalog, design)}</strong>
         <span>{chassis.tonnage}t {chassis.class} · {chassis.role}</span>
       </div>
     </div>

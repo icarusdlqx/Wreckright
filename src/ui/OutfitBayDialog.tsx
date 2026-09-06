@@ -90,7 +90,7 @@ export function OutfitBayDialog({
   // Register isolation first so its cleanup restores the trigger before the
   // focus hook returns focus to it.
   useModalBackgroundIsolation(backdropRef);
-  useDialogFocus(dialogRef, dialogRef, onClose);
+  useDialogFocus(dialogRef, dialogRef);
 
   return (
     <div ref={backdropRef} className="manifest-backdrop" data-testid="outfit-bay">

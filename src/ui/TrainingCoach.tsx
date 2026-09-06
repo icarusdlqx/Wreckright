@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { getCatalog } from '../schema/load';
 import { usePlaytest } from './playtest';
 import { trainingMilestoneEvents } from './playtest/trainingMilestones';
-import { useGame } from './store';
+import { useGame, type GameState } from './store';
 import {
   advanceTrainingStep,
   completeTraining,
@@ -21,7 +21,7 @@ export const TRAINING_LESSONS: Record<
 > = {
   0: {
     title: '1 · Select',
-    instruction: 'Select a mech on the field or in the lance bar. Tab cycles the lance.',
+    instruction: 'Select a mech on the field or lance bar. Shift-click adds or removes a mech; E selects all. Tab cycles the lance.',
     touch: 'Tap a mech on the field or in the lance bar.',
   },
   1: {
@@ -31,8 +31,8 @@ export const TRAINING_LESSONS: Record<
   },
   2: {
     title: '3 · Engage',
-    instruction: 'Investigate the hollow ◇ sensor track. Move closer until a named optical contact appears, then click it to engage. Indirect missiles can also use a live sensor return.',
-    touch: 'Tap the hollow ◇ sensor track to investigate. Close in until it becomes a named contact, then tap to engage. Indirect missiles can use live sensor returns.',
+    instruction: 'Investigate the red ● sensor dot. Move closer until a named optical contact appears, then click it to engage. Indirect missiles can also use a live sensor return.',
+    touch: 'Tap the red ● sensor dot to investigate. Close in until it becomes a named contact, then tap to engage. Indirect missiles can use live sensor returns.',
   },
   3: {
     title: '4 · Read heat',
@@ -50,6 +50,7 @@ interface TrainingCoachProps {
   active?: boolean;
   step?: TrainingStep;
   onStep?: (step: TrainingStep) => void;
+  onShowGate?: () => void;
 }
 
 interface TrainingPresentationOptions {
@@ -108,7 +109,22 @@ export function useTrainingPresentation(
   };
 }
 
-export function TrainingCoach({ active, step: controlledStep, onStep }: TrainingCoachProps = {}) {
+export function observeTrainingSignals(
+  state: Pick<GameState, 'units' | 'selection' | 'playerTeam' | 'objectives'>,
+  observed: TrainingSignals,
+  step: TrainingStep,
+): TrainingSignals {
+  const units = state.units.filter((unit) => unit.team === state.playerTeam && unit.alive);
+  return {
+    selected: observed.selected || units.some((unit) => state.selection.includes(unit.id)),
+    moved: observed.moved || state.objectives.some((objective) =>
+      objective.id === 'cross_range_gate' && objective.status === 'complete'),
+    engaged: observed.engaged || (step >= 2 && units.some((unit) => unit.hasAttackOrder)),
+    heated: observed.heated || (step >= 3 && units.some((unit) => unit.heat > 0.5)),
+  };
+}
+
+export function TrainingCoach({ active, step: controlledStep, onStep, onShowGate }: TrainingCoachProps = {}) {
   const state = useGame();
   const { record } = usePlaytest();
   const [localStep, setLocalStep] = useState<TrainingStep>(trainingStartStep);
@@ -131,18 +147,8 @@ export function TrainingCoach({ active, step: controlledStep, onStep }: Training
   useEffect(() => {
     if (!activeMission || !state.briefingSeen || state.finished) return;
 
-    const playerUnits = state.units.filter(
-      (unit) => unit.team === state.playerTeam && unit.alive,
-    );
     const observed = seen.current;
-    const current: TrainingSignals = {
-      selected: observed.selected || playerUnits.some((unit) => state.selection.includes(unit.id)),
-      moved: observed.moved || playerUnits.some(
-        (unit) => unit.hasMoveOrder || unit.motion !== 'stationary',
-      ),
-      engaged: observed.engaged || playerUnits.some((unit) => unit.hasAttackOrder),
-      heated: observed.heated || playerUnits.some((unit) => unit.heat > 0.5),
-    };
+    const current = observeTrainingSignals(state, observed, step);
     for (const event of trainingMilestoneEvents(observed, current)) record(event);
     seen.current = current;
 
@@ -159,6 +165,7 @@ export function TrainingCoach({ active, step: controlledStep, onStep }: Training
     state.playerTeam,
     state.selection,
     state.units,
+    state.objectives,
     controlledStep,
     onStep,
     record,
@@ -173,6 +180,18 @@ export function TrainingCoach({ active, step: controlledStep, onStep }: Training
 
   if (!activeMission || !state.briefingSeen || state.finished) return null;
   const lesson = TRAINING_LESSONS[step];
+  const moveQueued = step === 1 && state.units.some((unit) =>
+    state.selection.includes(unit.id) && unit.hasMoveOrder);
+  const moveHelp = moveQueued
+    ? state.paused
+      ? 'Move order ready. Click Resume or press Space, then reach and hold the range gate.'
+      : 'Reach the marked range gate and hold it until range control opens the targets.'
+    : null;
+  const showGate = step === 1 && onShowGate !== undefined ? (
+    <button type="button" className="training-show-gate" onClick={onShowGate} data-testid="training-show-gate">
+      Show range gate
+    </button>
+  ) : null;
   const progress = (
     <span className="training-progress" aria-label={`Training step ${step + 1} of 5`}>
       {[0, 1, 2, 3, 4].map((index) => (
@@ -188,12 +207,14 @@ export function TrainingCoach({ active, step: controlledStep, onStep }: Training
         open={open}
         onToggle={(event) => setOpen(event.currentTarget.open)}
         data-testid="training-coach"
+        data-training-step={step}
         aria-live="polite"
       >
         <summary>
           Range control <strong>{lesson.title}</strong>
         </summary>
-        <p>{lesson.touch}</p>
+        <p>{moveHelp ?? lesson.touch}</p>
+        {showGate}
         {progress}
       </details>
     );
@@ -203,7 +224,8 @@ export function TrainingCoach({ active, step: controlledStep, onStep }: Training
     <section className="training-coach" data-testid="training-coach" aria-live="polite">
       <span className="training-kicker">Range control</span>
       <strong>{lesson.title}</strong>
-      <p>{lesson.instruction}</p>
+      <p>{moveHelp ?? lesson.instruction}</p>
+      {showGate}
       {progress}
     </section>
   );

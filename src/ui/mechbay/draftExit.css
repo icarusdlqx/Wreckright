@@ -1,0 +1,23 @@
+.bay-draft-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: #17272cba;
+}
+.bay-draft-dialog {
+  width: min(520px, 100%);
+  padding: 26px;
+  border: 1px solid var(--edge);
+  border-radius: 12px;
+  background: #fffdf4;
+  color: #183d43;
+  box-shadow: 0 20px 80px #0005;
+}
+.bay-draft-dialog h2 { margin: 8px 0; }
+.bay-draft-dialog p { line-height: 1.5; }
+.bay-draft-eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; }
+.bay-draft-dialog footer { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.bay-draft-dialog button { min-height: 40px; padding: 8px 12px; }

@@ -137,7 +137,7 @@ export function LoadoutGrid({
           <span className="fitting-box-key__free"><SlotBoxes count={1} /> Free</span>
           <span>1 box = 1 slot · match mount type &amp; size</span>
         </div>
-        {massWarning === null ? null : <p className="fitting-mass-warning" role="status">{massWarning}</p>}
+        <div className="fitting-mass-space">{massWarning === null ? null : <p className="fitting-mass-warning" role="status">{massWarning}</p>}</div>
         <p className="location-workbench__status" role="status" aria-live="polite" data-testid="bay-fit-status">
           {statusText}
         </p>

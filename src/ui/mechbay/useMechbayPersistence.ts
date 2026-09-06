@@ -44,12 +44,12 @@ export function useMechbayPersistence({
     };
   }), [catalog, stored]);
 
-  const save = (): void => {
+  const save = (): boolean => {
     const current = currentStockDesign(catalog, design);
     if (commission !== undefined) {
       const result = commission.onCommit(current);
       if (!result.ok) onStatus({ tone: 'error', text: result.reason ?? 'refit refused' });
-      return;
+      return result.ok;
     }
     try {
       const { replaced } = saveToStorage(catalog, current);
@@ -60,10 +60,11 @@ export function useMechbayPersistence({
           ? `Saved "${current.name}", replacing the loadout already under that name.`
           : `Saved "${current.name}".`,
       });
+      return true;
     } catch (error) {
       if (error instanceof InvalidBuildError) {
         onStatus({ tone: 'error', text: `Cannot save — ${error.issues.join('; ')}` });
-        return;
+        return false;
       }
       throw error;
     }

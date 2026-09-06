@@ -201,7 +201,7 @@ export function LanceBar({
 }: {
   units: readonly UnitSnapshot[];
   selection: readonly number[];
-  onSelect: (id: number) => void;
+  onSelect: (id: number, additive: boolean) => void;
 }) {
   return (
     <div className="lance" data-testid="lance-bar">
@@ -222,7 +222,8 @@ export function LanceBar({
             key={unit.id}
             type="button"
             className={`lance-card ${selection.includes(unit.id) ? 'selected' : ''} ${unit.alive ? '' : 'dead'}`}
-            onClick={() => onSelect(unit.id)}
+            onClick={(event) => onSelect(unit.id, event.shiftKey)}
+            title="Click to select · Shift-click adds or removes · E selects all"
             aria-pressed={selection.includes(unit.id)}
             data-testid={`lance-card-${unit.id}`}
           >

@@ -23,7 +23,6 @@ describe('campaign machine identity presentation', () => {
     const identity = 'Gadfly — 35t Light · Forward spotter · Linewrought';
     const views = [
       renderToStaticMarkup(createElement(MechBayPanel, { state, mutate })),
-      renderToStaticMarkup(createElement(BarracksPanel, { state, mutate })),
       renderToStaticMarkup(createElement(StoresPanel, { state, mutate })),
       renderToStaticMarkup(createElement(MarketPanel, { state, mutate })),
       renderToStaticMarkup(createElement(Hangar, {
@@ -35,6 +34,12 @@ describe('campaign machine identity presentation', () => {
         onCancel: () => undefined,
       })),
     ];
+
+    const crew = renderToStaticMarkup(createElement(BarracksPanel, { state, mutate }));
+    expect(crew).toContain('Gadfly · Bay 1');
+    expect(crew).toContain('Gadfly · Bay 5');
+    expect(crew).toContain('Kessa Vale');
+    expect(crew).not.toContain('GAD-2');
 
     for (const html of views) {
       expect(html).toContain(identity);

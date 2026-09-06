@@ -1,6 +1,6 @@
 {
   "id": "training_ground",
-  "name": "Training — First Walk",
+  "name": "Training \u2014 First Walk",
   "type": "skirmish",
   "mapId": "ridge_pass",
   "briefing": "A shakedown walk on safe ground. Take the two machines through the marked gate, acquire the range contacts, and clear them. Range control will keep the next instruction on screen until you have done it.",
@@ -73,6 +73,16 @@
       "y": 708,
       "radius": 60,
       "owner": null,
+      "captureSeconds": 3,
+      "resourcePoints": 0
+    },
+    {
+      "id": "range_station",
+      "name": "North Range",
+      "x": 840,
+      "y": 204,
+      "radius": 100,
+      "owner": 1,
       "captureSeconds": 3,
       "resourcePoints": 0
     }
@@ -154,5 +164,15 @@
       ]
     }
   ],
-  "dropTonnage": 90
+  "dropTonnage": 90,
+  "enemyDirectives": [
+    {
+      "id": "range_targets",
+      "team": 1,
+      "zoneId": "range_station",
+      "behavior": "defend",
+      "units": 3,
+      "pursuitRadius": 260
+    }
+  ]
 }

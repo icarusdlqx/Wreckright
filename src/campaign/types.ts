@@ -120,6 +120,7 @@ export interface PilotReport {
   xpBanked: number | null;
   /** Mission and objective bonus included in this deployment’s total XP. */
   sharedXp?: number;
+  serviceNotes?: string[];
   /** Skills raised by old automatic debriefs, retained for their saved reports. */
   promotions: string[];
   fate: 'returned' | 'injured' | 'killed';
@@ -167,6 +168,7 @@ export interface MissionOutcome {
   pilotReports: PilotReport[];
   /** Authored contract grants are separate from the random salvage claim. */
   campaignRewards?: CampaignRewardReceipt[];
+  objectiveReports?: { id: string; label: string; required: boolean; status: string }[];
 }
 
 export interface EmployerOutcomeSummary {

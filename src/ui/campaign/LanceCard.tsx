@@ -4,7 +4,8 @@ import { isMechAvailable, isPilotAvailable, type CampaignState, type MechRecord,
 import { PilotStats } from '../PilotStats';
 import { PilotPortrait } from '../PilotPortrait';
 import { PilotAssessment } from '../PilotProfile';
-import { authoredDesignName, designIdentityLabel } from '../designLabel';
+import { authoredDesignName } from '../designLabel';
+import { companyMachineLabel, occupiedSeatLabel } from './companyLabels';
 import { MachineIdentity } from './MachineIdentity';
 
 interface Props {
@@ -38,14 +39,14 @@ export function LanceCard({ catalog, state, pilot, mech, aboard, position, refus
       <small className="manifest-status">{status}</small>
     </div>
     <div className="manifest-mech">
-      {mech === null ? null : <MachineIdentity catalog={catalog} design={mech.design} />}
+      {mech === null ? null : <MachineIdentity catalog={catalog} design={mech.design} companyLabel={companyMachineLabel(catalog, mech)} />}
       {mech !== null && pilot.mechId !== mech.id ? <small className="exp-auto-assignment">{aboard ? 'Auto-assigned for this drop.' : 'Available automatic pairing.'} Choosing seats records this assignment.</small> : null}
       <label>Assigned machine<select value={pilot.mechId ?? ''} disabled={pilot.dead}
         onChange={(event) => onSeat(event.target.value)} data-testid={`manifest-seat-${pilot.id}`}
         aria-label={`Mech for ${pilot.name}`}>
         <option value="">— no mech —</option>
         {state.mechs.map((entry) => <option key={entry.id} value={entry.id}>
-          {designIdentityLabel(catalog, entry.design)}{entry.status === 'ready' ? '' : ` (${entry.status})`}
+          {occupiedSeatLabel(catalog, state, entry)}
         </option>)}
       </select></label>
       {mech === null || integrity === null ? null : <div className="manifest-health" role="progressbar"
@@ -54,6 +55,11 @@ export function LanceCard({ catalog, state, pilot, mech, aboard, position, refus
         title={`${Math.round(integrity.fraction * 100)}% intact`}>
         <span style={{ width: `${Math.round(integrity.fraction * 100)}%` }} />
       </div>}
+      {mech === null || integrity === null ? null : <div className="manifest-condition" data-testid={`manifest-condition-${mech.id}`}>
+        <strong className={integrity.fraction < 1 ? 'is-damaged' : ''}>{Math.round(integrity.fraction * 100)}% intact{integrity.fraction < 1 ? ' · damaged' : ''}</strong>
+        {Object.entries(mech.condition).filter(([, part]) => part.destroyed).map(([location]) => <span className="is-damaged" key={location}>Missing {location.replaceAll('_', ' ')}</span>)}
+      </div>}
+      <PilotAssessment pilot={pilot} />
       <div className="manifest-buttons">
         <button type="button" disabled={!aboard && refusal !== null} onClick={onToggle}
           data-testid={`manifest-bench-${pilot.id}`}>{aboard ? 'Move to reserve' : 'Put aboard'}</button>

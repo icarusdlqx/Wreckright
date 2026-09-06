@@ -2,6 +2,7 @@ import type { MechEntity, Vec2 } from '../sim/types';
 import { isOperational } from '../sim/types';
 import type { Engine } from './engine';
 import { useGame } from './store';
+import { selectionAfterClick } from './selectionAfterClick';
 import { clearSupportModeOnSuccess, type TouchInput } from './touchInput';
 
 const DRAG_THRESHOLD = 6;
@@ -182,14 +183,7 @@ export function createPointerHandlers(options: PointerHandlerOptions): PointerHa
     }
 
     engine.audio.select();
-    if (event.shiftKey) {
-      const next = game.selection.includes(picked.id)
-        ? game.selection.filter((id) => id !== picked.id)
-        : [...game.selection, picked.id];
-      game.setSelection(next);
-    } else {
-      game.setSelection([picked.id]);
-    }
+    game.setSelection(selectionAfterClick(game.selection, picked.id, event.shiftKey));
     if (picked.team === game.playerTeam) {
       state.pressedOnMech = {
         id: picked.id,

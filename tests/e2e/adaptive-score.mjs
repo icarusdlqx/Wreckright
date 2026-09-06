@@ -256,9 +256,26 @@ export async function runAdaptiveScoreChecks({ browser, url, check }) {
       engine.forceStep();
     });
     const moving = (await audioProbe(page))[0];
-    check('an engine-routed pressure event retargets the pulse without allocating nodes',
-      moving.counts.nodes === initial.counts.nodes && moving.targets > seeded.targets,
+    // Support also plays a short interface cue; only the persistent score must stay fixed.
+    const pulse = seeded.scoreSources.find((source) => source.startFrequency === 0.72);
+    check('an engine-routed pressure event retargets the existing pulse and preserves the score graph',
+      sameSourceIds(seeded, moving)
+        && moving.scoreSources.every((source) => source.starts.length === 1
+          && source.stops.length === 0 && source.active)
+        && JSON.stringify(moving.topology.slice(0, seeded.counts.nodes)) === JSON.stringify(seeded.topology)
+        && newTargets(seeded, moving).some((entry) => entry.name === `source-${pulse?.id}-frequency`
+          && entry.value > pulse.frequency),
       JSON.stringify({ before: seeded, after: moving }));
+    const acknowledgment = moving.sources.slice(seeded.counts.sources);
+    const cueNodes = moving.topology.slice(seeded.counts.nodes);
+    check('support pressure adds only a bounded two-tone interface acknowledgment',
+      acknowledgment.length === 2 && cueNodes.length <= 7
+        && moving.counts.panners === seeded.counts.panners
+        && acknowledgment.every((source) => source.kind === 'oscillator'
+          && source.starts.length === 1 && source.stops.length === 1
+          && source.stops[0] > source.starts[0] && source.stops[0] - source.starts[0] <= 0.3)
+        && cueNodes.filter((node) => node.connections.includes('node:5')).length === 1,
+      JSON.stringify({ acknowledgment, cueNodes }));
     check('low activity leaves the full battle layer dormant',
       !newTargets(seeded, moving).some((entry) => /^gain-\d+$/.test(entry.name)
         && entry.value > 0.03 && entry.value <= 0.111));

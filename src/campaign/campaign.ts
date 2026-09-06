@@ -8,7 +8,7 @@ import { completeRepair } from './repair';
 import { applyContractFailure, recoveryNotice } from './recovery';
 import { availableXp, awardXp, resolveCasualty, returnedFromField } from './roster';
 import { applySalvage, resolveSalvage, type SalvageReport } from './salvage';
-import { awardSharedMissionXp } from './missionProgression';
+import { awardSharedMissionXp, missionServiceNotes } from './missionProgression';
 import { earnedCampaignRewards, validateRewardGrants, applyCampaignRewards } from './missionRewards';
 import { recoveredHulk } from './salvagedHull';
 import { negotiationOptions } from './contractTerms';
@@ -235,6 +235,7 @@ export function resolveMission(
         xp,
         xpBanked: availableXp(pair.pilot),
         sharedXp,
+        serviceNotes: missionServiceNotes(catalog, battle, unit),
         promotions: [],
         fate: casualty.died ? 'killed' : casualty.injuredDays > 0 ? 'injured' : 'returned',
       });
@@ -285,6 +286,7 @@ export function resolveMission(
     mechsLost,
     pilotReports,
     campaignRewards,
+    objectiveReports: battle.objectives.map(({ id, label, required, status }) => ({ id, label, required, status })),
   };
 
   state.history.push(outcome);

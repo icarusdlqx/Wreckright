@@ -1,5 +1,4 @@
 import {
-  assign,
   availableXp,
   chooseTrait,
   hireCost,
@@ -19,7 +18,7 @@ import {
   skillTraining,
   traitEffects,
 } from '../pilotProgression';
-import { designIdentityLabel } from '../designLabel';
+import { assignWithReceipt, occupiedSeatLabel } from './companyLabels';
 import { PilotProfile } from '../PilotProfile';
 import './progression.css';
 
@@ -143,6 +142,8 @@ export function PilotDetail({ pilot, state, mutate }: { pilot: PilotRecord; stat
         Last mission: +{lastMission.xp} XP · {lastMission.kills} kills · {lastMission.damage} damage
       </p>}
 
+      {lastMission?.serviceNotes?.map((note) => <p key={note} className="pilot-service-note">{note}</p>)}
+
       {pilot.traits.length === 0 ? null : (
         <div className="pilot-traits">
           {pilot.traits.map((traitId) => <TraitReadout key={traitId} traitId={traitId} />)}
@@ -157,16 +158,15 @@ export function PilotDetail({ pilot, state, mutate }: { pilot: PilotRecord; stat
           value={pilot.mechId ?? ''}
           onChange={(event) =>
             mutate((draft) => {
-              assign(draft, pilot.id, event.target.value === '' ? null : event.target.value);
-            }, `${pilot.name} reassigned.`)
+              return assignWithReceipt(catalog, draft, pilot.id, event.target.value === '' ? null : event.target.value);
+            })
           }
           data-testid={`camp-seat-${pilot.id}`}
         >
           <option value="">— no mech —</option>
           {state.mechs.map((mech) => (
             <option key={mech.id} value={mech.id}>
-              {designIdentityLabel(catalog, mech.design)}
-              {mech.status === 'ready' ? '' : ` (${mech.status})`}
+              {occupiedSeatLabel(catalog, state, mech)}
             </option>
           ))}
         </select>

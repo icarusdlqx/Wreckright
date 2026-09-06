@@ -173,7 +173,7 @@
 
 .commander-contact-body {
   fill: rgba(10, 13, 16, 0.82);
-  stroke: #ffc15c;
+  stroke: #ff646e;
   stroke-width: 3;
   vector-effect: non-scaling-stroke;
 }
@@ -183,11 +183,12 @@
 }
 
 .commander-contact.current .commander-contact-body {
+  fill: #ff4655;
   animation: commander-contact 1.8s ease-out infinite;
 }
 
 .commander-contact-label {
-  fill: #ffc15c;
+  fill: #ff8990;
   transform: translateY(29px);
   text-anchor: middle;
 }

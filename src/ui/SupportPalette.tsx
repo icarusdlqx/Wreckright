@@ -42,6 +42,26 @@ export function supportAvailability(
   };
 }
 
+function SupportDetail({ option, resourcePoints, reservesLeft, active, paused, reserve = false }: {
+  option: SupportOption;
+  resourcePoints: number;
+  reservesLeft: number;
+  active: SupportOption['id'] | null;
+  paused: boolean;
+  reserve?: boolean;
+}) {
+  const availability = supportAvailability(option, resourcePoints, reservesLeft, active);
+  return <div className={reserve ? 'support-detail-reserve' : 'support-detail'}
+    aria-hidden={reserve || undefined} aria-live={reserve ? undefined : 'polite'}>
+    <strong>{option.label}</strong><span>{option.effect}</span>
+    <span className={availability.disabled ? 'blocked' : ''}>{availability.status}</span>
+    <span className="support-dispatch-note">
+      {paused && option.delaySeconds > 0 ? 'Place the call now; resume time to dispatch it.' : option.delaySeconds === 0 ? 'Activates when placed, including while paused.' : 'Arrival time follows the mission clock.'}
+      {' '}RP is spent only after a valid target is placed.
+    </span>
+  </div>;
+}
+
 /** A single battlefield entry point with the choices disclosed on demand. */
 export function SupportPalette({
   options,
@@ -151,16 +171,11 @@ export function SupportPalette({
           })}
         </div>
         {focused === null ? null : (
-          <div className="support-detail" aria-live="polite">
-            <strong>{focused.label}</strong>
-            <span>{focused.effect}</span>
-            <span className={supportAvailability(focused, resourcePoints, reservesLeft, active).disabled ? 'blocked' : ''}>
-              {supportAvailability(focused, resourcePoints, reservesLeft, active).status}
-            </span>
-            <span className="support-dispatch-note">
-              {paused && focused.delaySeconds > 0 ? 'Place the call now; resume time to dispatch it.' : focused.delaySeconds === 0 ? 'Activates when placed, including while paused.' : 'Arrival time follows the mission clock.'}
-              {' '}RP is spent only after a valid target is placed.
-            </span>
+          <div className="support-details" data-testid="support-details">
+            {/* The tallest current description reserves space before any pointer enters a call. */}
+            {options.map((option) => <SupportDetail key={option.id} reserve option={option}
+              resourcePoints={resourcePoints} reservesLeft={reservesLeft} active={active} paused={paused} />)}
+            <SupportDetail option={focused} resourcePoints={resourcePoints} reservesLeft={reservesLeft} active={active} paused={paused} />
           </div>
         )}
       </section>

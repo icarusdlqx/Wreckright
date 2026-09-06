@@ -10,6 +10,9 @@ export async function runSupportServicesChecks({ browser, url, shots, check }) {
     const button = page.locator(`[data-testid="support-${call}"]`);
     if (!(await button.isVisible())) await page.locator('[data-testid="support-toggle"]').click();
     await button.click();
+    await page.waitForFunction(call => globalThis.__wreckright.useGame.getState().supportMode === call, call);
+    check(`${call} arms through its actual button before field placement`,
+      await page.locator('[data-testid="support-targeting"]').isVisible());
   };
   const groundClick = async point => {
     const at = await page.evaluate(point => {

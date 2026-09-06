@@ -1,3 +1,4 @@
+import { discardRefitIfPrompted } from './mechbay-exit.mjs';
 import { openDesktopBattleMenu } from './input-safety.mjs';
 import {
   dragStockToLocation,
@@ -99,6 +100,7 @@ async function verifySavedLoadoutJourney({ page, check }) {
   );
 
   await page.locator('[data-testid="bay-exit"]').click();
+  await discardRefitIfPrompted(page);
   await page.waitForSelector('[data-testid="briefing"]');
   const berth = page.locator('[data-testid="berth-design-0"]');
   check(
@@ -141,6 +143,7 @@ async function verifySavedLoadoutJourney({ page, check }) {
       (await page.locator('[data-testid="design-picker"]').count()) === 0,
   );
   await page.locator('[data-testid="bay-exit"]').click();
+  await discardRefitIfPrompted(page);
   await page.waitForSelector('[data-testid="briefing"]');
 }
 

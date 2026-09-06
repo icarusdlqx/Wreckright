@@ -1,3 +1,5 @@
+import { verifyMobileStatusLayout } from './mobile-battle-layout.mjs';
+
 function same(left, right) {
   return JSON.stringify(left) === JSON.stringify(right);
 }
@@ -105,12 +107,18 @@ async function minimapGesturePoints(page) {
       x: bounds.left + bounds.width * x,
       y: bounds.top + bounds.height * y,
     });
-    return {
+    const points = {
       dragFrom: point(0.25, 0.25),
       dragTo: point(0.7, 0.6),
       cancelFrom: point(0.35, 0.7),
       recovery: point(0.75, 0.3),
     };
+    for (const [name, point] of Object.entries(points)) {
+      const recipient = document.elementFromPoint(point.x, point.y);
+      if (recipient !== canvas) throw new Error(`Minimap ${name} is covered: ${JSON.stringify({ point,
+        recipient: recipient?.getAttribute('data-testid') ?? recipient?.className ?? null })}`);
+    }
+    return points;
   });
 }
 
@@ -332,6 +340,7 @@ export async function verifyTouchNavigation({ page, check, prefix }) {
         centred.tolerance,
   );
 
+  await verifyMobileStatusLayout({ page, check, prefix });
   const beforeMinimap = await orderSnapshot(page);
   const minimapDrag = await dragMinimapLive(page);
   check(

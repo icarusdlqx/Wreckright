@@ -185,6 +185,7 @@ export function LocationCard({
         </button>
       </header>
 
+      <div className="bay-location-feedback" aria-hidden={target === null || undefined}>
       {target === null ? null : (
         <div className="bay-location-flags">
           {selected ? <span className="location-flag location-flag--selected">Selected</span> : null}
@@ -202,6 +203,8 @@ export function LocationCard({
           {refusalText}
         </p>
       )}
+
+      </div>
 
       <div className="bay-hardpoints" aria-label={`Weapon mounts in ${locationName}`}>
           {(['energy', 'ballistic', 'missile'] as const).map((type) =>
@@ -252,9 +255,9 @@ export function LocationCard({
             'No fitting space'
           ) : (
             <>
-              {targetFits ? <strong className="rack-drop-preview">
+              <span className="rack-drop-space">{targetFits ? <strong className="rack-drop-preview">
                 {hovered ? 'Release to fit' : 'Fit here'} · {payloadName(catalog, target)}
-              </strong> : null}
+              </strong> : null}</span>
               <SlotBoxes
                 count={empty}
                 incoming={incoming}

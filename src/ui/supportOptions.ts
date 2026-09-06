@@ -38,7 +38,7 @@ function describe(call: SupportCallId, rules: SupportRules): Omit<SupportOption,
       const entry = rules.sensor_probe;
       return {
         label: 'Sensor Probe',
-        effect: `Detect and classify coarse contacts within ${entry.radius}m for ${entry.durationSeconds}s ${timing(entry.delaySeconds)}; guides indirect missiles at ${Math.round(entry.indirectAccuracyFactor * 100)}% of sighted accuracy without granting optical sight.`,
+        effect: `Acquire contacts within ${entry.radius}m and track their red dots until the ${entry.durationSeconds}s probe ends, even beyond its circle ${timing(entry.delaySeconds)}; guides indirect missiles at ${Math.round(entry.indirectAccuracyFactor * 100)}% of sighted accuracy without granting optical sight.`,
         placement: 'Click or tap the centre of the sweep.',
       };
     }

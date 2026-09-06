@@ -20,6 +20,7 @@ import { useCommanderView } from './commanderViewState';
 import { useGame } from './store';
 import { supportRadius } from './supportOptions';
 import './commanderView.css';
+import { sensorSweepStatus } from './SensorSweepReadout';
 
 interface CommanderViewProps {
   engine: Engine | null;
@@ -184,6 +185,7 @@ export function CommanderView({ engine, compact = false }: CommanderViewProps) {
   const air = engine.world.rules.support.air_strike;
   const friendlyCount = model.chits.filter((chit) => chit.kind === 'friendly').length;
   const opticalCount = model.chits.length - friendlyCount;
+  const probe = sensorSweepStatus(engine.world);
 
   return (
     <section
@@ -196,7 +198,7 @@ export function CommanderView({ engine, compact = false }: CommanderViewProps) {
       <header className="commander-map-header">
         <strong>Commander</strong>
         <span>{state.paused ? 'Planning halt' : `${state.speed}× live`}</span>
-        <span>{friendlyCount} friendly · {opticalCount} optical · {model.contacts.length} sensor</span>
+        <span>{friendlyCount} friendly · {opticalCount} optical · {model.contacts.filter((contact) => contact.current).length} live sensor{probe === null ? '' : ` · Probe ${probe.remainingSeconds}s`}</span>
       </header>
       <div className="commander-map-frame">
         <svg
@@ -339,10 +341,7 @@ export function CommanderView({ engine, compact = false }: CommanderViewProps) {
               data-commander-id={contact.id}
               data-testid={`commander-contact-${contact.id}`}
             >
-              <polygon
-                className="commander-contact-body"
-                points={`0,${-markerSize * 0.44} ${markerSize * 0.44},0 0,${markerSize * 0.44} ${-markerSize * 0.44},0`}
-              />
+              <circle className="commander-contact-body" r={markerSize * 0.3} />
               <circle className="commander-contact-hit" r={markerSize * 0.78} />
               <text className="commander-contact-label" style={{ fontSize: labelSize }}>
                 {contact.current ? `C${contact.id}` : `M${contact.id}`}
@@ -369,7 +368,7 @@ export function CommanderView({ engine, compact = false }: CommanderViewProps) {
         </svg>
       </div>
       <footer className="commander-map-footer">
-        <span>Click select · right-click order · Shift queues</span>
+        <span>Click select · Shift-click adds · E selects all · right-click order · Shift queues</span>
         <span>{state.supportMode ?? state.orderMode ?? 'Direct command'}</span>
       </footer>
     </section>

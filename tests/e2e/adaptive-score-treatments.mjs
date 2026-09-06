@@ -1,3 +1,4 @@
+import { discardRefitIfPrompted } from './mechbay-exit.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import {
   advanceAudioClock,
@@ -158,6 +159,7 @@ async function checkCampaignAndNestedRefit({ browser, url, check }) {
     await advanceAudioClock(page);
     const beforeReturn = (await audioProbe(page))[0];
     await page.locator('[data-testid="bay-exit"]').click();
+    await discardRefitIfPrompted(page);
     await page.waitForSelector('[data-testid="refit-bay"]', { state: 'detached' });
     await page.waitForFunction((count) =>
       globalThis.__audioProbe.snapshot()[0].targets > count, beforeReturn.targets);
@@ -206,6 +208,7 @@ async function checkStandaloneMechbay({ browser, url, check }) {
         && (await page.evaluate(() => localStorage.getItem('ironline.muted'))) === '1');
 
     await page.locator('[data-testid="bay-exit"]').click();
+    await discardRefitIfPrompted(page);
     await page.waitForSelector('[data-testid="briefing"]');
     await waitForClosed(page, 0);
     const closed = (await audioProbe(page))[0];
@@ -310,6 +313,7 @@ async function checkBattleOutfitterReuse({ browser, url, check }) {
     await advanceAudioClock(page);
     const beforePrimeRestore = (await audioProbe(page))[0];
     await page.locator('[data-testid="bay-exit"]').click();
+    await discardRefitIfPrompted(page);
     await page.waitForSelector('[data-testid="outfit-bay"]', { state: 'detached' });
     await page.waitForFunction((count) =>
       globalThis.__audioProbe.snapshot()[0].targets > count, beforePrimeRestore.targets);
@@ -334,6 +338,7 @@ async function checkBattleOutfitterReuse({ browser, url, check }) {
 
     await advanceAudioClock(page);
     await page.locator('[data-testid="bay-exit"]').click();
+    await discardRefitIfPrompted(page);
     await page.waitForSelector('[data-testid="outfit-bay"]', { state: 'detached' });
     const battle = (await audioProbe(page))[0];
     await openDesktopMenu(page);
@@ -359,6 +364,7 @@ async function checkBattleOutfitterReuse({ browser, url, check }) {
       JSON.stringify({ before: outfit.counts, battle: battle.counts, reopened: reopened.counts }));
 
     await page.locator('[data-testid="bay-exit"]').click();
+    await discardRefitIfPrompted(page);
     await page.waitForSelector('[data-testid="briefing"]');
     await openDesktopMenu(page);
     await page.locator('[data-testid="open-campaign"]').click();

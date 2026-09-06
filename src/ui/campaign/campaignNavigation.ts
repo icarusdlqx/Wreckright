@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 
-export type CompanyArea = 'operations' | 'workshop' | 'crew' | 'supplies';
+export type CompanyArea = 'operations' | 'workshop' | 'crew' | 'supplies' | 'journal';
 export interface CampaignNavigationTarget {
   area: CompanyArea;
   pilotId?: string;
   mechId?: string;
   hiring?: boolean;
+  nodeId?: string;
 }
 
 /** Receipt links select a workspace and record; they never issue a workshop or training order. */

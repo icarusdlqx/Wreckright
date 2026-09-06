@@ -1,6 +1,6 @@
 {
   "id": "custody_survey",
-  "name": "Survey \u2014 The Unbroken Chain",
+  "name": "Survey — The Unbroken Chain",
   "type": "recon",
   "mapId": "ridge_pass",
   "briefing": "The first warrant leaves a gap between two civil service readers. Record both western posts without opening a new battle. The Tender's heavy transport cannot land on the survey terrace; a single lift allows one machine up to 50 tonnes. A stock Votive can make the trip with Hold Fire. Foundry patrols guard the central road. The optional dispatch ledger is closer to their station; copy it before the second required reader completes the survey.",
@@ -62,7 +62,7 @@
     },
     {
       "id": "upper_service_post",
-      "name": "Upper Civil Service Post",
+      "name": "Upper Post · Completes contract",
       "x": 228,
       "y": 252,
       "radius": 54,
@@ -158,7 +158,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Custody clerk: civil service mark accepted. The upper post carries the next entry in the chain."
+          "text": "Custody clerk: first mark accepted. The upper post completes this warrant. Record the optional dispatch ledger before taking that final reading."
         }
       ]
     },

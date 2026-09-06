@@ -192,14 +192,21 @@ export function setSelectionPosture(context: EngineOrderContext, posture: Postur
   const already = mechs.every((entity) => entity.posture === posture);
   for (const entity of mechs) setPosture(entity, already ? 'free' : posture);
   if (!already) context.audio.order(pilotOrder(context.world, mechs[0] ?? null, 'guard'));
+  useGame.getState().pushLog(already ? 'Guard released; target approach is available.' : 'Guarding this ground. Routes cancelled; priority targets and weapons retained.');
 }
 
 export function stopSelection(context: EngineOrderContext): void {
+  let stopped = 0;
   for (const id of context.selectedEntities()) {
     const entity = findEntity(context.world, id);
     if (entity === null || entity.autopilot) continue;
     issueStop(entity);
     entity.orders.attack = null;
+    stopped += 1;
+  }
+  if (stopped > 0) {
+    context.audio.order();
+    useGame.getState().pushLog(`Stopped ${stopped} mech${stopped === 1 ? '' : 's'}. Routes and priority targets cleared; weapons remain active.`);
   }
 }
 

@@ -56,10 +56,11 @@ export function FittedPart({ catalog, item, locationName, snap, target, replacem
       >
         <span>{item.label}</span>
         <SlotBoxes count={item.slots} />
-        <small>{item.kind === 'ammo' ? 'Ammo' : item.kind === 'equipment' ? 'Gear' : 'Weapon'} · {item.slots} slot{item.slots === 1 ? '' : 's'}</small>
-        {replacing ? <span className="replacement-target__hint">
-          {replacement?.ok ? `Preview ${incomingName} here` : `Check replacement: ${replacement?.reason ?? 'Cannot fit here.'}`}
-        </span> : null}
+        <small className={replacing ? 'replacement-target__hint' : undefined}>
+          {replacing
+            ? replacement?.ok ? `Preview ${incomingName} here` : `Check replacement: ${replacement?.reason ?? 'Cannot fit here.'}`
+            : `${item.kind === 'ammo' ? 'Ammo' : item.kind === 'equipment' ? 'Gear' : 'Weapon'} · ${item.slots} slot${item.slots === 1 ? '' : 's'}`}
+        </small>
       </button>
       <button
         type="button" className="slot-block__remove" data-testid={`remove-${item.kind}-${item.index}`}

@@ -8,6 +8,7 @@ import { mechIntegrity } from '../../campaign/integrity';
 import { getCatalog } from '../../schema/load';
 import { authoredDesignName, machineDisplayName } from '../designLabel';
 import { workshopFactionLine } from './factionEconomy';
+import { companyMachineLabel } from './companyLabels';
 import { MachineIdentity, RepairReadout } from './MachineIdentity';
 import { cbills, type PanelProps } from './Panels';
 import './companyWorkshop.css';
@@ -88,7 +89,7 @@ export function MechBayPanel({ state, mutate, onRefit, previewActive = false, fo
           return (
             <li key={mech.id} className="company-workshop-machine" data-selected={selected?.id === mech.id} data-testid={`camp-mech-${mech.id}`}>
               <div className="company-workshop-identity">
-                <MachineIdentity catalog={catalog} design={mech.design} />
+                <MachineIdentity catalog={catalog} design={mech.design} companyLabel={companyMachineLabel(catalog, mech)} />
                 {chassis === undefined ? null : (
                   <small className="faction-economy" data-faction={chassis.faction}>
                     {workshopFactionLine(catalog, chassis.faction)}

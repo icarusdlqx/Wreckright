@@ -136,7 +136,7 @@ export function evaluateMission(world: World, playerTeam: number, timedOut: bool
   const achievable = required.filter((objective) => !SUSTAINED.includes(objective.type));
 
   if (achievable.length > 0 && achievable.every((objective) => objective.status === 'complete')) {
-    return { status: 'success', reason: 'all objectives complete' };
+    return { status: 'success', reason: 'required objectives complete' };
   }
 
   if (!timedOut) return { status: 'active', reason: null };

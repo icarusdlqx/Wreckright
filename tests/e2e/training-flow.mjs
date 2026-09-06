@@ -41,19 +41,25 @@ async function gateScreenPoint(page) {
     if (zone === undefined || !(canvas instanceof HTMLCanvasElement)) {
       throw new Error('training gate or battlefield canvas is missing');
     }
-    engine.renderer.camera.skipDropIn();
-    engine.renderer.camera.centreOn(zone);
-    engine.renderer.camera.update(engine.renderer.viewport);
     const height = engine.renderer.terrain.heightAt(zone.x, zone.y);
     const screen = engine.renderer.camera.worldToScreen(zone, engine.renderer.viewport, height);
     const bounds = canvas.getBoundingClientRect();
-    return { x: bounds.left + screen.x, y: bounds.top + screen.y };
+    const point = { x: bounds.left + screen.x, y: bounds.top + screen.y };
+    const recipient = document.elementFromPoint(point.x, point.y);
+    if (recipient !== canvas) {
+      throw new Error(`Show range gate leaves its destination covered: ${JSON.stringify({ point,
+        recipient: recipient?.getAttribute('data-testid') ?? recipient?.className ?? null,
+        coach: document.querySelector('[data-testid="training-coach"]')?.getBoundingClientRect() })}`);
+    }
+    return point;
   });
 }
 
 async function issueGateMove(page, touch) {
   const move = page.locator('[data-testid="command-move"]');
   await activate(move, touch);
+  await page.waitForFunction(() => globalThis.__wreckright.useGame.getState().orderMode === 'move');
+  await activate(page.locator('[data-testid="training-show-gate"]'), touch);
   const gate = await gateScreenPoint(page);
   if (touch) await page.touchscreen.tap(gate.x, gate.y);
   else await page.mouse.click(gate.x, gate.y);
@@ -66,7 +72,7 @@ async function issueGateMove(page, touch) {
   });
 }
 
-async function stepUntilSensorOpticalOrGate(page) {
+async function stepUntilGate(page) {
   return page.evaluate((limit) => {
     const { engine, world } = globalThis.__wreckright;
     const playerTeam = world.playerTeam ?? 0;
@@ -93,11 +99,7 @@ async function stepUntilSensorOpticalOrGate(page) {
 
     for (let step = 0; step < limit; step += 1) {
       const current = state();
-      if (
-        current.sensorId !== null ||
-        current.opticalIds.length > 0 ||
-        current.gateOwned
-      ) return current;
+      if (current.gateOwned) return current;
       engine.forceStep();
     }
     throw new Error(`training gate was not reached within ${limit} forced steps`);
@@ -251,6 +253,17 @@ export async function engageTrainingOpticalContact({ page, check, prefix = '', t
   await selectShortRangeTrainer(page, touch);
   await issueGateMove(page, touch);
   check(labelled(prefix, 'Move control plots the initial route to the range gate'), true);
+  await page.waitForFunction(() => {
+    const coach = document.querySelector('[data-testid="training-coach"]');
+    return coach instanceof HTMLElement && /Move order ready.*Resume/.test(coach.innerText);
+  });
+  check(labelled(prefix, 'queued movement keeps the gate lesson and explains Resume'),
+    (await page.locator('[data-testid="command-attack"]').count()) === 0
+    && /Resume/.test(await page.locator('[data-testid="training-coach"]').innerText()));
+  check(labelled(prefix, 'Commander is absent until its training controls are available'),
+    (await page.locator('[data-testid="commander-toggle"]').count()) === 0);
+  const beforeReveal = await stepUntilGate(page);
+  check(labelled(prefix, 'reaching and capturing the actual gate unlocks the engage lesson'), beforeReveal.gateOwned);
   await page.waitForSelector('[data-testid="command-attack"]');
   const contactsAvailable = touch
     ? (await page.locator('[data-testid="mobile-tab-contacts"]').count()) === 1
@@ -259,18 +272,6 @@ export async function engageTrainingOpticalContact({ page, check, prefix = '', t
     labelled(prefix, 'engage lesson adds contacts and Attack without advanced heat controls'),
     contactsAvailable && (await page.locator('[data-testid="command-hold_fire"]').count()) === 0,
   );
-
-  const beforeReveal = await stepUntilSensorOpticalOrGate(page);
-  const investigated = beforeReveal.opticalIds.length === 0
-    ? await investigateSensorIfPresent({
-      page,
-      check,
-      prefix,
-      touch,
-      sensorId: beforeReveal.sensorId,
-    })
-    : false;
-  if (investigated) await issueGateMove(page, touch);
 
   const optical = beforeReveal.opticalIds[0] === undefined
     ? await stepUntilOpticalOrReveal(page)
@@ -299,10 +300,9 @@ export async function engageTrainingOpticalContact({ page, check, prefix = '', t
     JSON.stringify(optical),
   );
   check(
-    labelled(prefix, 'optical hostile card carries complete machine identity without a serial'),
-    /^[^—]+ — \d+t (Light|Medium|Heavy|Assault) · [^·]+ · (Linewrought|Aurelian Stock)$/.test(
-      hostileIdentity,
-    ) && !/\b[A-Z]{3}-\d+\b/.test(hostileIdentity),
+    labelled(prefix, 'optical hostile card has a short name and complete accessible identity'),
+    !hostileIdentity.includes(' — ') && /\d+t (Light|Medium|Heavy|Assault)/.test(opticalLabel ?? '')
+    && !/\b[A-Z]{3}-\d+\b/.test(hostileIdentity),
     hostileIdentity,
   );
   check(

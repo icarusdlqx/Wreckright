@@ -107,9 +107,9 @@ export function createMechMaterials(
   const sealed = faction === 'aurelian';
   const ironwork = identity !== null && IRONWORK_IDS.has(identity);
   return {
-    plate: material(body, sealed ? 0.72 : 0.82, 0.04),
+    plate: material(body, sealed ? 0.72 : 0.82, 0.04, body, 0.045),
     deep: material(mix(sealed ? 0x203744 : 0x384547, team, 0.16), 0.66, 0.32),
-    trim: material(team, 0.76, 0.06),
+    trim: material(team, 0.76, 0.06, team, 0.075),
     glass: material(0xa9e7e1, 0.2, 0.04, 0x277a85, 1.4),
     accent: material(sealed ? 0x3d7877 : ironwork ? 0xc3763f : mix(body, 0xffefc8, 0.8), 0.78, 0.08),
   };

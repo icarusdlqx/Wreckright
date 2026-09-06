@@ -10,6 +10,7 @@ import {
 } from 'three';
 import { teamColour, UI } from '../render/palette';
 import { effectiveSensorRange } from '../sim/sensors';
+import { SensorMarkerPool } from './sensorMarkerPool';
 import type { PendingCall } from '../sim/support';
 import {
   findEntity,
@@ -42,6 +43,7 @@ export class MarkerLayer {
   private readonly ringPool: Mesh[] = [];
   private ringsUsed = 0;
   private readonly routes: RouteMarkerPool;
+  private readonly sensorMarkers: SensorMarkerPool;
   private readonly supportLaneMaterial = new LineBasicMaterial({
     color: UI.attackMarker,
     transparent: true,
@@ -60,6 +62,8 @@ export class MarkerLayer {
     this.supportLane.frustumCulled = false;
     this.supportLane.visible = false;
     this.routes = new RouteMarkerPool(heightAt);
+    this.sensorMarkers = new SensorMarkerPool(heightAt);
+    this.group.add(this.sensorMarkers.group);
     this.group.add(this.supportLane, this.routes.group);
   }
 
@@ -67,6 +71,7 @@ export class MarkerLayer {
     for (const geometry of this.ringGeometries.values()) geometry.dispose();
     for (const material of this.markerMaterials.values()) material.dispose();
     this.routes.dispose();
+    this.sensorMarkers.dispose();
     this.supportLane.geometry.dispose();
     this.supportLaneMaterial.dispose();
   }
@@ -77,14 +82,17 @@ export class MarkerLayer {
 
   draw(world: World, view: MarkerViewState, deltaSeconds = 0, reducedMotion = false): void {
     this.ringsUsed = 0;
+    this.sensorMarkers.draw(world.vision);
     this.routes.begin(deltaSeconds, reducedMotion);
 
     for (const zone of world.zones) {
       const colour = zone.owner === null ? UI.ghost : teamColour(zone.owner);
-      this.groundRing(zone, zone.radius, colour, 0.55);
+      const knownGate = world.mission?.id === 'training_ground' && zone.id === 'range_gate';
+      this.groundRing(zone, zone.radius, knownGate ? UI.moveMarker : colour, knownGate ? 0.95 : 0.55, knownGate ? 3.2 : 1.6, knownGate);
     }
 
     for (const reveal of world.reveals) {
+      if (reveal.expiresTick <= world.tick) continue;
       if (world.playerTeam !== null && reveal.team !== world.playerTeam) continue;
       const sensor = reveal.kind === 'sensor';
       this.groundRing(

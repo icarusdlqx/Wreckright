@@ -25,22 +25,23 @@ export function WikiScreen({ route, onClose, discovery = PUBLIC_DISCOVERY, retur
   const article = route.page === 'article' ? library.get(wikiKey(route.reference)) : undefined;
   const locked = article !== undefined && !reveal && !isWikiDiscovered(article, discovery);
   const routeKey = route.page === 'article' ? wikiKey(route.reference) : route.page;
+  const indexScroll = useRef(0);
   const priorPage = useRef(`${routeKey}/${locked}`);
   useDialogFocus(root, close, onClose, returnFocus);
   useEffect(() => {
-    content.current?.scrollTo(0, 0);
+    content.current?.scrollTo(0, route.page === 'index' ? indexScroll.current : 0);
     // Announce page navigation while preserving the close target on initial entry.
     const page = `${routeKey}/${locked}`;
     if (priorPage.current !== page) {
       const heading = content.current?.querySelector('h1');
       heading?.setAttribute('tabindex', '-1');
-      heading?.focus();
+      heading?.focus({ preventScroll: true });
       priorPage.current = page;
     }
     setCopyState('idle');
     copyRequest.current++;
     setConfirmSpoilers(false);
-  }, [routeKey, locked]);
+  }, [routeKey, locked, route.page]);
   const available = [...library.values()].filter((entry) => reveal || isWikiDiscovered(entry, discovery));
   const hidden = library.size - available.length;
   const matches = searchWiki(available.filter((entry) => entry.kind === kind &&
@@ -60,7 +61,7 @@ export function WikiScreen({ route, onClose, discovery = PUBLIC_DISCOVERY, retur
       <span>WRECKRIGHT<small>TESSELL FIELD ARCHIVE</small></span></WikiLink>
       <button type="button" ref={close} onClick={onClose} data-testid="wiki-close">Return to game <span aria-hidden="true">×</span></button>
     </header>
-    <div className="wiki-scroll" ref={content}>
+    <div className="wiki-scroll" ref={content} onScroll={(event) => { if (route.page === 'index') indexScroll.current = event.currentTarget.scrollTop; }}>
       <div className="wiki-toolbar"><nav aria-label="Archive location"><WikiLink>Archive</WikiLink>
         {route.page === 'index' ? null : <><span aria-hidden="true">/</span><span>{locked ? 'Undiscovered record' : article?.title ?? 'Record not found'}</span></>}
       </nav><div className="wiki-tools"><span className="wiki-spoiler-status">{reveal ? 'Campaign spoilers visible' : 'Campaign spoilers hidden'}</span>
