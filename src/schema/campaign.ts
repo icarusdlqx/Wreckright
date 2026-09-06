@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CampaignRewardSchema, CampaignEndingSchema } from './campaignRewards';
 import { IdSchema, NameSchema } from './common';
 
 export const CampaignNodeSchema = z.strictObject({
@@ -11,6 +12,8 @@ export const CampaignNodeSchema = z.strictObject({
   basePayout: z.number().int().positive(),
   maxSalvageShare: z.number().min(0).max(1),
   deadlineDays: z.number().int().positive().max(180),
+  rewards: z.array(CampaignRewardSchema).max(8).optional(),
+  ending: CampaignEndingSchema.optional(),
   position: z.strictObject({
     x: z.number().min(0).max(1),
     y: z.number().min(0).max(1),

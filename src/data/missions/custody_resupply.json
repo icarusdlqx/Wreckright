@@ -1,0 +1,199 @@
+{
+  "id": "custody_resupply",
+  "name": "Recovery \u2014 Under Civil Seal",
+  "type": "defend",
+  "mapId": "ridge_pass",
+  "briefing": "The survey locates a stranded service tender and its disputed stores. Keep the loading stand under civil seal for 120 seconds while the clerks close the transfer. Its temporary landing apron permits 135 tonnes and three machines. The opposing walkers are claimants, not required kills. Hold Fire after disabling both legs if you want to preserve a recovery chance. Take the optional seal cabinet for a field-support allocation; your own repairs still cost credits.",
+  "maxDurationSeconds": 120,
+  "startingResourcePoints": 350,
+  "dropTonnage": 135,
+  "maxPlayerUnits": 3,
+  "lances": [
+    {
+      "team": 0,
+      "name": "Civil Transfer Detail",
+      "units": [
+        {
+          "designId": "votive_picket",
+          "pilotId": "petra_lindqvist",
+          "spawn": {
+            "x": 444,
+            "y": 612
+          },
+          "facingDegrees": -90
+        },
+        {
+          "designId": "sentinel_brawler",
+          "pilotId": "silas_okonkwo",
+          "spawn": {
+            "x": 492,
+            "y": 660
+          },
+          "facingDegrees": -90
+        },
+        {
+          "designId": "falchion_duellist",
+          "pilotId": "teodor_krysa",
+          "spawn": {
+            "x": 540,
+            "y": 612
+          },
+          "facingDegrees": -90
+        }
+      ]
+    },
+    {
+      "team": 1,
+      "name": "Foundry Counterclaim",
+      "units": [
+        {
+          "designId": "hornet_spotter",
+          "pilotId": "kessa_vale",
+          "spawn": {
+            "x": 492,
+            "y": 324
+          },
+          "facingDegrees": 90
+        },
+        {
+          "designId": "prybar_courier",
+          "pilotId": "dorn_hess",
+          "spawn": {
+            "x": 252,
+            "y": 444
+          },
+          "facingDegrees": 90
+        }
+      ]
+    }
+  ],
+  "zones": [
+    {
+      "id": "loading_stand",
+      "name": "Civil Loading Stand",
+      "x": 492,
+      "y": 612,
+      "radius": 78,
+      "owner": 0,
+      "captureSeconds": 14,
+      "resourcePoints": 0
+    },
+    {
+      "id": "seal_cabinet",
+      "name": "Optional Seal Cabinet",
+      "x": 252,
+      "y": 492,
+      "radius": 52,
+      "owner": null,
+      "captureSeconds": 8,
+      "resourcePoints": 200
+    }
+  ],
+  "objectives": [
+    {
+      "id": "keep_loading_stand",
+      "label": "Keep the civil loading stand secure for 120 seconds",
+      "type": "protect_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": [
+        "loading_stand"
+      ]
+    },
+    {
+      "id": "recover_sealed_stock",
+      "label": "Optional: secure the tender seal cabinet",
+      "type": "capture_zones",
+      "team": 0,
+      "required": false,
+      "zoneIds": [
+        "seal_cabinet"
+      ],
+      "resourcePoints": 150
+    },
+    {
+      "id": "custodian_survives",
+      "label": "Keep a transfer Custodian operational",
+      "type": "survive",
+      "team": 0,
+      "required": true
+    }
+  ],
+  "enemyDirectives": [
+    {
+      "id": "loading_counterclaim",
+      "team": 1,
+      "zoneId": "loading_stand",
+      "behavior": "retake",
+      "units": 1,
+      "pursuitRadius": 330
+    },
+    {
+      "id": "seal_watch",
+      "team": 1,
+      "zoneId": "seal_cabinet",
+      "behavior": "defend",
+      "units": 1,
+      "pursuitRadius": 190
+    }
+  ],
+  "triggers": [
+    {
+      "id": "civil_terms",
+      "when": {
+        "type": "elapsed",
+        "seconds": 2
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Custody clerk: hold the loading stand until the transfer closes. Surviving claimants do not invalidate your warrant."
+        }
+      ]
+    },
+    {
+      "id": "preserve_roots",
+      "when": {
+        "type": "elapsed",
+        "seconds": 24
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Custody clerk: wreckright still applies. A walker with both legs disabled may be recovered if your company holds the field. Hold Fire to preserve the cradle."
+        }
+      ]
+    },
+    {
+      "id": "seal_taken",
+      "when": {
+        "type": "zone_captured",
+        "zoneId": "seal_cabinet",
+        "team": 0
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Custody clerk: seal cabinet recorded. The tender has released its field-support allocation."
+        }
+      ]
+    },
+    {
+      "id": "transfer_closing",
+      "when": {
+        "type": "elapsed",
+        "seconds": 100
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Custody clerk: twenty seconds to seal the transfer. Keep the loading stand secure."
+        }
+      ]
+    }
+  ]
+}

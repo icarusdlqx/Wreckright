@@ -4,9 +4,11 @@ import type { LoreEntry } from '../../schema/lore';
 export function visibleCampaignLore(
   entries: readonly LoreEntry[],
   completedNodes: readonly string[],
+  campaignId?: string,
 ): LoreEntry[] {
   const completed = new Set(completedNodes);
   return entries.filter(
-    (entry) => entry.unlockNodeId === undefined || completed.has(entry.unlockNodeId),
+    (entry) => entry.unlockNodeId === undefined || completed.has(entry.unlockNodeId) ||
+      (campaignId !== undefined && entry.knownByCampaigns?.includes(campaignId) === true),
   );
 }

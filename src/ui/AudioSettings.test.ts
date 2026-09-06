@@ -8,13 +8,16 @@ describe('shared sound settings', () => {
     const prepare = vi.fn();
     const markup = renderToStaticMarkup(createElement(AudioSettings, { onPrepare: prepare }));
     expect(prepare).not.toHaveBeenCalled();
-    expect(markup).toContain('aria-label="Audio settings"');
-    expect(markup).toMatch(/data-testid="audio-settings"[^>]*>Audio settings<\/button>/);
+    expect(markup).toContain('aria-label="Settings"');
+    expect(markup).toMatch(/data-testid="audio-settings"[^>]*>Settings<\/button>/);
     expect(markup).toContain('aria-haspopup="dialog"');
     expect(markup).toContain('aria-expanded="false"');
     expect(markup).toContain('popover="auto"');
     expect(markup).toMatch(/popovertargetaction="hide"/i);
-    expect(markup).toContain('aria-label="Close sound settings"');
+    expect(markup).toContain('aria-label="Close settings"');
+    expect(markup).toContain('settings-display-tab');
+    expect(markup).toContain('settings-graphics');
+    expect(markup).toContain('Touch');
     for (const channel of ['master', 'effects', 'music', 'interface']) {
       expect(markup).toContain(`data-testid="audio-${channel}"`);
     }

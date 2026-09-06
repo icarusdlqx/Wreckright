@@ -1,0 +1,195 @@
+{
+  "id": "marker_survey",
+  "name": "Survey \u2014 Marker Eleven",
+  "type": "recon",
+  "mapId": "ridge_pass",
+  "briefing": "The registry copy is missing its service trail. Read the west marker and upper reader while Kestrel watches the main road. The company transport cannot land on the old survey terrace: its single-machine lift carries 45 tonnes. A stock Gadfly is enough. Use Move and Hold Fire to take the western route; neither guard has to die. The optional road ledger must be copied before the second required reader closes the contract.",
+  "maxDurationSeconds": 240,
+  "startingResourcePoints": 200,
+  "dropTonnage": 45,
+  "maxPlayerUnits": 1,
+  "lances": [
+    {
+      "team": 0,
+      "name": "Company Detail",
+      "units": [
+        {
+          "designId": "hornet_spotter",
+          "pilotId": "kessa_vale",
+          "spawn": {
+            "x": 108,
+            "y": 852
+          },
+          "facingDegrees": -90
+        }
+      ]
+    },
+    {
+      "team": 1,
+      "name": "Local Guard",
+      "units": [
+        {
+          "designId": "courser_patrol",
+          "pilotId": "leda_morcant",
+          "spawn": {
+            "x": 708,
+            "y": 300
+          },
+          "facingDegrees": 180
+        },
+        {
+          "designId": "hornet_spotter",
+          "pilotId": "corin_dast",
+          "spawn": {
+            "x": 756,
+            "y": 276
+          },
+          "facingDegrees": 180
+        }
+      ]
+    }
+  ],
+  "zones": [
+    {
+      "id": "west_marker",
+      "name": "West Survey Marker",
+      "x": 132,
+      "y": 540,
+      "radius": 54,
+      "owner": null,
+      "captureSeconds": 8,
+      "resourcePoints": 0
+    },
+    {
+      "id": "upper_reader",
+      "name": "Upper Service Reader",
+      "x": 228,
+      "y": 252,
+      "radius": 54,
+      "owner": null,
+      "captureSeconds": 8,
+      "resourcePoints": 0
+    },
+    {
+      "id": "road_ledger",
+      "name": "Optional Road Ledger",
+      "x": 516,
+      "y": 396,
+      "radius": 44,
+      "owner": null,
+      "captureSeconds": 8,
+      "resourcePoints": 200
+    },
+    {
+      "id": "patrol_sector",
+      "name": "Registry Patrol Sector",
+      "x": 732,
+      "y": 300,
+      "radius": 70,
+      "owner": 1,
+      "captureSeconds": 12,
+      "resourcePoints": 0
+    }
+  ],
+  "objectives": [
+    {
+      "id": "copy_service_trail",
+      "label": "Read the west marker and upper reader",
+      "type": "capture_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": [
+        "west_marker",
+        "upper_reader"
+      ]
+    },
+    {
+      "id": "copy_road_ledger",
+      "label": "Optional: copy the road ledger before the final reader",
+      "type": "capture_zones",
+      "team": 0,
+      "required": false,
+      "zoneIds": [
+        "road_ledger"
+      ],
+      "resourcePoints": 150
+    },
+    {
+      "id": "scout_survives",
+      "label": "Keep the survey machine operational",
+      "type": "survive",
+      "team": 0,
+      "required": true
+    }
+  ],
+  "enemyDirectives": [
+    {
+      "id": "road_watch",
+      "team": 1,
+      "zoneId": "patrol_sector",
+      "behavior": "defend",
+      "units": 2,
+      "pursuitRadius": 260
+    }
+  ],
+  "triggers": [
+    {
+      "id": "survey_order",
+      "when": {
+        "type": "elapsed",
+        "seconds": 2
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Halloran survey desk: west marker, then upper reader. Stay off the watched road. Hold Fire leaves your Move order in charge."
+        }
+      ]
+    },
+    {
+      "id": "marker_read",
+      "when": {
+        "type": "zone_captured",
+        "zoneId": "west_marker",
+        "team": 0
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Survey desk: first mark copied. The service trail leads north along the western slope."
+        }
+      ]
+    },
+    {
+      "id": "ledger_choice",
+      "when": {
+        "type": "elapsed",
+        "seconds": 12
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Survey desk: the road ledger is extra work. Copy it before the upper reader if you want it; the two western records are enough to get paid."
+        }
+      ]
+    },
+    {
+      "id": "road_watch_reply",
+      "when": {
+        "type": "elapsed",
+        "seconds": 6
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "speakerPilotId": "corin_dast",
+          "text": "Road watch: the registry road is closed under compliance order. Keep that survey machine on the western slope."
+        }
+      ]
+    }
+  ]
+}

@@ -118,9 +118,22 @@ export interface PilotReport {
   xp: number;
   /** Unspent total after this award; old reports did not record it. */
   xpBanked: number | null;
+  /** Mission and objective bonus included in this deployment’s total XP. */
+  sharedXp?: number;
   /** Skills raised by old automatic debriefs, retained for their saved reports. */
   promotions: string[];
   fate: 'returned' | 'injured' | 'killed';
+}
+
+export interface CampaignRewardReceipt {
+  id: string;
+  label: string;
+  items: StoreItem[];
+  hulls: { mechId: string; designId: string }[];
+  freeRepairDays: number;
+  freeRepairDaysOffered?: number;
+  supplierDiscountThroughDay: number | null;
+  afterword: string;
 }
 
 export interface MissionOutcome {
@@ -152,6 +165,8 @@ export interface MissionOutcome {
    * earned by taking a contract.
    */
   pilotReports: PilotReport[];
+  /** Authored contract grants are separate from the random salvage claim. */
+  campaignRewards?: CampaignRewardReceipt[];
 }
 
 export interface EmployerOutcomeSummary {
@@ -182,6 +197,12 @@ export interface CampaignState {
    * not whatever order the roster happens to be in.
    */
   benched: string[];
+  /** Null preserves the legacy automatic roster order until the commander chooses. */
+  deploymentSelection: string[] | null;
+  lancePresets: { name: string; seats: { pilotId: string; mechId: string | null }[] }[];
+  claimedRewardIds: string[];
+  /** Persist beyond archived field reports so retries cannot repeat objective XP. */
+  sharedXpClaims: { key: string; xp: number }[];
   store: StoreItem[];
   completedNodes: string[];
   failedNodes: string[];

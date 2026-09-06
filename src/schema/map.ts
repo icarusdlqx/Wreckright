@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { IdSchema, NameSchema } from './common';
+import { MapLandmarkSchema, validateMapLandmarks } from './mapLandmarks';
 
 export const PropThemeSchema = z.enum(['alpine', 'causeway', 'industrial', 'shale']);
 export type PropTheme = z.infer<typeof PropThemeSchema>;
@@ -17,8 +18,11 @@ export const TerrainMapSchema = z
     /** The air and light over this ground. The default restates the old rig. */
     atmosphereId: IdSchema.default('overcast_day'),
     propTheme: PropThemeSchema.optional(),
+    /** Public site names and presentation only; each occupies an already blocked tile. */
+    landmarks: z.array(MapLandmarkSchema).max(3).optional(),
   })
   .superRefine((map, ctx) => {
+    validateMapLandmarks(map, ctx);
     if (map.tiles.length !== map.height) {
       ctx.addIssue({
         code: 'custom',

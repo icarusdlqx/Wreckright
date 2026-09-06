@@ -1,6 +1,9 @@
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import { checkCampaignHaul } from './campaign-haul.mjs';
 import { runMechbayCrewChecks } from './mechbay-crew.mjs';
+import { runCommandRefinementChecks } from './command-refinement.mjs';
+import { runRefinementTouchChecks } from './refinement-touch.mjs';
+import { runCompanyOutcomeChecks } from './company-outcome-review.mjs';
 import { checkHomeTheatre } from './home-theatre.mjs';
 import { companyFile, restartCompany, checkRestartCancellation, checkCompanyWorkspaces } from './campaign-navigation.mjs';
 import { spawn } from 'node:child_process';
@@ -1750,6 +1753,9 @@ async function main() {
     await runAdaptiveScoreTreatmentChecks({ browser, url: URL, check });
     await verifyFirstDropLaunchPaths({ browser, url: URL, shots: SHOTS, check });
     await runMechbayCrewChecks({ browser, url: URL, shots: SHOTS, check });
+    await runCommandRefinementChecks({ browser, url: URL, shots: SHOTS, check });
+    await runRefinementTouchChecks({ browser, url: URL, shots: SHOTS, check });
+    await runCompanyOutcomeChecks({ browser, url: URL, shots: SHOTS, check });
     await runLastSilentMomentsChecks({ browser, url: URL, check });
     await runMobilePlaythrough({ browser, url: URL, shots: SHOTS, check });
   } finally {

@@ -16,9 +16,9 @@ without pushing.
 The presentation uses paper campaign/refit screens, dark teal battle controls,
 colourful faction finishes and illustrated terrain. Company management is split
 into **Operations**, **Workshop**, **Crew** and **Stores & yard**. Workshop opens
-individual refits directly; the manifest shows the actual drop, automatic pilot
-pairings and reasons for reserves. Combat, tonnage, campaign costs and save keys
-retain their existing rules.
+individual refits directly; the manifest records explicit Aboard/Reserve choices,
+mission tonnage, five normal berths and named lance presets. Legacy save keys
+remain compatible.
 
 See [the presentation review](docs/GRAPHIC_EXPEDITION_REVIEW.md) for the full
 system audit, preservation decisions, validation record and remaining priorities.
@@ -32,6 +32,12 @@ The [Ironwork & Monolith rebuild](docs/IRONWORK_MONOLITH.md) adds sixteen distin
 walker designs, actual-terrain mission surveys, a selected-machine Workshop,
 authored battlefield surroundings, physical motion/effects and shared audio
 settings. Its review fixtures run in background browsers with disposable profiles.
+
+The [command and campaign refinement](docs/COMMAND_REFINEMENT.md) adds loadout-aware
+Attack approaches, objective duties, five optional missions, guaranteed contract
+rewards, shared objective XP, campaign endings, a planning map and previewed weapon
+replacement. The [first-time playtest pack](docs/PLAYTEST_PACK.md) provides a
+repeatable way to check the opening with new players.
 
 ## Repository identity
 

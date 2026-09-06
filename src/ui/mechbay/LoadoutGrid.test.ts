@@ -37,6 +37,8 @@ function render(options: {
     onCancelArmed: () => undefined,
     onGuideExpandedChange: () => undefined,
     onAutoFit: () => undefined,
+    onReplace: () => undefined,
+    replacements: new Map(),
     onDrop: () => undefined,
     onRemoveMount: () => undefined,
     onRemoveAmmo: () => undefined,

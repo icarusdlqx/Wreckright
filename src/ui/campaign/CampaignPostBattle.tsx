@@ -4,6 +4,7 @@ import type { CampaignState } from '../../campaign/types';
 import type { Catalog } from '../../schema/load';
 import { stripSerialDesignation } from '../designLabel';
 import { Debrief, markDebriefed } from './Debrief';
+import type { CampaignNavigationTarget } from './campaignNavigation';
 
 interface CampaignPostBattleProps {
   catalog: Catalog;
@@ -16,6 +17,7 @@ interface CampaignPostBattleProps {
     message?: string,
   ) => void;
   onDebriefed: (count: number) => void;
+  onNavigate?: (target: CampaignNavigationTarget) => void;
 }
 
 export function CampaignPostBattle({
@@ -26,8 +28,14 @@ export function CampaignPostBattle({
   debriefed,
   mutate,
   onDebriefed,
+  onNavigate,
 }: CampaignPostBattleProps) {
   const pendingDebrief = state.history[state.history.length - 1];
+  const closeDebrief = (): void => {
+    mutate((draft) => finalizeLatestDebrief(draft));
+    markDebriefed(outcomeCount);
+    onDebriefed(outcomeCount);
+  };
 
   return (
     <>
@@ -71,11 +79,8 @@ export function CampaignPostBattle({
             });
             return selected;
           }}
-          onClose={() => {
-            mutate((draft) => finalizeLatestDebrief(draft));
-            markDebriefed(outcomeCount);
-            onDebriefed(outcomeCount);
-          }}
+          onClose={closeDebrief}
+          onAction={onNavigate === undefined ? undefined : (target) => { closeDebrief(); onNavigate(target); }}
         />
       )}
     </>

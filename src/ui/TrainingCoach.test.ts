@@ -8,12 +8,13 @@ describe('training coach contact lesson', () => {
     const lesson = TRAINING_LESSONS[2];
 
     for (const copy of [lesson.instruction, lesson.touch]) {
-      expect(copy).toContain('Hollow ◇ contacts');
-      expect(copy).toContain('sensor tracks');
-      expect(copy).toContain('named optical contact');
+      expect(copy).toContain('hollow ◇ sensor track');
+      expect(copy).toMatch(/named (optical )?contact/);
+      expect(copy).toContain('to engage');
+      expect(copy).toContain('Indirect missiles');
     }
-    expect(lesson.instruction).toContain('indirect missiles can use a live return');
-    expect(lesson.touch).toContain('guide indirect missiles');
+    expect(lesson.instruction).toContain('live sensor return');
+    expect(lesson.touch).toContain('live sensor returns');
   });
 
   it('distinguishes a standing attack order from automatic target acquisition', () => {

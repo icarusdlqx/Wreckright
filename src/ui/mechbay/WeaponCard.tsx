@@ -5,6 +5,7 @@ import type { Weapon } from '../../schema/weapon';
 import { weaponSize, weaponSizeLabel } from '../../sim/loadout';
 import { foreignComponentPresentation } from './machineCulturePresentation';
 import { SlotBoxes } from './SlotBoxes';
+import type { InspectorFit } from './Dossier';
 import { WeaponGlyph } from './WeaponGlyph';
 import {
   factionPresentation,
@@ -23,6 +24,10 @@ export interface WeaponCardProps {
   selected?: boolean;
   inspected?: boolean;
   unavailableReason?: string | null;
+  fitLabel?: InspectorFit['label'];
+  fitDetail?: string | null;
+  replacementOnly?: boolean;
+  installed?: boolean;
   className?: string;
   testId?: string;
   onPick?: (weapon: Weapon) => void;
@@ -41,6 +46,10 @@ export function WeaponCard({
   selected = false,
   inspected = false,
   unavailableReason = null,
+  fitLabel: suppliedFitLabel,
+  fitDetail: suppliedFitDetail,
+  replacementOnly = false,
+  installed = false,
   className = '',
   testId,
   onPick,
@@ -57,9 +66,11 @@ export function WeaponCard({
       : foreignComponentPresentation(weapon.faction, chassisFaction);
   const exhausted = stock !== undefined && stock <= 0;
   const unavailable = exhausted || unavailableReason !== null;
-  const reason = unavailableReason ?? (exhausted ? `No ${weapon.name} left in stores.` : null);
-  const fitLabel = unavailable ? "Doesn't fit" : 'Fit';
-  const fitDetail = reason ?? 'Drag to a matching part, or pick and place.';
+  const reason = exhausted
+    ? installed ? '0 spare. Already fitted; remove a copy to make it available in stores.' : `No ${weapon.name} left in stores.`
+    : unavailableReason;
+  const fitLabel = exhausted ? installed ? 'Installed' : 'No spare' : suppliedFitLabel ?? (unavailable ? "Doesn't fit" : 'Fit');
+  const fitDetail = reason ?? suppliedFitDetail ?? 'Drag to a matching part, or pick and place.';
   const statusId = `weapon-card-${weapon.id}-fit`;
   const detailId = `weapon-card-${weapon.id}-fit-detail`;
   const metrics = weaponMetrics(weapon);
@@ -71,6 +82,7 @@ export function WeaponCard({
     selected ? 'is-selected' : '',
     inspected ? 'is-inspected' : '',
     unavailable ? 'is-unavailable' : '',
+    exhausted ? 'is-stock-empty' : '',
     foreign ? 'is-foreign' : '',
     className,
   ].filter(Boolean);
@@ -134,7 +146,7 @@ export function WeaponCard({
             )}
           </span>
           {stock === undefined ? null : (
-            <span className="weapon-card__stock">×{Math.max(0, stock)}</span>
+            <span className="weapon-card__stock">{Math.max(0, stock)} spare</span>
           )}
         </span>
 
@@ -155,7 +167,7 @@ export function WeaponCard({
           <span id={detailId}>{fitDetail}</span>
         </span>
       </button>
-      {unavailable || onAutoFit === undefined ? null : (
+      {unavailable || replacementOnly || onAutoFit === undefined ? null : (
         <button
           type="button"
           className="weapon-card__autofit"

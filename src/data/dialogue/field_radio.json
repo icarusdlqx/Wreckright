@@ -1,0 +1,27 @@
+{
+  "routineGapSeconds": 14,
+  "urgentGapSeconds": 4,
+  "displaySeconds": { "routine": 7, "story": 12 },
+  "lines": {
+    "linewrought": {
+      "move": ["On my way. Keep the lane clear.", "We can make that ground."],
+      "attack": ["Taking the shot.", "Found a seam. Working on it."],
+      "guard": ["Holding here. They come through us.", "Feet planted. Watching the approach."],
+      "hold_fire": ["Guns safe. Leave something to bring home.", "Holding fire. Recovery crew can thank us later."],
+      "investigate": ["I’ll get eyes on it.", "Just a return for now. Moving to confirm."]
+    },
+    "aurelian": {
+      "move": ["Proceeding on the designated course.", "Repositioning. Maintain formation."],
+      "attack": ["Fire control has the solution.", "Target acknowledged. Precision fire."],
+      "guard": ["Custody line established.", "Holding the assigned ground."],
+      "hold_fire": ["Weapons safed. Preserve the asset.", "Fire suspended. The root is recoverable."],
+      "investigate": ["Acquiring visual confirmation.", "Unverified return. Moving to identify."]
+    }
+  },
+  "alerts": {
+    "shutdown": "Reactor shutdown. I need cover while it recovers.",
+    "pilot_ejected": "I’m out. Mark the capsule for recovery.",
+    "pilot_injured": "Hit in the cockpit. Still with you.",
+    "arm_lost": "Arm gone. Check my remaining weapons."
+  }
+}

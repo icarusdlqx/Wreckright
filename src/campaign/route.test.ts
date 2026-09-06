@@ -86,7 +86,9 @@ describe('Great Recall route', () => {
     expect(routes.some((route) => route.includes('causeway_push'))).toBe(true);
     expect(routes.some((route) => !route.includes('causeway_push'))).toBe(true);
 
-    expect(openNodes(campaign, ['militia_raid'])).toEqual(['pass_skirmish', 'supply_line']);
+    expect(openNodes(campaign, ['militia_raid'])).toEqual([
+      'marker_survey', 'pass_skirmish', 'supply_line',
+    ]);
     expect(openNodes(campaign, ['militia_raid', 'supply_line', 'causeway_push'])).toContain(
       'pass_skirmish',
     );

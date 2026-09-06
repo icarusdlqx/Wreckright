@@ -35,7 +35,7 @@ import { createAnimationState, type AnimationState } from './locomotionState';
 import { lockSubmergedBody, placeMachineRoot } from './submergedLocomotion';
 import { burnJumpJets, jumpPose, resetMotion } from './locomotionJump';
 import { emitFootContacts, type FootfallCallback } from './locomotionContact';
-import { advanceWeightSettle, applyStanceResponse } from './stanceResponse';
+import { advanceTurnBalance, advanceWeightSettle, applyStanceResponse } from './stanceResponse';
 import { resetModelArticulation } from './modelArticulation';
 import { updateMachineHeat } from './machineServices';
 import { supportTerminalOnGround } from './terminalSupport';
@@ -105,6 +105,7 @@ export class Locomotion {
     model.root.rotation.z = tilt.z;
     model.torso.rotation.y = -at.torso;
     model.torso.position.x = 0;
+    model.torso.position.z = 0;
     resetModelArticulation(model.articulation);
     updateMachineHeat(model.services, entity.heat / Math.max(1, entity.heatCapacity),
       !entity.destroyed && entity.shutdownRemaining <= 0);
@@ -217,6 +218,7 @@ export class Locomotion {
 
     const turnTravel = turnDelta * model.turnRadius;
     const travelled = Math.hypot(translated, turnTravel);
+    advanceTurnBalance(state, model, turnDelta, dt, this.reducedMotion);
     advanceWeightSettle(state, model, travelled > 0, dt, this.reducedMotion);
     const pureTurn = turned > 0 && translated <= Math.abs(turnTravel) * 0.25;
     let posePhase: number;

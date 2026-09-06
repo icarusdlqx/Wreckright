@@ -1,13 +1,12 @@
 import {
   BoxGeometry,
   BufferGeometry,
-  Color,
   ConeGeometry,
   CylinderGeometry,
-  Float32BufferAttribute,
   IcosahedronGeometry,
 } from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { mergePropParts as merge, type PropPart as Part } from './propGeometryParts';
+import { createLandmarkGeometry } from './landmarkGeometry';
 import type { PropTheme } from '../schema/map';
 import { mix, shade } from '../render/palette';
 
@@ -19,52 +18,9 @@ export type PropKind =
   | 'crag'
   | 'block'
   | 'causeway'
-  | 'wreckage';
+  | 'wreckage'
+  | 'relay' | 'silos' | 'gantry' | 'spire';
 
-interface Part {
-  geometry: BufferGeometry;
-  colour: number;
-  position?: readonly [number, number, number];
-  rotation?: readonly [number, number, number];
-  scale?: readonly [number, number, number];
-}
-
-function prepare(part: Part): BufferGeometry {
-  const geometry = part.geometry;
-  const [sx, sy, sz] = part.scale ?? [1, 1, 1];
-  const [rx, ry, rz] = part.rotation ?? [0, 0, 0];
-  const [x, y, z] = part.position ?? [0, 0, 0];
-  geometry.scale(sx, sy, sz);
-  geometry.rotateX(rx);
-  geometry.rotateY(ry);
-  geometry.rotateZ(rz);
-  geometry.translate(x, y, z);
-  geometry.deleteAttribute('uv');
-
-  const colour = new Color(part.colour);
-  const count = geometry.getAttribute('position').count;
-  const values = new Float32Array(count * 3);
-  for (let index = 0; index < count; index += 1) {
-    values[index * 3] = colour.r;
-    values[index * 3 + 1] = colour.g;
-    values[index * 3 + 2] = colour.b;
-  }
-  geometry.setAttribute('color', new Float32BufferAttribute(values, 3));
-
-  if (geometry.index === null) return geometry;
-  const unindexed = geometry.toNonIndexed();
-  geometry.dispose();
-  return unindexed;
-}
-
-function merge(parts: readonly Part[]): BufferGeometry {
-  const prepared = parts.map(prepare);
-  const geometry = mergeGeometries(prepared, false);
-  for (const part of prepared) part.dispose();
-  if (geometry === null) throw new Error('prop geometry parts did not share attributes');
-  geometry.computeBoundingSphere();
-  return geometry;
-}
 
 function tree(theme: PropTheme): BufferGeometry {
   const foliage =
@@ -317,5 +273,6 @@ export function createPropGeometry(kind: PropKind, theme: PropTheme): BufferGeom
     case 'block': return block(theme);
     case 'causeway': return causeway();
     case 'wreckage': return wreckage();
+    case 'relay': case 'silos': case 'gantry': case 'spire': return createLandmarkGeometry(kind);
   }
 }

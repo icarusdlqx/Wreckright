@@ -56,6 +56,23 @@ function cardMarkup(html: string, weaponId: string): string {
 }
 
 describe('compact mechbay catalog', () => {
+  it('labels fitted zero-spare items truthfully in both the shelf and inspector', () => {
+    const html = render({
+      inventory: { weapon: new Map([['medium_laser', 3]]), equipment: new Map([['case', 1]]) },
+      inspected: { kind: 'weapon', id: 'medium_laser' },
+    });
+    const row = cardMarkup(html, 'medium_laser');
+    expect(row).toContain('>Installed<');
+    expect(row).toContain('0 spare');
+    expect(row).not.toContain("Doesn&#x27;t fit");
+    expect(html).toContain('fits, replacements &amp; installed');
+    expect(html).toMatch(/data-testid="dossier-fit"[^>]*>[\s\S]*?<strong>Installed<\/strong>/);
+    expect(html).not.toContain('This part has no energy weapon mounts.');
+    const gear = render({ shelf: 'equipment', inventory: { weapon: new Map(), equipment: new Map([['case', 1]]) } });
+    expect(gear).toContain('stock-equipment-case');
+    expect(gear).toContain('Installed · 0 spare');
+  });
+
   it('renders searchable Weapons, Ammo, and Gear tabs with one inspector', () => {
     const html = render();
     expect(html).toContain('data-testid="shelf-weapons"');
@@ -105,7 +122,7 @@ describe('compact mechbay catalog', () => {
   it('retains the fits-only discovery path and truthful ammo and gear inspectors', () => {
     const fitOnly = render({ selectedLocation: 'right_torso' });
     expect(fitOnly).not.toContain('data-testid="stock-weapon-gauss_rifle"');
-    expect(fitOnly).toContain("Include Doesn&#x27;t fit");
+    expect(fitOnly).toContain("Include unavailable");
 
     const ammo = render({ shelf: 'ammo' });
     expect(ammo).toContain('data-inspected-kind="ammo"');
@@ -114,7 +131,7 @@ describe('compact mechbay catalog', () => {
     const gear = render({ shelf: 'equipment' });
     expect(gear).toContain('data-inspected-kind="equipment"');
     expect(gear).toContain('data-testid="shelf-show-all"');
-    expect(gear).toContain("Include Doesn&#x27;t fit");
+    expect(gear).toContain("Include unavailable");
     expect(gear).not.toMatch(/sensor range factor|incoming accuracy factor|ammo blast containment/);
   });
 

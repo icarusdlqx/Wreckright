@@ -22,6 +22,22 @@ function render(id: string, extra: Partial<Parameters<typeof WeaponCard>[0]> = {
 }
 
 describe('weapon card', () => {
+  it('separates an installed zero-spare copy from physical incompatibility', () => {
+    const html = render('flamer', { stock: 0, installed: true, unavailableReason: 'This part has no energy weapon mounts.' });
+    expect(html).toContain('>Installed<');
+    expect(html).toContain('0 spare');
+    expect(html).toContain('draggable="false"');
+    expect(html).not.toContain('no energy weapon mounts');
+    expect(html).not.toContain("Doesn&#x27;t fit");
+  });
+
+  it('allows picking a replacement-only gun without offering an empty-slot auto fit', () => {
+    const html = render('er_medium_laser', { replacementOnly: true, fitLabel: 'Replace', onAutoFit: () => undefined });
+    expect(html).toContain('>Replace<');
+    expect(html).toContain('draggable="true"');
+    expect(html).not.toContain('weapon-card__autofit');
+  });
+
   it('is a native keyboard-operable button with drag payload support', () => {
     const html = render('ac5', { selected: true });
     expect(html).toContain('<button type="button" class="weapon-card__pick"');
@@ -73,6 +89,6 @@ describe('weapon card', () => {
     expect(html).toContain('data-fit="false"');
     expect(html).toContain("Doesn&#x27;t fit");
     expect(html).toContain('Needs a heavy ballistic mount.');
-    expect(html).toContain('×2');
+    expect(html).toContain('2 spare');
   });
 });

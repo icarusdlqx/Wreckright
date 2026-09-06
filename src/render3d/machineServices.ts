@@ -1,4 +1,4 @@
-import { BoxGeometry, Group, Mesh, MeshStandardMaterial, Object3D, Raycaster, Vector3, type Material } from 'three';
+import { BoxGeometry, Color, Group, Mesh, MeshStandardMaterial, Object3D, Raycaster, Vector3, type Material } from 'three';
 import type { Faction } from '../schema/faction';
 import type { Blueprint } from '../render/blueprint';
 import { profileSection } from '../render/blueprint/connections';
@@ -8,11 +8,13 @@ export interface MachineServices {
   jets: Object3D[];
   vents: Object3D[];
   heatMaterial: MeshStandardMaterial | null;
+  heatBaseEmission?: Color;
   enabled: boolean;
 }
 
 // These housings are a construction feature of the four authored jump frames.
 const JET_HULLS = new Set(['hornet_hnt2', 'wisp_wsp1', 'votive_vtv2', 'falchion_fal2']);
+const HEAT_WARNING = new Color(0xffb65c);
 
 /** Rear service ports are mounted on the actual body profile, never on a leg pivot. */
 export function createMachineServices(plan: Blueprint, torso: Group, scale: number,
@@ -45,6 +47,7 @@ export function createMachineServices(plan: Blueprint, torso: Group, scale: numb
     roughness: 0.74, metalness: 0.26, flatShading: true });
   owned.push(material, shell);
   services.heatMaterial = material;
+  services.heatBaseEmission = material.emissive.clone();
   const jetHull = identity !== null && JET_HULLS.has(identity);
   const portWidth = body.size[2] * scale * 0.18;
   const portHeight = Math.max(scale * 0.12, body.size[1] * scale * 0.28);
@@ -121,5 +124,8 @@ export function updateMachineHeat(services: MachineServices, fraction: number, p
   const material = services.heatMaterial;
   if (material === null) return;
   const hot = Math.max(0, Math.min(1, (fraction - 0.42) / 0.58));
-  material.emissiveIntensity = services.enabled && powered ? hot * hot * 1.45 : 0;
+  if (services.heatBaseEmission !== undefined) {
+    material.emissive.copy(services.heatBaseEmission).lerp(HEAT_WARNING, Math.max(0, Math.min(1, (fraction - 0.7) / 0.3)));
+  }
+  material.emissiveIntensity = services.enabled && powered ? hot * (0.5 + hot * 1.35) : 0;
 }

@@ -21,6 +21,7 @@ import {
 import type { TrainingStep } from './trainingProgress';
 import { UnitPanel } from './UnitPanel';
 import { useCompactLayout } from './useCompactLayout';
+import { FieldRadioPanel } from './FieldRadioPanel';
 
 interface BattleHudProps {
   engine: Engine | null;
@@ -73,6 +74,7 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
       <>
         {fullHud ? <CommanderView engine={engine} compact /> : null}
         <SensorSweepReadout world={engine?.world ?? null} />
+        {fullHud ? <FieldRadioPanel /> : null}
         <MobileBattleHud
           engine={engine}
           supportOptions={supportOptions}
@@ -87,6 +89,7 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
     <>
       {fullHud ? <CommanderView engine={engine} /> : null}
       <SensorSweepReadout world={engine?.world ?? null} />
+      {fullHud ? <FieldRadioPanel /> : null}
       {fullHud ? <UnitPanel engine={engine} /> : null}
       {showsContacts ? (
         <HostileBar

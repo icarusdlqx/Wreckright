@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import type { CampaignNavigationTarget } from './campaignNavigation';
 import { rebuildHulk } from '../../campaign/refit';
 import { dailyPayroll, payrollThrough } from '../../campaign/ledger';
 import { estimateRepair, projectedRepairWindow, repairQueue, startRepair } from '../../campaign/repair';
@@ -14,7 +15,7 @@ import { SelectedMachineShowcase } from './SelectedMachineShowcase';
 
 const catalog = getCatalog();
 
-export type MechBayPanelProps = PanelProps & { onRefit?: (mechId: string) => void; previewActive?: boolean };
+export type MechBayPanelProps = PanelProps & { onRefit?: (mechId: string) => void; previewActive?: boolean; focus?: CampaignNavigationTarget | null };
 
 /** On stacked layouts the inspected machine is above the roster; keep keyboard focus on its order. */
 export function revealInspectedMachine(source: Pick<HTMLElement, 'ownerDocument' | 'closest'>): void {
@@ -26,9 +27,12 @@ export function revealInspectedMachine(source: Pick<HTMLElement, 'ownerDocument'
   showcase?.scrollIntoView({ block: 'start', behavior: reduced ? 'instant' : 'smooth' });
 }
 
-export function MechBayPanel({ state, mutate, onRefit, previewActive = false }: MechBayPanelProps) {
+export function MechBayPanel({ state, mutate, onRefit, previewActive = false, focus }: MechBayPanelProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [inspectionStatus, setInspectionStatus] = useState('');
+  useEffect(() => {
+    if (focus?.area === 'workshop' && focus.mechId !== undefined) setSelectedId(focus.mechId);
+  }, [focus]);
   const selected = state.mechs.find((mech) => mech.id === selectedId) ?? state.mechs[0];
   const payroll = dailyPayroll(catalog, state);
   const bayCapacity = catalog.rules.economy.repair.bayCapacity;

@@ -75,6 +75,8 @@ export const WEAPON_GROUPS = 4;
 export type Stance = 'close' | 'hold' | 'back_off' | 'withdraw';
 
 export interface AiState {
+  /** Authored duty survives distance changes without reshuffling the defenders each tick. */
+  directiveId?: string;
   withdrawing: boolean;
   coolingDown: boolean;
   focusTargetId: EntityId | null;

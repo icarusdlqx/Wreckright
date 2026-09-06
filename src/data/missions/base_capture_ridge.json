@@ -211,5 +211,23 @@
       ]
     }
   ],
-  "dropTonnage": 210
+  "dropTonnage": 210,
+  "enemyDirectives": [
+    {
+      "id": "north_post_guard",
+      "team": 1,
+      "zoneId": "north_post",
+      "behavior": "defend",
+      "units": 1,
+      "pursuitRadius": 280
+    },
+    {
+      "id": "south_post_relief",
+      "team": 1,
+      "zoneId": "south_post",
+      "behavior": "retake",
+      "units": 3,
+      "pursuitRadius": 330
+    }
+  ]
 }

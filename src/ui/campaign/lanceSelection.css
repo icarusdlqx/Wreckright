@@ -1,0 +1,33 @@
+.lance-presets {
+  display: grid; gap: 10px; padding: 14px; margin: 14px 0;
+  border: 1px solid var(--exp-line, #c6cec1); background: #e7ecdf; border-radius: 4px;
+}
+.lance-presets > div { display: flex; gap: 8px; align-items: end; flex-wrap: wrap; }
+.lance-presets small { max-width: 38ch; color: var(--exp-muted, #52665e); }
+.lance-presets label { display: grid; gap: 5px; flex: 1; min-width: 160px; }
+.lance-presets input {
+  box-sizing: border-box; min-height: 40px; width: 100%; padding: 7px;
+  color: var(--exp-ink, #193744); background: var(--exp-paper-raised, #fdfbf4);
+  border: 1px solid #9aaba1; border-radius: 3px; font: inherit;
+}
+.lance-presets input:focus-visible { outline: 3px solid var(--exp-orange, #d97753); outline-offset: 3px; }
+.lance-presets p:empty { display: none; }
+.lance-presets p { margin: 0; color: #2e6658; font-size: 12px; }
+.lance-issues { padding: 12px 16px; background: #f1dfc7; color: #813b29; border-left: 4px solid #b96943; }
+.lance-issues ul { margin: 6px 0 0; padding-left: 20px; }
+.lance-refusal { color: #864329; }
+.exp-drop-manifest .lance-card-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.exp-drop-manifest .lance-card { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; min-width: 0; align-content: start; padding: 14px; }
+.exp-drop-manifest .lance-card.drops { border-left: 4px solid var(--exp-teal, #32766d); background: #edf2e8; }
+.exp-drop-manifest .lance-card.reserve { background: var(--exp-paper-raised, #fdfbf4); }
+.lance-card .manifest-pilot { min-width: 0; }
+.lance-card .manifest-mech { min-width: 0; }
+.lance-card .manifest-mech label { display: grid; gap: 6px; color: var(--exp-muted, #52665e); font-size: 12px; }
+.lance-card select { width: 100%; min-width: 0; }
+.lance-pilot-detail { border-top: 1px solid var(--exp-line, #c6cec1); padding-top: 9px; }
+.lance-pilot-detail summary { cursor: pointer; padding: 7px 0; color: var(--exp-ink, #193744); }
+.lance-pilot-detail .pilot-stats { margin-top: 10px; }
+@media (max-width: 640px), (max-height: 480px) {
+  .exp-drop-manifest .lance-card-grid { grid-template-columns: minmax(0, 1fr); }
+  .lance-card button, .lance-card select, .lance-presets button { min-height: 44px; }
+}

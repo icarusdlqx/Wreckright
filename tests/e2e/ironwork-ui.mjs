@@ -52,6 +52,7 @@ async function openCompany(page) {
 }
 
 async function surveyImage(page) {
+  await page.locator('[data-testid="survey-landscape"]').click();
   await page.waitForFunction(() => {
     const image = document.querySelector('[data-testid="camp-mission-survey"] img');
     return image instanceof HTMLImageElement && image.complete && image.naturalWidth === 1200
@@ -215,7 +216,7 @@ export async function runIronworkUiChecks({ browser, url, check, shots }) {
     check('signing the displayed operation retains its terrain survey without exposing contacts',
       signedCheck.contractSigned && signedCheck.name === survey.name
         && signedCheck.header === 'Signed contract / terrain survey'
-        && signedCheck.privacy === 'Terrain only. Contacts and reinforcements must be discovered in the field.'
+        && signedCheck.privacy === 'Your insertion and announced objectives. Contacts and reinforcements must be discovered in the field.'
         && signedCheck.imageUnchanged, JSON.stringify(signedCheck));
     check('campaign visual lifetime checks report no page or console errors', errors.length === 0, errors.join(' | '));
   } finally {

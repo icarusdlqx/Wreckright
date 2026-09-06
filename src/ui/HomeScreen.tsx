@@ -62,7 +62,7 @@ export function HomeScreen() {
       <header className="home-masthead">
         <div><CommandMark /><span>WRECKRIGHT<small>INDEPENDENT COMPANY COMMAND</small></span></div>
         <p>TESSELL <span>/</span> THE GREAT RECALL</p>
-        <nav aria-label="Sound"><AudioSettings compact /></nav>
+        <nav aria-label="Game settings"><AudioSettings compact /></nav>
       </header>
       <section className="home-panel" aria-labelledby="home-title">
         <div className="home-introduction">

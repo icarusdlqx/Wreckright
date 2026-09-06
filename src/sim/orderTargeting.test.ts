@@ -54,6 +54,7 @@ function shortGunFixture(seed: string, lrmRounds: number): {
   ];
   mech.groupIntent = [true, true, true, true];
   mech.groupEnabled = [true, true, true, true];
+  visionFor(world, mech.team)!.visible.add(quarry.id);
   return { world, mech, quarry };
 }
 

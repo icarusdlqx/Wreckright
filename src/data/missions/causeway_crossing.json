@@ -165,5 +165,23 @@
       ]
     }
   ],
-  "dropTonnage": 215
+  "dropTonnage": 215,
+  "enemyDirectives": [
+    {
+      "id": "hardstand_guard",
+      "team": 1,
+      "zoneId": "hardstand",
+      "behavior": "defend",
+      "units": 1,
+      "pursuitRadius": 220
+    },
+    {
+      "id": "crossing_intercept",
+      "team": 1,
+      "zoneId": "hardstand",
+      "behavior": "intercept",
+      "units": 4,
+      "pursuitRadius": 560
+    }
+  ]
 }

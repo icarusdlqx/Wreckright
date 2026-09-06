@@ -1,4 +1,5 @@
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
+import { nativeBayDrag } from './native-bay-drag.mjs';
 
 const company = page => page.evaluate(() => JSON.parse(localStorage.getItem('ironline.campaign')).state);
 
@@ -73,11 +74,15 @@ export async function runMechbayCrewChecks({ browser, url, shots, check }) {
     await page.locator('[data-testid="camp-area-crew"]').click();
     const saved = await company(page);
     const crew = page.locator('[data-testid="camp-roster"]');
-    check('every active pilot has a portrait, bio and current strengths and weaknesses',
-      await crew.locator('.pilot-person').count() >= saved.pilots.length
-      && await crew.locator('.pilot-portrait').count() >= saved.pilots.length
-      && (await crew.innerText()).includes('Strength:')
-      && (await crew.innerText()).includes('Watch:'));
+    let completeCrew = await crew.locator('[data-testid^="crew-select-"]').count() === saved.pilots.filter(pilot => !pilot.dead).length;
+    for (const pilot of saved.pilots.filter(pilot => !pilot.dead)) {
+      await crew.locator(`[data-testid="crew-select-${pilot.id}"]`).click();
+      const detail = crew.locator(`[data-testid="camp-pilot-detail-${pilot.id}"]`);
+      completeCrew &&= await detail.locator('.pilot-portrait').count() === 1
+        && (await detail.textContent()).includes(pilot.name)
+        && (await detail.innerText()).includes('Strength:') && (await detail.innerText()).includes('Watch:');
+    }
+    check('each compact crew row opens its portrait, biography, strengths and weaknesses', completeCrew);
     await page.screenshot({ path: `${shots}/crew-roster-desktop.png`, fullPage: true });
     await page.locator('[data-testid="camp-area-workshop"]').click();
     await page.locator('img.machine-portrait').first().waitFor();
@@ -118,11 +123,11 @@ export async function runMechbayCrewChecks({ browser, url, shots, check }) {
     await page.screenshot({ path: `${shots}/crew-fit-targets.png` });
     await page.locator('[data-testid="bay-armed-cancel"]').click();
     // Exercise the browser's native drag payload and drop events, not an editor hook.
-    await flamer.dragTo(head);
+    await nativeBayDrag(page, flamer, head);
     check('dropping onto an invalid mount leaves the draft unchanged',
       await head.getByRole('button', { name: 'Inspect Flamer', exact: true }).count() === 0
       && await right.getByRole('button', { name: 'Inspect Flamer', exact: true }).count() === 0);
-    await flamer.dragTo(right);
+    await nativeBayDrag(page, flamer, right);
     check('native drag and drop snaps the weapon into its valid body section',
       await right.getByRole('button', { name: 'Inspect Flamer', exact: true }).count() === 1
       && await right.locator('.slot-block:not(.empty) .rack-cell').count() === 1);

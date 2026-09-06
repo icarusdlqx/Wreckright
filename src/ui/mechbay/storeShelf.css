@@ -252,6 +252,14 @@
   color: var(--warn);
 }
 
+.weapon-card.is-stock-empty .weapon-card__fit,
+.weapon-card.is-stock-empty .weapon-card__fit strong,
+.dossier-fit.is-stock-empty,
+.dossier-fit.is-stock-empty strong {
+  color: #4b6266;
+}
+.dossier-fit.is-stock-empty { background: #e9eeea; border-color: #a7b8ae; }
+
 .bay-catalog-inspector .weapon-card__meters {
   margin-bottom: 8px;
 }

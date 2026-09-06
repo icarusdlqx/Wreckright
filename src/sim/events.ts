@@ -74,7 +74,7 @@ export type SimEvent =
     }
   | { type: 'unit_withdrew'; tick: number; entityId: EntityId; team: number }
   | { type: 'trigger_fired'; tick: number; triggerId: string }
-  | { type: 'mission_message'; tick: number; text: string }
+  | { type: 'mission_message'; tick: number; text: string; speakerPilotId?: string }
   | { type: 'ability_used'; tick: number; entityId: EntityId; abilityId: string }
   | { type: 'alpha_strike'; tick: number; entityId: EntityId }
   | { type: 'unit_spawned'; tick: number; entityId: EntityId; team: number; name: string }

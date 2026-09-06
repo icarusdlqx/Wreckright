@@ -57,13 +57,16 @@ function firstTile(data: TerrainMapData, terrainId: string): number {
 
 describe('PropLayer', () => {
   it.each(Object.entries(EXPECTED_BATCHES))(
-    'keeps %s within its old prop draw budget',
+    'keeps %s within its ordinary budget plus bounded landmark batches',
     (mapId, expected) => {
       const batches = meshes(build(mapId));
       const shadowBatches = EXPECTED_SHADOW_BATCHES[mapId];
       if (shadowBatches === undefined) throw new Error(`missing shadow budget for ${mapId}`);
-      expect(batches.map((mesh) => mesh.name)).toEqual(expected);
-      expect(batches.filter((mesh) => mesh.castShadow)).toHaveLength(shadowBatches);
+      const landmarkNames = new Set((mapData(mapId).landmarks ?? []).map((site) => `props-${site.kind}`));
+      expect(batches.filter((mesh) => !landmarkNames.has(mesh.name)).map((mesh) => mesh.name)).toEqual(expected);
+      expect(batches.length - expected.length).toBe(landmarkNames.size);
+      expect(landmarkNames.size).toBeLessThanOrEqual(3);
+      expect(batches.filter((mesh) => mesh.castShadow)).toHaveLength(shadowBatches + landmarkNames.size);
     },
   );
 

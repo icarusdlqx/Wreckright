@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { abandonContract, acceptContract, advanceDays, availableNodes, campaignOf, standDownCampaign,
-  deployableLance, negotiationOptions } from '../../campaign/campaign';
+  negotiationOptions } from '../../campaign/campaign';
 import {
   campaignBlob,
   campaignPersistenceStatus,
@@ -14,12 +14,14 @@ import { getCatalog } from '../../schema/load';
 import { applyRefit, refitAvailability } from '../../campaign/refit';
 import { isSideContract } from '../../campaign/sidework';
 import { createCampaignSeed, startFreshCampaign } from '../../campaign/freshness';
+import { deploymentCandidates, deploymentPlan } from '../../campaign/deployment';
 import { campaignOutcomeCount } from '../../campaign/history';
 import { assessSolvency, retireCompany } from '../../campaign/solvency';
 import { employerHistories } from '../../campaign/employers';
 import type { BayCommission } from '../mechbay/Mechbay';
 import { authoredDesignName } from '../designLabel';
 import { CampaignWorkspace } from './CampaignWorkspace';
+import { useCampaignNavigation } from './campaignNavigation';
 import { CampaignHeader } from './CampaignHeader';
 import { CampaignChooser } from './CampaignChooser';
 import { CampaignMap, type NodeState } from './CampaignMap';
@@ -50,6 +52,7 @@ const DEFAULT_CAMPAIGN_ID = 'border_dispute';
 export function CampaignScreen({ onExit }: { onExit: () => void }) {
   const [initial] = useState(() => openCampaignSession(catalog, DEFAULT_CAMPAIGN_ID, resetDebriefed));
   const [state, setState] = useState<CampaignState>(initial.state);
+  const navigation = useCampaignNavigation(`${state.campaignId}:${state.seed}`);
   const [persistence, setPersistence] = useState(initial.persistence);
   const [manualOpen, setManualOpen] = useState(false);
   const [guideDismissed, setGuideDismissed] = useState(false);
@@ -77,7 +80,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
   const posted = useMemo(() => open.filter((entry) => isSideContract(entry.id)), [open]);
   const node = open.find((entry) => entry.id === selectedNode) ?? open[0] ?? null;
   const options = node === null ? [] : negotiationOptions(catalog, node);
-  const lance = deployableLance(state);
+  const lance = deploymentCandidates(state);
   const directLaunch = canLaunchFirstDropDirectly(catalog, state);
   const solvency = useMemo(() => assessSolvency(catalog, state), [state]);
   const outcomeCount = campaignOutcomeCount(state);
@@ -188,8 +191,11 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
       setStatus('This campaign is over.');
       return;
     }
-    if (lance.length === 0) {
-      setStatus('No mech is ready to deploy.');
+    if (state.contract === null) { setStatus('Accept a contract first.'); return; }
+    const plan = deploymentPlan(catalog, state, state.contract.missionId);
+    if (plan.issues.length > 0) {
+      setStatus(plan.issues.join(' '));
+      setPrep('manifest');
       return;
     }
     setPrep(null);
@@ -273,7 +279,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
       )}
       {!manualOpen ? null : (
         <FieldManual
-          lore={visibleCampaignLore([...catalog.lore.values()], state.completedNodes)}
+          lore={visibleCampaignLore([...catalog.lore.values()], state.completedNodes, state.campaignId)}
           onClose={() => setManualOpen(false)}
         />
       )}
@@ -284,11 +290,12 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         catalog={catalog}
         state={state}
         fullCompany={guidedFirstDrop === 'done'}
-        workshop={(active) => <MechBayPanel state={state} mutate={mutate} onRefit={setRefitting} previewActive={active && previewsActive} />}
-        crew={<BarracksPanel state={state} mutate={mutate} />}
+        area={navigation.area} onAreaChange={navigation.setArea}
+        workshop={(active) => <MechBayPanel state={state} mutate={mutate} onRefit={setRefitting} previewActive={active && previewsActive} focus={navigation.target} />}
+        crew={<BarracksPanel state={state} mutate={mutate} focus={navigation.target} />}
         supplies={<><StoresPanel state={state} mutate={mutate} /><MarketPanel state={state} mutate={mutate} /></>}
         operations={(active) => <>
-      <MissionSurvey data={survey} active={active && previewsActive} signed={state.contract !== null} />
+      {state.finished ? null : <MissionSurvey data={survey} active={active && previewsActive} signed={state.contract !== null} />}
       <CampaignMap
         campaign={campaign}
         catalog={catalog}
@@ -377,6 +384,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         debriefed={debriefed}
         mutate={mutate}
         onDebriefed={setDebriefed}
+        onNavigate={navigation.navigate}
       />
       <CampaignPrep
         catalog={catalog}

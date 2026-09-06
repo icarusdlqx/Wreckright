@@ -69,7 +69,8 @@
 .bay.bay--workspace .location-overview > .bay-location { padding: 9px; }
 .bay.bay--workspace .bay-location-name { color: var(--text); font-size: 12px; font-weight: 700; }
 .bay.bay--workspace .bay-location.selected { border-color: var(--accent); background: #edf4e5; box-shadow: inset 0 3px var(--accent); }
-.bay.bay--workspace .bay-location.hovered { border-color: var(--accent); background: #edf4e5; }
+.bay.bay--workspace .bay-location.hovered:not(.selected) { border-color: #829ba0; background: #f5f6ed; }
+.bay.bay--workspace .location-selection-label { margin-left: 7px; font-size: 10px; color: #276356; text-transform: uppercase; }
 .bay.bay--workspace .bay-location.compatible { border-color: #6c9b7a; }
 .bay.bay--workspace .bay-location.invalid { border-color: var(--danger); }
 .bay.bay--workspace .location-flag--compatible { border-color: var(--ok); color: var(--ok); }

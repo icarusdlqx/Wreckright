@@ -1,0 +1,289 @@
+{
+  "id": "workshop_defence",
+  "name": "Defence \u2014 Keep the Gantries",
+  "type": "defend",
+  "mapId": "foundry_district",
+  "briefing": "The recovered service trail has brought Kestrel to Sarn's working repair hall. Hold the gantry control for 150 seconds while the crew moves its named roots into shelter. The apron carries 205 tonnes and up to five machines. Three gate reports will warn of incoming sections. One fast machine can recover the optional stores cabinet while the main lance guards the workshop. Losing gantry control fails the contract; chasing survivors is unnecessary.",
+  "maxDurationSeconds": 150,
+  "startingResourcePoints": 500,
+  "dropTonnage": 205,
+  "maxPlayerUnits": 5,
+  "lances": [
+    {
+      "team": 0,
+      "name": "Company Detail",
+      "units": [
+        {
+          "designId": "hornet_spotter",
+          "pilotId": "kessa_vale",
+          "spawn": {
+            "x": 444,
+            "y": 492
+          },
+          "facingDegrees": -135
+        },
+        {
+          "designId": "bulwark_assault",
+          "pilotId": "dorn_hess",
+          "spawn": {
+            "x": 516,
+            "y": 492
+          },
+          "facingDegrees": -45
+        },
+        {
+          "designId": "hornet_spotter",
+          "pilotId": "marek_sud",
+          "spawn": {
+            "x": 492,
+            "y": 444
+          },
+          "facingDegrees": 135
+        },
+        {
+          "designId": "cairn_battery",
+          "pilotId": "ilse_brant",
+          "spawn": {
+            "x": 492,
+            "y": 540
+          },
+          "facingDegrees": -45
+        }
+      ]
+    },
+    {
+      "team": 1,
+      "name": "Local Guard",
+      "units": [
+        {
+          "designId": "courser_patrol",
+          "pilotId": "leda_morcant",
+          "spawn": {
+            "x": 36,
+            "y": 36
+          },
+          "facingDegrees": 45
+        }
+      ]
+    }
+  ],
+  "zones": [
+    {
+      "id": "gantry_control",
+      "name": "Workshop Gantry Control",
+      "x": 492,
+      "y": 492,
+      "radius": 76,
+      "owner": 0,
+      "captureSeconds": 14,
+      "resourcePoints": 0
+    },
+    {
+      "id": "stores_cabinet",
+      "name": "Optional Stores Cabinet",
+      "x": 300,
+      "y": 684,
+      "radius": 48,
+      "owner": null,
+      "captureSeconds": 10,
+      "resourcePoints": 150
+    }
+  ],
+  "objectives": [
+    {
+      "id": "keep_gantries",
+      "label": "Keep gantry control secure for 150 seconds",
+      "type": "protect_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": [
+        "gantry_control"
+      ]
+    },
+    {
+      "id": "recover_workshop_stock",
+      "label": "Optional: secure the workshop stores cabinet",
+      "type": "capture_zones",
+      "team": 0,
+      "required": false,
+      "zoneIds": [
+        "stores_cabinet"
+      ],
+      "resourcePoints": 150
+    },
+    {
+      "id": "guard_survives",
+      "label": "Keep a workshop guard operational",
+      "type": "survive",
+      "team": 0,
+      "required": true
+    }
+  ],
+  "enemyDirectives": [
+    {
+      "id": "seize_workshop",
+      "team": 1,
+      "zoneId": "gantry_control",
+      "behavior": "retake",
+      "units": 6,
+      "pursuitRadius": 620
+    }
+  ],
+  "triggers": [
+    {
+      "id": "workshop_order",
+      "when": {
+        "type": "elapsed",
+        "seconds": 3
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Sarn foreman: gantry control is the job. Guard the crossings. A fast machine can reach the stores cabinet, but keep a guard at the workshop."
+        }
+      ]
+    },
+    {
+      "id": "north_east_section",
+      "when": {
+        "type": "elapsed",
+        "seconds": 30
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Sarn lookout: north-east gate opening. Two light machines on the road."
+        },
+        {
+          "type": "spawn",
+          "team": 1,
+          "units": [
+            {
+              "designId": "prybar_courier",
+              "pilotId": "suri_kell",
+              "spawn": {
+                "x": 876,
+                "y": 36
+              },
+              "facingDegrees": 135
+            },
+            {
+              "designId": "hornet_spotter",
+              "pilotId": "bram_nyen",
+              "spawn": {
+                "x": 924,
+                "y": 84
+              },
+              "facingDegrees": 135
+            }
+          ]
+        },
+        {
+          "type": "reveal",
+          "x": 900,
+          "y": 60,
+          "radius": 170,
+          "seconds": 18
+        }
+      ]
+    },
+    {
+      "id": "south_west_section",
+      "when": {
+        "type": "elapsed",
+        "seconds": 70
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Sarn lookout: south-west gate. A patrol vehicle and missile carrier are taking the workshop road."
+        },
+        {
+          "type": "spawn",
+          "team": 1,
+          "units": [
+            {
+              "designId": "courser_patrol",
+              "pilotId": "oksana_valev",
+              "spawn": {
+                "x": 36,
+                "y": 876
+              },
+              "facingDegrees": -45
+            },
+            {
+              "designId": "drover_carrier",
+              "pilotId": "anja_verrin",
+              "spawn": {
+                "x": 84,
+                "y": 924
+              },
+              "facingDegrees": -45
+            }
+          ]
+        },
+        {
+          "type": "reveal",
+          "x": 60,
+          "y": 900,
+          "radius": 170,
+          "seconds": 18
+        }
+      ]
+    },
+    {
+      "id": "south_east_section",
+      "when": {
+        "type": "elapsed",
+        "seconds": 110
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Sarn lookout: south-east gate. One battery machine; last scheduled arrival. Forty seconds to shelter the roots."
+        },
+        {
+          "type": "spawn",
+          "team": 1,
+          "units": [
+            {
+              "designId": "cairn_battery",
+              "pilotId": "corin_dast",
+              "spawn": {
+                "x": 876,
+                "y": 876
+              },
+              "facingDegrees": -135
+            }
+          ]
+        },
+        {
+          "type": "reveal",
+          "x": 876,
+          "y": 876,
+          "radius": 170,
+          "seconds": 18
+        }
+      ]
+    },
+    {
+      "id": "stores_secured",
+      "when": {
+        "type": "zone_captured",
+        "zoneId": "stores_cabinet",
+        "team": 0
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Sarn foreman: the cabinet is safe. Keep the gantries turning until every root is inside."
+        }
+      ]
+    }
+  ]
+}

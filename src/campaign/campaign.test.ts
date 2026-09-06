@@ -134,10 +134,9 @@ describe('mission resolution', () => {
     expect(outcome?.salvageFinalized).toBe(false);
     expect(state.cbills).toBeGreaterThan(before);
     expect(state.completedNodes).toContain('militia_raid');
-    expect(campaignNodes(catalog, state).map((node) => node.id).sort()).toEqual([
-      'pass_skirmish',
-      'supply_line',
-    ]);
+    expect(campaignNodes(catalog, state).map((node) => node.id)).toEqual(expect.arrayContaining([
+      'marker_survey', 'pass_skirmish', 'supply_line',
+    ]));
   });
 
   it('carries battle damage back onto the mech records', () => {

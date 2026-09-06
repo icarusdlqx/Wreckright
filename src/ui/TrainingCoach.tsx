@@ -31,8 +31,8 @@ export const TRAINING_LESSONS: Record<
   },
   2: {
     title: '3 · Engage',
-    instruction: 'Hollow ◇ contacts are sensor tracks: indirect missiles can use a live return; other mechs investigate to close in. Once a named optical contact appears, click it to engage.',
-    touch: 'Hollow ◇ contacts are sensor tracks: they guide indirect missiles; other mechs investigate. Tap a named optical contact to engage directly.',
+    instruction: 'Investigate the hollow ◇ sensor track. Move closer until a named optical contact appears, then click it to engage. Indirect missiles can also use a live sensor return.',
+    touch: 'Tap the hollow ◇ sensor track to investigate. Close in until it becomes a named contact, then tap to engage. Indirect missiles can use live sensor returns.',
   },
   3: {
     title: '4 · Read heat',
@@ -41,8 +41,8 @@ export const TRAINING_LESSONS: Record<
   },
   4: {
     title: 'Range drill',
-    instruction: 'Clear the remaining contacts. Pause whenever the situation gets ahead of you.',
-    touch: 'Clear the remaining contacts. Pause whenever the situation gets ahead of you.',
+    instruction: 'Clear the remaining contacts. Pause to plan. Tactics contains the order guide; field tips explain sensors, recovery and formations when you use them.',
+    touch: 'Clear the remaining contacts. Pause to plan. Open Tactics for the order guide; field tips explain extra commands when you use them.',
   },
 };
 

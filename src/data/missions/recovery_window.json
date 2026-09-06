@@ -1,0 +1,199 @@
+{
+  "id": "recovery_window",
+  "name": "Recovery \u2014 The Quiet Claim",
+  "type": "extraction",
+  "mapId": "ridge_pass",
+  "briefing": "The survey found a repair crew pinned beside its recovery cradle. Keep that ground under company seal for 120 seconds; the contract then closes under wreckright even if opposing walkers survive. The freight cradle permits 140 tonnes and three machines. Called shots to both legs can leave a recoverable hull: press Hold Fire when it is legged, because Attack keeps firing. A legged enemy can still shoot. The optional service cabinet funds field support. Hull recovery remains a chance, not a promise.",
+  "maxDurationSeconds": 120,
+  "startingResourcePoints": 350,
+  "dropTonnage": 140,
+  "maxPlayerUnits": 3,
+  "lances": [
+    {
+      "team": 0,
+      "name": "Company Detail",
+      "units": [
+        {
+          "designId": "hornet_spotter",
+          "pilotId": "kessa_vale",
+          "spawn": {
+            "x": 444,
+            "y": 612
+          },
+          "facingDegrees": -90
+        },
+        {
+          "designId": "cairn_battery",
+          "pilotId": "ilse_brant",
+          "spawn": {
+            "x": 492,
+            "y": 660
+          },
+          "facingDegrees": -90
+        },
+        {
+          "designId": "hornet_spotter",
+          "pilotId": "marek_sud",
+          "spawn": {
+            "x": 540,
+            "y": 612
+          },
+          "facingDegrees": -90
+        }
+      ]
+    },
+    {
+      "team": 1,
+      "name": "Local Guard",
+      "units": [
+        {
+          "designId": "hornet_spotter",
+          "pilotId": "corin_dast",
+          "spawn": {
+            "x": 492,
+            "y": 324
+          },
+          "facingDegrees": 90
+        },
+        {
+          "designId": "prybar_courier",
+          "pilotId": "leda_morcant",
+          "spawn": {
+            "x": 252,
+            "y": 444
+          },
+          "facingDegrees": 90
+        }
+      ]
+    }
+  ],
+  "zones": [
+    {
+      "id": "recovery_ground",
+      "name": "Recovery Cradle",
+      "x": 492,
+      "y": 612,
+      "radius": 78,
+      "owner": 0,
+      "captureSeconds": 14,
+      "resourcePoints": 0
+    },
+    {
+      "id": "service_cabinet",
+      "name": "Optional Service Cabinet",
+      "x": 252,
+      "y": 492,
+      "radius": 52,
+      "owner": null,
+      "captureSeconds": 8,
+      "resourcePoints": 200
+    }
+  ],
+  "objectives": [
+    {
+      "id": "keep_recovery_ground",
+      "label": "Keep the recovery cradle secure for 120 seconds",
+      "type": "protect_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": [
+        "recovery_ground"
+      ]
+    },
+    {
+      "id": "recover_service_stock",
+      "label": "Optional: secure the service cabinet",
+      "type": "capture_zones",
+      "team": 0,
+      "required": false,
+      "zoneIds": [
+        "service_cabinet"
+      ],
+      "resourcePoints": 150
+    },
+    {
+      "id": "detail_survives",
+      "label": "Keep a recovery machine operational",
+      "type": "survive",
+      "team": 0,
+      "required": true
+    }
+  ],
+  "enemyDirectives": [
+    {
+      "id": "cradle_claim",
+      "team": 1,
+      "zoneId": "recovery_ground",
+      "behavior": "retake",
+      "units": 1,
+      "pursuitRadius": 330
+    },
+    {
+      "id": "cabinet_watch",
+      "team": 1,
+      "zoneId": "service_cabinet",
+      "behavior": "defend",
+      "units": 1,
+      "pursuitRadius": 190
+    }
+  ],
+  "triggers": [
+    {
+      "id": "claim_terms",
+      "when": {
+        "type": "elapsed",
+        "seconds": 2
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Halloran recovery desk: 120 seconds under your seal wins the ground. You do not need to destroy the opposing walkers."
+        }
+      ]
+    },
+    {
+      "id": "preserve_hulls",
+      "when": {
+        "type": "elapsed",
+        "seconds": 24
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Recovery desk: LL, then RL. At two lost legs, Hold Fire. The guns may still work; keep cover and keep the cradle."
+        }
+      ]
+    },
+    {
+      "id": "service_taken",
+      "when": {
+        "type": "zone_captured",
+        "zoneId": "service_cabinet",
+        "team": 0
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Recovery desk: service cabinet secured. Its field allocation is now on your support account."
+        }
+      ]
+    },
+    {
+      "id": "claim_closing",
+      "when": {
+        "type": "elapsed",
+        "seconds": 100
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Recovery desk: twenty seconds to close the claim. Keep the cradle under your seal; do not turn a recoverable hull into scrap."
+        }
+      ]
+    }
+  ]
+}

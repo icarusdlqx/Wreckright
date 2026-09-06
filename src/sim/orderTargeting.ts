@@ -3,11 +3,11 @@ import { replacePath } from './pathProgress';
 import { findPath, nearestPassable } from './pathfind';
 import { currentSensorTrack, isSightedBy, trackFor, visionFor } from './sensors';
 import { findEntity, isOperational, type MechEntity, type Vec2, type World } from './types';
+import { atAttackRange, attackApproachRoute, intendedEngagementRange } from './attackApproach';
 import {
   hasUsableFiringSolution,
   hasUsableLineOfFire,
   longestUsableWeaponMaximumReach,
-  longestUsableWeaponReach,
 } from './weaponEngagement';
 
 /** Bounds an investigation to the authored uncertainty of one sensor report. */
@@ -79,36 +79,23 @@ export function autoAcquire(world: World, entity: MechEntity): MechEntity | null
   return best;
 }
 
-/** The longest reach of any working gun aboard, in metres. */
 /**
- * Walks an attack-ordered mech into the fight: toward its quarry until it is
- * inside most of its longest gun's reach with a line of sight, then stops to
- * shoot from there rather than marching on to point blank. Returns true while
- * the approach is still walking; false hands the feet back to whoever called.
+ * Attack supplies its own approach only while no explicit movement or rooted
+ * posture owns the feet. It closes for the working loadout, never retreats
+ * from ground the player already chose just because a longer band prices well.
  */
 export function approachToEngage(
   world: World,
   entity: MechEntity,
   quarry: MechEntity,
 ): boolean {
-  const reach = longestUsableWeaponReach(world, entity, 'intent', quarry.pos);
-  // Nothing to shoot with: charging a machine you cannot hurt is not an
-  // approach, it is a donation.
-  if (reach <= 0) return false;
-
-  const gap = distance(entity.pos, quarry.pos);
-  const solution = hasUsableLineOfFire(world, entity, quarry, 'intent');
-  if (gap <= reach * 0.85 && solution) return false;
+  const range = intendedEngagementRange(world, entity, quarry);
+  if (range === null || atAttackRange(world, entity, quarry, range)) return false;
 
   if (entity.path.length === 0 || world.tick >= entity.nextPathTick) {
-    const path = findPath(
-      world.terrain,
-      entity.pos,
-      quarry.pos,
-      world.rules.simulation.pathfindMaxNodes,
-    );
+    const plan = attackApproachRoute(world, entity, quarry, range);
     entity.nextPathTick = world.tick + world.rules.simulation.aiPathIntervalTicks;
-    replacePath(entity, path ?? []);
+    replacePath(entity, plan?.path ?? []);
   }
   if (entity.path.length === 0) return false;
 

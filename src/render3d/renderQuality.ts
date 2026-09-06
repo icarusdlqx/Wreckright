@@ -45,6 +45,21 @@ export function readLowFx(): boolean {
   try {
     return localStorage.getItem('ironline.lowfx') === '1';
   } catch {
-    return false;
+    return sessionLowFx;
   }
+}
+
+let sessionLowFx = false;
+const qualityListeners = new Set<() => void>();
+
+export function writeLowFx(low: boolean): void {
+  sessionLowFx = low;
+  try { localStorage.setItem('ironline.lowfx', low ? '1' : '0'); }
+  catch { /* Embedded games still keep the current visit's choice. */ }
+  for (const listener of qualityListeners) listener();
+}
+
+export function subscribeLowFx(listener: () => void): () => void {
+  qualityListeners.add(listener);
+  return () => { qualityListeners.delete(listener); };
 }
