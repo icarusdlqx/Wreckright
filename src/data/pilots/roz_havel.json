@@ -17,5 +17,32 @@
     "style": "curls",
     "face": "oval",
     "detail": "freckles"
+  },
+  "personality": {
+    "label": "Eager newcomer",
+    "description": "Repeats the checklist to steady her nerves. Takes advice seriously and celebrates small successes.",
+    "lines": {
+      "move": [
+        "Route checked. Feet moving. Got it.",
+        "Right. I practised this turn."
+      ],
+      "attack": [
+        "Target lined up. Here goes.",
+        "Guns ready. I can do this."
+      ],
+      "guard": [
+        "Holding this position. Watching both sides."
+      ],
+      "hold_fire": [
+        "Safety on. That is the right switch."
+      ],
+      "investigate": [
+        "Going to confirm it. I will call when I know."
+      ],
+      "heavy_fire": [
+        "A lot coming in! I need some help here.",
+        "Still in control. Could someone cover me while I prove it?"
+      ]
+    }
   }
 }

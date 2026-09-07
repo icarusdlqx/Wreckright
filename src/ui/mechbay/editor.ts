@@ -9,6 +9,13 @@ import { weaponFireProfile } from '../../sim/weaponModes';
 
 const STORAGE_PREFIX = 'ironline.design.';
 
+export class DesignStorageError extends Error {
+  constructor() {
+    super('Browser storage is full or unavailable. Your draft is still here; export the loadout to keep a copy.');
+    this.name = 'DesignStorageError';
+  }
+}
+
 function copy(design: Design): Design {
   return JSON.parse(JSON.stringify(design)) as Design;
 }
@@ -110,7 +117,8 @@ export function idFromName(name: string): string {
 export function setName(design: Design, name: string): Design {
   const next = copy(design);
   next.name = name;
-  next.id = idFromName(name);
+  const id = idFromName(name);
+  next.id = getCatalog().designs.has(id) ? `custom_${id}` : id;
   return next;
 }
 
@@ -200,6 +208,10 @@ export function parseDesign(text: string, catalog?: Catalog): ParseResult {
     };
   }
 
+  if (catalog !== undefined && !catalog.chassis.has(parsed.data.chassisId)) {
+    return { design: null, error: 'This file does not identify a supported chassis. Your current draft is unchanged.' };
+  }
+
   return {
     design: catalog === undefined ? parsed.data : currentStockDesign(catalog, parsed.data),
     error: null,
@@ -239,27 +251,45 @@ export function saveToStorage(catalog: Catalog, design: Design): { replaced: boo
   checkOrThrow(catalog, current);
 
   const key = `${STORAGE_PREFIX}${current.id}`;
-  const replaced = globalThis.localStorage?.getItem(key) != null;
-  globalThis.localStorage?.setItem(key, serialiseDesign(current));
-  return { replaced };
+  try {
+    const storage = globalThis.localStorage;
+    if (storage === undefined) throw new DesignStorageError();
+    const previous = storage.getItem(key);
+    const replaced = previous !== null;
+    if (previous !== null) {
+      const existing = parseDesign(previous, catalog).design;
+      if (existing !== null && existing.name !== current.name) {
+        throw new InvalidBuildError([`The name overlaps saved loadout "${existing.name}". Use a more distinct name to keep both builds.`]);
+      }
+    }
+    storage.setItem(key, serialiseDesign(current));
+    return { replaced };
+  } catch (error) {
+    if (error instanceof InvalidBuildError) throw error;
+    throw new DesignStorageError();
+  }
 }
 
 export function listStoredDesigns(): string[] {
-  const storage = globalThis.localStorage;
-  if (storage === undefined) return [];
+  try {
+    const storage = globalThis.localStorage;
+    if (storage === undefined) return [];
 
-  const ids: string[] = [];
-  for (let index = 0; index < storage.length; index += 1) {
-    const key = storage.key(index);
-    if (key !== null && key.startsWith(STORAGE_PREFIX)) ids.push(key.slice(STORAGE_PREFIX.length));
-  }
-  return ids.sort();
+    const ids: string[] = [];
+    for (let index = 0; index < storage.length; index += 1) {
+      const key = storage.key(index);
+      if (key !== null && key.startsWith(STORAGE_PREFIX)) ids.push(key.slice(STORAGE_PREFIX.length));
+    }
+    return ids.sort();
+  } catch { return []; }
 }
 
 export function loadFromStorage(id: string, catalog: Catalog = getCatalog()): ParseResult {
-  const text = globalThis.localStorage?.getItem(`${STORAGE_PREFIX}${id}`);
-  if (text === null || text === undefined) return { design: null, error: `no saved design "${id}"` };
-  return parseDesign(text, catalog);
+  try {
+    const text = globalThis.localStorage?.getItem(`${STORAGE_PREFIX}${id}`);
+    if (text === null || text === undefined) return { design: null, error: `no saved design "${id}"` };
+    return parseDesign(text, catalog);
+  } catch { return { design: null, error: 'Saved loadouts are unavailable in this browser. You can still import an exported loadout.' }; }
 }
 
 export function exportDesign(catalog: Catalog, design: Design): Blob {

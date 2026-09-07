@@ -16,5 +16,32 @@
     "style": "bob",
     "face": "angular",
     "detail": "earpiece"
+  },
+  "personality": {
+    "label": "Cocky negotiator",
+    "description": "Bargains with warning lights and winning odds. Cheerful until someone else is put at risk.",
+    "lines": {
+      "move": [
+        "We have an agreement: it walks, I stop complaining.",
+        "Another small negotiation with the gearbox."
+      ],
+      "attack": [
+        "I made an offer. They will hear it shortly.",
+        "Time to renegotiate their position."
+      ],
+      "guard": [
+        "This patch is ours. Terms are firm."
+      ],
+      "hold_fire": [
+        "Ceasefire accepted. Temporarily."
+      ],
+      "investigate": [
+        "Let us find out who is bargaining out there."
+      ],
+      "heavy_fire": [
+        "The armour is asking for better terms. Cover me.",
+        "I am losing this negotiation. A little assistance?"
+      ]
+    }
   }
 }

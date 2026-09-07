@@ -163,6 +163,7 @@ export function BayChrome({
                 data-testid="bay-import"
                 onChange={(event) => {
                   const file = event.target.files?.[0];
+                  event.target.value = '';
                   if (file !== undefined) onImport(file);
                 }}
               />
@@ -185,7 +186,7 @@ export function BayChrome({
           </>
         )}
 
-        <span className={`bay-status ${status?.tone ?? ''}`} data-testid="bay-status" role="status">
+        <span className={`bay-status${status === null ? '' : ` bay-status--${status.tone}`}`} data-testid="bay-status" role="status">
           {status?.text ?? (saveable ? 'Loadout is legal.' : 'Loadout is not legal.')}
         </span>
       </footer>

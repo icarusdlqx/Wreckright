@@ -4,9 +4,9 @@
   "presentation": {
     "faction": "aurelian",
     "title": "Aurelian Stock",
-    "premise": "A custody detachment with immaculate machines and orders to reclaim Tessell. The paperwork calls the locals obsolete. The battlefield may disagree.",
-    "strength": "Precision weapons, advanced systems and disciplined crews. Concentrate superior firepower where it matters.",
-    "tradeoff": "Costly recovery, tighter salvage rights and fewer ways to earn between warrants. Every damaged machine strains the detachment."
+    "premise": "An Aurelian detachment sent to reclaim inherited machines from Tessell. Your crews trust their superior technology. Each warrant brings them closer to the people their orders would dispossess.",
+    "strength": "Advanced energy weapons, precise fire and well-serviced machines. Capture and hold the evidence that moves the campaign forward.",
+    "tradeoff": "Heat and expensive repairs punish careless attacks. Local yards cannot sell replacement Aurelian weapons; optional tender recovery earns scarce supplies."
   },
   "startingCbills": 1600000,
   "startingDay": 0,
@@ -142,7 +142,7 @@
       "name": "Custody Posts",
       "missionId": "base_capture_ridge",
       "employerId": "continuance_tender",
-      "brief": "Cutbank's two custody posts carry contradictory root rolls written during the Foundry Winter. Take both intact and hold while the Authority resolves them against the Compact archive. The local garrison is fielding rebuilds; every sealed repair remains your own account.",
+      "brief": "Cutbank's two custody posts disagree with the old archive. Take both intact and hold them while the Authority copies their records. The local garrison has called in workshop rebuilds. Keep your machines together; the detachment pays for every repair.",
       "requires": [
         "first_warrant"
       ],
@@ -159,7 +159,7 @@
       "name": "Sarn Inventory",
       "missionId": "switchyard_watch",
       "employerId": "continuance_tender",
-      "brief": "Sarn Foundry has opened three gates against the attestation node and called every serviceable rebuild in the district. Keep the registry under Tender control until its root list is sealed. Salvage has no standing in the warrant; custody and a solvent company do.",
+      "brief": "Sarn has called its district's working mechs to defend the root registry. Hold the registry under Tender control until the inventory is copied. Your orders value the record above salvage. Preserve enough of the detachment to carry it onward.",
       "requires": [
         "cutbank_attestation"
       ],
@@ -176,7 +176,7 @@
       "name": "Root Exchange",
       "missionId": "authority_root_exchange",
       "employerId": "continuance_tender",
-      "brief": "The Sarn inventory exposed a relay chain trading service-reader records between foundries. Key the four readers and hold them while the Authority follows each borrowed serial back to its root. Destroying the patrol proves nothing; the copied route is the warrant.",
+      "brief": "Sarn's records reveal foundries sharing service-reader identities. Key all four readers and hold them while the Authority follows the copied serials. Destroying the patrol alone will not complete the warrant. Each record may stand for several different surviving machines.",
       "requires": [
         "sarn_inventory"
       ],
@@ -193,7 +193,7 @@
       "name": "Quarry Receipt",
       "missionId": "authority_quarry_receipt",
       "employerId": "continuance_tender",
-      "brief": "Blackglass Quarry is cutting counterfeit serial plates from condemned castings and matching them to the exchanged records. Seize the weigh ledger, lift manifest and serial punch, then preserve them for civil proof. The Tender cannot attest fragments.",
+      "brief": "Blackglass cut matching serial plates for the borrowed records. Capture the weigh ledger, lift manifest and serial punch; preserve all three long enough to copy the evidence. Your crews expected a counterfeit operation. The receipts also name the workshops that depended on it.",
       "requires": [
         "root_exchange"
       ],
@@ -210,7 +210,7 @@
       "name": "Conduit Injunction",
       "missionId": "authority_conduit_injunction",
       "employerId": "continuance_tender",
-      "brief": "The quarry receipts lead to a live rebuild conduit under a disputed service injunction. Hold its breaker while the custody clerks attest the line and sever the false roots from the foundry grid. Repairs after contact remain charged to the company.",
+      "brief": "The receipts lead to a live power conduit serving the disputed repair yards. Take both isolators and hold them while the clerks check which machines the records cover. The line must go cold without destroying its machines. Whether those working roots should leave Tessell remains undecided.",
       "requires": [
         "quarry_receipt"
       ],
@@ -227,7 +227,7 @@
       "name": "Barrow Warrant",
       "missionId": "authority_barrow_warrant",
       "employerId": "continuance_tender",
-      "brief": "Barrow Yard holds the master warrant, the counterfeit ledger and the local compact that kept the rebuild line alive. Secure the archive intact while the final attestation is made. What the Tender does with that proof will decide the Recall here.",
+      "brief": "Barrow Yard holds the master warrant beside a century of witnessed local repairs. Secure the archive intact and hold for the final attestation. It can support either export or local stewardship. Your next contract will decide which responsibility the detachment accepts.",
       "requires": [
         "conduit_injunction"
       ],
@@ -244,7 +244,7 @@
       "name": "Export Under Seal",
       "missionId": "authority_continuance_export",
       "employerId": "continuance_tender",
-      "brief": "The Barrow archive supports the Continuance reading: every copied root remains Compact property under an unclosed custody chain. Take the disposition stand and hold it while the Tender seals the register for export. The reader will attest each machine, but the company must clear the nullity guard without destroying the proof it came to carry home.",
+      "brief": "Final operation: export. Take the disposition stand and hold it while the Tender closes the register. Clear the guard without destroying the records. The inherited roots will reinforce failing Continuance machines; Tessell's workshops will lose the same working stock. This ends the campaign.",
       "requires": [
         "barrow_warrant"
       ],
@@ -268,7 +268,7 @@
       "name": "Countersign Stewardship",
       "missionId": "authority_local_stewardship",
       "employerId": "continuance_tender",
-      "brief": "Barrow's compact also supports a lawful local reading: a century of recorded service can be countersigned as stewardship rather than counterfeit possession. Take the disposition stand and hold it while the Tender records that countersignature. The reader can prove continuity, not ownership; clear the guard and leave the working roots under local custody.",
+      "brief": "Final operation: local stewardship. Take the disposition stand and hold it while the Tender countersigns the workshops' service history. Clear the guard and preserve the records. The roots stay on Tessell under a recorded duty of care. This ends the campaign.",
       "requires": [
         "barrow_warrant"
       ],

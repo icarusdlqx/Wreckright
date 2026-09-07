@@ -16,5 +16,32 @@
     "style": "crop",
     "face": "broad",
     "detail": "none"
+  },
+  "personality": {
+    "label": "Steady hauler",
+    "description": "Measures success by who comes home. Patient, practical and protective of a tired crew.",
+    "lines": {
+      "move": [
+        "Easy on the grade. We will get there.",
+        "Keeping it steady. Watch the ground."
+      ],
+      "attack": [
+        "Clearing the road for the others.",
+        "Taking the obstruction down."
+      ],
+      "guard": [
+        "I will keep the gate open for our people."
+      ],
+      "hold_fire": [
+        "No rush. Save the load."
+      ],
+      "investigate": [
+        "I will look ahead. Keep the convoy together."
+      ],
+      "heavy_fire": [
+        "Taking too much here. Need a safer lane.",
+        "Plate is wearing thin. Can someone take the lead?"
+      ]
+    }
   }
 }

@@ -1,11 +1,5 @@
 import { readoutFrameSeconds } from './damageReadoutPolicy';
-import {
-  Mesh,
-  Object3D,
-  Scene,
-  Vector3,
-  WebGLRenderer,
-} from 'three';
+import { Mesh, Object3D, Scene, Vector3, WebGLRenderer } from 'three';
 import type { Atmosphere } from '../schema/atmosphere';
 import type { TerrainMapData } from '../schema/map';
 import type { SimEvent } from '../sim/events';
@@ -32,6 +26,7 @@ import {
 } from './sceneResources';
 import { buildTerrain, type TerrainMesh } from './terrain';
 import { UnitViews } from './unitViews';
+import { UnitHealthBars } from './unitHealthBars';
 import { SupportEffects } from './supportEffects';
 import { TerrainFireLayer, type TerrainFireStats } from './terrainFire';
 import { canPresentEntity } from './visibilityPresentation';
@@ -57,6 +52,7 @@ export class Renderer {
   private readonly terrainFire: TerrainFireLayer;
   private readonly fog: FogLayer;
   private readonly units: UnitViews;
+  private readonly healthBars: UnitHealthBars;
   private readonly effects: BattleEffects;
   private readonly supportEffects: SupportEffects;
   private readonly locomotion: Locomotion;
@@ -121,6 +117,7 @@ export class Renderer {
     this.fog.setLowFx(this.lowFx);
     this.scene.add(this.fog.mesh);
     this.units = new UnitViews(this.scene, this.terrain.heightAt, this.camera.reducedMotion);
+    this.healthBars = new UnitHealthBars(host);
     this.effects = new BattleEffects(
       this.scene,
       surroundColour(rig),
@@ -259,6 +256,7 @@ export class Renderer {
     this.supportEffects.dispose();
     this.terrainFire.dispose();
     this.units.dispose();
+    this.healthBars.destroy();
     this.markers.dispose();
     this.scene.remove(
       this.markers.group, this.supportEffects.group, this.terrainFire.group,
@@ -351,6 +349,8 @@ export class Renderer {
 
     this.camera.advance(deltaSeconds);
     this.camera.update(this.viewport);
+    this.healthBars.draw(world, view.selection, view.hovered,
+      (entity) => this.screenBodyOf(entity), this.viewport.width, this.viewport.height);
     this.terrain.setTime((world.tick + alpha) * world.dt);
     this.renderer.render(this.scene, this.camera.camera);
     this.effects.advance(presentationDelta);

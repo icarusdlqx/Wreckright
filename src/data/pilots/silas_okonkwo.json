@@ -17,5 +17,32 @@
     "style": "crop",
     "face": "broad",
     "detail": "beard"
+  },
+  "personality": {
+    "label": "Polished sceptic",
+    "description": "Impeccable manners and a costly education. Respects competence more than pedigree.",
+    "lines": {
+      "move": [
+        "An agreeable route. Proceeding.",
+        "Repositioning. No ceremony required."
+      ],
+      "attack": [
+        "A practical solution to an impolite problem.",
+        "With your permission already established: firing."
+      ],
+      "guard": [
+        "This position is accounted for."
+      ],
+      "hold_fire": [
+        "A sensible economy. Weapons safe."
+      ],
+      "investigate": [
+        "Evidence first. I shall take a look."
+      ],
+      "heavy_fire": [
+        "Our opponents are being persistent. Some cover, please.",
+        "Sustained fire. I would prefer a less charitable exchange."
+      ]
+    }
   }
 }

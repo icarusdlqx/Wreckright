@@ -3,7 +3,7 @@ import { mechIntegrity } from '../../campaign/integrity';
 import { isMechAvailable, isPilotAvailable, type CampaignState, type MechRecord, type PilotRecord } from '../../campaign/types';
 import { PilotStats } from '../PilotStats';
 import { PilotPortrait } from '../PilotPortrait';
-import { PilotAssessment } from '../PilotProfile';
+import { PilotAssessment, PilotPersonalityNote } from '../PilotProfile';
 import { authoredDesignName } from '../designLabel';
 import { companyMachineLabel, occupiedSeatLabel } from './companyLabels';
 import { MachineIdentity } from './MachineIdentity';
@@ -70,6 +70,7 @@ export function LanceCard({ catalog, state, pilot, mech, aboard, position, refus
     </div>
     <details className="lance-pilot-detail"><summary>Pilot skills &amp; biography</summary>
       <p className="pilot-bio">{pilot.bio || catalog.pilots.get(pilot.templateId)?.bio}</p>
+      <PilotPersonalityNote pilot={pilot} />
       <PilotAssessment pilot={pilot} /><PilotStats catalog={catalog} pilot={pilot} />
     </details>
   </li>;

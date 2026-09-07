@@ -7,6 +7,8 @@
 .pilot-person h4, .pilot-person p { margin: 0 0 6px; }
 .pilot-person .pilot-name { font-size: 15px; white-space: normal; }
 .pilot-bio { color: var(--muted); font-size: 12px; line-height: 1.55; }
+.pilot-personality { display: grid; gap: 3px; padding: 6px 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.pilot-personality strong { color: var(--text); font-size: 11px; }
 .pilot-assessment { display: grid; gap: 4px; margin: 8px 0; font-size: 11px; line-height: 1.4; }
 .pilot-assessment p { margin: 0; color: var(--muted); }
 .pilot-assessment strong { color: var(--text); font-weight: 600; }

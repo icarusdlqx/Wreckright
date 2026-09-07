@@ -2,6 +2,8 @@ import type { Faction } from '../schema/faction';
 import type { SimEvent } from '../sim/events';
 import { findEntity, isOperational, type MechEntity, type World } from '../sim/types';
 import { FIELD_RADIO, type OrderCall } from '../schema/fieldRadio';
+import type { PilotCall } from '../schema/pilotPersonality';
+import { pilotPersonality } from './pilotPersonality';
 
 export interface RadioMessage {
   id: number;
@@ -16,7 +18,9 @@ let message: RadioMessage | null = null;
 let serial = 0;
 let lastRoutineTick = -Infinity;
 let lastUrgentTick = -Infinity;
-let routineIndex = 0;
+const lineIndices = new Map<string, number>();
+const incomingHits = new Map<number, { tick: number; damage: number }[]>();
+const lastPressureTick = new Map<number, number>();
 const heard = new Set<string>();
 const listeners = new Set<() => void>();
 
@@ -31,11 +35,11 @@ export function dismissRadio(id: number): void {
 }
 export function beginFieldRadio(world: World): void {
   activeWorld = world; message = null; lastRoutineTick = -Infinity;
-  lastUrgentTick = -Infinity; routineIndex = 0; heard.clear(); emit();
+  lastUrgentTick = -Infinity; lineIndices.clear(); incomingHits.clear(); lastPressureTick.clear(); heard.clear(); emit();
 }
 export function endFieldRadio(world: World): void {
   if (activeWorld !== world) return;
-  activeWorld = null; message = null; heard.clear(); emit();
+  activeWorld = null; message = null; incomingHits.clear(); lastPressureTick.clear(); heard.clear(); emit();
 }
 function say(world: World, pilot: RadioMessage['pilot'], text: string, priority: RadioMessage['priority']): boolean {
   if (world !== activeWorld) return false;
@@ -57,13 +61,46 @@ function say(world: World, pilot: RadioMessage['pilot'], text: string, priority:
 export function pilotOrder(world: World, pilot: MechEntity | null, order: OrderCall): Faction | undefined {
   if (pilot === null || pilot.team !== world.playerTeam || !isOperational(pilot)) return;
   const faction = world.catalog.chassis.get(pilot.chassisId)?.faction ?? 'linewrought';
-  const lines = FIELD_RADIO.lines[faction][order];
-  if (!say(world, pilot.pilot, lines[routineIndex % lines.length]!, 'routine')) return;
-  routineIndex += 1; return faction;
+  if (!pilotCall(world, pilot, order, FIELD_RADIO.lines[faction][order])) return;
+  if (order === 'attack') heard.add(`engaged:${pilot.id}`);
+  return faction;
+}
+
+function pilotCall(world: World, entity: MechEntity, call: PilotCall, fallback: readonly string[]): boolean {
+  const lines = pilotPersonality(world.catalog, entity.pilot)?.lines[call] ?? fallback;
+  const key = `${entity.pilot.id}:${call}`;
+  const index = lineIndices.get(key) ?? 0;
+  if (!say(world, entity.pilot, lines[index % lines.length]!, 'routine')) return false;
+  lineIndices.set(key, index + 1);
+  return true;
+}
+
+function observeCombat(world: World, events: readonly SimEvent[]): void {
+  const rules = FIELD_RADIO.pressure;
+  for (const event of events) {
+    if (event.type !== 'projectile_hit' || event.damage <= 0) continue;
+    const target = findEntity(world, event.targetId);
+    if (target?.team !== world.playerTeam || !isOperational(target)) continue;
+    const hits = (incomingHits.get(target.id) ?? []).filter((hit) => (world.tick - hit.tick) * world.dt <= rules.windowSeconds);
+    hits.push({ tick: event.tick, damage: event.damage });
+    incomingHits.set(target.id, hits);
+    if (hits.length < rules.minimumHits || hits.reduce((sum, hit) => sum + hit.damage, 0) < rules.minimumDamage) continue;
+    if ((world.tick - (lastPressureTick.get(target.id) ?? -Infinity)) * world.dt < rules.cooldownSeconds) continue;
+    // Pressure is colour, so it never interrupts a mission report or an emergency.
+    if (pilotCall(world, target, 'heavy_fire', [FIELD_RADIO.alerts.heavy_fire])) lastPressureTick.set(target.id, world.tick);
+  }
+  for (const event of events) {
+    if (event.type !== 'weapon_fired') continue;
+    const key = `engaged:${event.shooterId}`;
+    if (heard.has(key)) continue;
+    const shooter = findEntity(world, event.shooterId);
+    if (pilotOrder(world, shooter, 'attack') !== undefined) heard.add(key);
+  }
 }
 
 /** Reports use only friendly state and public mission messages, never hidden enemy casualties. */
 export function observeFieldRadio(world: World, events: readonly SimEvent[]): void {
+  if (world !== activeWorld) return;
   const friendly = (id: number): MechEntity | null => {
     const entity = findEntity(world, id);
     return entity?.team === world.playerTeam ? entity : null;
@@ -93,4 +130,5 @@ export function observeFieldRadio(world: World, events: readonly SimEvent[]): vo
     if (event.type === 'location_destroyed' && event.location.endsWith('_arm')) text = FIELD_RADIO.alerts.arm_lost;
     if (text !== null && say(world, entity.pilot, text, 'urgent')) heard.add(key);
   }
+  observeCombat(world, events);
 }

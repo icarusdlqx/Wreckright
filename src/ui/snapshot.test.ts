@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { playerWorld, spawnDesign } from '../../tests/support';
+import { createMech } from '../sim/entity';
 import type { ContactTrack } from '../sim/sensors';
+import { findAmmoBin } from '../sim/types';
 import { snapshotUnit, snapshotUnits } from './snapshot';
 
 function hideAll(world: ReturnType<typeof playerWorld>): void {
@@ -11,6 +13,79 @@ function hideAll(world: ReturnType<typeof playerWorld>): void {
   vision.detected.clear();
   vision.tracks.clear();
 }
+
+function enduranceCairn() {
+  const world = playerWorld('refitted-cairn-ammunition');
+  const design = structuredClone(world.catalog.designs.get('cairn_battery'));
+  if (design === undefined) throw new Error('missing Cairn design');
+  design.mounts = design.mounts.filter((mount) =>
+    mount.weaponId !== 'streak_srm6' || mount.location !== 'right_torso');
+  const longshot10 = design.ammo.find((bin) => bin.weaponId === 'lrm10');
+  if (longshot10 === undefined) throw new Error('missing Longshot 10 bin');
+  longshot10.tons = 5;
+  design.ammo.push({ weaponId: 'lrm20', location: 'right_torso', tons: 2 });
+  const unit = createMech(world.catalog, world.rules, {
+    id: 999, team: 0, designId: design.id, design,
+    pilotId: 'kessa_vale', spawn: { x: 480, y: 480 }, facingDegrees: 0,
+  });
+  world.entities.push(unit);
+  return { world, unit };
+}
+
+describe('shared ammunition snapshots', () => {
+  it('shows the full saved multi-bin Cairn loadout without combining different ammunition types', () => {
+    const { world, unit } = enduranceCairn();
+    const before = structuredClone(unit.ammoBins);
+    expect(unit.ammoBins.filter((bin) => bin.weaponId === 'lrm20').map((bin) => bin.rounds))
+      .toEqual([12, 6, 12]);
+    expect(snapshotUnit(world, unit).weapons.map(({ name, rounds }) => ({ name, rounds })))
+      .toEqual([
+        { name: 'Longshot 20', rounds: 30 },
+        { name: 'Longshot 10', rounds: 60 },
+        { name: 'Seeker 6', rounds: 30 },
+      ]);
+    expect(unit.ammoBins).toEqual(before);
+  });
+
+  it('still reports later usable bins after the first bin empties', () => {
+    const { world, unit } = enduranceCairn();
+    const bins = unit.ammoBins.filter((bin) => bin.weaponId === 'lrm20');
+    if (bins[0] === undefined || bins[1] === undefined) throw new Error('missing split bins');
+    bins[0].rounds = 0;
+    expect(findAmmoBin(unit, 'lrm20')).toBe(bins[1]);
+    expect(snapshotUnit(world, unit).weapons.find((weapon) => weapon.name === 'Longshot 20')?.rounds)
+      .toBe(18);
+    for (const bin of bins) bin.rounds = 0;
+    expect(findAmmoBin(unit, 'lrm20')).toBeNull();
+    expect(snapshotUnit(world, unit).weapons.find((weapon) => weapon.name === 'Longshot 20')?.rounds)
+      .toBe(0);
+  });
+
+  it('excludes destroyed bins even when their stored round count is positive', () => {
+    const { world, unit } = enduranceCairn();
+    const bins = unit.ammoBins.filter((bin) => bin.weaponId === 'lrm20');
+    if (bins[0] === undefined || bins[1] === undefined) throw new Error('missing split bins');
+    bins[0].destroyed = true;
+    bins[1].destroyed = true;
+    expect(bins[0].rounds + bins[1].rounds).toBe(18);
+    expect(snapshotUnit(world, unit).weapons.find((weapon) => weapon.name === 'Longshot 20')?.rounds)
+      .toBe(12);
+  });
+
+  it('shows the same shared reserve for twin weapons and no ammunition count for energy weapons', () => {
+    const world = playerWorld('shared-and-energy-ammunition');
+    const cairn = spawnDesign(world, 'cairn_battery', 0);
+    expect(snapshotUnit(world, cairn).weapons.filter((weapon) => weapon.name === 'Seeker 6')
+      .map((weapon) => weapon.rounds)).toEqual([30, 30]);
+    const sentinel = spawnDesign(world, 'sentinel_brawler', 0);
+    const energy = snapshotUnit(world, sentinel).weapons.filter((weapon) => {
+      const mount = sentinel.weapons[weapon.index];
+      return mount !== undefined && world.catalog.weapons.get(mount.weaponId)?.ammoPerTon === null;
+    });
+    expect(energy.length).toBeGreaterThan(0);
+    expect(energy.every((weapon) => weapon.rounds === null)).toBe(true);
+  });
+});
 
 describe('privacy-safe battle snapshots', () => {
   it('resolves a legacy entity name into the complete current battle identity', () => {

@@ -16,5 +16,32 @@
     "style": "braid",
     "face": "broad",
     "detail": "scar"
+  },
+  "personality": {
+    "label": "Cool head",
+    "description": "Keeps promises in a paper ledger. Calm under pressure; impatient with grand speeches.",
+    "lines": {
+      "move": [
+        "Steady pace. We all reach the next mark.",
+        "Another road in the ledger. Moving."
+      ],
+      "attack": [
+        "One problem at a time. Taking this one.",
+        "I promised we would get through. Guns on target."
+      ],
+      "guard": [
+        "I have this stretch. Keep your promise on the other side."
+      ],
+      "hold_fire": [
+        "Hold fire. A live promise is worth more than a dead target."
+      ],
+      "investigate": [
+        "A blank in the ledger. Let us see what belongs there."
+      ],
+      "heavy_fire": [
+        "Taking sustained fire. A little cover, please.",
+        "They are testing my patience and my plate. Repositioning would help."
+      ]
+    }
   }
 }

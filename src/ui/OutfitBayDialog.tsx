@@ -50,6 +50,7 @@ export function createBattleOutfitBay(
   berthIndex: number | null,
   setLance: (lance: SkirmishBerth[]) => void,
   onClose: () => void,
+  side: 'player' | 'enemy' = 'player',
 ): BayCommission | null {
   if (berthIndex === null) return null;
   const berth = lance[berthIndex];
@@ -57,7 +58,7 @@ export function createBattleOutfitBay(
   const design = berthDesign(catalog, berth) ?? catalog.designs.get('sentinel_brawler');
   if (design === undefined) return null;
   return {
-    title: `Berth ${berthIndex + 1}`,
+    title: `${side === 'enemy' ? 'Enemy berth' : 'Berth'} ${berthIndex + 1}`,
     cancelLabel: 'Back to briefing',
     design,
     onCancel: onClose,
@@ -65,6 +66,7 @@ export function createBattleOutfitBay(
       const next = lance.map((entry) => ({ ...entry }));
       const target = next[berthIndex];
       if (target === undefined) return { ok: false, reason: 'no such berth' };
+      delete target.empty;
       target.designId = null;
       target.design = committedDesign;
       setLance(next);

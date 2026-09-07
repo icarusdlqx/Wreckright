@@ -104,7 +104,10 @@ export function Mechbay({
     catalog,
     design,
     commission,
-    onReplace: replace,
+    onReplace: (next, status) => draftExit.requestAction(() => {
+      replace(next);
+      if (status !== undefined) setStatus(status);
+    }),
     onStatus: setStatus,
   });
 
@@ -238,7 +241,7 @@ export function Mechbay({
         onUndo={() => navigateHistory('undo')}
         onRedo={() => navigateHistory('redo')}
         onNameChange={(name) => previewDraft('name', setName(design, name))}
-        onDesignPick={replace}
+        onDesignPick={(next) => draftExit.requestAction(() => replace(next))}
         onReset={() => {
           const factory = [...catalog.designs.values()].find(
             (entry) => entry.chassisId === design.chassisId,
@@ -363,7 +366,7 @@ export function Mechbay({
         />
       </BayWorkspacePanel>
       </div>
-      {draftExit.confirming ? <DraftExitDialog saveable={saveable} onSave={draftExit.saveAndExit}
+      {draftExit.confirming ? <DraftExitDialog saveable={saveable} switching={draftExit.switching} onSave={draftExit.saveAndExit}
         onDiscard={draftExit.discard} onKeep={draftExit.keepEditing} /> : null}
       {replacement.request !== null && replacement.preview !== null ? (
         <WeaponReplacementDialog catalog={catalog} request={replacement.request} preview={replacement.preview}

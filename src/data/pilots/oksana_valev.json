@@ -17,5 +17,32 @@
     "style": "braid",
     "face": "oval",
     "detail": "scar"
+  },
+  "personality": {
+    "label": "Guarded survivor",
+    "description": "Keeps her past private and her people close. Brief on the radio; never casual about a lost contact.",
+    "lines": {
+      "move": [
+        "Moving. Stay in sight.",
+        "I have the route. Do not fall behind."
+      ],
+      "attack": [
+        "Target in front. Nobody wanders off.",
+        "Engaging. Keep a way back."
+      ],
+      "guard": [
+        "I am here. You can fall back on me."
+      ],
+      "hold_fire": [
+        "Hold fire. Count our people."
+      ],
+      "investigate": [
+        "I will look. Keep my channel open."
+      ],
+      "heavy_fire": [
+        "Heavy fire. I need someone with me.",
+        "Still answering. Make sure I keep doing that."
+      ]
+    }
   }
 }

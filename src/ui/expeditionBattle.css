@@ -118,7 +118,7 @@
 .app .training-progress { font-size: 11px; }
 .app .tactics-menu[open] > summary { background: #35554e; color: var(--warn); }
 
-@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+@media (max-width: 900px), (pointer: coarse) and (max-width: 1100px) {
   .app .mobile-topbar { background: #112c39; }
   .app .mobile-topbar .pause,
   .app .mobile-battle-menu > summary,

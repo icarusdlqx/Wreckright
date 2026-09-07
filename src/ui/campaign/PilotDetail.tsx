@@ -46,12 +46,16 @@ function TraitReadout({ traitId }: { traitId: string }) {
 
 function SpecialityProgress({ pilot, mutate }: { pilot: PilotRecord; mutate: Props['mutate'] }) {
   if (pilot.dead) return <p className="pilot-milestone">Record closed.</p>;
+  const offered = offeredTraits(catalog, pilot);
+  if (offered.length === 0) {
+    return <p className="pilot-milestone">No further specialities available.</p>;
+  }
   const pending = pendingTraitPicks(catalog, pilot);
   if (pending > 0) {
     return (
       <div className="pilot-picks" data-testid={`camp-pick-${pilot.id}`}>
         <p>Speciality earned. Choose one:</p>
-        {offeredTraits(catalog, pilot).map((traitId) => {
+        {offered.map((traitId) => {
           const trait = catalog.rules.pilotTraits.entries[traitId];
           if (trait === undefined) return null;
           return (

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { catalog } from '../../../tests/support';
 import { startCampaign } from '../../campaign/campaign';
+import { buyMech, marketListings } from '../../campaign/market';
 import { assignWithReceipt, companyMachineLabel, occupiedSeatLabel } from './companyLabels';
 
 describe('company machine identity and seats', () => {
@@ -10,6 +11,22 @@ describe('company machine identity and seats', () => {
     expect(new Set(labels).size).toBe(state.mechs.length);
     state.mechs.reverse();
     expect(state.mechs.map((mech) => companyMachineLabel(catalog, mech))).toEqual(labels.reverse());
+  });
+  it('labels a purchased machine without exposing its generated ID or changing that save identity', () => {
+    const state = startCampaign(catalog, 'aurelian_recall', 'purchased-label');
+    const listing = marketListings(catalog, state)[0];
+    expect(listing).toBeDefined();
+    state.cbills = listing!.price;
+    const serial = state.nextId;
+    const beforeCount = state.mechs.length;
+    expect(buyMech(catalog, state, listing!.id).ok).toBe(true);
+    expect(state.cbills).toBe(0);
+    const purchased = state.mechs.at(-1)!;
+    expect(state.mechs).toHaveLength(beforeCount + 1);
+    expect(purchased.id).toBe(`mech_${serial}`);
+    expect(companyMachineLabel(catalog, purchased)).toMatch(new RegExp(` · Bay ${serial}$`));
+    expect(companyMachineLabel(catalog, purchased)).not.toContain('mech_');
+    expect(purchased.id).toBe(`mech_${serial}`);
   });
   it('shows the occupant and states exactly who becomes unassigned', () => {
     const state = startCampaign(catalog, 'border_dispute', 'seats');

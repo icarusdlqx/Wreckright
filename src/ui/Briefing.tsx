@@ -30,6 +30,7 @@ interface BriefingProps {
   objectives: readonly ObjectiveView[];
   resourcePoints: number;
   setup?: ReactNode;
+  opposition?: ReactNode;
   /** Contracts prepare their lance elsewhere, so no editor is passed here. */
   lance?: BriefingLance;
   deployDisabled?: boolean;
@@ -44,6 +45,7 @@ export function Briefing({
   objectives,
   resourcePoints,
   setup,
+  opposition,
   lance,
   deployDisabled = false,
   deployReason = null,
@@ -56,7 +58,7 @@ export function Briefing({
     ? 'The lance is over the drop tonnage — lighten it first.'
     : deployReason ?? undefined;
   const taken = (pilotId: string): number =>
-    lance === undefined ? 0 : lance.berths.filter((berth) => berth.pilotId === pilotId).length;
+    lance === undefined ? 0 : lance.berths.filter((berth) => berth.designValue !== 'empty' && berth.pilotId === pilotId).length;
 
   return (
     <div className="briefing" data-testid="briefing">
@@ -143,13 +145,16 @@ export function Briefing({
               >
                 Refit loadout
               </button>
-              {berth.pilot === null ? null : (
+              {berth.pilot === null || berth.designValue === 'empty' ? null : (
                 <PilotStats catalog={getCatalog()} pilot={berth.pilot} compact />
               )}
             </div>
           ))}
         </div>
       )}
+
+      {training === undefined ? opposition : null}
+      {blocked && reason !== undefined ? <p className="setup-invalid briefing-blocked" role="status" data-testid="briefing-blocked-reason">{reason}</p> : null}
 
       <footer
         className={`briefing-actions${training === undefined ? '' : ' training-actions'}`}

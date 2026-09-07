@@ -1,0 +1,82 @@
+{
+  "campaignId": "aurelian_recall",
+  "title": "A Clean Account",
+  "summary": "Lead an Aurelian custody detachment through a disputed repossession. Secure records and service routes with superior weapons, then decide what duty requires when the people behind the inventory become impossible to ignore.",
+  "opening": {
+    "title": "An orderly return",
+    "body": [
+      "Your detachment disembarks with four serviced walkers and a warrant. The Aurelian Continuance needs inherited roots to keep its own failing civil-defence machines alive. The Recall Authority says Tessell is holding those roots without title. Your first duty is to clear a supply ridge so the custody convoy can advance.",
+      "You command Aurelian Stock: precise energy weapons, bright armour and crews accustomed to being the best-equipped unit on the field. Your contract pays for completed work, not replacement emitters. The Tender has finite supplies, and local yards cannot sell every component you need. Discipline means protecting the company as carefully as the evidence."
+    ]
+  },
+  "chapters": [
+    {
+      "afterNodeId": "first_warrant",
+      "title": "Beyond the landing manifest",
+      "body": [
+        "The ridge is open. The locals fought in workshop rebuilds the briefing described as unreliable, and your crews have had their first chance to revise that assessment. Cutbank's custody posts are the next main warrant. A separate survey can locate a stranded service tender and earn equipment your local account cannot simply order.",
+        "The survey and supply transfer are optional. The main custody route stays open, but an intact company will carry the warrant further than an immaculate one waiting for parts."
+      ]
+    },
+    {
+      "afterNodeId": "custody_resupply",
+      "title": "The parts that arrived",
+      "body": [
+        "The tender's loading stand survives and the transfer is complete. Its emitters were existing stock, allocated because your detachment reached them. No factory has started making roots again. Your quartermaster's advice is blunt: use the advanced equipment where it earns its place, and keep a compatible local gun when it gets a machine back into service."
+      ]
+    },
+    {
+      "afterNodeId": "cutbank_attestation",
+      "title": "Two books, one district",
+      "body": [
+        "Both Cutbank posts are under guard. Their root lists contradict the Compact archive, but the disputed entries include repair dates and names of people who can still be found at work. The Authority requests Sarn's registry next. Its instructions call the differences false claims; your company has yet to learn how they were made."
+      ]
+    },
+    {
+      "afterNodeId": "sarn_inventory",
+      "title": "The cost of an inventory",
+      "body": [
+        "Sarn's registry remains under Tender control. The foundry threw serviceable machines against your position because the list determines which of them may be taken away. The copied records reveal a route between service readers. Follow it to establish which serials belong to which surviving roots; destroying a patrol will not answer that question."
+      ]
+    },
+    {
+      "afterNodeId": "root_exchange",
+      "title": "Borrowed numbers",
+      "body": [
+        "The relay chain shows workshops sharing the least-disputed serials to keep different surviving roots in service. They copied records, not machines. The Authority sees fraud; the yards describe the paperwork that kept pumps, haulers and walkers working after the Foundry Winter. Blackglass Quarry holds the plates and receipts that can establish how far the practice went."
+      ]
+    },
+    {
+      "afterNodeId": "quarry_receipt",
+      "title": "The people in the account",
+      "body": [
+        "Blackglass's ledger, lift manifest and serial punch survive. The record traces copied numbers back to working repair yards rather than a hidden walker factory. The next warrant covers their live power conduit. Your company is still required to secure it. It now knows what will stop working if the eventual export order is carried through."
+      ]
+    },
+    {
+      "afterNodeId": "conduit_injunction",
+      "title": "One remaining signature",
+      "body": [
+        "The conduit is held long enough for its records to be checked. Barrow Yard keeps the master warrant beside the local repair compact. Both have surviving witnesses. Securing that archive may settle more than the route of a shipment: it will establish whether Continuance custody must mean removing a working root from Tessell."
+      ]
+    },
+    {
+      "afterNodeId": "barrow_warrant",
+      "title": "What the warrant permits",
+      "body": [
+        "The Barrow archive supports two lawful outcomes. Export the disputed roots to reinforce the Continuance's failing stock, leaving Tessell's workshops without them. Or countersign local stewardship, keeping the machines here under a recorded obligation to maintain them. Neither reading makes a new root or cancels the need on the other side.",
+        "The final contracts are alternative endings. Your detachment must hold the disposition stand for the decision it chooses. A service reader can verify the record; the commander must take responsibility for the signature."
+      ]
+    },
+    {
+      "afterNodeId": "continuance_export",
+      "title": "The shipment closes",
+      "body": ["The export register is complete. Continuance settlements will receive inherited roots their own service works cannot replace. Tessellan fitters watch the same machines leave the yards that kept them alive. Your detachment has fulfilled its warrant and carries home a full account of what that duty cost."]
+    },
+    {
+      "afterNodeId": "local_stewardship",
+      "title": "A different form of custody",
+      "body": ["The Tender countersigns local stewardship. The roots stay on Tessell, with the workshops named as responsible keepers and the service history preserved. The Continuance's need remains real; your company has declined to solve it by closing these yards. It returns with a lawful record and an argument its own officers will have to defend."]
+    }
+  ]
+}

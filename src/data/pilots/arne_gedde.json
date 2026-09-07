@@ -17,5 +17,32 @@
     "style": "crop",
     "face": "angular",
     "detail": "visor"
+  },
+  "personality": {
+    "label": "Proud perfectionist",
+    "description": "Insists on elegant firing solutions. Less elegant when negotiating a narrow gate.",
+    "lines": {
+      "move": [
+        "Moving. Kindly allow for the width of the machine.",
+        "A wider approach, if you please."
+      ],
+      "attack": [
+        "A clean solution. Try not to disturb it.",
+        "Observe the grouping."
+      ],
+      "guard": [
+        "An excellent firing position. I shall keep it."
+      ],
+      "hold_fire": [
+        "A perfectly good shot, cancelled. Understood."
+      ],
+      "investigate": [
+        "I prefer to see what I am being asked to shoot."
+      ],
+      "heavy_fire": [
+        "My firing solution would benefit from less incoming fire.",
+        "The armour is becoming markedly less immaculate."
+      ]
+    }
   }
 }

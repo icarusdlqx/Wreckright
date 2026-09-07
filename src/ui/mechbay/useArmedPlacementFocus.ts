@@ -4,7 +4,7 @@ import type { DropPayload } from './LocationCard';
 import type { WeaponReplacement } from './weaponReplacement';
 
 const MOBILE_PLACEMENT_QUERY =
-  '(max-width: 640px), (pointer: coarse) and (max-width: 1100px)';
+  '(max-width: 900px), (pointer: coarse) and (max-width: 1100px)';
 
 export function armedPlacementTarget(
   selectedLocation: MechLocation | null,

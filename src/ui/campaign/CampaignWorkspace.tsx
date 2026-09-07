@@ -22,6 +22,7 @@ interface CampaignWorkspaceProps {
   catalog: Catalog;
   state: CampaignState;
   fullCompany: boolean;
+  story?: ReactNode;
   area?: CompanyArea;
   onAreaChange?: (area: CompanyArea) => void;
   operations: WorkspaceContent;
@@ -33,7 +34,7 @@ interface CampaignWorkspaceProps {
 
 /** Navigation is transient. All financial and deployment decisions stay in campaign. */
 export function CampaignWorkspace({
-  catalog, state, fullCompany, operations, workshop, crew, supplies, area: controlledArea, onAreaChange, journalNodeId,
+  catalog, state, fullCompany, story, operations, workshop, crew, supplies, area: controlledArea, onAreaChange, journalNodeId,
 }: CampaignWorkspaceProps) {
   const [localArea, setLocalArea] = useState<CompanyArea>('operations');
   const area = controlledArea ?? localArea;
@@ -67,6 +68,7 @@ export function CampaignWorkspace({
           ))}
         </nav>
       )}
+      {selected === 'operations' ? story : null}
       <div id="company-area-operations" className="company-area company-operations" hidden={selected !== 'operations'}>
         {typeof operations === 'function' ? operations(selected === 'operations') : operations}
       </div>

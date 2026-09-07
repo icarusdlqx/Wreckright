@@ -1,0 +1,3 @@
+.faction-logo { display: inline-block; flex: 0 0 auto; vertical-align: middle; overflow: visible; }
+.faction-logo-linewrought { --faction-ink: #254449; --faction-paper: #ebddad; --faction-accent: #ed975f; }
+.faction-logo-aurelian { --faction-ink: #253c48; --faction-paper: #f5edcf; --faction-accent: #baa56b; }

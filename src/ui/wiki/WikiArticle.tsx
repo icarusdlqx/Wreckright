@@ -4,6 +4,7 @@ import { getCatalog } from '../../schema/load';
 import { weaponSize, weaponSizeLabel } from '../../sim/loadout';
 import { MachinePortrait } from '../mechbay/MachinePortrait';
 import { WikiLink } from './WikiLink';
+import { FactionLogo } from '../FactionLogo';
 
 export const factionName = (faction: string): string => faction === 'aurelian' ? 'Aurelian Stock' : 'Linewrought';
 const locationName = (location: string): string => location.replaceAll('_', ' ').replace(/^./, (letter) => letter.toUpperCase());
@@ -25,7 +26,8 @@ export function WikiArticle({ article, discovery, reveal }: { article: Article; 
 
 function StoryDossier({ article }: { article: StoryArticle }) {
   return <>
-    <header className="wiki-article-heading"><span className="wiki-eyebrow">Tessell field archive / {article.category}</span>
+    <header className="wiki-article-heading">{article.faction === undefined ? null : <FactionLogo faction={article.faction} size={72} />}
+      <span className="wiki-eyebrow">Tessell field archive / {article.category}</span>
       <h1 tabIndex={-1}>{article.title}</h1><p className="wiki-lede">{article.summary}</p>
     </header>
     <div className="wiki-reading">{article.sections.map((section, index) => <section key={index}>
@@ -40,7 +42,8 @@ function MechDossier({ article }: { article: MechArticle }) {
   return <>
     <header className="wiki-mech-hero">
       <div className="wiki-mech-portrait"><MachinePortrait chassis={chassis} /><span>Standard equipment / chassis portrait</span></div>
-      <div className="wiki-article-heading"><span className="wiki-eyebrow">Machine dossier / {factionName(chassis.faction)}</span>
+      <div className="wiki-article-heading"><div className="wiki-faction-heading"><FactionLogo faction={chassis.faction} size={54} />
+        <span className="wiki-eyebrow">Machine dossier / {factionName(chassis.faction)}</span></div>
         <h1 tabIndex={-1}>{chassis.name}</h1><p className="wiki-lede">{chassis.summary}</p>
         <dl className="wiki-facts">
           <div><dt>Class</dt><dd>{chassis.class}</dd></div><div><dt>Mass</dt><dd>{chassis.tonnage} t</dd></div>

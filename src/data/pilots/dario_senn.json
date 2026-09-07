@@ -17,5 +17,32 @@
     "style": "curls",
     "face": "angular",
     "detail": "none"
+  },
+  "personality": {
+    "label": "Doubtful idealist",
+    "description": "Knows every rule and increasingly questions its purpose. Formal on the radio, humane in a crisis.",
+    "lines": {
+      "move": [
+        "Following the route. We can debate the wording later.",
+        "Proceeding. With everyone accounted for."
+      ],
+      "attack": [
+        "I have read the order. Opening fire.",
+        "Let us keep this as brief as possible."
+      ],
+      "guard": [
+        "Holding the line. The people behind it matter."
+      ],
+      "hold_fire": [
+        "Gladly. Weapons safe."
+      ],
+      "investigate": [
+        "A return is not a verdict. I will confirm it."
+      ],
+      "heavy_fire": [
+        "Taking sustained fire. I would appreciate an amendment to our position.",
+        "The regulation says seek cover. I find myself in agreement."
+      ]
+    }
   }
 }

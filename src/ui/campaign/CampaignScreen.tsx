@@ -47,6 +47,7 @@ import { MissionSurvey } from './MissionSurvey';
 import { missionPreviewData, previewMissionId } from './missionPreviewData';
 import { openingRecommendation } from './openingRoute';
 import { OpeningRouteGuide } from './OpeningRouteGuide';
+import { CampaignStoryPanel } from './CampaignStoryPanel';
 
 const catalog = getCatalog();
 const DEFAULT_CAMPAIGN_ID = 'border_dispute';
@@ -209,6 +210,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
       data-first-drop-stage={guidedFirstDrop === 'done' ? undefined : guidedFirstDrop}
     >
       <CampaignHeader
+        key={`header:${state.campaignId}:${state.seed}`}
         title={campaign.name}
         day={state.day}
         balance={cbills(state.cbills)}
@@ -282,6 +284,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         key={`${state.campaignId}:${state.seed}`}
         catalog={catalog}
         state={state}
+        story={<CampaignStoryPanel campaign={campaign} completedNodes={state.completedNodes} />}
         fullCompany={guidedFirstDrop === 'done'}
         area={navigation.area} onAreaChange={navigation.setArea} journalNodeId={navigation.target?.nodeId}
         workshop={(active) => <MechBayPanel state={state} mutate={mutate} onRefit={setRefitting} previewActive={active && previewsActive} focus={navigation.target} />}

@@ -12,6 +12,9 @@ export interface EngineOptions {
   seed?: string;
   playerTeam?: number;
   playerLance?: LanceEntry[];
+  enemyLance?: LanceEntry[];
+  playerDifficulty?: string;
+  presentation?: { name: string; briefing: string };
   /** Difficulty tier id from the rules; the sim default when absent. */
   difficulty?: string;
 }
@@ -27,6 +30,8 @@ export async function createEngine(host: HTMLElement, options: EngineOptions = {
     playerTeam,
     ...(options.playerLance === undefined ? {} : { playerLance: options.playerLance }),
     ...(options.difficulty === undefined ? {} : { difficulty: options.difficulty }),
+    ...(options.enemyLance === undefined ? {} : { enemyLance: options.enemyLance }),
+    ...(options.playerDifficulty === undefined ? {} : { playerDifficulty: options.playerDifficulty }),
   });
 
   const mission = world.mission;
@@ -81,8 +86,8 @@ export async function createEngine(host: HTMLElement, options: EngineOptions = {
   useGame.getState().patch({
     ready: true,
     playerTeam,
-    missionName: mission.name,
-    briefing: mission.briefing,
+    missionName: options.presentation?.name ?? mission.name,
+    briefing: options.presentation?.briefing ?? mission.briefing,
     briefingSeen: false,
     elapsedSeconds: 0,
     missionDurationSeconds: mission.maxDurationSeconds,

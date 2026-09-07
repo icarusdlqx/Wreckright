@@ -16,5 +16,32 @@
     "style": "shaved",
     "face": "broad",
     "detail": "scar"
+  },
+  "personality": {
+    "label": "Dry survivor",
+    "description": "Rough company, reassuring in a wreck. Has a bleak joke ready before the warning lights settle.",
+    "lines": {
+      "move": [
+        "Still got legs. Might as well use them.",
+        "Off we go. Again."
+      ],
+      "attack": [
+        "Let us spoil their afternoon.",
+        "I have seen prettier targets. Firing."
+      ],
+      "guard": [
+        "Fine place to get shot at. Holding."
+      ],
+      "hold_fire": [
+        "Giving the guns a rest. They have earned it."
+      ],
+      "investigate": [
+        "I will have a look. Try not to spend my pay."
+      ],
+      "heavy_fire": [
+        "This is how the last one started. Cover would help.",
+        "Still here. Becoming a more impressive statement by the second."
+      ]
+    }
   }
 }

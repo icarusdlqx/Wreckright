@@ -94,6 +94,7 @@ describe('commander view model', () => {
       position: selected.pos,
       facing: -Math.PI / 4,
       selected: true,
+      integrity: 1,
     });
     expect(model.chits).toContainEqual({
       id: optical.id,
@@ -102,6 +103,7 @@ describe('commander view model', () => {
       position: optical.pos,
       facing: Math.PI * 0.75,
       selected: false,
+      integrity: 1,
     });
     expect(model.chits.map((chit) => chit.id)).not.toContain(stoppedFriendly.id);
     expect(model.chits.map((chit) => chit.id)).not.toContain(stoppedHostile.id);

@@ -21,6 +21,7 @@ import { useGame } from './store';
 import { supportRadius } from './supportOptions';
 import './commanderView.css';
 import { sensorSweepStatus } from './SensorSweepReadout';
+import { CommanderHealthBar } from './CommanderHealthBar';
 
 interface CommanderViewProps {
   engine: Engine | null;
@@ -151,7 +152,7 @@ export function CommanderView({ engine, compact = false }: CommanderViewProps) {
       button: event.button,
       ctrlKey: event.ctrlKey,
       shiftKey: event.shiftKey,
-      mobile: compact || event.pointerType === 'touch',
+      mobile: event.pointerType === 'touch',
     });
   };
 
@@ -172,7 +173,7 @@ export function CommanderView({ engine, compact = false }: CommanderViewProps) {
     }
     issue({ kind: 'ground', position: aim.at }, {
       button: 0,
-      mobile: compact || event.pointerType === 'touch',
+      mobile: event.pointerType === 'touch',
       headingTo: worldPoint(event),
     });
     setSupportAim(null);
@@ -328,6 +329,7 @@ export function CommanderView({ engine, compact = false }: CommanderViewProps) {
                 <text className="commander-chit-label" style={{ fontSize: labelSize }}>
                   {chit.kind === 'friendly' ? `L${chit.id}` : `H${chit.id}`}
                 </text>
+                <CommanderHealthBar integrity={chit.integrity} markerSize={markerSize} />
               </g>
             );
           })}
