@@ -8,10 +8,10 @@ import { useGame } from './store';
 import { CommandMark } from './CommandMark';
 import { AudioSettings } from './AudioSettings';
 import { WikiLink } from './wiki/WikiLink';
+import { readLastSkirmishMission } from './skirmishPreferences';
 import {
   skipTraining,
   readTraining,
-  STANDARD_MISSION_ID,
   startTraining,
   TRAINING_MISSION_ID,
 } from './trainingProgress';
@@ -54,7 +54,7 @@ export function HomeScreen() {
     record({ name: 'route_chosen', route: 'skirmish' });
     skipTraining();
     enterBattle({
-      missionId: STANDARD_MISSION_ID,
+      missionId: readLastSkirmishMission(getCatalog()),
       battleCode: createNewBattleCode(battleCode),
     });
   };

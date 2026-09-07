@@ -100,7 +100,7 @@ describe('machine culture badge', () => {
 
   it('keeps compact copy wrapping and stacks it at the shared touch breakpoint', () => {
     const css = readFileSync(new URL('./machineCultureBadge.css', import.meta.url), 'utf8');
-    const touchRules = css.slice(css.indexOf('@media (max-width: 640px)'));
+    const touchRules = css.slice(css.indexOf('@media (max-width: 900px)'));
     expect(css).toContain('overflow-wrap: anywhere;');
     expect(css).toMatch(/\.machine-culture--compact\s*{[^}]*flex-wrap: wrap;/s);
     expect(css).toContain('(pointer: coarse) and (max-width: 1100px)');

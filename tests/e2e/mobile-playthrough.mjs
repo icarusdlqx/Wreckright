@@ -10,7 +10,7 @@ import { runMobileMechbayJourney } from './mobile-mechbay.mjs';
 const PORTRAIT = { width: 390, height: 844 };
 const LANDSCAPE = { width: 844, height: 390 };
 const TABLET = { width: 1024, height: 768 };
-const COMPACT_QUERY = '(max-width: 640px), (pointer: coarse) and (max-width: 1100px)';
+const COMPACT_QUERY = '(max-width: 900px), (pointer: coarse) and (max-width: 1100px)';
 
 async function mobilePage(browser, url, viewport) {
   const context = await browser.newContext({

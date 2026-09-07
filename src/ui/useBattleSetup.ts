@@ -1,6 +1,8 @@
 import { useRef, useState, type MutableRefObject } from 'react';
+import { getCatalog } from '../schema/load';
 import type { GameState } from './store';
 import { battleRemountState, storeDifficulty } from './store';
+import { storeLastSkirmishMission } from './skirmishPreferences';
 import {
   engineSetupFor,
   isBattleSetupLocked,
@@ -41,7 +43,9 @@ export function useBattleSetup(options: SetupLifecycleOptions): SetupLifecycle {
   );
 
   const selectMission = (missionId: string): void => {
-    if (locked || options.campaignPending || missionId === engine.missionId) return;
+    if (locked || options.campaignPending) return;
+    storeLastSkirmishMission(getCatalog(), missionId);
+    if (missionId === engine.missionId) return;
     setDeployed(null);
     options.patch({ ...battleRemountState(), skirmishMissionId: missionId });
   };
@@ -70,6 +74,7 @@ export function useBattleSetup(options: SetupLifecycleOptions): SetupLifecycle {
 
   const chooseMission = (missionId = engine.missionId): void => {
     nextStart.current = 'briefing';
+    if (!options.campaignPending) storeLastSkirmishMission(getCatalog(), missionId);
     storeDifficulty(engine.difficulty);
     options.patch({
       ...battleRemountState(),

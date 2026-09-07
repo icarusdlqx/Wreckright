@@ -1,5 +1,5 @@
 import type { PilotRecord } from '../campaign/types';
-import { skillCost, skillTotal, type Skill } from '../campaign/roster';
+import { offeredTraits, skillCost, skillTotal, type Skill } from '../campaign/roster';
 import type { Catalog } from '../schema/load';
 import type { PilotTrait } from '../schema/rules';
 import { pilotStats } from './PilotStats';
@@ -87,9 +87,16 @@ export function skillTraining(
 
 /** The next total-skill mark that will earn an unspent speciality pick. */
 export function nextSpecialityThreshold(catalog: Catalog, pilot: PilotRecord): number | null {
-  if (pilot.dead || pilot.traits.length >= catalog.rules.pilotTraits.maxTraits) return null;
+  const rules = catalog.rules.pilotTraits;
+  if (pilot.dead || pilot.traits.length >= rules.maxTraits || offeredTraits(catalog, pilot).length === 0) {
+    return null;
+  }
   const total = skillTotal(pilot);
-  return catalog.rules.pilotTraits.pickAtTotalSkill.find((mark) => mark > total) ?? null;
+  // Starting specialities use the same milestones as commander-chosen ones.
+  const trained = pilot.traits.filter((id) => rules.entries[id]?.trainable === true).length;
+  return [...rules.pickAtTotalSkill]
+    .sort((a, b) => a - b)
+    .find((mark, index) => mark > total && index >= trained) ?? null;
 }
 
 /** True when this pilot has banked enough XP to buy at least one skill level. */

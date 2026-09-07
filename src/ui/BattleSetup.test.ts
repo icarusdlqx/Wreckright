@@ -19,6 +19,18 @@ const common = {
 };
 
 describe('briefing setup', () => {
+  it('explains where the skirmish setup is saved without making a campaign promise', () => {
+    const props = {
+      ...common,
+      maps: [{ id: 'foundry_district', name: 'Foundry District', missionId: 'skirmish_foundry_district' }],
+      mapId: 'foundry_district',
+    };
+    const skirmish = renderToStaticMarkup(createElement(BriefingSetup, { ...props, campaignMissionName: null }));
+    expect(skirmish).toContain('Each map remembers both lances, their refits and your crew experience.');
+    const campaign = renderToStaticMarkup(createElement(BriefingSetup, { ...props, campaignMissionName: 'Foundry Sweep' }));
+    expect(campaign).not.toContain('skirmish-map-save-note');
+  });
+
   it('puts the skirmish choices and editable code inside the briefing', () => {
     const html = renderToStaticMarkup(
       createElement(BriefingSetup, { ...common, campaignMissionName: null }),

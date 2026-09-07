@@ -22,7 +22,7 @@ export type MechBayPanelProps = PanelProps & { onRefit?: (mechId: string) => voi
 export function revealInspectedMachine(source: Pick<HTMLElement, 'ownerDocument' | 'closest'>): void {
   const view = source.ownerDocument.defaultView;
   if (view === null || typeof view.matchMedia !== 'function'
-    || !view.matchMedia('(max-width: 640px), (max-width: 1100px) and (pointer: coarse)').matches) return;
+    || !view.matchMedia('(max-width: 900px), (max-width: 1100px) and (pointer: coarse)').matches) return;
   const showcase = source.closest('.company-workshop-floor')?.querySelector('[data-testid="camp-selected-machine"]');
   const reduced = view.matchMedia('(prefers-reduced-motion: reduce)').matches;
   showcase?.scrollIntoView({ block: 'start', behavior: reduced ? 'instant' : 'smooth' });

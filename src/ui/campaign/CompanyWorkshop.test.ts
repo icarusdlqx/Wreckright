@@ -57,7 +57,7 @@ describe('company workshop', () => {
       focus,
     } as unknown as HTMLElement;
     revealInspectedMachine(source);
-    expect(matchMedia).toHaveBeenCalledWith('(max-width: 640px), (max-width: 1100px) and (pointer: coarse)');
+    expect(matchMedia).toHaveBeenCalledWith('(max-width: 900px), (max-width: 1100px) and (pointer: coarse)');
     if (behavior === null) expect(scrollIntoView).not.toHaveBeenCalled();
     else expect(scrollIntoView).toHaveBeenCalledExactlyOnceWith({ block: 'start', behavior });
     expect(focus).not.toHaveBeenCalled();

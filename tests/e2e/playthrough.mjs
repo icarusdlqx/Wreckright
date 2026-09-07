@@ -2,6 +2,8 @@ import { runSkirmishForceChecks } from './skirmish-forces.mjs';
 import { runSkirmishStorageChecks } from './skirmish-storage.mjs';
 import { runMechbayPersistenceChecks } from './mechbay-persistence.mjs';
 import { runUnitHealthChecks } from './unit-health.mjs';
+import { runCompactDesktopChecks } from './compact-desktop.mjs';
+import { runCommanderRadioChecks } from './commander-radio.mjs';
 import { runSuppliesRefitUpgradeChecks } from './supplies-refit-upgrades.mjs';
 import { runCompanyJournalChecks } from './company-journal.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
@@ -1842,6 +1844,8 @@ async function main() {
     await runSkirmishStorageChecks({ browser, url: URL, shots: SHOTS, check });
     await runMechbayPersistenceChecks({ browser, url: URL, shots: SHOTS, check });
     await runUnitHealthChecks({ browser, url: URL, shots: SHOTS, check });
+    await runCompactDesktopChecks({ browser, url: URL, shots: SHOTS, check });
+    await runCommanderRadioChecks({ browser, url: URL, shots: SHOTS, check });
     await runLastSilentMomentsChecks({ browser, url: URL, check });
     await runMobilePlaythrough({ browser, url: URL, shots: SHOTS, check });
   } finally {

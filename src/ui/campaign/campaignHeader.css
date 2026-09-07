@@ -192,7 +192,7 @@
   .camp .camp-restart-dialog { padding: 22px; }
   .camp .camp-restart-actions { flex-direction: column; }
 }
-@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+@media (max-width: 900px), (pointer: coarse) and (max-width: 1100px) {
   .camp .camp-command-header button,
   .camp .camp-command-header summary,
   .camp .camp-command-header .camp-file-import,

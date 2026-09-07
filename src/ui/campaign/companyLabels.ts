@@ -5,7 +5,7 @@ import { assign } from '../../campaign/roster';
 
 /** Instance labels survive refits, sorting and sales without changing chassis names or saves. */
 export function companyMachineLabel(catalog: Catalog, mech: MechRecord): string {
-  return `${machineDisplayName(catalog, mech.design)} · Bay ${mech.id.replace(/^mech-/, '')}`;
+  return `${machineDisplayName(catalog, mech.design)} · Bay ${mech.id.replace(/^mech[-_]/, '')}`;
 }
 
 export function occupiedSeatLabel(catalog: Catalog, state: CampaignState, mech: MechRecord): string {

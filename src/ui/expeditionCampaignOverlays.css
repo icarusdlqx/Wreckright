@@ -108,7 +108,7 @@
 .camp-workspace .salvage-stance { color: var(--warn); border-color: var(--warn); font-size: 10px; }
 .camp-workspace .salvage-odds :is(th, td) { border-color: var(--edge); }
 
-@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+@media (max-width: 900px), (pointer: coarse) and (max-width: 1100px) {
   .camp-workspace .manual-sheet > header button,
   .camp-workspace .company-status button,
   .camp-workspace .employer-ledger summary { min-height: 44px; }

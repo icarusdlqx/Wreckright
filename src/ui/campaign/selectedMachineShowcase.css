@@ -30,7 +30,7 @@
   .camp .selected-machine-showcase header h3 { font-size: 36px; }
   .showcase-loadout { padding: 18px; }
 }
-@media (max-width: 640px), (max-width: 1100px) and (pointer: coarse) {
+@media (max-width: 900px), (max-width: 1100px) and (pointer: coarse) {
   .company-workshop-floor { grid-template-columns: minmax(0, 1fr); }
   .selected-machine-showcase { position: relative; top: auto; grid-column: 1; grid-row: 1; }
   .camp .company-workshop-floor > .company-workshop-machines { grid-row: 2; }

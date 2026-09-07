@@ -1,11 +1,11 @@
-.field-radio { position: absolute; z-index: 8; top: 94px; left: 50%; transform: translateX(-50%); width: min(390px, calc(100vw - 32px)); box-sizing: border-box; display: flex; gap: 10px; padding: 12px; border: 1px solid #88ad9e; border-left: 4px solid #7ea797; border-radius: 5px; background: #14343bee; box-shadow: 0 8px 24px #102a3040; color: #edf3df; pointer-events: auto; }
+.field-radio { position: absolute; z-index: 8; top: 94px; left: 50%; transform: translateX(-50%); width: min(390px, calc(100vw - 32px)); box-sizing: border-box; display: flex; gap: 10px; padding: 12px; border: 1px solid #88ad9e; border-left: 4px solid #7ea797; border-radius: 5px; background: #14343bee; box-shadow: 0 8px 24px #102a3040; color: #edf3df; pointer-events: none; }
 .field-radio .pilot-portrait { flex: 0 0 48px; width: 48px; height: 60px; }
 .field-radio__mark { font: 36px var(--font-display); color: #92c4b3; }
 .field-radio > div { flex: 1; min-width: 0; }
 .field-radio__channel { display: block; color: #91beae; font: 9px var(--font-mono); text-transform: uppercase; letter-spacing: .08em; }
 .field-radio strong { display: block; margin: 3px 0; font: 600 17px var(--font-display); }
 .field-radio p { margin: 0; font: 12px/1.45 var(--font-body); }
-.field-radio button { align-self: start; color: #dce9d7; background: transparent; border: 0; min-width: 28px; min-height: 28px; cursor: pointer; }
+.field-radio button { pointer-events: auto; align-self: start; color: #dce9d7; background: transparent; border: 0; min-width: 28px; min-height: 28px; cursor: pointer; }
 .field-radio--urgent { border-color: #e2a266; }
 .field-radio--urgent .field-radio__channel { color: #e9b57d; }
 @media (max-width: 760px), (max-width: 1100px) and (pointer: coarse) { .field-radio { top: 102px; width: min(350px, calc(100vw - 24px)); padding: 9px; } .field-radio button { min-width: 44px; min-height: 44px; } }

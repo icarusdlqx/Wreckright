@@ -3,10 +3,10 @@ import { describe, expect, it } from 'vitest';
 import { COMPACT_LAYOUT_QUERY } from './useCompactLayout';
 
 describe('compact layout boundary', () => {
-  it('includes common coarse-pointer tablets without changing medium desktop windows', () => {
+  it('includes narrow desktop windows and coarse-pointer tablets without changing 1024px mouse layouts', () => {
     const recovery = readFileSync(new URL('./campaign/recovery.css', import.meta.url), 'utf8');
 
-    expect(COMPACT_LAYOUT_QUERY).toContain('(max-width: 640px)');
+    expect(COMPACT_LAYOUT_QUERY).toContain('(max-width: 900px)');
     expect(COMPACT_LAYOUT_QUERY).toContain('(pointer: coarse) and (max-width: 1100px)');
     expect(COMPACT_LAYOUT_QUERY).not.toContain('(max-width: 1100px),');
     expect(recovery).toContain('(pointer: coarse) and (max-width: 1100px)');

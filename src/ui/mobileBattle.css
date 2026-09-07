@@ -1,6 +1,6 @@
 /* A phone cannot afford every desktop panel at once. The dock keeps orders in
    one reserved strip and lets the battlefield own everything above it. */
-@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+@media (max-width: 900px), (pointer: coarse) and (max-width: 1100px) {
   .app {
     --mobile-top: calc(52px + var(--safe-top));
     --mobile-status: 38px;
@@ -347,7 +347,7 @@
   }
 }
 
-@media (max-width: 640px) and (orientation: landscape),
+@media (max-width: 900px) and (orientation: landscape),
   (pointer: coarse) and (max-width: 1100px) and (orientation: landscape) {
   .app {
     --mobile-dock: 118px;

@@ -152,7 +152,7 @@ export function CommanderView({ engine, compact = false }: CommanderViewProps) {
       button: event.button,
       ctrlKey: event.ctrlKey,
       shiftKey: event.shiftKey,
-      mobile: compact || event.pointerType === 'touch',
+      mobile: event.pointerType === 'touch',
     });
   };
 
@@ -173,7 +173,7 @@ export function CommanderView({ engine, compact = false }: CommanderViewProps) {
     }
     issue({ kind: 'ground', position: aim.at }, {
       button: 0,
-      mobile: compact || event.pointerType === 'touch',
+      mobile: event.pointerType === 'touch',
       headingTo: worldPoint(event),
     });
     setSupportAim(null);

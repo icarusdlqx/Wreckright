@@ -100,7 +100,7 @@ describe('loadout fitting guide', () => {
     const css = readFileSync(new URL('./locationWorkbench.css', import.meta.url), 'utf8');
 
     expect(css).toMatch(/\.location-overview\s*\{[^}]*repeat\(2, minmax\(0, 1fr\)\)/s);
-    expect(css).toMatch(/@media \(max-width: 640px\), \(pointer: coarse\) and \(max-width: 1100px\)/);
+    expect(css).toMatch(/@media \(max-width: 900px\), \(pointer: coarse\) and \(max-width: 1100px\)/);
     expect(css).toMatch(/\.location-overview \.slot-block,[\s\S]*?min-height: 44px;/);
     expect(css).toMatch(/\.location-overview \.slot-block__remove \{[\s\S]*?min-width: 58px;/);
   });

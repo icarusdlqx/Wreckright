@@ -178,7 +178,7 @@
   width: 100%;
 }
 
-@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+@media (max-width: 900px), (pointer: coarse) and (max-width: 1100px) {
   .mobile-menu-sheet > .battle-menu-setup,
   .mobile-menu-sheet > .feedback-link,
   .mobile-menu-sheet > .battle-menu-help {

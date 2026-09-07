@@ -41,6 +41,11 @@ function locationsOf(entity: MechEntity): Record<MechLocation, LocationSnapshot>
 }
 
 function weaponsOf(world: World, entity: MechEntity): WeaponSnapshot[] {
+  const roundsByWeapon = new Map<string, number>();
+  for (const bin of entity.ammoBins) {
+    if (bin.destroyed || bin.rounds <= 0) continue;
+    roundsByWeapon.set(bin.weaponId, (roundsByWeapon.get(bin.weaponId) ?? 0) + bin.rounds);
+  }
   return entity.weapons.map((mount) => {
     const weapon = world.catalog.weapons.get(mount.weaponId);
     const profile = weapon === undefined ? null : weaponFireProfile(weapon, mount.modeId);
@@ -49,7 +54,6 @@ function weaponsOf(world: World, entity: MechEntity): WeaponSnapshot[] {
       weapon === undefined || weapon.modes.length === 0
         ? null
         : weapon.modes[(modeIndex + 1) % weapon.modes.length] ?? null;
-    const bin = entity.ammoBins.find((entry) => entry.weaponId === mount.weaponId && !entry.destroyed);
     return {
       index: mount.index,
       name: weapon?.name ?? mount.weaponId,
@@ -61,7 +65,7 @@ function weaponsOf(world: World, entity: MechEntity): WeaponSnapshot[] {
       cooldown: mount.cooldown,
       cooldownMax: mount.cooldown > 0 ? mount.cycleDuration : (profile?.cooldown ?? 1),
       destroyed: mount.destroyed,
-      rounds: weapon?.ammoPerTon === null ? null : (bin?.rounds ?? 0),
+      rounds: weapon?.ammoPerTon === null ? null : (roundsByWeapon.get(mount.weaponId) ?? 0),
       shortRange: weapon?.range.short ?? 0,
       longRange: weapon?.range.long ?? 0,
       location: mount.location,

@@ -46,7 +46,9 @@ export function BriefingSetup(props: BriefingSetupProps) {
             }}>
               {props.maps.map((map) => <option key={map.id} value={map.id}>{map.name}</option>)}
             </select>
-            <small className="setup-description">A straight lance battle on the selected terrain.</small>
+            <small className="setup-description" data-testid="skirmish-map-save-note">
+              Each map remembers both lances, their refits and your crew experience.
+            </small>
           </label>
         ) : null}
         <label className="setup-field">

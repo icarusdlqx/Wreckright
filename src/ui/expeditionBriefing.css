@@ -84,7 +84,7 @@
 .battle-results .battle-results-lance h3 { font-size: 17px; }
 .battle-results .unit-result.operational { color: var(--ok); }
 
-@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+@media (max-width: 900px), (pointer: coarse) and (max-width: 1100px) {
   .briefing { padding: 18px; }
   .briefing h2 { font-size: 29px; }
   .briefing .briefing-berth { grid-template-columns: minmax(0, 1fr); }
