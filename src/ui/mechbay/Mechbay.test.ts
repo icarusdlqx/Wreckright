@@ -123,7 +123,7 @@ describe('mechbay presentation', () => {
 
     expect(replaceStart).toBeGreaterThan(-1);
     expect(replaceEnd).toBeGreaterThan(replaceStart);
-    expect(source).toContain('onDesignPick={replace}');
+    expect(source).toContain('onDesignPick={(next) => draftExit.requestAction(() => replace(next))}');
     expect(replaceBlock).toContain('setSelectedLocation(null)');
     expect(replaceBlock).toContain('setHoveredLocation(null)');
     expect(replaceBlock).toContain('setArmed(null)');

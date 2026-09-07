@@ -1,6 +1,7 @@
 {
   "routineGapSeconds": 14,
   "urgentGapSeconds": 4,
+  "pressure": { "windowSeconds": 6, "minimumHits": 3, "minimumDamage": 18, "cooldownSeconds": 45 },
   "displaySeconds": { "routine": 7, "story": 12 },
   "lines": {
     "linewrought": {
@@ -22,6 +23,7 @@
     "shutdown": "Reactor shutdown. I need cover while it recovers.",
     "pilot_ejected": "I’m out. Mark the capsule for recovery.",
     "pilot_injured": "Hit in the cockpit. Still with you.",
-    "arm_lost": "Arm gone. Check my remaining weapons."
+    "arm_lost": "Arm gone. Check my remaining weapons.",
+    "heavy_fire": "Taking sustained fire. I need cover."
   }
 }

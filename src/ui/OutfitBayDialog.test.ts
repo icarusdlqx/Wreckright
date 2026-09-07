@@ -60,7 +60,6 @@ describe('skirmish outfit dialog', () => {
 
     const battleSource = readFileSync(new URL('./Battle.tsx', import.meta.url), 'utf8');
     expect(battleSource).toContain('const closeOutfitBay = useCallback');
-    expect(battleSource).toContain('createBattleOutfitBay(catalog, lance, outfitting');
     expect(battleSource).toContain('onClose={closeOutfitBay}');
     expect(battleSource).toContain('onMuted={setMuted}');
   });

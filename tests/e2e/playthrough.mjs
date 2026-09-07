@@ -1,3 +1,7 @@
+import { runSkirmishForceChecks } from './skirmish-forces.mjs';
+import { runSkirmishStorageChecks } from './skirmish-storage.mjs';
+import { runMechbayPersistenceChecks } from './mechbay-persistence.mjs';
+import { runUnitHealthChecks } from './unit-health.mjs';
 import { runSuppliesRefitUpgradeChecks } from './supplies-refit-upgrades.mjs';
 import { runCompanyJournalChecks } from './company-journal.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
@@ -1834,6 +1838,10 @@ async function main() {
     await runOpeningRouteChecks({ browser, url: URL, shots: SHOTS, check });
     await runSensorActivationChecks({ browser, url: URL, shots: SHOTS, check });
     await runSupportServicesChecks({ browser, url: URL, shots: SHOTS, check });
+    await runSkirmishForceChecks({ browser, url: URL, shots: SHOTS, check });
+    await runSkirmishStorageChecks({ browser, url: URL, shots: SHOTS, check });
+    await runMechbayPersistenceChecks({ browser, url: URL, shots: SHOTS, check });
+    await runUnitHealthChecks({ browser, url: URL, shots: SHOTS, check });
     await runLastSilentMomentsChecks({ browser, url: URL, check });
     await runMobilePlaythrough({ browser, url: URL, shots: SHOTS, check });
   } finally {

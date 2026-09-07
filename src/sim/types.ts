@@ -332,6 +332,7 @@ export interface World {
   missionStatus: 'active' | 'success' | 'failure';
   missionReason: string | null;
   difficulty: string;
+  playerDifficulty?: string;
 
   finished: boolean;
   winner: number | null;

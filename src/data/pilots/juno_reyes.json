@@ -16,5 +16,32 @@
     "style": "bob",
     "face": "broad",
     "detail": "visor"
+  },
+  "personality": {
+    "label": "Fiery risk-taker",
+    "description": "Loves an overworked reactor. Brash, loyal and forever negotiating with the warning lights.",
+    "lines": {
+      "move": [
+        "Come on, darling. Show them we can move.",
+        "Amber is a colour, not a command. Moving."
+      ],
+      "attack": [
+        "Now we are having a day! Guns up.",
+        "Let us put some heat into this argument."
+      ],
+      "guard": [
+        "Holding. Yes, I know what the word means."
+      ],
+      "hold_fire": [
+        "Fine. Cooling the temper and the guns."
+      ],
+      "investigate": [
+        "Something out there wants attention. I will oblige."
+      ],
+      "heavy_fire": [
+        "That is plenty of attention! Could use cover.",
+        "I can take a joke. This much incoming is pushing it."
+      ]
+    }
   }
 }

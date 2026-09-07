@@ -8,6 +8,7 @@ export interface StoryArticle {
   kind: 'story';
   id: string;
   category: WikiStoryRecord['category'];
+  faction?: WikiStoryRecord['faction'];
   title: string;
   summary: string;
   sections: { heading: string; body: string[] }[];

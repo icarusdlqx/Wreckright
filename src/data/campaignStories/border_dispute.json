@@ -1,0 +1,75 @@
+{
+  "campaignId": "border_dispute",
+  "title": "The Hands That Kept It",
+  "summary": "Keep a workshop company alive as the Recall reaches Tessell. Rescue fitters, defend repair yards and earn the salvage that turns four patched walkers into a force with a say in who owns them.",
+  "opening": {
+    "title": "Four names on a list",
+    "body": [
+      "The notice arrives during a repair shift. The Aurelian Continuance claims every surviving walker root left by its predecessor, including the four in your yard. Halloran offers a contract to reopen Marker Eleven before its ownership records are taken away. Your company accepts because those records include your own machines.",
+      "You command Linewrought: local pilots, mismatched armour and guns the workshops can keep supplied. Halloran needs its crossings; Sarn needs working gantries. Neither can pay you in loyalty. Bring crews home, choose useful salvage and keep enough money for the next repair. The first job is to clear the registry guard."
+    ]
+  },
+  "chapters": [
+    {
+      "afterNodeId": "militia_raid",
+      "title": "The workshops answer",
+      "body": [
+        "The Marker Eleven records are copied. They describe serials, but your fitters recognise the workshop names beside them. Kestrel, a local company enforcing the Recall, is helping the Authority turn those records into seizures. Halloran now offers work against its custody posts; a quieter service trail may lead to people and parts worth bringing home.",
+        "Your small company cannot answer every posting at once. The survey, rescue and workshop contracts are optional ways to build strength. The attestation route remains open when you are ready to meet the Aurelian claim directly."
+      ]
+    },
+    {
+      "afterNodeId": "recovery_window",
+      "title": "A crew brought home",
+      "body": [
+        "The recovery cradle clears the yard with its fitters alive. Their machinery and field notes arrive in your stores as useful equipment, not a promise. They also bring news: Kestrel followed the service route to Sarn's repair halls. Keeping one workshop open could matter more than winning another stretch of empty road."
+      ]
+    },
+    {
+      "afterNodeId": "workshop_defence",
+      "title": "The lights stay on",
+      "body": [
+        "Sarn's gantries finish their shift behind your guns. The shopworkers remember the company that stayed, and their stock transfer gives your fitters something concrete to work with. A company can live off wrecks for a while. A district survives because someone can still put them back together."
+      ]
+    },
+    {
+      "afterNodeId": "pass_skirmish",
+      "title": "White armour in the yard",
+      "body": [
+        "The first Aurelian claim detail is beaten. Its precise emitters and factory-fitted armour are real advantages; so are the gaps your company found in its formation. Halloran has waived its share of the recoverable Stock. If a machine survives recovery, it can fight beside yours. The common mounts accept mixed weapons; heat, ammunition and scarce replacements still have to be paid for."
+      ]
+    },
+    {
+      "afterNodeId": "foundry_sweep_node",
+      "title": "A rule worth keeping",
+      "body": [
+        "Sarn retains the recording of Kestrel firing after an ejected pilot. Wreckright gives the ground-holder the wreck. It also gives the pilot a way home. Breaking that second rule threatens every crew on Tessell, including yours. Kestrel has lost the yard, but its cut to Sarn's power trunk has left the western repair halls cold."
+      ]
+    },
+    {
+      "afterNodeId": "shale_overwatch_node",
+      "title": "Power and proof",
+      "body": [
+        "The load transfers and the repair halls regain power. Among Sarn's service records is an address leading toward the old depot manifest: the clearest surviving record of Tessell's walker roots. Halloran wants the approach opened. Your company is now strong enough to reach evidence that could decide the Recall, rather than merely survive its next contract."
+      ]
+    },
+    {
+      "afterNodeId": "ridge_hold",
+      "title": "Behind the depot doors",
+      "body": [
+        "The depot approach is resolved. Two final contracts are open. Burn the master manifest and deny the Authority its strongest proof, at the cost of irreplaceable service records. Take it intact and your company becomes keeper of evidence both sides need. Halloran can get you through the doors; it cannot make this decision for you.",
+        "These are alternative endings to this campaign. Choose the final contract whose consequences your company is willing to carry."
+      ]
+    },
+    {
+      "afterNodeId": "depot_burn",
+      "title": "A claim without a ledger",
+      "body": ["The manifest is gone. The workshops keep their working roots, but certified service and the shared history of those machines are harder to recover. Your company has won room for Tessell to decide its own future. It leaves the depot responsible for the proof it chose to destroy."]
+    },
+    {
+      "afterNodeId": "depot_take",
+      "title": "Keepers of the record",
+      "body": ["The manifest survives under your company seal. A copied serial cannot steer a machine or choose its owner, but it can keep a history from being erased. The workshops retain an advocate with evidence, and the Authority must deal with a company it first counted as inventory."]
+    }
+  ]
+}

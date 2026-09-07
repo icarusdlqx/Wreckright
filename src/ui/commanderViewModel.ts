@@ -2,6 +2,7 @@ import type { MoveOrder } from '../sim/orders';
 import type { EntityId, MechEntity, Vec2, World } from '../sim/types';
 import { isOperational } from '../sim/types';
 import type { ContactSnapshot } from './store';
+import { unitIntegrity } from '../render/unitIntegrity';
 
 export interface CommanderViewInput {
   playerTeam: number;
@@ -28,6 +29,7 @@ export interface CommanderChitView {
   position: Vec2;
   facing: number;
   selected: boolean;
+  integrity: number | null;
 }
 
 export interface CommanderContactView {
@@ -120,6 +122,7 @@ function exactChits(world: World, input: CommanderViewInput): CommanderChitView[
       position: copyPoint(entity.pos),
       facing: entity.facing,
       selected: selection.has(entity.id),
+      integrity: world.catalog.chassis.get(entity.chassisId)?.frame === 'mech' ? unitIntegrity(entity) : null,
     });
   }
 

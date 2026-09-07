@@ -16,5 +16,32 @@
     "style": "sweep",
     "face": "angular",
     "detail": "scar"
+  },
+  "personality": {
+    "label": "Driven outrider",
+    "description": "Never quite settles at rest. Watches the rookies’ spacing with a mentor’s fierce protectiveness.",
+    "lines": {
+      "move": [
+        "Keep your feet. Keep your distance.",
+        "Move now. Do not give them a still target."
+      ],
+      "attack": [
+        "Guns tracking. Keep moving through it.",
+        "Hit them from the stride."
+      ],
+      "guard": [
+        "Holding. Keep an escape lane open."
+      ],
+      "hold_fire": [
+        "Hold the shot. Keep the machine moving."
+      ],
+      "investigate": [
+        "I will get eyes on it. Keep your spacing."
+      ],
+      "heavy_fire": [
+        "They have my pace. I need a new lane.",
+        "Too many hits. Cover the turn."
+      ]
+    }
   }
 }

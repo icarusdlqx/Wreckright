@@ -3,8 +3,18 @@
   "category": "factions",
   "sourceLoreId": "the_welded",
   "related": [
-    { "kind": "story", "id": "the_refit" },
-    { "kind": "story", "id": "the_shared_mounts" },
-    { "kind": "story", "id": "the_employers" }
-  ]
+    {
+      "kind": "story",
+      "id": "the_refit"
+    },
+    {
+      "kind": "story",
+      "id": "the_shared_mounts"
+    },
+    {
+      "kind": "story",
+      "id": "the_employers"
+    }
+  ],
+  "faction": "linewrought"
 }

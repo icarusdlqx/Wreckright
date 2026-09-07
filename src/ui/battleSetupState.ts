@@ -4,6 +4,8 @@ export interface BattleSetupKey {
   missionId: string;
   difficulty: string;
   lanceKey: string;
+  enemyLanceKey?: string;
+  playerDifficulty?: string;
   battleCode: string;
 }
 

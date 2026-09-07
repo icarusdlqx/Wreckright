@@ -16,5 +16,32 @@
     "style": "crop",
     "face": "broad",
     "detail": "scar"
+  },
+  "personality": {
+    "label": "Unflappable veteran",
+    "description": "Has seen almost everything once. Keeps the radio practical and quietly steadies younger pilots.",
+    "lines": {
+      "move": [
+        "Same drill. Eyes up, feet moving.",
+        "We have crossed worse. Follow the route."
+      ],
+      "attack": [
+        "Pick the target. Finish the job.",
+        "Nothing new here. Engaging."
+      ],
+      "guard": [
+        "Hold your nerve. I will hold this ground."
+      ],
+      "hold_fire": [
+        "Guns quiet. Take a breath."
+      ],
+      "investigate": [
+        "I will check it. No need for guesses."
+      ],
+      "heavy_fire": [
+        "Taking sustained fire. Work the problem, keep me covered.",
+        "I have been in this corner before. Help me out of it."
+      ]
+    }
   }
 }

@@ -1140,11 +1140,11 @@ button {
   color: var(--muted);
 }
 
-.bay-status.ok {
+.bay-status--ok {
   color: var(--accent);
 }
 
-.bay-status.error {
+.bay-status--error {
   color: var(--danger);
 }
 

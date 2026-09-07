@@ -1,6 +1,7 @@
 import { getCatalog } from '../schema/load';
 import type { RateablePilot } from './PilotStats';
 import { PilotPortrait } from './PilotPortrait';
+import { pilotPersonality, type VoicedPilot } from './pilotPersonality';
 
 const DOMAINS = [
   { key: 'gunnery', label: 'Gunnery', strength: 'accurate fire', weakness: 'less reliable fire' },
@@ -28,7 +29,17 @@ export function PilotProfile({ pilot }: {
     <div>
       <h4 className="pilot-name">{pilot.name}</h4>
       <p className="pilot-bio">{pilot.bio || authored?.bio}</p>
+      <PilotPersonalityNote pilot={pilot} />
       <PilotAssessment pilot={pilot} />
     </div>
   </div>;
+}
+
+export function PilotPersonalityNote({ pilot }: { pilot: VoicedPilot }) {
+  const personality = pilotPersonality(getCatalog(), pilot);
+  if (personality === undefined) return null;
+  return <p className="pilot-personality" data-testid={`pilot-personality-${pilot.templateId ?? pilot.id}`}>
+    <strong>Temperament · {personality.label}</strong>
+    <span>{personality.description}</span>
+  </p>;
 }

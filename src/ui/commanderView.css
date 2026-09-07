@@ -17,6 +17,12 @@
   display: none;
 }
 
+.commander-health { pointer-events: none; }
+.commander-health path { fill: none; stroke-linecap: round; }
+.commander-health-track { stroke: #10232de6; stroke-width: 4.5px; }
+.commander-health-fill { stroke: #b5dcad; stroke-width: 2.5px; }
+.commander-chit.optical .commander-health-fill { stroke: #ed8171; }
+
 .commander-map-header,
 .commander-map-footer {
   display: flex;

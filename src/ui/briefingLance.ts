@@ -4,6 +4,7 @@ import type { BriefingLance } from './Briefing';
 import { designIdentityLabel } from './designLabel';
 import { berthDesign, lanceTonnage, type SkirmishBerth } from './lance';
 import { listStoredDesigns, loadFromStorage } from './mechbay/editor';
+import { pilotAtDifficulty } from '../sim/pilotDifficulty';
 
 export function briefingLanceFor(
   catalog: Catalog,
@@ -11,10 +12,13 @@ export function briefingLanceFor(
   lance: SkirmishBerth[],
   onLance: (next: SkirmishBerth[]) => void,
   onCustomise: (index: number) => void,
+  playerDifficulty?: string,
 ): BriefingLance {
   return {
     berths: lance.map((berth, index) => {
       const design = berthDesign(catalog, berth);
+      const pilot = catalog.pilots.get(berth.pilotId);
+      const delta = playerDifficulty === undefined ? undefined : catalog.rules.difficulty.tiers[playerDifficulty]?.skillDelta;
       return {
         index,
         designValue: berth.empty === true ? 'empty' : (berth.designId ?? 'custom'),
@@ -24,7 +28,7 @@ export function briefingLanceFor(
             : null,
         pilotId: berth.pilotId,
         tonnage: catalog.chassis.get(design?.chassisId ?? '')?.tonnage ?? 0,
-        pilot: catalog.pilots.get(berth.pilotId) ?? null,
+        pilot: pilot === undefined ? null : pilotAtDifficulty(pilot, 0, 0, undefined, delta),
       };
     }),
     // A dropship berth is for something that walks; vehicles and emplacements

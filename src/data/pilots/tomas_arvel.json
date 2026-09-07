@@ -16,5 +16,32 @@
     "style": "sweep",
     "face": "broad",
     "detail": "freckles"
+  },
+  "personality": {
+    "label": "Daring show-off",
+    "description": "Chases difficult shots and an appreciative audience. Laughs when nervous; hates letting the team down.",
+    "lines": {
+      "move": [
+        "Watch the footwork.",
+        "A little room for style. Moving."
+      ],
+      "attack": [
+        "Let us make the expensive shot count.",
+        "Moving target, moving shooter. My kind of problem."
+      ],
+      "guard": [
+        "Holding the pose. Do try to appreciate it."
+      ],
+      "hold_fire": [
+        "Saving the encore. Guns quiet."
+      ],
+      "investigate": [
+        "Off to meet the mystery guest."
+      ],
+      "heavy_fire": [
+        "Audience is getting hostile! Cover me.",
+        "That is enough applause from their guns. I need a hand."
+      ]
+    }
   }
 }

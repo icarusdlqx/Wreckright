@@ -6,6 +6,7 @@ import { MachinePortrait } from '../mechbay/MachinePortrait';
 import { useDialogFocus } from '../useDialogFocus';
 import { factionName, WikiArticle } from './WikiArticle';
 import { WikiLink } from './WikiLink';
+import { FactionLogo } from '../FactionLogo';
 
 const categories = ['world', 'history', 'factions', 'places', 'workshop'];
 export function WikiScreen({ route, onClose, discovery = PUBLIC_DISCOVERY, returnFocus }: {
@@ -107,9 +108,11 @@ export function WikiScreen({ route, onClose, discovery = PUBLIC_DISCOVERY, retur
 }
 
 function ArchiveCard({ article }: { article: Article }) {
+  const faction = article.kind === 'mech' ? article.chassis.faction : article.faction;
   return <WikiLink to={article} className={`wiki-card ${article.kind === 'mech' ? `wiki-machine-card wiki-${article.chassis.faction}` : ''}`}>
     {article.kind === 'story' ? null : <div className="wiki-card-portrait"><MachinePortrait chassis={article.chassis} /></div>}
-    <div className="wiki-card-copy"><span className="wiki-eyebrow">{article.kind === 'story' ? article.category : factionName(article.chassis.faction)}</span>
+    <div className="wiki-card-copy"><span className="wiki-eyebrow wiki-card-faction">{faction === undefined ? null : <FactionLogo faction={faction} size={26} decorative />}
+      {article.kind === 'story' ? article.category : factionName(article.chassis.faction)}</span>
       <h2>{article.title}<span aria-hidden="true">↗</span></h2>
       {article.kind === 'story' ? null : <p className="wiki-machine-tag">{article.chassis.tonnage} t / {article.chassis.class} / {article.chassis.role}</p>}
       <p>{article.summary}</p></div>

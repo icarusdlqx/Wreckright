@@ -62,6 +62,8 @@ export function spawnUnits(
     world.entities.find((entity) => entity.team === team)?.controller ??
     (team === world.playerTeam ? 'orders' : 'tactical');
   const skillDelta = world.rules.difficulty.tiers[world.difficulty]?.skillDelta;
+  const playerSkillDelta = world.playerDifficulty === undefined
+    ? undefined : world.rules.difficulty.tiers[world.playerDifficulty]?.skillDelta;
 
   for (const unit of units) {
     const authoredPilot = world.catalog.pilots.get(unit.pilotId);
@@ -76,7 +78,7 @@ export function spawnUnits(
       controller,
       ...(authoredPilot === undefined
         ? {}
-        : { pilot: pilotAtDifficulty(authoredPilot, team, world.playerTeam, skillDelta) }),
+        : { pilot: pilotAtDifficulty(authoredPilot, team, world.playerTeam, skillDelta, playerSkillDelta) }),
     });
     nextId += 1;
     world.entities.push(mech);

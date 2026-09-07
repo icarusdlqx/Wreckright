@@ -21,6 +21,7 @@ import { useGame } from './store';
 import { supportRadius } from './supportOptions';
 import './commanderView.css';
 import { sensorSweepStatus } from './SensorSweepReadout';
+import { CommanderHealthBar } from './CommanderHealthBar';
 
 interface CommanderViewProps {
   engine: Engine | null;
@@ -328,6 +329,7 @@ export function CommanderView({ engine, compact = false }: CommanderViewProps) {
                 <text className="commander-chit-label" style={{ fontSize: labelSize }}>
                   {chit.kind === 'friendly' ? `L${chit.id}` : `H${chit.id}`}
                 </text>
+                <CommanderHealthBar integrity={chit.integrity} markerSize={markerSize} />
               </g>
             );
           })}

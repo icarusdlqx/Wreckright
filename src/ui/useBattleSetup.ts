@@ -41,13 +41,13 @@ export function useBattleSetup(options: SetupLifecycleOptions): SetupLifecycle {
   );
 
   const selectMission = (missionId: string): void => {
-    if (locked || options.campaignPending) return;
+    if (locked || options.campaignPending || missionId === engine.missionId) return;
     setDeployed(null);
     options.patch({ ...battleRemountState(), skirmishMissionId: missionId });
   };
 
   const selectDifficulty = (difficulty: string): void => {
-    if (locked || options.campaignPending) return;
+    if (locked || options.campaignPending || difficulty === engine.difficulty) return;
     setDeployed(null);
     storeDifficulty(difficulty);
     options.patch({ ...battleRemountState(), difficulty });

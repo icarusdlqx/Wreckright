@@ -16,5 +16,32 @@
     "style": "curls",
     "face": "broad",
     "detail": "freckles"
+  },
+  "personality": {
+    "label": "Freight-yard wit",
+    "description": "Treats every sortie like an awkward delivery. Complains warmly and always checks the load.",
+    "lines": {
+      "move": [
+        "Freight on the move. Mind the turning circle.",
+        "All right, you argumentative truck. Shift."
+      ],
+      "attack": [
+        "Making a delivery. Nobody signed for it.",
+        "Unloading the noisy cargo."
+      ],
+      "guard": [
+        "Parked up. Nobody gets past the weighbridge."
+      ],
+      "hold_fire": [
+        "Load secured. Guns quiet."
+      ],
+      "investigate": [
+        "Checking the manifest against whatever is out there."
+      ],
+      "heavy_fire": [
+        "Cargo is taking a beating. Could use an escort.",
+        "This truck has enough dents. Somebody cover the cab."
+      ]
+    }
   }
 }

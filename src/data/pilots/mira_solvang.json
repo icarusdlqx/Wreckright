@@ -17,5 +17,32 @@
     "style": "sweep",
     "face": "oval",
     "detail": "freckles"
+  },
+  "personality": {
+    "label": "Cool professional",
+    "description": "Treats danger as skilled work. Delivers a dry invoice joke when everyone else is shouting.",
+    "lines": {
+      "move": [
+        "A moving target costs more. Off we go.",
+        "Repositioning. This is included in the fee."
+      ],
+      "attack": [
+        "Steady hand, moving feet. Taking the shot.",
+        "You paid for this part."
+      ],
+      "guard": [
+        "Position held. I bill for waiting, too."
+      ],
+      "hold_fire": [
+        "Holding fire. Ammunition saved, fee unchanged."
+      ],
+      "investigate": [
+        "Checking the return. Due diligence."
+      ],
+      "heavy_fire": [
+        "This is becoming overtime. I need some cover.",
+        "Sustained fire on my position. Let us keep the repair bill sensible."
+      ]
+    }
   }
 }

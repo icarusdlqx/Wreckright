@@ -16,5 +16,32 @@
     "style": "crop",
     "face": "angular",
     "detail": "earpiece"
+  },
+  "personality": {
+    "label": "Patient listener",
+    "description": "Hears patterns in static. Unhurried and reassuring, with a relay operator’s dislike of chatter.",
+    "lines": {
+      "move": [
+        "Reading you clearly. Moving.",
+        "Route received. Keeping the channel open."
+      ],
+      "attack": [
+        "Signal steady. Engaging.",
+        "Target confirmed. Short transmission."
+      ],
+      "guard": [
+        "Listening from here. I will call what matters."
+      ],
+      "hold_fire": [
+        "Weapons quiet. Easier to listen."
+      ],
+      "investigate": [
+        "There is a pattern in that return. Going to check."
+      ],
+      "heavy_fire": [
+        "Heavy impacts on my hull. Requesting cover.",
+        "Signal is fine. Armour is not. I need relief."
+      ]
+    }
   }
 }
