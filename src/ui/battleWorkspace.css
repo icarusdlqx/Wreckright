@@ -1,0 +1,140 @@
+/* Battle information sits at the edges. Only spatial orders belong over terrain. */
+.app .battle-field-status {
+  top: var(--battle-top, 52px);
+  gap: 0;
+}
+.app .battle-field-status > .hostiles {
+  min-height: 42px;
+  padding: 4px 7px;
+  gap: 6px;
+  border-top: 0;
+  border-radius: 0 0 5px 5px;
+  background: #15343eee;
+  box-shadow: none;
+}
+.app .battle-field-status .hostile {
+  position: relative;
+  min-width: 145px;
+  width: 170px;
+  min-height: 34px;
+  padding: 4px 7px 7px;
+  gap: 3px 8px;
+  align-content: center;
+}
+.app .battle-field-status .hostile-state { display: none; }
+.app .battle-field-status .sensor-contact-note { display: block; font-size: 8px; line-height: 1.2; white-space: normal; letter-spacing: 0; }
+.app .battle-field-status .hostile-health {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 3px;
+  height: 2px;
+}
+.app .battle-field-status .hostile.targeted .hostile-name::before {
+  content: '⌖ ';
+  color: #f2bf82;
+}
+.app .battle-field-status .sensor-contact .hostile-range { font-size: 9px; }
+.app .battle-field-status .hostile.memory { border-style: dotted; }
+.app .battle-field-status .hostiles-label { font-size: 9px; }
+.app .battle-field-status .sensor-sweep-readout { padding: 5px 8px; font-size: 10px; }
+.app .battle-communications { display: flex; flex-wrap: wrap; gap: 5px; min-width: 0; }
+.app .battle-communications:empty { display: none; }
+.app .battle-communications > * { flex: 1 1 260px; min-width: 0; }
+.app .battle-communications .field-radio {
+  position: static;
+  width: auto;
+  max-width: none;
+  transform: none;
+  margin: 0;
+  padding: 5px 8px;
+  gap: 8px;
+  border-left-width: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  align-items: center;
+}
+.app .battle-communications .field-radio .pilot-portrait { width: 28px; height: 35px; }
+.app .battle-communications .field-radio__mark { width: 26px; font-size: 22px; }
+.app .battle-communications .field-radio > div { display: block; min-width: 0; }
+.app .battle-communications .field-radio__channel { display: none; }
+.app .battle-communications .field-radio strong { display: inline; margin-right: 8px; font: 600 11px var(--font-body); color: #f0c38c; }
+.app .battle-communications .field-radio p { display: inline; margin: 0; font-size: 11px; line-height: 1.4; }
+.app .battle-communications .field-radio > button { position: static; margin-left: auto; flex: none; width: 30px; height: 32px; }
+.app .battle-communications .support-status { position: static; width: auto; box-shadow: none; }
+.app .battle-communications .support-status summary { min-height: 32px; padding: 4px 8px; }
+.app .tactical-command-deck { gap: 5px; }
+.app .tactical-command-deck .lance-card { padding: 7px 10px; gap: 3px; min-height: 70px; }
+.app .tactical-command-deck .lance-name { font-size: 16px; line-height: 1.1; }
+.app .tactical-command-deck .lance-chassis,
+.app .mobile-dock .lance-chassis { min-height: 0; font-size: 10px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.app .tactical-command-deck .lance-health { height: 3px; margin: 2px 0; }
+.app .tactical-command-deck .lance-status { font-size: 8px; }
+.app .tactical-command-deck .command-support-row { padding: 5px; gap: 5px; box-shadow: none; }
+.app .tactical-command-deck .palette { gap: 5px; }
+.app .tactical-command-deck .command { min-height: 38px; padding: 5px 8px; font-size: 11px; }
+.app .tactical-command-deck .selection-abilities { font-size: 10px; }
+.app .tactical-command-deck .camera-centre,
+.app .tactical-command-deck .commander-toggle { min-height: 0; }
+.app .commander-view { padding-top: calc(var(--battle-top, 52px) + 8px); padding-bottom: calc(var(--battle-dock-height, 160px) + 24px); }
+
+@media (min-width: 901px) and (pointer: fine), (min-width: 1101px) {
+  .app .sidebar { top: calc(var(--battle-top, 52px) + 6px); }
+  .app .objectives { top: calc(var(--battle-top, 52px) + 6px); }
+  .app .paused-banner {
+    top: auto;
+    bottom: calc(var(--battle-dock-height, 160px) + 20px);
+    padding: 4px 10px;
+    font: 11px var(--font-body);
+    letter-spacing: .02em;
+    box-shadow: none;
+  }
+}
+@media (max-width: 900px), (pointer: coarse) and (max-width: 1100px) {
+  .app .mobile-dock { grid-template-rows: 72px 44px minmax(0, 1fr); }
+  .app .mobile-dock:has(.battle-communications:not(:empty)) { grid-template-rows: auto 72px 44px minmax(0, 1fr); }
+  .app .mobile-lance-row :is(.lance-card, .mobile-lance-action, .commander-toggle) { min-height: 72px; }
+  .app .mobile-dock.panel-unit { height: min(70dvh, 520px); }
+  .app .mobile-dock .battle-communications { display: block; max-height: 65px; overflow: auto; }
+  .app .mobile-dock .battle-communications:empty { display: none; }
+  .app .mobile-dock .battle-communications > * { width: 100%; box-sizing: border-box; }
+  .app .mobile-dock .battle-communications > * + * { margin-top: 4px; }
+  .app .mobile-dock .field-radio .pilot-portrait { display: none; }
+  .app .mobile-dock .field-radio > button { min-width: 44px; min-height: 44px; }
+  .app .mobile-dock .support-status summary { min-height: 44px; }
+  .app .mobile-dock.panel-unit .mobile-tray { overflow-y: auto; }
+  .app .commander-view { padding-bottom: calc(var(--battle-dock-height, var(--mobile-dock)) + 18px + var(--safe-bottom)); }
+  .app .mobile-dock.training-select { grid-template-rows: 58px; }
+  .app .mobile-dock.training-progressive { grid-template-rows: 58px 44px minmax(0, 1fr); }
+  .app .mobile-dock:is(.training-select, .training-progressive) .mobile-lance-row :is(.lance-card, .mobile-lance-action, .commander-toggle) { min-height: 58px; }
+}
+@media (max-width: 900px) and (orientation: landscape), (pointer: coarse) and (max-width: 1100px) and (orientation: landscape) {
+  .app .mobile-dock { grid-template-rows: 44px minmax(0, 1fr); }
+  .app .mobile-dock:has(.battle-communications:not(:empty)) { height: calc(var(--mobile-dock) + 48px); grid-template-rows: 48px 44px minmax(0, 1fr); }
+  .app .mobile-dock .battle-communications { grid-column: 1 / -1; grid-row: 1; }
+  .app .mobile-dock:has(.battle-communications:not(:empty)) .mobile-lance-row { grid-row: 2 / -1; }
+  .app .mobile-dock:has(.battle-communications:not(:empty)) .mobile-dock-tabs { grid-row: 2; }
+  .app .mobile-dock:has(.battle-communications:not(:empty)) .mobile-tray { grid-row: 3; }
+  .app .mobile-dock.panel-unit,
+  .app .mobile-dock.panel-unit:has(.battle-communications:not(:empty)) { height: min(78dvh, 390px); }
+  .app .mobile-lance-row :is(.lance-card, .mobile-lance-action, .commander-toggle) { min-height: 0; }
+}
+
+/* Reports change the dock height; nearby drawers must reserve the same live space. */
+@media (max-width: 900px), (pointer: coarse) and (max-width: 1100px) {
+  .app .mobile-training,
+  .app .mobile-tray .tactics-drawer {
+    bottom: calc(var(--battle-dock-height, var(--mobile-dock)) + 16px + var(--safe-bottom));
+  }
+  .app .mobile-tray .tactics-drawer {
+    max-height: max(44px, calc(100dvh - var(--mobile-top) - var(--battle-dock-height, var(--mobile-dock)) - var(--safe-bottom, 0px) - 28px));
+  }
+  .app .mobile-objectives .objective-body {
+    max-height: min(36dvh, max(44px, calc(100dvh - var(--mobile-top) - var(--mobile-status) - var(--battle-dock-height, var(--mobile-dock)) - var(--safe-bottom, 0px) - 66px)));
+  }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .app .mobile-training[data-training-step="4"] {
+    max-height: max(44px, calc(100dvh - var(--mobile-top) - var(--mobile-status) - var(--battle-dock-height, var(--mobile-dock)) - var(--safe-bottom, 0px) - 74px));
+  }
+}

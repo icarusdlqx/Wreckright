@@ -13,7 +13,7 @@ export function OpeningRouteGuide({ recommendation, selectedId, onReview, onDism
   const { route, step, node, stepNumber, links } = recommendation;
   return <section className="opening-route" aria-labelledby="opening-route-title" data-testid="opening-route">
     <header>
-      <div><p>Suggested opening · contract {stepNumber} of {route.steps.length}</p>
+      <div><p>Optional opening guide · contract {stepNumber} of {route.steps.length}</p>
         <h3 id="opening-route-title">{route.title}</h3></div>
       <button type="button" className="opening-route-dismiss" data-testid="opening-route-dismiss" onClick={onDismiss}>Hide opening guide</button>
     </header>

@@ -207,7 +207,7 @@ export function LanceBar({
     <div className="lance" data-testid="lance-bar">
       {units.map((unit) => {
         const total = Object.values(unit.locations).reduce(
-          (sum, location) => sum + location.armour + location.rearArmour + location.internal,
+          (sum, location) => sum + (location.destroyed ? 0 : location.armour + location.rearArmour + location.internal),
           0,
         );
         const max = Object.values(unit.locations).reduce(
@@ -223,12 +223,12 @@ export function LanceBar({
             type="button"
             className={`lance-card ${selection.includes(unit.id) ? 'selected' : ''} ${unit.alive ? '' : 'dead'}`}
             onClick={(event) => onSelect(unit.id, event.shiftKey)}
-            title="Click to select · Shift-click adds or removes · E selects all"
+            title={`${unit.pilotName} · ${unit.identity}. Click to select · Shift-click adds or removes · E selects all`}
             aria-pressed={selection.includes(unit.id)}
             data-testid={`lance-card-${unit.id}`}
           >
             <span className="lance-name">{unit.pilotName}</span>
-            <span className="lance-chassis" title={unit.identity}>{unit.identity}</span>
+            <span className="lance-chassis" title={unit.identity}>{unit.identity.split(' — ')[0]} · {unit.tonnage}t</span>
             <span className="lance-health">
               <span style={{ width: `${health * 100}%` }} />
             </span>

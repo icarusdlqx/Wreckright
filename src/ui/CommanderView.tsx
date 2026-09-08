@@ -22,6 +22,8 @@ import { supportRadius } from './supportOptions';
 import './commanderView.css';
 import { sensorSweepStatus } from './SensorSweepReadout';
 import { CommanderHealthBar } from './CommanderHealthBar';
+import { visiblePriorityTargets } from '../render/priorityTargets';
+import './commanderTargets.css';
 
 interface CommanderViewProps {
   engine: Engine | null;
@@ -187,6 +189,7 @@ export function CommanderView({ engine, compact = false }: CommanderViewProps) {
   const friendlyCount = model.chits.filter((chit) => chit.kind === 'friendly').length;
   const opticalCount = model.chits.length - friendlyCount;
   const probe = sensorSweepStatus(engine.world);
+  const focusedTargets = visiblePriorityTargets(engine.world, new Set(state.selection));
 
   return (
     <section
@@ -293,16 +296,25 @@ export function CommanderView({ engine, compact = false }: CommanderViewProps) {
           {model.chits.map((chit) => {
             const colour = colourForTeam(chit.team);
             const rotation = (chit.facing * 180) / Math.PI;
+            const focus = focusedTargets.get(chit.id);
+            const corner = markerSize * 0.72;
+            const inset = markerSize * 0.36;
             return (
               <g
                 key={chit.id}
-                className={`commander-chit ${chit.kind}${chit.selected ? ' selected' : ''}`}
+                className={`commander-chit ${chit.kind}${chit.selected ? ' selected' : ''}${focus === undefined ? '' : ` target-${focus}`}`}
                 transform={`translate(${chit.position.x} ${chit.position.y})`}
                 color={colour}
                 data-commander-kind={chit.kind}
                 data-commander-id={chit.id}
                 data-testid={`commander-chit-${chit.id}`}
               >
+                {focus === undefined ? null : <path
+                  className={`commander-target-brackets commander-target-brackets--${focus}`}
+                  data-testid={`commander-target-${chit.id}`}
+                  data-focus={focus}
+                  d={`M ${-inset} ${-corner} H ${-corner} V ${-inset} M ${inset} ${-corner} H ${corner} V ${-inset} M ${corner} ${inset} V ${corner} H ${inset} M ${-inset} ${corner} H ${-corner} V ${inset}`}
+                />}
                 {chit.kind === 'friendly' ? (
                   <rect
                     className="commander-chit-body"

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import type { CampaignPersistenceState } from '../../campaign/save';
 import { CommandMark } from '../CommandMark';
 import { AudioSettings } from '../AudioSettings';
@@ -17,8 +17,10 @@ export interface CampaignHeaderProps {
   manualOpen: boolean;
   muted: boolean;
   persistence: CampaignPersistenceState;
-  advanceDisabled: boolean;
-  onAdvance: () => void;
+  nextDisabled: boolean;
+  nextLabel: string;
+  onNext: () => void;
+  waiting?: ReactNode;
   onSave: () => void;
   onLoad: () => void;
   onExport: () => void;
@@ -40,8 +42,10 @@ export function CampaignHeader({
   manualOpen,
   muted,
   persistence,
-  advanceDisabled,
-  onAdvance,
+  nextDisabled,
+  nextLabel,
+  onNext,
+  waiting,
   onSave,
   onLoad,
   onExport,
@@ -92,9 +96,9 @@ export function CampaignHeader({
               <strong data-testid="camp-cbills">{balance}</strong>
             </div>
           </div>
-          <button type="button" className="camp-advance-button" onClick={onAdvance}
-            disabled={advanceDisabled} data-testid="camp-advance">
-            Advance a day
+          <button type="button" className="camp-next-button" onClick={onNext}
+            disabled={nextDisabled} data-testid="camp-next-mission">
+            {nextLabel} →
           </button>
         </div>
 
@@ -143,6 +147,7 @@ export function CampaignHeader({
               </div>
             </div>
           </details>
+          {waiting}
           <nav className="camp-utility-actions" aria-label="Company help and settings">
             <WikiLink className="camp-wiki-link" data-testid="camp-wiki">Story & machines</WikiLink>
             <button type="button" onClick={onToggleManual} data-testid="camp-manual-toggle"

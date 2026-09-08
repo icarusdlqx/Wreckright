@@ -183,11 +183,16 @@ export function estimateRepair(
   }
 
   const chassisCost = chassis?.baseCost ?? 0;
+  // Unbooked wrecks from older saves receive today's tariff, while an older
+  // discounted quote stays discounted. Paid bookings retain their saved date.
+  const rebuildCost = chassis === undefined
+    ? mech.rebuildCost
+    : Math.min(mech.rebuildCost, Math.round(chassisCost * catalog.rules.salvage.hulkRebuildCostFraction));
   const baseCost =
     armourPoints * rules.armourCostPerPoint +
     internalPoints * rules.internalCostPerPoint +
     destroyedLocations.length * chassisCost * rules.locationReplaceCostFraction +
-    mech.rebuildCost;
+    rebuildCost;
 
   const rawDays =
     armourPoints / rules.armourPointsPerDay +
@@ -196,13 +201,14 @@ export function estimateRepair(
     (mech.rebuildCost > 0 ? catalog.rules.salvage.hulkRebuildDays : 0);
 
   const needsWork = armourPoints > 0 || internalPoints > 0 || mech.rebuildCost > 0;
-  const baseDays = needsWork ? Math.max(rules.minimumDays, Math.ceil(rawDays)) : 0;
   const factors =
     chassis === undefined
       ? rules.factionFactors.linewrought
       : rules.factionFactors[chassis.faction];
   const cost = Math.round(baseCost * factors.cost);
-  const days = baseDays === 0 ? 0 : Math.ceil(baseDays * factors.days);
+  // Round only the finished labour estimate: a small Aurelian plate patch
+  // should not become two days just because its base estimate rounded to one.
+  const days = needsWork ? Math.max(rules.minimumDays, Math.ceil(rawDays * factors.days)) : 0;
 
   return {
     armourPoints,

@@ -181,8 +181,8 @@ describe('Aurelian Recall campaign', () => {
     expect(campaign.startingCbills).toBe(1_600_000);
     expect(campaign.startingCbills).toBe((linewrought?.startingCbills ?? 0) / 2);
     expect(catalog.rules.economy.repair.factionFactors.aurelian).toEqual({
-      cost: 2.5,
-      days: 2.5,
+      cost: 1.35,
+      days: 1.25,
     });
     expect(catalog.rules.economy.market.availableFactions).not.toContain('aurelian');
   });

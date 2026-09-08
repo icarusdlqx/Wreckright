@@ -5,6 +5,7 @@ import { employerDisplayName } from '../../campaign/employers';
 import { layoutCampaignMap, mapLabelHeight, MAP_SSR_SIZE, campaignAnchor } from './campaignMapLayout';
 import { CampaignTheatre, theatreIdentity } from './CampaignTheatre';
 import './campaignTheatre.css';
+import { mainStoryNodeIds, missingPrerequisites } from './campaignFlow';
 
 export type NodeState = 'locked' | 'available' | 'complete' | 'failed';
 
@@ -36,6 +37,8 @@ export function CampaignMap({ campaign, catalog, stateOf, selectedId, onSelect, 
   const mapRef = useRef<HTMLElement>(null);
   const [measured, setMeasured] = useState({ ...MAP_SSR_SIZE, borderHeight: 2, heights: {} as Record<string, number> });
   const nodes = campaign.nodes;
+  const story = mainStoryNodeIds(campaign);
+  const completed = nodes.filter((node) => stateOf(node) === 'complete').map((node) => node.id);
   useEffect(() => {
     const map = mapRef.current;
     if (map === null) return;
@@ -123,7 +126,7 @@ export function CampaignMap({ campaign, catalog, stateOf, selectedId, onSelect, 
             onClick={() => state === 'available' ? onSelect(node.id) : onReview?.(node.id)}
             data-testid={`camp-node-${node.id}`}
             data-map-node={node.id}
-            title={`${employer} · ${kind}`}
+            title={`${story.has(node.id) ? 'Main story' : 'Optional work'} · ${employer} · ${kind}${state === 'locked' ? ` · Complete: ${missingPrerequisites(campaign, node, completed).join(' + ')}` : ''}`}
           >
             <span className="node-glyph" aria-hidden="true">
               {state === 'complete' ? '✓' : state === 'failed' ? '✕' : glyph}

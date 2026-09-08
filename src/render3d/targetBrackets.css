@@ -1,0 +1,22 @@
+.field-target-brackets {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 2;
+}
+.field-target-bracket { position: absolute; top: 0; left: 0; color: #ffd084; }
+.field-target-bracket--inspection { color: #ffe8d5; opacity: .8; }
+.field-target-bracket i {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border: solid currentColor;
+  border-width: 0;
+  filter: drop-shadow(0 1px 1px #10232d);
+}
+.field-target-bracket i:nth-child(1) { top: 0; left: 0; border-top-width: 2px; border-left-width: 2px; }
+.field-target-bracket i:nth-child(2) { top: 0; right: 0; border-top-width: 2px; border-right-width: 2px; }
+.field-target-bracket i:nth-child(3) { bottom: 0; left: 0; border-bottom-width: 2px; border-left-width: 2px; }
+.field-target-bracket i:nth-child(4) { bottom: 0; right: 0; border-bottom-width: 2px; border-right-width: 2px; }
+.commander-mode .field-target-brackets { display: none; }

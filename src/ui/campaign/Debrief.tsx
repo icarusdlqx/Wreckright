@@ -20,6 +20,8 @@ import './salvage.css';
 import { RewardReceipt } from './CompanyRewards';
 import { DebriefActions } from './DebriefActions';
 import type { CampaignNavigationTarget } from './campaignNavigation';
+import { nextCampaignNode } from './campaignFlow';
+import './campaignFlow.css';
 
 const DEBRIEFED_KEY = 'ironline.campaign.debriefed';
 
@@ -124,6 +126,7 @@ export function Debrief({
     document.querySelector<HTMLElement>('[data-testid="camp-manual-toggle"]'),
   );
   const mission = catalog.missions.get(outcome.missionId);
+  const nextMission = nextCampaignNode(catalog, state);
   const campaign = catalog.campaigns.get(state.campaignId);
   const employer =
     campaign === undefined
@@ -190,6 +193,13 @@ export function Debrief({
             </p>
           )}
         </header>
+
+        {onAction === undefined || nextMission === null ? null : <section className="debrief-continue" data-testid="debrief-continue">
+          <div><strong>Next mission · {nextMission.name}</strong><p>Review the contract, then outfit your mechs and choose the deployment. No calendar advance is needed.</p></div>
+          <button type="button" data-testid="debrief-next-mission" onClick={() => onAction({ area: 'operations', nodeId: nextMission.id })}>
+            {nextMission.ending ? 'Review ending choices' : 'Review next mission'} →
+          </button>
+        </section>}
 
         {candidates.length === 0 && offered.length === 0 ? null : (
           <details className="debrief-salvage-report" data-testid="debrief-salvage-report">
@@ -369,7 +379,7 @@ export function Debrief({
 
         <footer className="manifest-actions">
           <button type="button" onClick={onClose} data-testid="debrief-close">
-            Back to base
+            Stay at company
           </button>
         </footer>
       </section>

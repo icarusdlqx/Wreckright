@@ -6,6 +6,7 @@ import { selectedUnit, useGame } from './store';
 import { TacticalReadout } from './TacticalReadout';
 import { selectionReadiness } from './selectionReadiness';
 import './tacticalWorkspace.css';
+import './focusedUnitPanel.css';
 import { CommandIntent } from './CommandIntent';
 import { FieldHints } from './FieldHints';
 import { CalledShotTarget } from './CalledShotTarget';
@@ -30,6 +31,7 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
           ?.name ?? preview.targetName;
   const playerControlled = unit !== null && unit.team === state.playerTeam && unit.alive;
   const readiness = unit === null ? null : selectionReadiness(unit);
+  const choosingCalledShot = playerControlled && state.orderMode === 'called_shot';
 
   return (
     <aside
@@ -42,23 +44,12 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
         </p>
       ) : (
         <>
-          <p className="selection-kicker">{unit.team === state.playerTeam ? 'Selected company machine' : 'Observed hostile machine'}</p>
-          <h2>
-            {unit.pilotName}
-            <small>{unit.identity}</small>
-          </h2>
-          {playerControlled ? (
-            <p className="pilot-hand" data-testid="pilot-hand">
-              <span title="Gunnery — steadies every shot">G{unit.pilotSkills.gunnery}</span>
-              <span title="Piloting — footing and recovery">P{unit.pilotSkills.piloting}</span>
-              <span title="Sensors — how far this machine sees">S{unit.pilotSkills.sensors}</span>
-              {unit.pilotTraits.map((trait) => (
-                <em key={trait}>{traitLabel(trait)}</em>
-              ))}
-            </p>
-          ) : null}
-          {readiness === null ? null : <div className={`selection-readiness ${readiness.tone}`}><span>{readiness.label}</span><strong>{unit.tonnage}t</strong></div>}
-          {playerControlled && state.orderMode === 'called_shot' ? <CalledShotTarget
+          <header className="unit-focus-heading">
+            <p className="selection-kicker">{unit.team === state.playerTeam ? 'Machine status' : 'Observed hostile'}</p>
+            <h2>{unit.pilotName}<small>{unit.identity.split(' — ')[0]} · {unit.tonnage}t</small></h2>
+          </header>
+          {readiness === null || readiness.tone === 'normal' ? null : <div className={`selection-readiness ${readiness.tone}`}><span>{readiness.label}</span></div>}
+          {choosingCalledShot ? <CalledShotTarget
             enemies={state.enemies}
             currentTargetId={unit.targetId}
             location={state.calledShotLocation}
@@ -68,15 +59,15 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
             }}
             onCancel={() => state.setOrderMode(null)}
           /> : null}
-          <p className="unit-system-label">{playerControlled ? 'Own armour' : 'Observed armour'} &amp; structure <span>front / rear / internal</span></p>
-          <PaperDoll
-            locations={unit.locations}
-          />
-          <HeatBar heat={unit.heat} capacity={unit.heatCapacity} thresholds={state.heatTiers} />
+          {choosingCalledShot ? <details className="unit-own-condition"><summary>Your machine condition</summary>
+            <PaperDoll locations={unit.locations} />
+          </details> : <PaperDoll locations={unit.locations} />}
+          <div className="unit-heat-line"><span>Heat</span><HeatBar heat={unit.heat} capacity={unit.heatCapacity} thresholds={state.heatTiers} /></div>
           <div className="target-line">
             {preview === null ? (
               <>
                 Target: <strong>{unit.targetName ?? 'none'}</strong>
+                {unit.targetRange === null ? null : <span className="target-range">{Math.round(unit.targetRange)}m</span>}
               </>
             ) : (
               <>
@@ -86,21 +77,6 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
             )}
           </div>
           {playerControlled ? <CommandIntent engine={engine} unit={unit} /> : null}
-          {playerControlled ? <FieldHints /> : null}
-          {preview === null || preview.factors.length === 0 ? null : (
-            <div className="hit-factors" data-testid="hit-factors">
-              {preview.factors.map((factor) => (
-                <span
-                  key={factor.id}
-                  className={factor.value < 1 ? 'penalty' : 'bonus'}
-                  title={`×${factor.value.toFixed(2)}`}
-                >
-                  {factor.label} {factor.value < 1 ? '−' : '+'}
-                  {Math.abs(Math.round((factor.value - 1) * 100))}%
-                </span>
-              ))}
-            </div>
-          )}
           <p className="unit-system-label">Weapon groups <span>range · ammunition</span></p>
           <WeaponGroups
             unit={unit}
@@ -110,13 +86,35 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
               engine?.setWeaponMode(unit.id, mountIndex, modeId)}
             {...(preview === null ? {} : { preview })}
           />
-          <details className="sidebar-details" open={compact} data-testid="tactical-details">
+          <details className="sidebar-details" data-testid="tactical-details">
             <summary>Tactical details</summary>
+            <p className="unit-full-identity">{unit.identity}</p>
+            {playerControlled ? <p className="pilot-hand" data-testid="pilot-hand">
+              <span title="Gunnery — steadies every shot">G{unit.pilotSkills.gunnery}</span>
+              <span title="Piloting — footing and recovery">P{unit.pilotSkills.piloting}</span>
+              <span title="Sensors — how far this machine sees">S{unit.pilotSkills.sensors}</span>
+              {unit.pilotTraits.map((trait) => <em key={trait}>{traitLabel(trait)}</em>)}
+            </p> : null}
+            {playerControlled ? <FieldHints /> : null}
+            {preview === null || preview.factors.length === 0 ? null : (
+              <div className="hit-factors" data-testid="hit-factors">
+                {preview.factors.map((factor) => (
+                  <span
+                    key={factor.id}
+                    className={factor.value < 1 ? 'penalty' : 'bonus'}
+                    title={`×${factor.value.toFixed(2)}`}
+                  >
+                    {factor.label} {factor.value < 1 ? '−' : '+'}
+                    {Math.abs(Math.round((factor.value - 1) * 100))}%
+                  </span>
+                ))}
+              </div>
+            )}
             <TacticalReadout unit={unit} friendly={unit.team === state.playerTeam} />
           </details>
         </>
       )}
-      <details className="sidebar-details log-details" open={compact} data-testid="log-details">
+      <details className="sidebar-details log-details" data-testid="log-details">
         <summary>
           Combat log <span>{Math.min(8, state.log.length)}</span>
         </summary>

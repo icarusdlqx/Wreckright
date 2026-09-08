@@ -9,13 +9,29 @@ import {
 } from './campaign';
 import { dailyPayroll } from './ledger';
 import { buyMech, marketListings, marketPeriod, saleValueOf, sellMech, valueOf } from './market';
+import { estimateRepair, pristineCondition } from './repair';
 import { assign, availableHires, hireCost, hirePilot } from './roster';
 import { deserialiseCampaign, serialiseCampaign } from './save';
 import { assessSolvency, retireCompany } from './solvency';
-import type { CampaignState } from './types';
+import type { CampaignState, MechRecord } from './types';
 
 function campaign(seed = 'solvency'): CampaignState {
   return startCampaign(catalog, 'border_dispute', seed);
+}
+
+function ruinedHalberd(): MechRecord {
+  const design = catalog.designs.get('halberd_prime');
+  if (design === undefined) throw new Error('missing expensive wreck fixture');
+  const condition = pristineCondition(catalog, design);
+  for (const location of Object.values(condition)) {
+    Object.assign(location, { armour: 0, rearArmour: 0, internal: 0, destroyed: true });
+  }
+  return {
+    id: 'expensive-wreck', design: structuredClone(design), condition,
+    status: 'hulk', readyOnDay: 0,
+    rebuildCost: (catalog.chassis.get(design.chassisId)?.baseCost ?? 0) *
+      catalog.rules.salvage.hulkRebuildCostFraction,
+  };
 }
 
 function imported(state: CampaignState): CampaignState {
@@ -229,19 +245,15 @@ describe('company solvency', () => {
     state.pilots = [];
     const listing = marketListings(catalog, state).sort((a, b) => a.price - b.price)[0];
     const hire = availableHires(catalog, state)[0];
-    const wreck = [...state.mechs].sort(
-      (left, right) => saleValueOf(catalog, right) - saleValueOf(catalog, left),
-    )[0];
-    if (listing === undefined || hire === undefined || wreck === undefined) {
+    const wreck = ruinedHalberd();
+    if (listing === undefined || hire === undefined) {
       throw new Error('recovery stock is incomplete');
     }
-    const fullSale = saleValueOf(catalog, wreck);
+    const damagedSale = saleValueOf(catalog, wreck);
     const pilotCost = hireCost(catalog, hire);
-    if (fullSale <= listing.price || fullSale <= pilotCost) {
+    if (estimateRepair(catalog, wreck).cost <= listing.price || damagedSale < pilotCost) {
       throw new Error('recovery stock does not exercise the purchase sequence');
     }
-    wreck.status = 'hulk';
-    wreck.rebuildCost = fullSale - pilotCost;
     state.mechs = [wreck];
     state.cbills = listing.price;
 
@@ -252,7 +264,7 @@ describe('company solvency', () => {
       plan: {
         mechSource: 'yard',
         saleBeforePurchase: 0,
-        saleAfterPurchase: pilotCost,
+        saleAfterPurchase: damagedSale,
       },
     });
     expect(buyMech(catalog, restored, listing.id).ok).toBe(true);
@@ -263,13 +275,12 @@ describe('company solvency', () => {
 
   it('counts a posted yard replacement when rebuilding the last wreck costs more', () => {
     const state = campaign('yard-instead-of-rebuild');
-    const wreck = state.mechs[0];
-    if (wreck === undefined) throw new Error('campaign has no mech');
+    const wreck = ruinedHalberd();
     state.mechs = [wreck];
     wreck.status = 'hulk';
     const listing = marketListings(catalog, state).sort((a, b) => a.price - b.price)[0];
     if (listing === undefined) throw new Error('yard has no listing');
-    wreck.rebuildCost = listing.price + 1;
+    expect(estimateRepair(catalog, wreck).cost).toBeGreaterThan(listing.price);
     state.cbills = listing.price;
 
     expect(assessSolvency(catalog, state)).toMatchObject({

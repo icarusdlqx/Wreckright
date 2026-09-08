@@ -92,7 +92,7 @@ export async function runCommandRefinementChecks({ browser, url, shots, check })
     await page.locator('[data-testid="field-radio"]').waitFor();
     check('successful orders receive a pilot radio acknowledgement with a portrait',
       await page.locator('[data-testid="field-radio"] .pilot-portrait').count() === 1
-      && /company radio/i.test(await page.locator('[data-testid="field-radio"]').innerText()));
+      && await page.locator('[data-testid="field-radio"]').getAttribute('aria-label') === 'Company radio');
     await page.locator('[data-testid="command-intent"]').waitFor();
     await shot('battle-order');
     check('refinement journey has no browser errors', errors.length === 0, errors.join('\n'));

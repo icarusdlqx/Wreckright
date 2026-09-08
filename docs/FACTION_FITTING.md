@@ -62,8 +62,13 @@ Local Yard stock is controlled by the existing authored faction allow-list.
 Linewrought replacement weapons and equipment can be bought when listed. Aurelian
 weapons and equipment must be recovered or stripped from an owned machine. Armour
 and structure repair is charged in credits and workshop time; it does not consume
-an invented spare-component resource. Current Aurelian repair factors are 2.5×
-cost and 2.5× time, applied to the chassis even when its weapon fit is mixed.
+an invented spare-component resource. Current Aurelian repair factors are 1.35×
+cost and 1.25× time, applied to the chassis even when its weapon fit is mixed.
+Workshop labour is rounded once to whole days. Recommissioning a recovered hull
+starts at 12% of its bare chassis cost and four workshop days, plus its actual
+field damage; each lost section adds 2% and one day before the faction factor.
+Existing unbooked hulls receive the lower current tariff, while already-paid
+workshop bookings keep their saved completion dates.
 
 ## Weapon baseline before this pass
 

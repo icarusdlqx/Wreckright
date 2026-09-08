@@ -23,6 +23,7 @@ import { stoppedCount } from './objectiveReadout';
 import { snapshotUnits } from './snapshot';
 import { useGame, type HitPreviewView } from './store';
 import { beginFieldRadio, observeFieldRadio } from './fieldRadio';
+import { clearCommandReceipt } from './commandReceiptState';
 import { buildFriendlyRouteMarkers } from './friendlyRouteMarkers';
 export { buildFriendlyRouteMarkers } from './friendlyRouteMarkers';
 
@@ -45,6 +46,7 @@ export class EnginePresentation {
   ) {
     this.clockSeconds = maxTicks * world.dt;
     beginFieldRadio(world);
+    clearCommandReceipt();
   }
 
   forceStep(): void {
