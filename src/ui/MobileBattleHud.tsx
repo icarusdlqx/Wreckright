@@ -20,6 +20,9 @@ import {
 } from './trainingPresentation';
 import type { TrainingStep } from './trainingProgress';
 import { UnitPanel } from './UnitPanel';
+import { FieldRadioPanel } from './FieldRadioPanel';
+import { CommandReceipt } from './CommandReceipt';
+import { useBattleDockSize } from './useBattleDockSize';
 import { selectionAbilities } from './selectionAbilities';
 
 type DockPanel = 'orders' | 'support' | 'contacts' | 'unit';
@@ -38,6 +41,7 @@ export function MobileBattleHud({
   onCommand,
 }: MobileBattleHudProps) {
   const state = useGame();
+  const dockRef = useBattleDockSize();
   const unit = selectedUnit(state);
   const [panel, setPanel] = useState<DockPanel>('orders');
   const playerControlled = unit !== null && unit.team === state.playerTeam && unit.alive;
@@ -111,12 +115,13 @@ export function MobileBattleHud({
     <>
       {fullHud ? <Minimap engine={engine} /> : null}
       <footer
+        ref={dockRef}
         className={`mobile-dock panel-${panel}${
           fullHud ? '' : trainingStep === 0 ? ' training-select' : ' training-progressive'
         }`}
         data-testid="mobile-dock"
       >
-        {fullHud ? <SupportStatus world={engine?.world ?? null} paused={state.paused} /> : null}
+        {fullHud ? <div className="battle-communications"><CommandReceipt /><FieldRadioPanel /><SupportStatus world={engine?.world ?? null} paused={state.paused} /></div> : null}
         <div className="mobile-lance-row">
           <button
             type="button"

@@ -4,6 +4,8 @@ import { runMechbayPersistenceChecks } from './mechbay-persistence.mjs';
 import { runUnitHealthChecks } from './unit-health.mjs';
 import { runCompactDesktopChecks } from './compact-desktop.mjs';
 import { runCommanderRadioChecks } from './commander-radio.mjs';
+import { runCombatDamageChecks } from './combat-damage.mjs';
+import { runTargetFeedbackChecks } from './target-feedback.mjs';
 import { runSuppliesRefitUpgradeChecks } from './supplies-refit-upgrades.mjs';
 import { runCompanyJournalChecks } from './company-journal.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
@@ -42,6 +44,7 @@ import { runCommanderViewChecks } from './commander-view.mjs';
 import { runMinimapControlChecks } from './minimap-control.mjs';
 import { runReadableRouteChecks } from './readable-routes.mjs';
 import { runCampaignRecovery } from './campaign-recovery.mjs';
+import { runCampaignCommandFlow } from './campaign-command-flow.mjs';
 import { runMobilePlaythrough } from './mobile-playthrough.mjs';
 import { runRangeDamageChartChecks } from './range-damage-chart.mjs';
 import {
@@ -520,9 +523,9 @@ async function main() {
       beforeBriefing, { timeout: 10_000 });
     const running = await sim(page);
     check('deploying starts the clock', running.tick > beforeBriefing, `${beforeBriefing} → ${running.tick}`);
-    const lanceIdentities = await page.locator('[data-testid="lance-bar"] .lance-chassis').allInnerTexts();
+    const lanceIdentities = await page.locator('[data-testid="lance-bar"] .lance-chassis').evaluateAll(elements => elements.map(element => element.title));
     check(
-      'battle lance cards carry complete machine identity without serial designations',
+      'compact lance cards retain complete machine identity in their tooltips without serial designations',
       lanceIdentities.length === 4 && lanceIdentities.every((label) =>
         /^[^—]+ — \d+t (Light|Medium|Heavy|Assault) · [^·]+ · (Linewrought|Aurelian Stock)$/.test(label) &&
         !/\b[A-Z]{3}-\d+\b/.test(label)),
@@ -1378,7 +1381,9 @@ async function main() {
     await page.screenshot({ path: `${SHOTS}/08-contract-terms.png` });
 
     const dayBefore = await day();
+    await page.locator('[data-testid="camp-waiting"] > summary').click();
     await page.locator('[data-testid="camp-advance"]').click();
+    await page.locator('[data-testid="camp-waiting"] > summary').click();
     check('advancing a day moves the clock', (await day()) === dayBefore + 1);
     const restDayLog = await page.locator('[data-testid="camp-log"]').innerText();
     check(
@@ -1703,9 +1708,9 @@ async function main() {
       await page.locator('[data-testid="debrief-close"]').focus();
       await page.keyboard.press('Tab');
       check(
-        'the campaign debrief traps forward focus',
+        'the campaign debrief traps forward focus at its next-mission action',
         (await page.evaluate(() => document.activeElement?.getAttribute('data-testid'))) ===
-          'debrief-adjust-picks',
+          'debrief-next-mission',
       );
       await page.keyboard.press('Shift+Tab');
       check(
@@ -1838,6 +1843,7 @@ async function main() {
     await runCompanyJournalChecks({ browser, url: URL, shots: SHOTS, check });
     await runLoreWikiChecks({ browser, url: URL, shots: SHOTS, check });
     await runOpeningRouteChecks({ browser, url: URL, shots: SHOTS, check });
+    await runCampaignCommandFlow({ browser, url: URL, shots: SHOTS, check });
     await runSensorActivationChecks({ browser, url: URL, shots: SHOTS, check });
     await runSupportServicesChecks({ browser, url: URL, shots: SHOTS, check });
     await runSkirmishForceChecks({ browser, url: URL, shots: SHOTS, check });
@@ -1846,6 +1852,8 @@ async function main() {
     await runUnitHealthChecks({ browser, url: URL, shots: SHOTS, check });
     await runCompactDesktopChecks({ browser, url: URL, shots: SHOTS, check });
     await runCommanderRadioChecks({ browser, url: URL, shots: SHOTS, check });
+    await runCombatDamageChecks({ browser, url: URL, shots: SHOTS, check });
+    await runTargetFeedbackChecks({ browser, url: URL, shots: SHOTS, check });
     await runLastSilentMomentsChecks({ browser, url: URL, check });
     await runMobilePlaythrough({ browser, url: URL, shots: SHOTS, check });
   } finally {

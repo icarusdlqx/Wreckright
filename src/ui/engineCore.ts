@@ -12,6 +12,7 @@ import {
 import { toResult, type BattleResult } from '../sim/world';
 import { AudioDirector } from './audio';
 import { endFieldRadio } from './fieldRadio';
+import { clearCommandReceipt } from './commandReceiptState';
 import {
   alphaStrikeSelection,
   attackSelection,
@@ -147,6 +148,7 @@ export class Engine {
 
   destroy(): void {
     endFieldRadio(this.world);
+    clearCommandReceipt();
     this.running = false;
     this.audio.destroy();
     this.detachInput?.();

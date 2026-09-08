@@ -19,7 +19,9 @@ export async function runCampaignRecovery({ page, shots, check }) {
   const dayBefore = Number(
     (await page.locator('[data-testid="camp-day"]').innerText()).replace('Day ', ''),
   );
+  await page.locator('[data-testid="camp-waiting"] > summary').click();
   await page.locator('[data-testid="camp-advance"]').click();
+  await page.locator('[data-testid="camp-waiting"] > summary').click();
   const dayAfter = Number(
     (await page.locator('[data-testid="camp-day"]').innerText()).replace('Day ', ''),
   );

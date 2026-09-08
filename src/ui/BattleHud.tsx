@@ -26,8 +26,10 @@ import type { TrainingStep } from './trainingProgress';
 import { UnitPanel } from './UnitPanel';
 import { useCompactLayout } from './useCompactLayout';
 import { FieldRadioPanel } from './FieldRadioPanel';
+import { CommandReceipt } from './CommandReceipt';
 import { selectionAbilities } from './selectionAbilities';
 import './battleStatusLayout.css';
+import { useBattleDockSize } from './useBattleDockSize';
 
 interface BattleHudProps {
   engine: Engine | null;
@@ -38,6 +40,7 @@ interface BattleHudProps {
 export function BattleHud({ engine, supportOptions, trainingStep = null }: BattleHudProps) {
   const state = useGame();
   const compact = useCompactLayout();
+  const dockRef = useBattleDockSize(!compact);
   const unit = selectedUnit(state);
   const playerControlled = unit !== null && unit.team === state.playerTeam && unit.alive;
   const abilities = selectionAbilities(state.units, state.selection, state.playerTeam, engine);
@@ -87,7 +90,6 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
       <>
         {fullHud ? <CommanderView engine={engine} compact /> : null}
         <SensorSweepReadout world={engine?.world ?? null} />
-        {fullHud ? <FieldRadioPanel /> : null}
         <MobileBattleHud
           engine={engine}
           supportOptions={supportOptions}
@@ -101,7 +103,6 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
   return (
     <>
       {fullHud ? <CommanderView engine={engine} /> : null}
-      {fullHud ? <FieldRadioPanel /> : null}
       {fullHud ? <UnitPanel engine={engine} /> : null}
       <div className="battle-field-status">
       {showsContacts ? (
@@ -119,8 +120,8 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
       <SensorSweepReadout world={engine?.world ?? null} />
       </div>
       {fullHud ? <Minimap engine={engine} /> : null}
-      <footer className={`bottombar tactical-command-deck${fullHud ? '' : ' training-bottombar'}`}>
-        {fullHud ? <SupportStatus world={engine?.world ?? null} paused={state.paused} /> : null}
+      <footer ref={dockRef} className={`bottombar tactical-command-deck${fullHud ? '' : ' training-bottombar'}`}>
+        {fullHud ? <div className="battle-communications"><CommandReceipt /><FieldRadioPanel /><SupportStatus world={engine?.world ?? null} paused={state.paused} /></div> : null}
         {trainingShowsHeatReadout(trainingStep) ? (
           <TrainingHeatReadout unit={playerControlled ? unit : null} />
         ) : null}

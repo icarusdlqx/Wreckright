@@ -29,6 +29,7 @@ import { formationDestinations } from './formation';
 import { prepareInvestigation } from './investigationOrder';
 import { useGame } from './store';
 import { pilotOrder } from './fieldRadio';
+import { acknowledgeCommand } from './commandReceiptState';
 
 export interface EngineOrderContext {
   readonly world: World;
@@ -98,6 +99,7 @@ export function engageContactSelection(
     useGame.getState().pushLog(
       entities.length === 0 ? 'No mech selected to give that order to.' : 'No route to that point.',
     );
+    acknowledgeCommand(entities.length === 0 ? 'Select a friendly mech first.' : 'No route to that contact.', 'attention');
     return;
   }
   context.audio.order(pilotOrder(context.world, entities[0] ?? null, 'investigate'));
@@ -108,6 +110,7 @@ export function engageContactSelection(
     ? ''
     : `${investigating} mech${investigating === 1 ? '' : 's'} investigating sensor contact`;
   useGame.getState().pushLog(`${[firing, moving].filter(Boolean).join('; ')}.`);
+  acknowledgeCommand(ordered > 0 ? `Sensor target confirmed · ${ordered} firing${investigating > 0 ? `, ${investigating} investigating` : ''}` : `Investigating sensor contact · ${investigating} mech${investigating === 1 ? '' : 's'}`);
 }
 
 export function jumpSelection(context: EngineOrderContext, to: Vec2): void {
@@ -141,8 +144,13 @@ export function attackSelection(
   // to tell apart from a control that is simply broken.
   const target = findEntity(context.world, targetId);
   const push = useGame.getState().pushLog;
-  if (eligible === 0) push('No mech selected to give that order to.');
-  else if (ordered === 0) push('Optical contact is required before that target can be engaged.');
+  if (eligible === 0) {
+    push('No mech selected to give that order to.');
+    acknowledgeCommand('Select a friendly mech first.', 'attention');
+  } else if (ordered === 0) {
+    push('Optical contact is required before that target can be engaged.');
+    acknowledgeCommand('Target unavailable · optical contact required.', 'attention');
+  }
   else if (target !== null) {
     const speaker = findEntity(context.world, context.selectedEntities()[0] ?? null);
     context.audio.order(pilotOrder(context.world, speaker, 'attack'));
@@ -150,6 +158,7 @@ export function attackSelection(
       ? authoredDesignName(context.world.catalog, { id: target.designId, name: target.name })
       : 'sensor contact';
     push(`${ordered} mech${ordered === 1 ? '' : 's'} targeting ${label}.`);
+    acknowledgeCommand(`Priority target: ${label} · ${ordered} mech${ordered === 1 ? '' : 's'}`);
   }
 }
 
@@ -161,6 +170,7 @@ export function targetNearestSelection(
   const anchor = findEntity(context.world, ids[0] ?? null);
   if (anchor === null) {
     useGame.getState().pushLog('No mech selected to give that order to.');
+    acknowledgeCommand('Select a friendly mech first.', 'attention');
     return;
   }
 
@@ -177,6 +187,7 @@ export function targetNearestSelection(
 
   if (best === null) {
     useGame.getState().pushLog('Nothing hostile in optical sight.');
+    acknowledgeCommand('Nothing hostile in optical sight.', 'attention');
     return;
   }
   attack(best.id);

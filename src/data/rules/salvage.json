@@ -11,6 +11,6 @@
   "weaponRecoveryMax": 0.9,
   "equipmentRecovery": 0.7,
   "destroyedLocationRecovery": 0.15,
-  "hulkRebuildCostFraction": 0.45,
-  "hulkRebuildDays": 21
+  "hulkRebuildCostFraction": 0.12,
+  "hulkRebuildDays": 4
 }

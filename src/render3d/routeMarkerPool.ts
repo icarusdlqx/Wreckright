@@ -20,7 +20,7 @@ const DEFAULT_CAPACITIES: RouteMarkerCapacities = {
 };
 const ROUTE_LIFT = 1.8;
 const LABEL_LIFT = 3.5;
-const CHEVRON_SPACING = 18;
+const CHEVRON_SPACING = 52;
 const CHEVRON_SPEED = 16;
 const ACTIVE_INTENSITY = 1;
 const QUEUED_INTENSITY = 0.38;
@@ -67,7 +67,7 @@ export class RouteMarkerPool {
     this.lineColours = dynamicAttribute(this.capacities.lineSegments * 2 * 3);
     lineGeometry.setAttribute('position', this.linePositions);
     lineGeometry.setAttribute('color', this.lineColours);
-    this.lines = new LineSegments(lineGeometry, routeLineMaterial(0.9, false));
+    this.lines = new LineSegments(lineGeometry, routeLineMaterial(0.58, false));
     this.lines.name = 'route-lines';
     this.lines.userData.activeIntensity = ACTIVE_INTENSITY;
     this.lines.userData.queuedIntensity = QUEUED_INTENSITY;
@@ -84,7 +84,7 @@ export class RouteMarkerPool {
       new MeshBasicMaterial({
         vertexColors: true,
         transparent: true,
-        opacity: 0.92,
+        opacity: 0.64,
         depthTest: false,
         depthWrite: false,
         side: DoubleSide,
@@ -238,7 +238,7 @@ export class RouteMarkerPool {
   private addWedge(leg: RouteMarkerLeg, team: number): void {
     const endpoint = leg.points[leg.points.length - 1];
     if (endpoint === undefined) return;
-    this.writeMark(endpoint.x, endpoint.y, leg.arrivalFacing, 7.5, team, leg.kind, 'wedge');
+    this.writeMark(endpoint.x, endpoint.y, leg.arrivalFacing, 3.8, team, leg.kind, 'wedge');
   }
 
   private addChevrons(leg: RouteMarkerLeg, liveStart: Vec2 | null, team: number): void {
@@ -256,7 +256,7 @@ export class RouteMarkerPool {
       const distance = Math.hypot(dx, dy);
       while (distance > 0 && target <= traversed + distance) {
         const t = (target - traversed) / distance;
-        this.writeMark(ax + dx * t, ay + dy * t, Math.atan2(dy, dx), 4.6, team, leg.kind, 'chevron');
+        this.writeMark(ax + dx * t, ay + dy * t, Math.atan2(dy, dx), 2.0, team, leg.kind, 'chevron');
         target += CHEVRON_SPACING;
       }
       traversed += distance;
@@ -282,7 +282,7 @@ export class RouteMarkerPool {
       const distance = Math.hypot(dx, dy);
       if (traversed + distance >= routeLength / 2) {
         const t = (routeLength / 2 - traversed) / Math.max(distance, 0.001);
-        this.writeMark(ax + dx * t, ay + dy * t, Math.atan2(dy, dx), 4.6, team, leg.kind, 'chevron');
+        this.writeMark(ax + dx * t, ay + dy * t, Math.atan2(dy, dx), 2.0, team, leg.kind, 'chevron');
         return;
       }
       traversed += distance;

@@ -9,9 +9,9 @@ function header(overrides: Partial<CampaignHeaderProps> = {}): string {
   const noAction = (): void => undefined;
   const props: CampaignHeaderProps = {
     title: 'The Border Dispute', day: 3, balance: '240,000 C-bills', seed: 'field-code',
-    manualOpen: false, muted: true, advanceDisabled: false,
+    manualOpen: false, muted: true, nextDisabled: false, nextLabel: 'Next mission',
     persistence: { mode: 'persistent', issue: null, detail: null, recoveryRaw: null },
-    onAdvance: noAction, onSave: noAction, onLoad: noAction, onExport: noAction,
+    onNext: noAction, onSave: noAction, onLoad: noAction, onExport: noAction,
     onExportRecovery: noAction, onImport: noAction, onChooseCampaign: noAction,
     onRestart: noAction, onToggleManual: noAction, onToggleMuted: noAction, onExit: noAction,
     ...overrides,
@@ -41,6 +41,8 @@ describe('campaign command header', () => {
     expect(markup).toContain('data-testid="camp-day">Day 3');
     expect(markup).toContain('data-testid="camp-cbills">240,000 C-bills');
     expect(files).not.toContain('camp-advance');
+    expect(markup).toContain('data-testid="camp-next-mission"');
+    expect(markup).not.toContain('Advance a day');
     expect(markup).not.toContain('data-testid="camp-restart-dialog"');
   });
 

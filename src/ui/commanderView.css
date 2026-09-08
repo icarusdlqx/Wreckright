@@ -121,16 +121,16 @@
 
 .commander-route {
   fill: none;
-  stroke-width: 3;
+  stroke-width: 1.3;
   stroke-linecap: round;
   stroke-linejoin: round;
-  opacity: 0.84;
+  opacity: 0.65;
   pointer-events: none;
   vector-effect: non-scaling-stroke;
 }
 
 .commander-route.queued {
-  stroke-dasharray: 5 7;
+  stroke-dasharray: 3 7;
   opacity: 0.4;
 }
 

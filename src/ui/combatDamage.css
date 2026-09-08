@@ -1,0 +1,47 @@
+.app .paper-doll.combat-damage { display: block; margin: 8px 0; }
+.combat-damage__heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: 10px var(--font-mono); color: #c0d4c7; }
+.combat-damage__faces { display: flex; }
+.combat-damage__faces button { padding: 3px 7px; min-height: 25px; border: 1px solid #57766d; background: #122e37; color: #c3d5ca; font: 10px var(--font-body); cursor: pointer; }
+.combat-damage__faces button[aria-pressed='true'] { background: #3a584b; color: #fff6db; border-color: #dfce9f; }
+.combat-damage__stage { position: relative; width: min(100%, 218px); aspect-ratio: 256 / 198; margin: 4px auto 0; }
+.combat-damage__drawing { display: block; width: 100%; height: 100%; overflow: visible; }
+.combat-damage__frame { stroke: #88a7a0; stroke-width: 7; fill: none; }
+.combat-damage__shell { stroke: #d7e5cf; stroke-width: 1.1; stroke-linejoin: round; }
+.combat-damage__core { stroke: #112c37; stroke-width: 2; }
+.combat-damage__tone--sound { fill: #86c49c; background: #86c49c; }
+.combat-damage__tone--damaged { fill: #e7c76b; background: #e7c76b; }
+.combat-damage__tone--critical { fill: #ee826f; background: #ee826f; }
+.combat-damage__tone--destroyed { fill: #08161d; background: #08161d; }
+.combat-damage__label { fill: #10262b; font: 700 12px var(--font-mono); text-anchor: middle; }
+.combat-damage__mark { fill: #11262c; font: 700 11px var(--font-mono); text-anchor: middle; }
+.combat-damage__part[data-armour='destroyed'] :is(.combat-damage__label, .combat-damage__mark) { fill: #d3dbd0; }
+.combat-damage__cross { stroke: #f2c4b7; stroke-width: 2; fill: none; }
+.combat-damage__part--active .combat-damage__shell { stroke: #fff4c3; stroke-width: 3; stroke-dasharray: 4 2; }
+.app .paper-doll.combat-damage .doll-cell.combat-damage__hit { position: absolute; display: block; min-height: 0; margin: 0; padding: 0; border: 0; background: transparent; border-radius: 3px; box-shadow: none; }
+.app .paper-doll.combat-damage .combat-damage__hit:enabled:hover { background: #fff8c228; }
+.app .paper-doll.combat-damage .combat-damage__hit:focus-visible { outline: 2px solid #fff4c3; outline-offset: 2px; }
+.combat-damage__key { margin: 3px 0 5px; color: #bfd2c7; font: 9px/1.4 var(--font-body); text-align: center; }
+.combat-damage__legend { display: flex; justify-content: center; flex-wrap: wrap; gap: 5px 8px; color: #c4d5c9; font-size: 9px; }
+.combat-damage__legend > span { display: inline-flex; gap: 3px; align-items: center; }
+.combat-damage__legend i { width: 12px; height: 12px; display: inline-grid; place-items: center; border: 1px solid #aac2b3; color: #10262b; font: bold 10px var(--font-mono); }
+.combat-damage__legend .combat-damage__tone--destroyed { color: #f3c7b7; }
+.combat-damage__values { margin-top: 4px; font-size: 10px; }
+.combat-damage__values summary { color: #b9cfc2; cursor: pointer; min-height: 26px; display: list-item; align-content: center; }
+.combat-damage__values table { width: 100%; border-collapse: collapse; font: 9px var(--font-mono); }
+.combat-damage__values caption { text-align: left; color: #b9cfc2; padding: 5px 0; font: 9px var(--font-body); }
+.combat-damage__values th, .combat-damage__values td { text-align: right; padding: 4px 2px; border-bottom: 1px solid #68877a40; }
+.combat-damage__values :is(th, td):first-child { text-align: left; }
+@media (max-width: 900px), (max-width: 1100px) and (pointer: coarse) {
+  .combat-damage__faces button { min-height: 44px; min-width: 52px; }
+  .combat-damage__values summary { min-height: 44px; }
+  .combat-damage__stage--interactive { width: min(100%, 280px); }
+}
+@media (forced-colors: active) {
+  .combat-damage__shell { fill: Canvas; stroke: CanvasText; }
+  .combat-damage__core { fill: Canvas; stroke: CanvasText; }
+  .combat-damage__part[data-armour='critical'] .combat-damage__shell { stroke-width: 3; }
+  .combat-damage__part[data-armour='damaged'] .combat-damage__shell { stroke-dasharray: 3 2; }
+  .combat-damage__part .combat-damage__label, .combat-damage__part .combat-damage__mark { fill: CanvasText; }
+  .combat-damage__cross { stroke: CanvasText; }
+  .combat-damage__legend i { background: Canvas; color: CanvasText; border-color: CanvasText; }
+}

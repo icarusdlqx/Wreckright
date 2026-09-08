@@ -15,10 +15,10 @@
     "bayCapacity": 1,
     "armourCostPerPoint": 250,
     "internalCostPerPoint": 1200,
-    "locationReplaceCostFraction": 0.08,
-    "armourPointsPerDay": 90,
-    "internalPointsPerDay": 20,
-    "locationReplaceDays": 4,
+    "locationReplaceCostFraction": 0.02,
+    "armourPointsPerDay": 120,
+    "internalPointsPerDay": 60,
+    "locationReplaceDays": 1,
     "minimumDays": 1,
     "factionFactors": {
       "linewrought": {
@@ -26,8 +26,8 @@
         "days": 1
       },
       "aurelian": {
-        "cost": 2.5,
-        "days": 2.5
+        "cost": 1.35,
+        "days": 1.25
       }
     }
   },

@@ -1,6 +1,6 @@
-/** A real movement remark must not intercept the map; its dismiss button stays interactive. */
+/** Radio stays inside the command dock and never covers the playable Commander map. */
 export async function runCommanderRadioChecks({ browser, url, shots, check }) {
-  process.stdout.write('\nCommander radio hit testing\n');
+  process.stdout.write('\nCommander radio docking\n');
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
   const errors = [];
@@ -22,41 +22,46 @@ export async function runCommanderRadioChecks({ browser, url, shots, check }) {
     }
     await page.getByTestId('lance-bar').locator('button').first().click();
     await page.getByTestId('commander-toggle').click();
-    await page.getByTestId('commander-view').waitFor();
     const map = page.getByTestId('commander-map');
-    await map.click({ button: 'right', position: { x: 420, y: 350 } });
+    await map.click({ button: 'right', position: { x: 220, y: 220 } });
     const radio = page.getByTestId('field-radio');
     await radio.waitFor();
-    const fixture = await page.evaluate(() => {
-      const { world, useGame } = globalThis.__wreckright;
-      const radio = document.querySelector('[data-testid="field-radio"]');
-      const body = radio.querySelector('div').getBoundingClientRect();
-      const map = document.querySelector('[data-testid="commander-map"]');
-      const point = map.createSVGPoint();
-      point.x = body.left + body.width * .45;
-      point.y = body.top + body.height * .5;
-      const worldPoint = point.matrixTransform(map.getScreenCTM().inverse());
-      const friend = world.entities.find(unit => unit.team === world.playerTeam && !unit.destroyed
-        && !useGame.getState().selection.includes(unit.id));
-      if (!friend) throw Error('Radio hit test requires a second friendly mech.');
-      friend.pos = { x: worldPoint.x, y: worldPoint.y };
-      useGame.getState().patch({ tick: useGame.getState().tick + 1 });
-      return { id: friend.id, x: point.x, y: point.y };
+    await page.waitForFunction(() => {
+      const map = document.querySelector('[data-testid="commander-map"]').getBoundingClientRect();
+      const dock = document.querySelector('.tactical-command-deck').getBoundingClientRect();
+      return map.bottom <= dock.top;
     });
-    await page.waitForFunction(({ id, x, y }) => document.elementFromPoint(x, y)
-      ?.closest('[data-commander-id]')?.getAttribute('data-commander-id') === String(id), fixture);
-    check('a routine radio body leaves its underlying Commander chit hit-testable', true);
-    await page.mouse.click(fixture.x, fixture.y);
-    check('a physical mouse click through the radio selects the underlying mech without dismissing the remark',
-      await page.evaluate(id => {
-        const selected = globalThis.__wreckright.useGame.getState().selection;
-        return selected.length === 1 && selected[0] === id;
-      }, fixture.id) && await radio.isVisible());
-    if (shots) await page.screenshot({ path: `${shots}/commander-radio-click-through.png` });
+    const layout = await page.evaluate(() => {
+      const bounds = selector => document.querySelector(selector)?.getBoundingClientRect();
+      const map = bounds('[data-testid="commander-map"]');
+      const radio = bounds('[data-testid="field-radio"]');
+      const dock = bounds('.tactical-command-deck');
+      const top = bounds('[data-testid="topbar"]');
+      const contacts = bounds('[data-testid="hostile-bar"]');
+      return {
+        radioDocked: radio.top >= dock.top && radio.bottom <= dock.bottom && map.bottom <= radio.top,
+        compactCards: [...document.querySelectorAll('.lance-card')].every(card => card.getBoundingClientRect().height <= 80),
+        topAttached: Math.abs(top.bottom - contacts.top) <= 1,
+        map, radio, dock,
+      };
+    });
+    check('radio sits inside the command dock and outside the Commander map', layout.radioDocked, JSON.stringify(layout));
+    check('squad cards remain compact selectors', layout.compactCards, JSON.stringify(layout));
+    // Contacts intentionally hide in Commander mode; check physical field layout on return below.
+    const selected = await page.evaluate(() => globalThis.__wreckright.useGame.getState().selection);
+    if (shots) await page.screenshot({ path: `${shots}/commander-radio-docked.png` });
     await page.getByRole('button', { name: 'Dismiss radio report', exact: true }).click();
     await radio.waitFor({ state: 'hidden' });
-    check('the radio dismiss button still receives clicks without changing Commander selection',
-      await page.evaluate(id => globalThis.__wreckright.useGame.getState().selection[0] === id, fixture.id));
-    check('radio click-through journey has no browser errors', errors.length === 0, errors.join('\n'));
+    check('dismissing a docked report leaves the selection unchanged',
+      JSON.stringify(await page.evaluate(() => globalThis.__wreckright.useGame.getState().selection)) === JSON.stringify(selected));
+    await page.getByTestId('commander-toggle').click();
+    const contactsAttached = await page.evaluate(() => {
+      const top = document.querySelector('[data-testid="topbar"]').getBoundingClientRect();
+      const contacts = document.querySelector('[data-testid="hostile-bar"]').getBoundingClientRect();
+      return Math.abs(top.bottom - contacts.top) <= 1;
+    });
+    check('field contacts attach directly beneath the header', contactsAttached);
+    if (shots) await page.screenshot({ path: `${shots}/combat-command-workspace.png` });
+    check('radio docking journey has no browser errors', errors.length === 0, errors.join('\n'));
   } finally { await context.close(); }
 }

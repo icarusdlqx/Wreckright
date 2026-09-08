@@ -20,8 +20,8 @@ export interface RouteMarkerStats {
   readonly capacities: RouteMarkerCapacities;
 }
 
-export const GLYPH_SCALE = 1.4;
-export const GLYPH_ADVANCE = 4;
+export const GLYPH_SCALE = 1.0;
+export const GLYPH_ADVANCE = 3;
 export const GLYPH_SEGMENTS = new Float32Array([
   0, 5, 3, 5, 3, 5, 3, 2.5, 3, 2.5, 3, 0, 0, 0, 3, 0,
   0, 2.5, 0, 0, 0, 5, 0, 2.5, 0, 2.5, 3, 2.5,

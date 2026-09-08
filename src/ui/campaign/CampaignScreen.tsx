@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { abandonContract, acceptContract, advanceDays, availableNodes, campaignOf, standDownCampaign,
+import { abandonContract, acceptContract, availableNodes, campaignOf, standDownCampaign,
   negotiationOptions } from '../../campaign/campaign';
 import {
   campaignBlob,
@@ -48,6 +48,10 @@ import { missionPreviewData, previewMissionId } from './missionPreviewData';
 import { openingRecommendation } from './openingRoute';
 import { OpeningRouteGuide } from './OpeningRouteGuide';
 import { CampaignStoryPanel } from './CampaignStoryPanel';
+import { CampaignNextStep } from './CampaignNextStep';
+import { CampaignWaiting } from './CampaignWaiting';
+import { CampaignRouteList } from './CampaignRouteList';
+import { nextCampaignNode, waitCompany } from './campaignFlow';
 
 const catalog = getCatalog();
 const DEFAULT_CAMPAIGN_ID = 'border_dispute';
@@ -80,7 +84,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
   );
   const open = useMemo(() => availableNodes(catalog, state), [state]);
   const posted = useMemo(() => open.filter((entry) => isSideContract(entry.id)), [open]);
-  const node = open.find((entry) => entry.id === selectedNode) ?? open[0] ?? null;
+  const node = open.find((entry) => entry.id === selectedNode) ?? nextCampaignNode(catalog, state);
   const options = node === null ? [] : negotiationOptions(catalog, node);
   const lance = deploymentCandidates(state);
   const directLaunch = canLaunchFirstDropDirectly(catalog, state);
@@ -195,12 +199,18 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
   };
 
   const revealPosting = (id: string): void => {
+    navigation.navigate({ area: 'operations' });
     setSelectedNode(id);
     globalThis.requestAnimationFrame?.(() => {
       const panel = globalThis.document?.querySelector<HTMLElement>('[data-testid="camp-contract"]');
       panel?.focus({ preventScroll: true });
       panel?.scrollIntoView({ block: 'start' });
     });
+  };
+  const continueMission = (): void => {
+    if (state.contract !== null) onDeploy();
+    else if (node !== null) revealPosting(node.id);
+    else navigation.navigate({ area: 'operations' });
   };
 
   return (
@@ -219,8 +229,11 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         manualOpen={manualOpen}
         muted={score.muted}
         persistence={persistence}
-        advanceDisabled={state.finished}
-        onAdvance={advanceDay}
+        nextDisabled={state.finished}
+        nextLabel={state.finished ? 'Campaign ended' : state.contract !== null ? 'Outfit & deploy' : 'Next mission'}
+        onNext={continueMission}
+        waiting={<CampaignWaiting catalog={catalog} state={state}
+          onWait={(day) => mutate((draft) => waitCompany(catalog, draft, day))} />}
         onSave={() => {
           const saved = saveCampaign(state);
           setPersistence(saved.status);
@@ -279,12 +292,14 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         />
       )}
       <CampaignGuide stage={guidedFirstDrop} onDismiss={() => setGuideDismissed(true)} />
-
+      <CampaignNextStep catalog={catalog} state={state} node={node} onContinue={continueMission} />
       <CampaignWorkspace
         key={`${state.campaignId}:${state.seed}`}
         catalog={catalog}
         state={state}
         story={<CampaignStoryPanel campaign={campaign} completedNodes={state.completedNodes} />}
+        route={guidedFirstDrop !== 'done' ? null : <CampaignRouteList campaign={campaign} state={state} open={open}
+          selectedId={node?.id ?? null} onReview={revealPosting} />}
         fullCompany={guidedFirstDrop === 'done'}
         area={navigation.area} onAreaChange={navigation.setArea} journalNodeId={navigation.target?.nodeId}
         workshop={(active) => <MechBayPanel state={state} mutate={mutate} onRefit={setRefitting} previewActive={active && previewsActive} focus={navigation.target} />}
@@ -328,7 +343,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
             report={solvency}
             contractActive={state.contract !== null}
             onAdvance={(day) =>
-              mutate((draft) => advanceDays(catalog, draft, day - draft.day))
+              mutate((draft) => waitCompany(catalog, draft, day))
             }
             onRetire={() =>
               mutate((draft) => {
@@ -385,7 +400,10 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         debriefed={debriefed}
         mutate={mutate}
         onDebriefed={setDebriefed}
-        onNavigate={navigation.navigate}
+        onNavigate={(target) => {
+          if (target.area === 'operations' && target.nodeId !== undefined) revealPosting(target.nodeId);
+          else navigation.navigate(target);
+        }}
       />
       <CampaignPrep
         catalog={catalog}
@@ -401,10 +419,6 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
       />
     </div>
   );
-
-  function advanceDay(): void {
-    mutate((draft) => advanceDays(catalog, draft, 1));
-  }
 
   function onExportSave(): void {
     downloadCampaignFile(campaignBlob(state), `${state.campaignId}-day${state.day}.json`);
