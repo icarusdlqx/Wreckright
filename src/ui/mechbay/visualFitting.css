@@ -194,8 +194,8 @@
   column-gap: 9px;
   min-height: 52px;
 }
+/* Reserve the preview line so a rack cannot grow away from the pointer on pickup. */
 .bay-location .slot-block.empty .rack-drop-space { grid-column: 1 / -1; }
-.bay-location:not(.is-targeting) .slot-block.empty .rack-drop-space { display: none; }
 .bay.bay--workspace .bay-location .rack-free-count { height: auto; white-space: normal; }
 .bay.bay--workspace .slot-block:has(.slot-block__move) { grid-template-columns: minmax(0, 1fr) 44px 44px; }
 .bay.bay--workspace .slot-block__inspect {

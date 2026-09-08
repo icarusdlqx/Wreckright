@@ -32,7 +32,7 @@ All 24 pilots now have authored combinations of face shape, expression, hairstyl
 
 ## Two-dimensional fitting
 
-Weapon size and every compartment's full capacity now use regular groups of square cells. Occupied cells distinguish weapons, ammunition and gear; outlined cells show free space, and the incoming footprint previews where a held item will consume it. The groups pack automatically: box count is the existing slot rule, so a legal fit does not gain an arbitrary rotation or shape requirement. Mount type, weapon size class, tonnage and available stock remain enforced.
+Weapon size and every compartment's full capacity now use regular groups of square cells. Occupied cells distinguish weapons, ammunition and gear; outlined cells show free space, and the incoming footprint previews where a held item will consume it. The preview has reserved space so drop targets stay fixed while dragging. The groups pack automatically: box count is the existing slot rule, so a legal fit does not gain an arbitrary rotation or shape requirement. Mount type, weapon size class, tonnage and available stock remain enforced.
 
 Installed weapons can now be dragged to another compatible compartment. This uses the same edit transaction as the keyboard/touch Move action and preserves the weapon count, ammunition and undo history. Incompatible drops leave the original build intact and explain the refusal. A rejected drop also preserves the shelf filter, so the source weapon remains available for another attempt. Shelf-to-compartment drag and saved custom configurations were tested with actual pointer movement and release.
 
@@ -77,6 +77,6 @@ Existing optional supply rewards remain. Stores explains equipment to earn and f
 - Mech review: **78 model views across 16 chassis**; motion review: **65 scripted rendering states**. These are presentation fixtures, not claims of campaign victories.
 - Final balance and campaign acceptance: **25 tests passed**.
 - Hosted and single-file release builds passed; the self-contained file is **3.62 MB**. Its final offline smoke test covered artwork/fonts, all 16 wiki dossiers, archive reload, workshop refit, contract acceptance and deployment with zero external requests or browser errors.
-- The complete browser harness includes the fitting, demo-supply, cold-loading and rendering resource regressions. Its final result is recorded in the pull request alongside CI.
+- Complete final browser playthrough: **1,092 of 1,092 checks passed**, including the fitting, demo-supply, cold-loading and rendering resource regressions, campaign journeys, skirmish setup, saves, and desktop/phone/tablet controls.
 
 Original player saves were not cleared or overwritten by tests. All browser work used isolated sessions; no native desktop takeover was required.

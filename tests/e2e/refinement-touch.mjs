@@ -93,14 +93,18 @@ export async function runRefinementTouchChecks({ browser, url, shots, check }) {
     await tap(bulwark.locator('[data-testid^="camp-refit-"]:enabled'));
     const bay = page.locator('[data-testid="mechbay"]');
     await bay.waitFor();
-    const originalCompany = JSON.stringify(await company(page));
+    const originalState = await company(page);
+    const originalCompany = JSON.stringify(originalState);
+    const returnedLaserStock = originalState.store
+      .filter(item => item.kind === 'weapon' && item.itemId === 'medium_laser')
+      .reduce((count, item) => count + item.count, 0) + 1;
     const arm = page.locator('[data-testid="bay-location-left_arm"]');
     await tap(page.getByRole('button', { name: 'Remove Medium Laser from Centre Torso', exact: true }));
     const spare = page.locator('[data-testid="weapon-card-medium_laser"] .weapon-card__pick');
     await spare.scrollIntoViewIfNeeded();
     check('phone refit creates a real spare from Bulwark’s mounted laser without committing company stores',
       (await page.locator('[data-testid="bay-commission"]').innerText()).includes('Bulwark')
-      && (await spare.innerText()).includes('1 spare')
+      && await spare.locator('.weapon-card__stock').innerText() === `${returnedLaserStock} spare`
       && await arm.getByRole('button', { name: 'Inspect Large Laser', exact: true }).count() === 2
       && JSON.stringify(await company(page)) === originalCompany);
     const beforePreviewWeight = await page.locator('[data-testid="free-tonnage"]').innerText();
@@ -154,7 +158,7 @@ export async function runRefinementTouchChecks({ browser, url, shots, check }) {
     check('phone cancellation restores the interactive draft with both old weapons and the unspent spare',
       await arm.getByRole('button', { name: 'Inspect Large Laser', exact: true }).count() === 2
       && await arm.getByRole('button', { name: 'Inspect Medium Laser', exact: true }).count() === 0
-      && (await spare.innerText()).includes('1 spare') && await bay.getAttribute('inert') === null
+      && await spare.locator('.weapon-card__stock').innerText() === `${returnedLaserStock} spare` && await bay.getAttribute('inert') === null
       && await page.locator('[data-testid="free-tonnage"]').innerText() === beforePreviewWeight
       && JSON.stringify(await company(page)) === originalCompany);
     check('phone refinement journey keeps 390 × 844 geometry and produces no browser errors',

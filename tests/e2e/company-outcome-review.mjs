@@ -4,6 +4,23 @@ const account = state => JSON.stringify({
   store: state.store, effects: state.eventEffects, claims: state.claimedRewardIds,
 });
 
+function stockAndClaimsMatch(before, after, receipts) {
+  // A company already owns its demo crate; rewards add to that stock and must
+  // never replace it or arrive again when the debrief is reopened.
+  const stockKey = item => `${item.kind}/${item.itemId}`;
+  const expectedStock = new Map();
+  for (const item of [...before.store, ...receipts.flatMap(reward => reward.items)]) {
+    const key = stockKey(item);
+    expectedStock.set(key, (expectedStock.get(key) ?? 0) + item.count);
+  }
+  const expectedClaims = [...before.claimedRewardIds, ...receipts.map(reward => reward.id)];
+  return after.store.length === expectedStock.size
+    && after.store.every(item => expectedStock.get(stockKey(item)) === item.count)
+    && new Set(after.store.map(stockKey)).size === after.store.length
+    && JSON.stringify(after.claimedRewardIds) === JSON.stringify(expectedClaims)
+    && new Set(after.claimedRewardIds).size === after.claimedRewardIds.length;
+}
+
 /** Diagnostic presentation fixtures, not recorded human playthroughs or balance evidence. */
 async function outcomeFixture(page, url, campaignId, nodeId, ending = false) {
   return page.evaluate(async ({ url, campaignId, nodeId, ending }) => {
@@ -138,6 +155,7 @@ export async function runCompanyOutcomeChecks({ browser, url, shots, check }) {
     const recoveryText = await receipt.textContent();
     const recoveryNext = await page.locator('[data-testid="debrief-next-steps"]').textContent();
     const recovered = await company(page);
+    const recoveryBefore = JSON.parse(recovery.offerRaw).state;
     const delivered = recovery.receipts.flatMap(reward => reward.items);
     const hulks = recovery.receipts.flatMap(reward => reward.hulls);
     const goodsVisible = delivered.length > 0 && hulks.length > 0
@@ -148,9 +166,9 @@ export async function runCompanyOutcomeChecks({ browser, url, shots, check }) {
       && /warehouse hull · stripped · 55% condition/.test(recoveryOffer)
       && /Warehouse hulls arrive stripped and require rebuilding/.test(recoveryText)
       && /Plus 1 part delivered as guaranteed contract rewards/.test(recoveryNext)
-      && recovered.store.reduce((sum, item) => sum + item.count, 0) === delivered.reduce((sum, item) => sum + item.count, 0)
-      && recovered.mechs.length === JSON.parse(recovery.offerRaw).state.mechs.length + hulks.length
-      && delivered.every(item => recovered.store.find(entry => entry.kind === item.kind && entry.itemId === item.itemId)?.count === item.count)
+      && stockAndClaimsMatch(recoveryBefore, recovered, recovery.receipts)
+      && account(recovered) === account(JSON.parse(recovery.raw).state)
+      && recovered.mechs.length === recoveryBefore.mechs.length + hulks.length
       && hulks.every(hull => recovered.mechs.some(mech => mech.id === hull.mechId && mech.design.id === hull.designId
         && mech.status === 'hulk' && mech.design.mounts.length + mech.design.ammo.length + mech.design.equipment.length === 0));
     await reveal(receipt);
@@ -166,6 +184,7 @@ export async function runCompanyOutcomeChecks({ browser, url, shots, check }) {
       && fixture.receipts.every(reward => receiptText.includes(reward.afterword))
       && /2 workshop day credits banked/.test(receiptText)
       && /Supplier purchase discount through day/.test(receiptText)
+      && stockAndClaimsMatch(JSON.parse(fixture.offerRaw).state, settled, fixture.receipts)
       && account(settled) === account(JSON.parse(fixture.raw).state), `${receiptText}\n${recoveryText}`);
     await reveal(receipt);
     await shot('rewards-desktop');
