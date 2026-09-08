@@ -231,6 +231,7 @@ export function StoreShelf({
                   <WeaponCard
                     catalog={catalog}
                     weapon={weapon}
+                    ammoTons={design.ammo.filter((bin) => bin.weaponId === weapon.id).reduce((sum, bin) => sum + bin.tons, 0)}
                     chassisFaction={chassis.faction}
                     stock={remaining?.weapon.get(weapon.id)}
                     selected={armed?.kind === 'weapon' && armed.id === weapon.id}
@@ -259,6 +260,7 @@ export function StoreShelf({
                 key={weapon.id}
                 payload={{ kind: 'ammo', id: weapon.id }}
                 label={`${weapon.name} ammunition`}
+                boxes={catalog.rules.construction.ammoSlotsPerTon}
                 detail={`1 ton · ${weapon.ammoPerTon ?? 0} rounds`}
                 fit={fit}
                 armed={armed?.kind === 'ammo' && armed.id === weapon.id}
@@ -278,6 +280,7 @@ export function StoreShelf({
                 key={entry.id}
                 payload={{ kind: 'equipment', id: entry.id }}
                 label={entry.name}
+                boxes={entry.slots}
                 detail={`${entry.tonnage}t · ${entry.slots} slot${entry.slots === 1 ? '' : 's'}`}
                 stock={remaining?.equipment.get(entry.id)}
                 fit={fit}

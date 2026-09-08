@@ -13,9 +13,13 @@
     "hair": "#313336",
     "jacket": "#594b40",
     "accent": "#df8955",
-    "style": "shaved",
-    "face": "angular",
-    "detail": "beard"
+    "style": "bald",
+    "face": "broad",
+    "detail": "beard",
+    "expression": "wry",
+    "kit": "workcoat",
+    "accessory": "goggles",
+    "age": "veteran"
   },
   "personality": {
     "label": "Salvage mechanic",

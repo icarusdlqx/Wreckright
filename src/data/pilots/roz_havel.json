@@ -14,9 +14,13 @@
     "hair": "#492c28",
     "jacket": "#526674",
     "accent": "#df985b",
-    "style": "curls",
-    "face": "oval",
-    "detail": "freckles"
+    "style": "quiff",
+    "face": "round",
+    "detail": "freckles",
+    "expression": "curious",
+    "kit": "flight_vest",
+    "accessory": "none",
+    "age": "young"
   },
   "personality": {
     "label": "Eager newcomer",

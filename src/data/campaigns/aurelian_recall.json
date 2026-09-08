@@ -152,7 +152,21 @@
       "position": {
         "x": 0.29,
         "y": 0.48
-      }
+      },
+      "rewards": [
+        {
+          "id": "tender_burst",
+          "label": "Custody allocation: Large Burst Laser",
+          "items": [
+            {
+              "kind": "weapon",
+              "itemId": "large_pulse_laser",
+              "count": 1
+            }
+          ],
+          "afterword": "The Tender authorises a heavy burst emitter after the posts are secured. It trades the focused optics' reach for more reliable close-range fire. Cooling remains the limiting factor."
+        }
+      ]
     },
     {
       "id": "sarn_inventory",
@@ -169,7 +183,21 @@
       "position": {
         "x": 0.46,
         "y": 0.72
-      }
+      },
+      "rewards": [
+        {
+          "id": "archive_arc",
+          "label": "Archive allocation: Extended Arc Projector",
+          "items": [
+            {
+              "kind": "weapon",
+              "itemId": "er_ppc",
+              "count": 1
+            }
+          ],
+          "afterword": "The completed inventory qualifies the company for a long-range arc projector. Its reach is an advantage; firing it beside your existing emitters can overwhelm the reactor cooling."
+        }
+      ]
     },
     {
       "id": "root_exchange",
@@ -203,7 +231,21 @@
       "position": {
         "x": 0.77,
         "y": 0.69
-      }
+      },
+      "rewards": [
+        {
+          "id": "ceramic_smelter",
+          "label": "Evidence escort: Smelter Laser",
+          "items": [
+            {
+              "kind": "weapon",
+              "itemId": "heavy_large_laser",
+              "count": 1
+            }
+          ],
+          "afterword": "Dispatch releases a heavy industrial emitter to the evidence escort. It hits hard at close range and generates exceptional heat. Fit and group it with care."
+        }
+      ]
     },
     {
       "id": "conduit_injunction",
@@ -287,5 +329,77 @@
         ]
       }
     }
-  ]
+  ],
+  "demoSupplies": {
+    "id": "fitting_crate_v1",
+    "label": "Demo fitting crate",
+    "description": "Twelve weapon types are supplied for this demo, including a few from the other faction. Try different builds early. Advanced weapons still arrive through contract rewards and battlefield salvage. The workshop automatically fits a first ammunition bin when needed; add more in the mechbay.",
+    "items": [
+      {
+        "kind": "weapon",
+        "itemId": "small_laser",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "medium_laser",
+        "count": 2
+      },
+      {
+        "kind": "weapon",
+        "itemId": "large_laser",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "small_pulse_laser",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "medium_pulse_laser",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "er_medium_laser",
+        "count": 2
+      },
+      {
+        "kind": "weapon",
+        "itemId": "er_large_laser",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "plasma_rifle",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "ac5",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "lrm10",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "srm2",
+        "count": 2
+      },
+      {
+        "kind": "weapon",
+        "itemId": "machine_gun",
+        "count": 1
+      },
+      {
+        "kind": "equipment",
+        "itemId": "case",
+        "count": 2
+      }
+    ]
+  }
 }

@@ -13,9 +13,13 @@
     "hair": "#766656",
     "jacket": "#43555e",
     "accent": "#80c4b4",
-    "style": "braid",
-    "face": "broad",
-    "detail": "scar"
+    "style": "bun",
+    "face": "square",
+    "detail": "scar",
+    "expression": "calm",
+    "kit": "scarf",
+    "accessory": "none",
+    "age": "veteran"
   },
   "personality": {
     "label": "Cool head",

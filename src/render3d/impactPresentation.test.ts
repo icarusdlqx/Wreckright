@@ -70,7 +70,9 @@ describe('weapon-specific pooled impacts', () => {
     expect(visible(batch(value, 'blast-lobes'))).toBe(0);
     value.burst({ x: 0, y: 0 }, 0, 'terminal', 0xffffff, 1);
     expect(visible(batch(value, 'burst'))).toBe(8);
-    expect(visible(batch(value, 'contact-flare'))).toBe(0);
+    expect(visible(batch(value, 'contact-flare'))).toBe(1);
+    expect(visible(batch(value, 'blast-lobes'))).toBe(4);
+    expect(visible(batch(value, 'armour-fragments'))).toBe(6);
   });
 
   it('protects terminal slots from weapon impacts and footfall decoration', () => {
@@ -80,8 +82,8 @@ describe('weapon-specific pooled impacts', () => {
     value.burst({ x: 0, y: 0 }, 0, 'hit', 0xffffff, 1, 'missile');
     value.footfall({ x: 0, y: 0 }, 0, 'water', 1);
     expect(value.stats().families.burst).toMatchObject({ active: 128, dropped: 3, evicted: 0 });
-    expect(visible(batch(value, 'contact-flare'))).toBe(0);
-    expect(visible(batch(value, 'blast-lobes'))).toBe(0);
+    expect(visible(batch(value, 'contact-flare'))).toBe(128);
+    expect(visible(batch(value, 'blast-lobes'))).toBe(512);
   });
 
   it('retains essential low-FX impacts while suppressing extra shapes, dust and steam', () => {

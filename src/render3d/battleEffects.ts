@@ -166,7 +166,7 @@ export class BattleEffects {
               this.effectPoint.y - 14,
               'terminal',
               TERMINAL_COLOUR,
-              scale,
+              scale, 'generic', 0, this.heightAt(this.effectAt.x, this.effectAt.y),
             );
             this.wear.wreck(event.entityId, this.effectAt, this.effectPoint.y - 6, world.terrain.idAtPoint(this.effectAt) === 'water');
           } else {
@@ -176,6 +176,7 @@ export class BattleEffects {
               'ammo',
               AMMO_COLOUR,
               0.8 + Math.min(1, event.damage / 60),
+              'generic', 0, this.heightAt(this.effectAt.x, this.effectAt.y),
             );
             this.tracers.spawnSmoke(this.effectAt, this.effectPoint.y - 14);
             this.wear.ammo(this.effectAt, event.damage, world.terrain.idAtPoint(this.effectAt) === 'water');
@@ -380,7 +381,7 @@ export class BattleEffects {
     this.effectAt.x = at.x; this.effectAt.y = at.z;
   }
   private emitBurst(kind: ShotBurstKind, colour: number, scale: number, family: ImpactFamily = 'generic', bearing = 0): void {
-    this.tracers.burst(this.effectAt, this.effectPoint.y - 14, kind, colour, scale, family, bearing);
+    this.tracers.burst(this.effectAt, this.effectPoint.y - 14, kind, colour, scale, family, bearing, this.heightAt(this.effectAt.x, this.effectAt.y));
   }
 
   private nearness(at: Vec2): number {

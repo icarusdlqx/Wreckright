@@ -15,8 +15,12 @@
     "jacket": "#2e425a",
     "accent": "#81ccc0",
     "style": "curls",
-    "face": "angular",
-    "detail": "none"
+    "face": "heart",
+    "detail": "none",
+    "expression": "curious",
+    "kit": "officer",
+    "accessory": "none",
+    "age": "young"
   },
   "personality": {
     "label": "Doubtful idealist",

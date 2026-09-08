@@ -1,6 +1,8 @@
 import { runSkirmishForceChecks } from './skirmish-forces.mjs';
 import { runSkirmishStorageChecks } from './skirmish-storage.mjs';
 import { runMechbayPersistenceChecks } from './mechbay-persistence.mjs';
+import { runFittingGridChecks } from './fitting-grid.mjs';
+import { runDemoSupplyChecks } from './demo-supplies.mjs';
 import { runUnitHealthChecks } from './unit-health.mjs';
 import { runCompactDesktopChecks } from './compact-desktop.mjs';
 import { runCommanderRadioChecks } from './commander-radio.mjs';
@@ -11,6 +13,7 @@ import { runCompanyJournalChecks } from './company-journal.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import { checkCampaignHaul } from './campaign-haul.mjs';
 import { runMechbayCrewChecks } from './mechbay-crew.mjs';
+import { runColdMechbayChecks } from './mechbay-loading.mjs';
 import { runCommandRefinementChecks } from './command-refinement.mjs';
 import { runRefinementTouchChecks } from './refinement-touch.mjs';
 import { runCompanyOutcomeChecks } from './company-outcome-review.mjs';
@@ -21,7 +24,7 @@ import { runSupportServicesChecks } from './support-services.mjs';
 import { checkHomeTheatre } from './home-theatre.mjs';
 import { companyFile, restartCompany, checkRestartCancellation, checkCompanyWorkspaces } from './campaign-navigation.mjs';
 import { spawn } from 'node:child_process';
-import { existsSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { chromium } from 'playwright';
 import { openTactics, runDesktopSupportChecks } from './battle-hud.mjs';
@@ -1294,7 +1297,13 @@ async function main() {
       'the opening company has four machines and four pilots on its books',
       openingCompany.mechs.length === 4 && openingCompany.pilots.length === 4,
     );
-    check('stores start empty', openingCompany.store.length === 0);
+    const openingCrate = JSON.parse(readFileSync(new globalThis.URL(
+      '../../src/data/campaigns/border_dispute.json', import.meta.url), 'utf8')).demoSupplies;
+    const stockLines = items => items.map(item => `${item.kind}:${item.itemId}:${item.count}`).sort();
+    const crateClaim = `${openingCompany.campaignId}/demo-supplies/${openingCrate.id}`;
+    check('opening stores contain the authored demo crate exactly once',
+      JSON.stringify(stockLines(openingCompany.store)) === JSON.stringify(stockLines(openingCrate.items))
+      && openingCompany.claimedRewardIds.filter(id => id === crateClaim).length === 1);
     check(
       'first-drop guidance begins at choosing the job',
       (await page.locator('[data-testid="campaign"]').getAttribute('data-first-drop-stage')) ===
@@ -1836,6 +1845,7 @@ async function main() {
     await runAdaptiveScoreTreatmentChecks({ browser, url: URL, check });
     await verifyFirstDropLaunchPaths({ browser, url: URL, shots: SHOTS, check });
     await runMechbayCrewChecks({ browser, url: URL, shots: SHOTS, check });
+    await runColdMechbayChecks({ browser, url: URL, shots: SHOTS, check });
     await runCommandRefinementChecks({ browser, url: URL, shots: SHOTS, check });
     await runRefinementTouchChecks({ browser, url: URL, shots: SHOTS, check });
     await runCompanyOutcomeChecks({ browser, url: URL, shots: SHOTS, check });
@@ -1849,6 +1859,8 @@ async function main() {
     await runSkirmishForceChecks({ browser, url: URL, shots: SHOTS, check });
     await runSkirmishStorageChecks({ browser, url: URL, shots: SHOTS, check });
     await runMechbayPersistenceChecks({ browser, url: URL, shots: SHOTS, check });
+    await runFittingGridChecks({ browser, url: URL, shots: SHOTS, check });
+    await runDemoSupplyChecks({ browser, url: URL, shots: SHOTS, check });
     await runUnitHealthChecks({ browser, url: URL, shots: SHOTS, check });
     await runCompactDesktopChecks({ browser, url: URL, shots: SHOTS, check });
     await runCommanderRadioChecks({ browser, url: URL, shots: SHOTS, check });

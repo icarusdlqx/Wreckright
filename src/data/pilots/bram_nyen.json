@@ -14,8 +14,12 @@
     "jacket": "#59675c",
     "accent": "#e3a46a",
     "style": "crop",
-    "face": "broad",
-    "detail": "none"
+    "face": "square",
+    "detail": "none",
+    "expression": "resolute",
+    "kit": "workcoat",
+    "accessory": "cap",
+    "age": "mature"
   },
   "personality": {
     "label": "Steady hauler",

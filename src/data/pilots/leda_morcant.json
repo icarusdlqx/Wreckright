@@ -14,8 +14,12 @@
     "jacket": "#485768",
     "accent": "#89cabb",
     "style": "bob",
-    "face": "angular",
-    "detail": "earpiece"
+    "face": "long",
+    "detail": "earpiece",
+    "expression": "wry",
+    "kit": "scarf",
+    "accessory": "none",
+    "age": "mature"
   },
   "personality": {
     "label": "Cocky negotiator",

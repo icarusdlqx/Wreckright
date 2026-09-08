@@ -7,11 +7,13 @@ import { companyMachineLabel } from './companyLabels';
 import { ownedPartFits } from './supplyPresentation';
 import { SupplyPartCard } from './SupplyPartCard';
 import type { PanelProps } from './Panels';
+import { DemoSupplyPanel } from './DemoSupplyPanel';
 const catalog = getCatalog();
 
 export function StoresPanel({ state, mutate, onRefitPart }: PanelProps & { onRefitPart?: (mechId: string, part: DropPayload) => void }) {
   return (
       <section className="camp-store" data-testid="camp-store">
+        <DemoSupplyPanel state={state} mutate={mutate} />
         <h3>Stores</h3>
         {state.store.length === 0 ? (
           <p className="empty">Nothing salvaged yet.</p>

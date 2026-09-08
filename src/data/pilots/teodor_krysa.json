@@ -15,8 +15,12 @@
     "jacket": "#40505b",
     "accent": "#8fd4c0",
     "style": "shaved",
-    "face": "angular",
-    "detail": "beard"
+    "face": "long",
+    "detail": "beard",
+    "expression": "stern",
+    "kit": "scarf",
+    "accessory": "none",
+    "age": "veteran"
   },
   "personality": {
     "label": "Laconic survivor",

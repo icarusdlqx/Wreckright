@@ -14,9 +14,13 @@
     "hair": "#212329",
     "jacket": "#405b69",
     "accent": "#75bfb8",
-    "style": "curls",
-    "face": "oval",
-    "detail": "earpiece"
+    "style": "locs",
+    "face": "heart",
+    "detail": "earpiece",
+    "expression": "grin",
+    "kit": "harness",
+    "accessory": "bandana",
+    "age": "young"
   },
   "personality": {
     "label": "Fearless spark",

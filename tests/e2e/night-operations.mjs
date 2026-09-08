@@ -3,6 +3,7 @@ import {
   lowFxNightVolley,
   measureNightAlphaStrike,
   NIGHT_PERF_BLOCK_COUNT,
+  NIGHT_SHOT_DRAW_LIMIT,
   repeatNightVolley,
   resourceCounts,
   sameList,
@@ -209,6 +210,7 @@ export async function runNightOperationsChecks({ browser, url, shots, check }) {
       active: activePerf,
       setup,
       contrast,
+      shotBudget: measured.shotBudget,
       budgets: {
         units: '60Hz-equivalent ms',
         normalisedToMs: measured.normalisation?.targetFrameMs ?? null,
@@ -238,12 +240,23 @@ export async function runNightOperationsChecks({ browser, url, shots, check }) {
       perfDetail,
     );
     check(
-      'alpha presentation stays inside its fixed two-draw budget',
+      'ordinary volley draws stay within their fixed shot-pool capacity',
+      measured.shotBudget?.supported === true &&
+        measured.shotBudget.capacity === NIGHT_SHOT_DRAW_LIMIT &&
+        measured.shotBudget.observedCapacity === NIGHT_SHOT_DRAW_LIMIT &&
+        phases.every((phase) => [quietPerf[phase], activePerf[phase]].every((samples) => (
+          samples.shotDrawCalls.length === 1 &&
+          samples.shotDrawCalls[0] >= 0 && samples.shotDrawCalls[0] <= NIGHT_SHOT_DRAW_LIMIT
+        ))),
+      perfDetail,
+    );
+    check(
+      'alpha lighting and non-shot presentation stay inside the fixed two-draw budget',
       phases.every((phase) => (
-        quietPerf[phase].drawCalls.length === 1 &&
-        activePerf[phase].drawCalls.length === 1 &&
-        activePerf[phase].drawCalls[0] >= quietPerf[phase].drawCalls[0] &&
-        activePerf[phase].drawCalls[0] <= quietPerf[phase].drawCalls[0] + 2
+        quietPerf[phase].nonShotDrawCalls.length === 1 &&
+        activePerf[phase].nonShotDrawCalls.length === 1 &&
+        activePerf[phase].nonShotDrawCalls[0] >= quietPerf[phase].nonShotDrawCalls[0] &&
+        activePerf[phase].nonShotDrawCalls[0] <= quietPerf[phase].nonShotDrawCalls[0] + 2
       )),
       perfDetail,
     );

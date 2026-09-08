@@ -34,6 +34,13 @@ export const CampaignSchema = z
     startingDay: z.number().int().nonnegative(),
     startingDesignIds: z.array(IdSchema).min(1).max(12),
     startingPilotIds: z.array(IdSchema).min(1).max(12),
+    demoSupplies: z.strictObject({
+      id: IdSchema,
+      label: z.string().min(1).max(100),
+      description: z.string().min(1).max(400),
+      items: z.array(z.strictObject({ kind: z.enum(['weapon', 'equipment']), itemId: IdSchema,
+        count: z.number().int().positive().max(20) })).min(1).max(20),
+    }).optional(),
     hiringPoolPilotIds: z.array(IdSchema).max(12).default([]),
     victoryNodeId: IdSchema,
     alternateVictoryNodeIds: z.array(IdSchema).max(3).default([]),

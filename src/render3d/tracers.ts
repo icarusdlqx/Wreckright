@@ -69,13 +69,21 @@ export class TracerLayer {
       this.bursts.mesh,
       this.bursts.shapes.flare,
       this.bursts.shapes.blast,
+      this.bursts.shapes.plates,
       this.beam.mesh,
+      this.beam.detail,
       this.pulse.mesh,
+      this.pulse.detail,
       this.bolt.mesh,
+      this.bolt.detail,
       this.flame.mesh,
+      this.flame.detail,
       this.shell.mesh,
+      this.shell.wake.mesh,
       this.slug.mesh,
+      this.slug.wake.mesh,
       this.missile.mesh,
+      this.missile.wake.mesh,
       this.smoke.mesh,
     );
   }
@@ -86,6 +94,9 @@ export class TracerLayer {
     this.reducedMotion = reducedMotion;
     this.bursts.shapes.flare.visible = !lowFx;
     this.bursts.shapes.blast.visible = !lowFx;
+    this.bursts.shapes.plates.visible = !lowFx && !reducedMotion;
+    for (const pool of [this.shell, this.slug, this.missile]) pool.wake.setEnabled(!lowFx && !reducedMotion);
+    for (const pool of [this.beam, this.pulse, this.bolt, this.flame]) pool.setDetailEnabled(!lowFx);
   }
 
   fire(
@@ -187,6 +198,7 @@ export class TracerLayer {
     scale = 1,
     family: ImpactFamily = 'generic',
     bearing = 0,
+    floor = ground,
   ): void {
     if (this.disposed) return;
     this.bursts.spawn(
@@ -200,6 +212,7 @@ export class TracerLayer {
       this.lowFx ? 'generic' : family,
       bearing,
       this.reducedMotion ? 0 : 1,
+      floor,
     );
     if (family === 'missile' && !this.lowFx && !this.reducedMotion) {
       this.smoke.blast(at, ground + IMPACT_HEIGHT, scale);

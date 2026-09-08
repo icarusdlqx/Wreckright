@@ -15,11 +15,15 @@
     "accent": "#87d4c5",
     "style": "sweep",
     "face": "angular",
-    "detail": "scar"
+    "detail": "scar",
+    "expression": "resolute",
+    "kit": "officer",
+    "accessory": "none",
+    "age": "veteran"
   },
   "personality": {
     "label": "Driven outrider",
-    "description": "Never quite settles at rest. Watches the rookies’ spacing with a mentor’s fierce protectiveness.",
+    "description": "Never quite settles at rest. Watches the rookies\u2019 spacing with a mentor\u2019s fierce protectiveness.",
     "lines": {
       "move": [
         "Keep your feet. Keep your distance.",

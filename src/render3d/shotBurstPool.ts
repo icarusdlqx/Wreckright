@@ -15,6 +15,7 @@ import {
   type ShotPoolSnapshot,
   type ShotSlot,
 } from './shotPoolCore';
+import { writeDestructionBurst } from './destructionBurst';
 import { ImpactShapeBatches } from './impactShapeBatches';
 
 export type ShotBurstKind = 'hit' | 'miss' | 'critical' | 'ammo' | 'terminal';
@@ -43,6 +44,9 @@ interface BurstSlot extends ShotSlot {
   family: ImpactFamily;
   bearing: number;
   motion: number;
+  kind: InternalBurstKind;
+  floor: number;
+  detailed: boolean;
 }
 
 const PROFILES: Readonly<Record<InternalBurstKind, BurstProfile>> = Object.freeze({
@@ -92,7 +96,7 @@ export class ShotBurstPool {
       grow: 1,
       rise: 0,
       spread: 0,
-      family: 'generic', bearing: 0, motion: 1,
+      family: 'generic', bearing: 0, motion: 1, kind: 'hit', floor: 0, detailed: true,
     }));
   }
 
@@ -107,6 +111,7 @@ export class ShotBurstPool {
     family: ImpactFamily = 'generic',
     bearing = 0,
     motion = 1,
+    floor = ground,
   ): void {
     this.spawnAt(
       at.x,
@@ -117,7 +122,7 @@ export class ShotBurstPool {
       scale,
       lifeScale,
       detailScale,
-      family, bearing, motion,
+      family, bearing, motion, floor,
     );
   }
 
@@ -156,12 +161,12 @@ export class ShotBurstPool {
   }
 
   snapshot(): ShotPoolSnapshot {
-    return { ...this.core.snapshot(), physicalCapacity: this.mesh.count + this.shapes.flare.count + this.shapes.blast.count };
+    return { ...this.core.snapshot(), physicalCapacity: this.mesh.instanceMatrix.count + this.shapes.flare.instanceMatrix.count + this.shapes.blast.instanceMatrix.count + this.shapes.plates.instanceMatrix.count };
   }
 
   clear(): void {
     this.core.clear();
-    this.shapes.hide(0, this.mesh.count);
+    this.shapes.hide(0, this.mesh.instanceMatrix.count);
     this.shapes.commit();
   }
 
@@ -177,6 +182,7 @@ export class ShotBurstPool {
     family: ImpactFamily = 'generic',
     bearing = 0,
     motion = 1,
+    floor = y - 14,
   ): void {
     const profile = PROFILES[kind];
     const priority = kind === 'terminal' || kind === 'ammo'
@@ -189,6 +195,9 @@ export class ShotBurstPool {
     const slot = this.core.acquire(priority);
     if (slot === null) return;
     this.shapes.hide(slot.start, this.core.instancesPerSlot);
+    slot.kind = kind;
+    slot.detailed = detailScale > .4;
+    slot.floor = floor;
     slot.x = x;
     slot.y = y;
     slot.z = z;
@@ -221,17 +230,19 @@ export class ShotBurstPool {
       this.writeImpact(slot, spent);
       return;
     }
+    const destructive = slot.detailed && (slot.kind === 'terminal' || slot.kind === 'ammo' || slot.kind === 'critical');
+    if (destructive) writeDestructionBurst(this.shapes, slot, spent);
     for (let index = 0; index < slot.count; index += 1) {
       const angle = index * 2.399963;
-      const reach = slot.spread * slot.scale * (0.35 + index / slot.count * 0.65) * spent;
+      const reach = slot.spread * slot.scale * (0.35 + index / slot.count * 0.65) * spent * slot.motion;
       INSTANCE.position.set(
         slot.x + Math.cos(angle) * reach,
-        slot.y + slot.rise * slot.life * spent + Math.sin(index * 1.7) * reach * 0.28,
+        slot.y + slot.rise * slot.life * spent * slot.motion + Math.sin(index * 1.7) * reach * 0.28,
         slot.z + Math.sin(angle) * reach,
       );
       INSTANCE.quaternion.identity();
       const size = slot.scale * slot.size * (1 + spent * slot.grow) * (1 - index * 0.035);
-      INSTANCE.scale.setScalar(size);
+      INSTANCE.scale.setScalar(size * (destructive ? .3 : 1));
       INSTANCE.updateMatrix();
       this.core.setMatrix(slot, index, INSTANCE.matrix);
     }

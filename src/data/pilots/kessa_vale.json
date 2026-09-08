@@ -15,7 +15,11 @@
     "accent": "#efaa65",
     "style": "sweep",
     "face": "angular",
-    "detail": "scar"
+    "detail": "scar",
+    "expression": "resolute",
+    "kit": "workcoat",
+    "accessory": "none",
+    "age": "mature"
   },
   "personality": {
     "label": "Patient inspector",

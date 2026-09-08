@@ -129,7 +129,11 @@ export async function runMechbayCrewChecks({ browser, url, shots, check }) {
     await page.screenshot({ path: `${shots}/crew-fit-targets.png` });
     await page.locator('[data-testid="bay-armed-cancel"]').click();
     // Exercise the browser's native drag payload and drop events, not an editor hook.
+    const filterBeforeInvalid = await page.getByTestId('bay-location-filter').allTextContents();
     await nativeBayDrag(page, flamer, head);
+    check('invalid native drop preserves the shelf filter and keeps the weapon ready to retry',
+      JSON.stringify(await page.getByTestId('bay-location-filter').allTextContents()) === JSON.stringify(filterBeforeInvalid)
+      && await flamer.isVisible());
     check('dropping onto an invalid mount leaves the draft unchanged',
       await head.getByRole('button', { name: 'Inspect Flamer', exact: true }).count() === 0
       && await right.getByRole('button', { name: 'Inspect Flamer', exact: true }).count() === 0);
@@ -187,7 +191,8 @@ export async function runMechbayCrewChecks({ browser, url, shots, check }) {
     await mobile.locator('[data-testid="bay-location-left_arm"]').scrollIntoViewIfNeeded();
     check('fitting boxes and locations fit a phone without horizontal scrolling', await mobile.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     check('mobile bay has loaded real fitting boxes rather than a loading placeholder',
-      await mobile.locator('[data-testid="free-slots-left_arm"] .rack-cell').count() === 3);
+      await mobile.locator('[data-testid="free-slots-left_arm"] .rack-capacity__free').count() === 3
+      && await mobile.locator('[data-testid="free-slots-left_arm"] .rack-cell').count() === 4);
     await mobile.screenshot({ path: `${shots}/crew-refit-mobile.png`, fullPage: true });
     await mobile.getByRole('button', { name: 'Remove Flamer from Left Arm', exact: true }).tap();
     await mobile.locator('[data-testid="weapon-card-flamer"] .weapon-card__pick').tap();

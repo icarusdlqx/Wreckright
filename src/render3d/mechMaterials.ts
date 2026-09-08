@@ -4,6 +4,7 @@ import type { WeaponType } from '../schema/weapon';
 import type { Faction } from '../schema/faction';
 import { mix } from '../render/palette';
 import { GraphicStandardMaterial } from './graphicMaterials';
+import { ArmourFinishMaterial } from './armourFinish';
 
 export type MechMaterials = Record<Tone, MeshStandardMaterial>;
 
@@ -107,8 +108,9 @@ export function createMechMaterials(
   const sealed = faction === 'aurelian';
   const ironwork = identity !== null && IRONWORK_IDS.has(identity);
   return {
-    plate: material(body, sealed ? 0.72 : 0.82, 0.04, body, 0.045),
-    deep: material(mix(sealed ? 0x203744 : 0x384547, team, 0.16), 0.66, 0.32),
+    plate: new ArmourFinishMaterial({ color: body, roughness: sealed ? 0.43 : 0.68,
+      metalness: sealed ? 0.16 : 0.1, emissive: body, emissiveIntensity: 0.035, flatShading: true }, faction),
+    deep: material(mix(sealed ? 0x203744 : 0x384547, team, 0.16), 0.48, 0.48),
     trim: material(team, 0.76, 0.06, team, 0.075),
     glass: material(0xa9e7e1, 0.2, 0.04, 0x277a85, 1.4),
     accent: material(sealed ? 0x3d7877 : ironwork ? 0xc3763f : mix(body, 0xffefc8, 0.8), 0.78, 0.08),
@@ -136,5 +138,6 @@ export function createDamageWearMaterials(
 
 /** Weapon housings remain readable against painted armour under coloured light. */
 export function createWeaponMaterial(type: WeaponType): MeshStandardMaterial {
-  return material(mix(0x374c54, WEAPON_ACCENTS[type], 0.3), 0.58, 0.38);
+  const housing = type === 'energy' ? 0x78999f : type === 'missile' ? 0x69564b : 0x374c54;
+  return material(mix(housing, WEAPON_ACCENTS[type], 0.24), type === 'energy' ? 0.36 : 0.52, 0.38);
 }

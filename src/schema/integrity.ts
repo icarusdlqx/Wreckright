@@ -189,6 +189,15 @@ function checkCampaigns(catalog: Catalog, push: Push): void {
   for (const campaign of catalog.campaigns.values()) {
     const file = `campaigns/${campaign.id}.json`;
 
+    const supplied = new Set<string>();
+    for (const [index, item] of (campaign.demoSupplies?.items ?? []).entries()) {
+      const source = item.kind === 'weapon' ? catalog.weapons : catalog.equipment;
+      if (!source.has(item.itemId)) push(file, `demoSupplies.items.${index}.itemId`, `unknown ${item.kind} "${item.itemId}"`);
+      const key = `${item.kind}/${item.itemId}`;
+      if (supplied.has(key)) push(file, `demoSupplies.items.${index}`, 'duplicate demo supply; use its count');
+      supplied.add(key);
+    }
+
     for (const node of campaign.nodes) {
       if (!catalog.missions.has(node.missionId)) {
         push(file, `nodes.${node.id}`, `unknown mission "${node.missionId}"`);

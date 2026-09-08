@@ -23,6 +23,7 @@ import { radiusFor } from '../../render/shape';
 import type { Catalog } from '../../schema/load';
 import { buildPreviewModel, previewModelKey, setPreviewHighlights, type PreviewCondition, type PreviewHighlights, type PreviewModel } from './previewModel';
 import { PreviewLoop } from './previewLoop';
+import { renderPixelRatio } from '../../render3d/renderResolution';
 
 export interface MechPreviewCallbacks {
   onHoverLocation?: (location: MechLocation | null) => void;
@@ -87,7 +88,7 @@ export class MechPreviewRenderer {
     });
     try {
       this.renderer.setClearColor(new Color(0x000000), 0);
-      this.renderer.setPixelRatio(Math.min(1.5, globalThis.devicePixelRatio ?? 1));
+      this.renderer.setPixelRatio(renderPixelRatio(globalThis.devicePixelRatio ?? 1, false, this.host.clientWidth, this.host.clientHeight));
       this.renderer.outputColorSpace = SRGBColorSpace;
       this.renderer.toneMapping = ACESFilmicToneMapping;
       this.renderer.toneMappingExposure = 1.08;
@@ -235,6 +236,7 @@ export class MechPreviewRenderer {
     try {
       const width = Math.max(1, this.host.clientWidth);
       const height = Math.max(1, this.host.clientHeight);
+      this.renderer.setPixelRatio(renderPixelRatio(globalThis.devicePixelRatio ?? 1, false, width, height));
       this.renderer.setSize(width, height, false);
       this.camera.aspect = width / height;
       this.fitCamera();

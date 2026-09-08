@@ -27,6 +27,8 @@ export function summariseNightPerf(samples) {
     otherMedian: median(other),
     otherP90: rank(other, 0.9),
     drawCalls: [...new Set(samples.map((sample) => sample.drawCalls))],
+    shotDrawCalls: [...new Set(samples.map((sample) => sample.shotDrawCalls))],
+    nonShotDrawCalls: [...new Set(samples.map((sample) => sample.drawCalls - sample.shotDrawCalls))],
   };
 }
 
@@ -178,7 +180,7 @@ export async function measureNightAlphaStrike(page, events) {
     }
     const renderer = engine.renderer;
     const effects = renderer.effects;
-    if (effects === undefined) {
+    if (effects?.tracers?.group === undefined) {
       return {
         error: 'battle effects unavailable',
         quiet: emptySamples,
@@ -202,6 +204,27 @@ export async function measureNightAlphaStrike(page, events) {
     const originalRecord = perf.record;
     const hadOwnRecord = Object.prototype.hasOwnProperty.call(perf, 'record');
     const worldBefore = JSON.stringify({ tick: world.tick, entities: world.entities });
+    const shotGroup = effects.tracers.group;
+    const shotMeshes = shotGroup.children.filter((node) => node.isInstancedMesh === true);
+    // Idle pools now submit no draws. Keep the lighting budget separate from
+    // the ordinary volley, while independently bounding every shot batch.
+    const shotBudget = {
+      capacity: shotMeshes.length,
+      observedCapacity: shotGroup.children.length,
+      supported: shotGroup.children.length === shotMeshes.length && shotMeshes.every((node) => (
+        !Array.isArray(node.material) && (node.material.side !== 2 || node.material.forceSinglePass)
+      )),
+    };
+    let shotDrawCalls = 0;
+    const shotHooks = shotMeshes.map((node) => {
+      const original = node.onBeforeRender;
+      node.onBeforeRender = function (...args) {
+        // Three visits zero-count instances too; only a submitted batch is a draw.
+        if (this.count > 0 && this.geometry.drawRange.count > 0) shotDrawCalls += 1;
+        original.apply(this, args);
+      };
+      return { node, original };
+    });
 
     const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
     const nextValidSample = () => new Promise((resolve, reject) => {
@@ -244,6 +267,9 @@ export async function measureNightAlphaStrike(page, events) {
 
     perf.record = (sample) => {
       originalRecord.call(perf, sample);
+      const submittedShotDraws = shotDrawCalls;
+      shotDrawCalls = 0;
+      shotBudget.observedCapacity = Math.max(shotBudget.observedCapacity, shotGroup.children.length);
       if (capture === null || sample.frameMs <= 0 || sample.frameMs >= validLimit) return;
       const pending = capture;
       capture = null;
@@ -252,6 +278,7 @@ export async function measureNightAlphaStrike(page, events) {
         simMs: sample.simMs,
         drawMs: sample.drawMs,
         drawCalls: sample.drawCalls,
+        shotDrawCalls: submittedShotDraws,
       });
     };
 
@@ -310,6 +337,7 @@ export async function measureNightAlphaStrike(page, events) {
       capture = null;
       if (hadOwnRecord) perf.record = originalRecord;
       else delete perf.record;
+      for (const { node, original } of shotHooks) node.onBeforeRender = original;
       effects.advance(2);
       renderer.consumeEvents(world, volley);
     }
@@ -320,6 +348,7 @@ export async function measureNightAlphaStrike(page, events) {
       active,
       contrasts,
       normalisation,
+      shotBudget,
       simUnchanged: worldBefore === JSON.stringify({ tick: world.tick, entities: world.entities }),
     };
   }, {
@@ -359,3 +388,4 @@ export async function lowFxNightVolley(page, events) {
 }
 
 export const NIGHT_PERF_BLOCK_COUNT = ABBA_BLOCK_COUNT;
+export const NIGHT_SHOT_DRAW_LIMIT = 19;

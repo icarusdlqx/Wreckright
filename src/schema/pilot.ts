@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { IdSchema, NameSchema } from './common';
 import { PilotPersonalitySchema } from './pilotPersonality';
+import { PilotAppearanceSchema } from './pilotAppearance';
 
 const SkillSchema = z.number().int().min(1).max(5);
 
@@ -15,15 +16,7 @@ export const PilotSchema = z.strictObject({
   bio: z.string().min(1).max(400).default(''),
   /** Authored voice is cosmetic; saved crews resolve it from their template. */
   personality: PilotPersonalitySchema.optional(),
-  portrait: z.strictObject({
-    skin: z.string().regex(/^#[0-9a-f]{6}$/i),
-    hair: z.string().regex(/^#[0-9a-f]{6}$/i),
-    jacket: z.string().regex(/^#[0-9a-f]{6}$/i),
-    accent: z.string().regex(/^#[0-9a-f]{6}$/i),
-    style: z.enum(['crop', 'sweep', 'braid', 'shaved', 'curls', 'bob']),
-    face: z.enum(['angular', 'broad', 'oval']),
-    detail: z.enum(['scar', 'visor', 'earpiece', 'freckles', 'beard', 'none']),
-  }).optional(),
+  portrait: PilotAppearanceSchema.optional(),
 });
 
 export type Pilot = z.infer<typeof PilotSchema>;

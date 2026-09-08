@@ -14,9 +14,13 @@
     "hair": "#a8967c",
     "jacket": "#344959",
     "accent": "#7ecac3",
-    "style": "crop",
-    "face": "angular",
-    "detail": "visor"
+    "style": "undercut",
+    "face": "long",
+    "detail": "visor",
+    "expression": "stern",
+    "kit": "officer",
+    "accessory": "none",
+    "age": "mature"
   },
   "personality": {
     "label": "Proud perfectionist",

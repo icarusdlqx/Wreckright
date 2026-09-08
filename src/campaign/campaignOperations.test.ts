@@ -70,6 +70,8 @@ let state: CampaignState;
 
 beforeEach(() => {
   state = start('refit');
+  // Inventory transactions below explicitly supply the stock they exercise.
+  state.store = [];
 });
 
 describe('campaign freshness', () => {

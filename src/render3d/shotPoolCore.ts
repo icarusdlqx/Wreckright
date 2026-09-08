@@ -143,6 +143,10 @@ export class ShotPoolCore<T extends ShotSlot> {
   }
 
   commit(): void {
+    // Admission stays fixed, but a quiet battlefield need not draw thousands of hidden vertices.
+    let highest = 0;
+    for (const slot of this.slots) if (slot.active) highest = Math.max(highest, slot.start + slot.count);
+    this.mesh.count = highest;
     this.mesh.instanceMatrix.needsUpdate = true;
     if (this.mesh.instanceColor !== null) this.mesh.instanceColor.needsUpdate = true;
   }
@@ -167,7 +171,7 @@ export class ShotPoolCore<T extends ShotSlot> {
     return {
       capacity: this.capacity,
       active: this.activeSlots,
-      physicalCapacity: this.mesh.count,
+      physicalCapacity: this.mesh.instanceMatrix.count,
       dropped: this.dropped,
       evicted: this.evicted,
     };

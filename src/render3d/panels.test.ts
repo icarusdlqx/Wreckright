@@ -41,7 +41,7 @@ describe('armourShell', () => {
     const geometry = armourShell(RECTANGLE, 2, {});
     const positions = geometry.getAttribute('position');
 
-    expect(positions.count / 3).toBe(RECTANGLE.length * 8);
+    expect(positions.count / 3).toBe(RECTANGLE.length * 12);
     expect(Array.from(positions.array)).toSatisfy((values: number[]) =>
       values.every(Number.isFinite),
     );

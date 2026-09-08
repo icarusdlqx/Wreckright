@@ -23,7 +23,7 @@ export function createBayEditAcceptor({ catalog, inventory, commitDraft, setStat
     location: MechLocation | null = null,
   ): boolean => {
     if (evaluation.status === 'blocked') {
-      if (location !== null) setSelectedLocation(location);
+      // A rejected drop must not filter its source off the shelf before retrying.
       setStatus({
         tone: 'error',
         text: evaluation.reasons[0]?.message ?? 'That change cannot be made.',

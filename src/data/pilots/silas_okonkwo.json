@@ -14,9 +14,13 @@
     "hair": "#222a30",
     "jacket": "#273e52",
     "accent": "#5dcbbb",
-    "style": "crop",
+    "style": "high_top",
     "face": "broad",
-    "detail": "beard"
+    "detail": "beard",
+    "expression": "wry",
+    "kit": "officer",
+    "accessory": "none",
+    "age": "mature"
   },
   "personality": {
     "label": "Polished sceptic",

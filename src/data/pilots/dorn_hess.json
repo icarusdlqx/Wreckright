@@ -13,9 +13,13 @@
     "hair": "#2b282a",
     "jacket": "#5e5344",
     "accent": "#eab26f",
-    "style": "shaved",
-    "face": "broad",
-    "detail": "scar"
+    "style": "bald",
+    "face": "square",
+    "detail": "scar",
+    "expression": "wry",
+    "kit": "harness",
+    "accessory": "none",
+    "age": "veteran"
   },
   "personality": {
     "label": "Dry survivor",

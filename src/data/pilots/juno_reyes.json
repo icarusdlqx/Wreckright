@@ -13,9 +13,13 @@
     "hair": "#20262b",
     "jacket": "#6a5347",
     "accent": "#e88452",
-    "style": "bob",
+    "style": "undercut",
     "face": "broad",
-    "detail": "visor"
+    "detail": "none",
+    "expression": "grin",
+    "kit": "harness",
+    "accessory": "goggles",
+    "age": "young"
   },
   "personality": {
     "label": "Fiery risk-taker",

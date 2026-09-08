@@ -13,9 +13,13 @@
     "hair": "#343032",
     "jacket": "#65524b",
     "accent": "#dd9361",
-    "style": "sweep",
-    "face": "oval",
-    "detail": "beard"
+    "style": "locs",
+    "face": "long",
+    "detail": "beard",
+    "expression": "calm",
+    "kit": "harness",
+    "accessory": "none",
+    "age": "mature"
   },
   "personality": {
     "label": "Quiet tinkerer",

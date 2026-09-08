@@ -17,14 +17,14 @@ export function useWeaponReplacement({ catalog, design, inventory, targeting, on
 }) {
   const [request, setRequest] = useState<ReplacementRequest | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const fits = useMemo(() => targeting?.kind === 'weapon'
+  const fits = useMemo(() => targeting?.kind === 'weapon' && targeting.sourceIndex === undefined
     ? replacementFits(catalog, design, targeting.id, inventory) : new Map(), [catalog, design, inventory, targeting]);
   const preview = useMemo(() => request === null ? null
     : evaluateWeaponReplacement(catalog, request.source, request.index, request.weaponId, inventory), [catalog, request, inventory]);
   const close = (): void => { setRequest(null); setError(null); };
   const open = (payload: DropPayload, index: number): void => {
     onClearDrag();
-    if (payload.kind !== 'weapon' || design.mounts[index] === undefined || !catalog.weapons.has(payload.id)) return;
+    if (payload.kind !== 'weapon' || payload.sourceIndex !== undefined || design.mounts[index] === undefined || !catalog.weapons.has(payload.id)) return;
     setRequest({ index, weaponId: payload.id, source: structuredClone(design) });
     setError(null);
   };

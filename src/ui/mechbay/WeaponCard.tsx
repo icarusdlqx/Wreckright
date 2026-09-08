@@ -21,6 +21,7 @@ export interface WeaponCardProps {
   mountedWeapons?: readonly Weapon[];
   chassisFaction?: Faction;
   stock?: number;
+  ammoTons?: number;
   selected?: boolean;
   inspected?: boolean;
   unavailableReason?: string | null;
@@ -43,6 +44,7 @@ export function WeaponCard({
   weapon,
   chassisFaction,
   stock,
+  ammoTons = 0,
   selected = false,
   inspected = false,
   unavailableReason = null,
@@ -156,6 +158,13 @@ export function WeaponCard({
             <strong>{weapon.slots} box{weapon.slots === 1 ? '' : 'es'}</strong>
           </span>
           <span>{mountSize} {weapon.type} mount · {formatWeaponNumber(weapon.tonnage)}t</span>
+        </span>
+        <span className={`weapon-card__ammunition ${weapon.ammoPerTon === null ? 'is-energy' : 'is-ammo'}`}
+          data-testid={`weapon-ammo-${weapon.id}`}>
+          <strong>{weapon.ammoPerTon === null ? 'No ammo needed' : 'Ammo required'}</strong>
+          <span>{weapon.ammoPerTon === null ? 'Runs on mech power' : ammoTons > 0
+            ? `${formatWeaponNumber(ammoTons * weapon.ammoPerTon)} rounds shared on this mech`
+            : `First bin fitted automatically · 1t / ${catalog.rules.construction.ammoSlotsPerTon} box${catalog.rules.construction.ammoSlotsPerTon === 1 ? '' : 'es'}`}</span>
         </span>
         <span className="weapon-card__quick-stats" aria-label="Weapon summary">
           <span>{formatWeaponNumber(metrics.damage)}/s damage</span>

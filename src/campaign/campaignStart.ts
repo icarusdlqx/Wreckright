@@ -4,6 +4,7 @@ import { pristineCondition } from './repair';
 import { emptyHistoryArchive } from './history';
 import { logCampaign } from './campaignState';
 import type { CampaignState, MechRecord } from './types';
+import { claimDemoSupplies } from './demoSupplies';
 
 export function startCampaign(
   catalog: Catalog, campaignId: string, seed: string,
@@ -83,5 +84,6 @@ export function startCampaign(
   });
 
   logCampaign(state, `${campaign.name} begins.`);
+  claimDemoSupplies(catalog, state);
   return state;
 }

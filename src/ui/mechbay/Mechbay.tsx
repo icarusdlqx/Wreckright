@@ -299,6 +299,7 @@ export function Mechbay({
           onDrop={onDrop}
           onReplace={replacement.open}
           replacements={replacement.fits}
+          onMove={(payload) => { setArmed(payload); setInspected(payload); }}
           onRemoveMount={(index) => applyIntent({ type: 'remove_weapon', index })}
           onRemoveAmmo={(index) => {
             const bin = design.ammo[index];

@@ -69,7 +69,7 @@ describe('mech model resources', () => {
     disposeModel(model.root);
   });
 
-  it('preserves tactical topology while the inspection model spends more triangles', () => {
+  it('keeps armour bevels within the tactical budget while inspection spends more triangles', () => {
     const chassis = catalog.chassis.get('sentinel_snl2');
     expect(chassis).toBeDefined();
     if (chassis === undefined) return;
@@ -92,7 +92,7 @@ describe('mech model resources', () => {
 
     try {
       expect({ tactical: blueprintTopology(tactical.root), hero: blueprintTopology(hero.root) }).toEqual({
-        tactical: { meshes: 24, triangles: 2060 }, hero: { meshes: 24, triangles: 3796 },
+        tactical: { meshes: 24, triangles: 2296 }, hero: { meshes: 24, triangles: 4032 },
       });
       expect(tactical.root.userData.modelDetail).toBe('structure');
       expect(hero.root.userData.modelDetail).toBe('hero');
@@ -214,4 +214,17 @@ describe('mech model resources', () => {
     expect(model.torso.children).toHaveLength(children);
     disposeModel(model.root);
   });
+  it('leaves every mounted energy core dark on a wreck even if its mount survived', () => {
+    const chassis = catalog.chassis.get('sentinel_snl2')!;
+    const weapon = catalog.weapons.get('medium_laser')!;
+    const model = buildMechModel(chassis.silhouette, chassis.traits, chassis.tonnage, 0x78c9ff, true,
+      [{ weaponId: weapon.id, location: 'right_arm', type: weapon.type, tonnage: weapon.tonnage,
+        projectiles: weapon.projectiles, recoil: weapon.recoil, visual: weapon.visual }], new Set(),
+      chassis.hardpoints, chassis.id, {}, chassis.faction);
+    expect(model.weapons).toHaveLength(1);
+    expect(model.weapons[0]!.powered).toBe(false);
+    expect(model.weapons[0]!.powerMaterials.every((channel) => channel.material.emissiveIntensity === 0)).toBe(true);
+    disposeModel(model.root);
+  });
+
 });

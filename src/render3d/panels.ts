@@ -166,14 +166,14 @@ export function armourShell(
   const centreY = (bounds.minY + bounds.maxY) / 2;
   const edgeSize = Math.min(width, height, depth) * edge;
   const positions: number[] = [];
-  const rings: [number[], number[], number[], number[]] = [[], [], [], []];
-
-  for (const [ring, side, inset] of [
-    [0, -1, true],
-    [1, -1, false],
-    [2, 1, false],
-    [3, 1, true],
-  ] as const) {
+  // Two broad bevel facets catch a rim light without turning the armour into a
+  // rounded toy. The cap and the authored outline keep their original bounds.
+  const ringSteps = [[-1, 1], [-1, 0.5], [-1, 0], [1, 0], [1, 0.5], [1, 1]] as const;
+  const rings: number[][] = ringSteps.map(() => []);
+  for (let ring = 0; ring < ringSteps.length; ring += 1) {
+    const [side, alongBevel] = ringSteps[ring]!;
+    const insetPart = 1 - Math.cos(alongBevel * Math.PI / 2);
+    const depthPart = Math.sin(alongBevel * Math.PI / 2);
     for (const [x, y] of outline) {
       const along = (x - bounds.minX) / width;
       const rise = (y - bounds.minY) / height;
@@ -184,29 +184,25 @@ export function armourShell(
       const dx = centreX - x;
       const dy = centreY - y;
       const distance = Math.hypot(dx, dy);
-      const insetScale = inset && distance > 0 ? Math.min(edgeSize / distance, 0.24) : 0;
-      rings[ring].push(positions.length / 3);
+      const insetScale = distance > 0 ? Math.min(edgeSize / distance, 0.24) * insetPart : 0;
+      rings[ring]!.push(positions.length / 3);
       positions.push(
         x + dx * insetScale,
         y + dy * insetScale,
-        side * (inset ? halfDepth : innerDepth),
+        side * (innerDepth + (halfDepth - innerDepth) * depthPart),
       );
     }
   }
 
   const indices: number[] = [];
   const count = outline.length;
-  for (let index = 0; index < count; index += 1) {
-    const next = (index + 1) % count;
-    const [negativeOuter, negativeInner, positiveInner, positiveOuter] = rings;
-    indices.push(
-      positiveInner[index]!, negativeInner[index]!, negativeInner[next]!,
-      positiveInner[index]!, negativeInner[next]!, positiveInner[next]!,
-      positiveInner[index]!, positiveInner[next]!, positiveOuter[next]!,
-      positiveInner[index]!, positiveOuter[next]!, positiveOuter[index]!,
-      negativeInner[index]!, negativeOuter[index]!, negativeOuter[next]!,
-      negativeInner[index]!, negativeOuter[next]!, negativeInner[next]!,
-    );
+  for (let ring = 0; ring < rings.length - 1; ring += 1) {
+    const near = rings[ring]!;
+    const far = rings[ring + 1]!;
+    for (let index = 0; index < count; index += 1) {
+      const next = (index + 1) % count;
+      indices.push(far[index]!, near[index]!, near[next]!, far[index]!, near[next]!, far[next]!);
+    }
   }
 
   const addCap = (ring: number[], positive: boolean): void => {
@@ -230,7 +226,7 @@ export function armourShell(
     }
   };
   addCap(rings[0]!, false);
-  addCap(rings[3]!, true);
+  addCap(rings[rings.length - 1]!, true);
 
   const indexed = new BufferGeometry();
   indexed.setAttribute('position', new Float32BufferAttribute(positions, 3));

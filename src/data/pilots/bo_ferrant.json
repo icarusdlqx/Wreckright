@@ -14,8 +14,12 @@
     "jacket": "#526b66",
     "accent": "#e5ad65",
     "style": "curls",
-    "face": "broad",
-    "detail": "freckles"
+    "face": "round",
+    "detail": "freckles",
+    "expression": "grin",
+    "kit": "flight_vest",
+    "accessory": "goggles",
+    "age": "mature"
   },
   "personality": {
     "label": "Freight-yard wit",

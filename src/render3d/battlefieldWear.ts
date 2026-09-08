@@ -14,6 +14,7 @@ import { tileVisible } from '../sim/sensors';
 import type { Vec2, World } from '../sim/types';
 import { disposeObjectResources } from './sceneResources';
 import { ScarLayer } from './scarLayer';
+import { softenSmokeEdges } from './softSmokeMaterial';
 export { ScarLayer } from './scarLayer';
 
 const HIDDEN = new Matrix4().makeScale(0, 0, 0);
@@ -61,7 +62,8 @@ export class SmokeLayer {
     this.far = fogColour.clone();
     const count = Math.max(0, capacity) * PUFFS;
     const material = new MeshBasicMaterial({ transparent: true, opacity: 0.5, depthWrite: false });
-    this.mesh = new InstancedMesh(new SphereGeometry(1, 7, 6), material, count);
+    softenSmokeEdges(material);
+    this.mesh = new InstancedMesh(new SphereGeometry(1, 10, 7), material, count);
     this.mesh.name = 'wreck-smoke';
     this.mesh.frustumCulled = false;
     this.mesh.count = 0;

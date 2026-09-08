@@ -208,7 +208,8 @@ describe('authored shot presentation', () => {
 
     const boltRead = pool(bolt, 'bolt');
     expect(visibleInstances(boltRead)).toBe(9);
-    expect(positionAt(boltRead, 8).x).toBeCloseTo(100);
+    const terminalSegment = new Matrix4(); boltRead.getMatrixAt(8, terminalSegment);
+    expect(new Vector3(0, .5, 0).applyMatrix4(terminalSegment).x).toBeCloseTo(100, 1);
     expect(visibleInstances(pool(flame, 'flame'))).toBe(8);
   });
 

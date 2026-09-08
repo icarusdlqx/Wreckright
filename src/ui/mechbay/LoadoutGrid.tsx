@@ -34,6 +34,7 @@ interface Props {
   onRemoveAmmo: (index: number) => void;
   onRemoveEquipment: (index: number) => void;
   onInspect: (payload: DropPayload) => void;
+  onMove?: (payload: DropPayload) => void;
   onSelectLocation: (location: MechLocation) => void;
   onHoverLocation: (location: MechLocation | null) => void;
 }
@@ -63,6 +64,7 @@ export function LoadoutGrid({
   onRemoveAmmo,
   onRemoveEquipment,
   onInspect,
+  onMove,
   onSelectLocation,
   onHoverLocation,
 }: Props) {
@@ -75,7 +77,9 @@ export function LoadoutGrid({
   const currentStep = targeting !== null ? 2 : null;
   const massWarning = [...locationFits.values()].find((fit) => fit.ok)?.massWarning ?? null;
   const statusText = targeting !== null
-    ? `${armed === null ? `Dragging ${targetName}` : `Step 2 of 3: holding ${targetName}`}. Match its boxes to a location marked Fits held part. Drop into free space or select that location to fit. To swap, drop onto or select an installed weapon and review the replacement.`
+    ? targeting.sourceIndex !== undefined
+      ? `Moving ${targetName}. Choose a green location. Existing ammunition stays connected; no spare weapon is used.`
+      : `${armed === null ? `Dragging ${targetName}` : `Step 2 of 3: holding ${targetName}`}. Match its boxes to a location marked Fits held part. Drop into free space or select that location to fit. To swap, drop onto or select an installed weapon and review the replacement.`
     : selectedLocation !== null
       ? `${MECH_LOCATION_NAMES[selectedLocation]} is selected as a shelf filter. Pick a compatible part, or inspect and remove fitted parts here.`
       : 'Ready to fit or review: pick a part from the shelf, select a location to filter, or inspect a fitted part.';
@@ -135,7 +139,8 @@ export function LoadoutGrid({
         <div className="fitting-box-key" aria-label="One box equals one fitting slot. Filled boxes are occupied; hollow boxes are free.">
           <span><SlotBoxes count={1} /> Fitted</span>
           <span className="fitting-box-key__free"><SlotBoxes count={1} /> Free</span>
-          <span>1 box = 1 slot · match mount type &amp; size</span>
+          <span>1 box = 1 slot · shapes pack automatically</span>
+          <span>W weapon · A ammo · G gear</span>
         </div>
         <div className="fitting-mass-space">{massWarning === null ? null : <p className="fitting-mass-warning" role="status">{massWarning}</p>}</div>
         <p className="location-workbench__status" role="status" aria-live="polite" data-testid="bay-fit-status">
@@ -145,7 +150,7 @@ export function LoadoutGrid({
       {armed === null ? null : (
         <div className="bay-armed-banner" data-testid="bay-armed">
           <span>
-            Holding <strong>{targetName}</strong> — choose free space, or a fitted weapon to replace.
+            {armed.sourceIndex === undefined ? 'Holding' : 'Moving'} <strong>{targetName}</strong> — {armed.sourceIndex === undefined ? 'choose free space, or a fitted weapon to replace.' : 'choose a green location.'}
           </span>
           <button
             type="button"
@@ -183,6 +188,7 @@ export function LoadoutGrid({
             onRemoveAmmo={onRemoveAmmo}
             onRemoveEquipment={onRemoveEquipment}
             onInspect={onInspect}
+            onMove={onMove}
             onSelect={onSelectLocation}
             onHover={onHoverLocation}
             selected={selectedLocation === location}

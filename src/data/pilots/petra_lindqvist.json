@@ -14,9 +14,13 @@
     "hair": "#51392f",
     "jacket": "#3e645d",
     "accent": "#e6b075",
-    "style": "braid",
+    "style": "bun",
     "face": "angular",
-    "detail": "earpiece"
+    "detail": "earpiece",
+    "expression": "calm",
+    "kit": "harness",
+    "accessory": "none",
+    "age": "mature"
   },
   "personality": {
     "label": "Cool observer",

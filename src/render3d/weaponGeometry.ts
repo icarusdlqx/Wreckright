@@ -2,9 +2,11 @@ import {
   BoxGeometry,
   CylinderGeometry,
   InstancedMesh,
+  LatheGeometry,
   Mesh,
   MeshStandardMaterial,
   Object3D,
+  Vector2,
   type Material,
 } from 'three';
 import type { Weapon } from '../schema/weapon';
@@ -55,10 +57,21 @@ export function weaponCylinder(
   quality: MechGeometryQuality,
 ): Mesh {
   const segments = quality === 'hero' ? 14 : 8;
-  const mesh = new Mesh(
-    new CylinderGeometry(radiusFar, radiusNear, length, segments),
-    material,
-  );
+  let geometry;
+  if (/field-barrel|siege-barrel|canister-sleeve/.test(name)) {
+    const profile = [[0, 1], [0.08, 1], [0.13, 1.28], [0.20, 1.28], [0.25, 1],
+      [0.62, 1], [0.66, 1.18], [0.72, 1.18], [0.76, 1], [1, 1]];
+    geometry = new LatheGeometry(profile.map(([t = 0, collar = 1]) => new Vector2(
+      (radiusNear + (radiusFar - radiusNear) * t) * collar, (t - 0.5) * length)), segments);
+  } else if (/muzzle-collar|baffle-brake|focusing-aperture|pulse-gate|projector-crown/.test(name)) {
+    // A recessed throat catches light on its rim while its bore stays visibly dark.
+    geometry = new LatheGeometry([
+      new Vector2(0, -length / 2), new Vector2(radiusNear, -length / 2),
+      new Vector2(radiusFar, length / 2), new Vector2(radiusFar * 0.62, length / 2),
+      new Vector2(radiusNear * 0.62, -length * 0.28), new Vector2(0, -length * 0.28),
+    ], segments);
+  } else geometry = new CylinderGeometry(radiusFar, radiusNear, length, segments);
+  const mesh = new Mesh(geometry, material);
   mesh.name = name;
   mesh.rotation.z = -Math.PI / 2;
   mesh.position.set(...at);

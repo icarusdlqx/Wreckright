@@ -194,17 +194,19 @@ describe('salvage', () => {
   });
 
   it('recovers gear into the store when salvage rights are high', () => {
+    const before = state.store.reduce((sum, item) => sum + item.count, 0);
     fightNode(state, 'militia_raid');
     const recovered = state.store.reduce((sum, item) => sum + item.count, 0);
-    expect(recovered).toBeGreaterThan(0);
+    expect(recovered).toBeGreaterThan(before);
   });
 
   it('pays more and salvages nothing at the payout-heavy end', () => {
     const payoutRun = start('payout-run');
+    const suppliesBefore = structuredClone(payoutRun.store);
     acceptContract(catalog, payoutRun, 'militia_raid', 'fee_first');
     runMission(catalog, payoutRun);
 
-    expect(payoutRun.store).toHaveLength(0);
+    expect(payoutRun.store).toEqual(suppliesBefore);
     expect(payoutRun.history[0]?.termsId).toBe('fee_first');
     expect(payoutRun.history[0]?.salvagedChassis ?? []).toHaveLength(0);
   });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { startCampaign } from '../../campaign/campaign';
-import { addToStore } from '../../campaign/types';
+import { addToStore, storeCount } from '../../campaign/types';
 import { catalog } from '../../../tests/support';
 import { salvageItemFacts, salvageSummary } from './salvageFacts';
 
@@ -40,6 +40,7 @@ describe('salvage summary', () => {
 describe('salvage item facts', () => {
   it('states a weapon mount, owned matches, and pre-haul count', () => {
     const state = startCampaign(catalog, 'border_dispute', 'salvage-facts');
+    const startingStock = storeCount(state, 'weapon', 'medium_laser');
     addToStore(state, 'weapon', 'medium_laser', 3);
     const item = { kind: 'weapon' as const, itemId: 'medium_laser', count: 2 };
 
@@ -49,7 +50,7 @@ describe('salvage item facts', () => {
     expect(facts.kind).toBe('Weapon');
     expect(facts.specification).toBe('light energy hardpoint · 1t · 1 slot');
     expect(facts.fit).toContain('Bulwark');
-    expect(facts.ownedBefore).toBe(1);
+    expect(facts.ownedBefore).toBe(startingStock + 1);
     expect(facts.buildValue).toBe(80_000);
     expect(facts.saleBasis).toBe(36_000);
   });

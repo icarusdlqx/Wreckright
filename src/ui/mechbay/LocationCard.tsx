@@ -6,10 +6,11 @@ import { armourFacesForDesign } from '../../sim/designArmour';
 import { weaponSizeLabel, type LocationUsage } from '../../sim/loadout';
 import { buildLocationOccupants, type LocationOccupant } from './locationOccupants';
 import { parsedDrop, type DropPayload } from './dropPayload';
+import { RackCapacity } from './RackCapacity';
 import { FittedPart } from './FittedPart';
 import type { WeaponReplacement } from './weaponReplacement';
 export { mutateAfterStableFocus, stableRemovalFocusTarget } from './locationFocus';
-import { payloadFootprint, payloadName, SlotBoxes } from './SlotBoxes';
+import { payloadFootprint, payloadName } from './SlotBoxes';
 
 export type { DropPayload } from './dropPayload';
 
@@ -37,6 +38,7 @@ interface Props {
   onRemoveAmmo: (index: number) => void;
   onRemoveEquipment: (index: number) => void;
   onInspect?: (payload: DropPayload) => void;
+  onMove?: (payload: DropPayload) => void;
   onSelect?: (location: MechLocation) => void;
   onHover?: (location: MechLocation | null) => void;
   selected?: boolean;
@@ -63,6 +65,7 @@ export function LocationCard({
   onRemoveAmmo,
   onRemoveEquipment,
   onInspect,
+  onMove,
   onSelect,
   onHover,
   selected = false,
@@ -103,7 +106,7 @@ export function LocationCard({
   const plate = armourFacesForDesign(catalog.rules.construction, design, location);
   const target = targeting ?? armed;
   const targetFits = target !== null && compatible;
-  const canReplaceHere = target?.kind === 'weapon' && occupants.some((item) => item.kind === 'weapon' && replacements?.get(item.index)?.ok);
+  const canReplaceHere = target?.kind === 'weapon' && target.sourceIndex === undefined && occupants.some((item) => item.kind === 'weapon' && replacements?.get(item.index)?.ok);
   const incoming = targetFits ? Math.min(empty, payloadFootprint(catalog, target)) : 0;
   const invalid = slotsOver || hardpointOver || sizeOver;
   const locationName = MECH_LOCATION_NAMES[location];
@@ -146,9 +149,9 @@ export function LocationCard({
       onPointerEnter={() => onHover?.(location)}
       onPointerLeave={() => onHover?.(null)}
       onDragOver={(event) => {
-        if (target === null) return;
+        if (target === null && !Array.from(event.dataTransfer.types).includes('application/wreckright')) return;
         event.preventDefault();
-        event.dataTransfer.dropEffect = compatible ? 'copy' : 'none';
+        event.dataTransfer.dropEffect = target?.sourceIndex !== undefined ? 'move' : 'copy';
         onHover?.(location);
       }}
       onDragLeave={(event) => {
@@ -239,7 +242,7 @@ export function LocationCard({
             key={item.key} catalog={catalog} item={item} locationName={locationName}
             snap={item.key === snapOccupantKey} target={target}
             replacement={replacements?.get(item.index)}
-            onInspect={onInspect} onRemove={() => remove(item)} onReplace={onReplace}
+            onInspect={onInspect} onMove={onMove} onRemove={() => remove(item)} onReplace={onReplace}
           />
         ))}
         <li
@@ -258,10 +261,7 @@ export function LocationCard({
               <span className="rack-drop-space">{targetFits ? <strong className="rack-drop-preview">
                 {hovered ? 'Release to fit' : 'Fit here'} · {payloadName(catalog, target)}
               </strong> : null}</span>
-              <SlotBoxes
-                count={empty}
-                incoming={incoming}
-              />
+              <RackCapacity capacity={usage.slotsAvailable} occupants={occupants} incoming={incoming} />
               <small className="rack-free-count">
                 {targetFits
                   ? `${incoming} box${incoming === 1 ? '' : 'es'} needed · ${empty - incoming} left after fit`

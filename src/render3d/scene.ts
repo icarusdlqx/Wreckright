@@ -80,7 +80,7 @@ export class Renderer {
     this.mapData = mapData;
     this.host = host;
     this.renderer = new WebGLRenderer({ antialias: true });
-    configureRenderer(this.renderer, this.lowFx, globalThis.devicePixelRatio ?? 1);
+    configureRenderer(this.renderer, this.lowFx, globalThis.devicePixelRatio ?? 1, this.viewport);
 
     const mapWidth = world.terrain.width * world.terrain.tileSize;
     const mapHeight = world.terrain.height * world.terrain.tileSize;
@@ -218,7 +218,7 @@ export class Renderer {
   setLowFx(low: boolean): void {
     this.lowFx = low;
     writeLowFx(low);
-    configureRenderer(this.renderer, low, globalThis.devicePixelRatio ?? 1);
+    configureRenderer(this.renderer, low, globalThis.devicePixelRatio ?? 1, this.viewport);
     this.effects.setPresentationMode(low);
     this.supportEffects.setPresentationMode(low);
     this.terrainFire.setPresentationMode(low, this.camera.reducedMotion);
@@ -236,6 +236,7 @@ export class Renderer {
 
   resize(): void {
     const { width, height } = this.viewport;
+    configureRenderer(this.renderer, this.lowFx, globalThis.devicePixelRatio ?? 1, { width, height });
     this.renderer.setSize(width, height);
     this.camera.update({ width, height });
   }
@@ -357,7 +358,7 @@ export class Renderer {
       (entity) => this.screenBodyOf(entity), this.viewport.width, this.viewport.height);
     this.targetBrackets.draw(world, view.selection,
       (entity) => this.screenBodyOf(entity), this.viewport.width, this.viewport.height);
-    this.terrain.setTime((world.tick + alpha) * world.dt);
+    this.terrain.setTime(this.camera.reducedMotion ? 0 : (world.tick + alpha) * world.dt);
     this.renderer.render(this.scene, this.camera.camera);
     this.effects.advance(presentationDelta);
   }

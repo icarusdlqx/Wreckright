@@ -1,10 +1,12 @@
+import { SlotBoxes } from './SlotBoxes';
 import type { InspectorFit } from './Dossier';
 import type { DropPayload } from './dropPayload';
 
-export function ShelfItem({ payload, label, detail, stock, fit, armed, inspected, onInspect, onArm, onAutoFit }: {
+export function ShelfItem({ payload, label, detail, boxes, stock, fit, armed, inspected, onInspect, onArm, onAutoFit }: {
   payload: DropPayload;
   label: string;
   detail: string;
+  boxes?: number;
   stock?: number;
   fit: InspectorFit;
   armed: boolean;
@@ -34,6 +36,7 @@ export function ShelfItem({ payload, label, detail, stock, fit, armed, inspected
           {label}{stock === undefined ? null : <em className="stock-count">{Math.max(0, stock)} spare</em>}
         </span>
         <span className="stock-detail">{detail}</span>
+        {boxes === undefined ? null : <span className="stock-box-footprint"><SlotBoxes count={boxes} /> {boxes} box{boxes === 1 ? '' : 'es'}</span>}
         <span className={`bay-stock__fit ${unavailable ? 'is-blocked' : 'is-fit'}`}>
           {fit.label === undefined ? '' : `${fit.label} · `}
           {exhausted ? fit.reason ?? '0 spare. Acquire a copy before fitting it.' : fit.ok ? 'Fits' : fit.reason}

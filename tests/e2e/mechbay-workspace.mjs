@@ -369,7 +369,32 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
   );
 }
 
+/** Exhausted-stock behavior needs depleted stores, independently of the demo's generous grant. */
 export async function runCampaignRefitMechbayJourney({ page, check }) {
+  const original = await page.evaluate(() => localStorage.getItem('ironline.campaign'));
+  const fixture = JSON.parse(original);
+  fixture.state.store = [];
+  const context = await page.context().browser().newContext({
+    viewport: page.viewportSize() ?? { width: 1440, height: 900 }, reducedMotion: 'reduce',
+  });
+  const depleted = await context.newPage();
+  try {
+    await depleted.addInitScript(save => localStorage.setItem('ironline.campaign', save), JSON.stringify(fixture));
+    await depleted.goto(page.url());
+    await depleted.getByTestId('home-campaign').click();
+    await depleted.getByTestId('camp-review-machines').click();
+    await depleted.getByTestId('hangar-continue').click();
+    await depleted.getByTestId('lance-manifest').waitFor();
+    check('depleted-store refit fixture has no spare inventory', await depleted.evaluate(() =>
+      JSON.parse(localStorage.getItem('ironline.campaign')).state.store.length === 0));
+    await verifyDepletedCompanyRefit({ page: depleted, check });
+  } finally { await context.close(); }
+  check('depleted-stock checks leave the main campaign and its demo equipment unchanged',
+    await page.evaluate(() => localStorage.getItem('ironline.campaign')) === original
+    && await page.getByTestId('lance-manifest').isVisible());
+}
+
+async function verifyDepletedCompanyRefit({ page, check }) {
   // This journey inspects the Gadfly's authored Flamer/SRM inventory, even
   // after the commander moves its card to a different deployment position.
   const pilotId = await page.evaluate(() => {
@@ -389,7 +414,7 @@ export async function runCampaignRefitMechbayJourney({ page, check }) {
     .locator('.bay-side [data-testid^="stock-weapon-"]')
     .evaluateAll((entries) => entries.map((entry) => entry.getAttribute('data-testid') ?? ''));
   check(
-    'the campaign shelf holds the selected welded mech\'s own weapons',
+    'a depleted campaign shelf holds only the selected mech\'s installed weapons',
     shelvedWeapons.length === 2 &&
       shelvedWeapons.includes('stock-weapon-flamer') &&
       shelvedWeapons.includes('stock-weapon-srm2') &&

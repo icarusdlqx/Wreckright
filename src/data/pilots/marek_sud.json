@@ -14,12 +14,16 @@
     "jacket": "#3f635b",
     "accent": "#efb56b",
     "style": "crop",
-    "face": "angular",
-    "detail": "earpiece"
+    "face": "long",
+    "detail": "earpiece",
+    "expression": "calm",
+    "kit": "flight_vest",
+    "accessory": "headset",
+    "age": "veteran"
   },
   "personality": {
     "label": "Patient listener",
-    "description": "Hears patterns in static. Unhurried and reassuring, with a relay operator’s dislike of chatter.",
+    "description": "Hears patterns in static. Unhurried and reassuring, with a relay operator\u2019s dislike of chatter.",
     "lines": {
       "move": [
         "Reading you clearly. Moving.",

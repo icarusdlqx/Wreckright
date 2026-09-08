@@ -14,9 +14,13 @@
     "hair": "#d2b891",
     "jacket": "#465869",
     "accent": "#df985b",
-    "style": "sweep",
+    "style": "bun",
     "face": "oval",
-    "detail": "freckles"
+    "detail": "freckles",
+    "expression": "calm",
+    "kit": "officer",
+    "accessory": "none",
+    "age": "mature"
   },
   "personality": {
     "label": "Cool professional",

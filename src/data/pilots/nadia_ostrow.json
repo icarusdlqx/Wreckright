@@ -14,8 +14,12 @@
     "jacket": "#536052",
     "accent": "#df9b62",
     "style": "crop",
-    "face": "broad",
-    "detail": "scar"
+    "face": "square",
+    "detail": "scar",
+    "expression": "stern",
+    "kit": "workcoat",
+    "accessory": "none",
+    "age": "veteran"
   },
   "personality": {
     "label": "Unflappable veteran",

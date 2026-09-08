@@ -15,8 +15,12 @@
     "jacket": "#536466",
     "accent": "#dda469",
     "style": "braid",
-    "face": "oval",
-    "detail": "scar"
+    "face": "long",
+    "detail": "scar",
+    "expression": "resolute",
+    "kit": "scarf",
+    "accessory": "none",
+    "age": "veteran"
   },
   "personality": {
     "label": "Guarded survivor",

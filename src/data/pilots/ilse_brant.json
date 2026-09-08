@@ -14,8 +14,12 @@
     "jacket": "#475b65",
     "accent": "#dfb367",
     "style": "braid",
-    "face": "oval",
-    "detail": "earpiece"
+    "face": "heart",
+    "detail": "earpiece",
+    "expression": "grin",
+    "kit": "flight_vest",
+    "accessory": "bandana",
+    "age": "young"
   },
   "personality": {
     "label": "Restless road-runner",

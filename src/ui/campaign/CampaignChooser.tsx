@@ -71,6 +71,7 @@ export function CampaignChooser({ campaigns, currentId, onClose, onStart,
           </select>
         </label>
         {story === undefined ? null : <p className="company-story-preview"><strong>{story.title}</strong> {story.summary}</p>}
+        {selected?.demoSupplies === undefined ? null : <p className="company-demo-note"><strong>Demo equipment:</strong> start with {selected.demoSupplies.items.filter(item => item.kind === 'weapon').length} loose weapon types for refitting. Earn advanced weapons through later contracts.</p>}
         {resumable || (isCurrent && !initial) ? null : <CampaignDifficulty value={selectedDifficulty} onChange={setSelectedDifficulty} />}
         {resumable ? <p className="campaign-chooser-selection">Saved company: day {slot.state?.day} · {slot.state?.completedNodes.length} contracts completed. Resume keeps its difficulty and roster.</p> : null}
         {slot.error === null ? null : <div role="alert"><p>{slot.error} {damagedSlot ? 'The original saved company is preserved. Export it for recovery before starting another run in this slot.' : 'Company slots cannot be read here. A new company can run in memory; export it before leaving.'}</p>

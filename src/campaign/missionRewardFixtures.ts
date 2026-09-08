@@ -6,7 +6,7 @@ import type { BattleResult } from '../sim/world';
 
 /** Kept independent of the current opening route so content tuning cannot change the test's contract. */
 export function rewardFixture(rewards: CampaignReward[] = []) {
-  const campaign = catalog.campaigns.get('border_dispute')!;
+  const campaign = { ...catalog.campaigns.get('border_dispute')!, demoSupplies: undefined };
   const first = campaign.nodes.find((node) => node.id === 'militia_raid')!;
   const mission = catalog.missions.get(first.missionId)!;
   const content = { ...catalog,

@@ -252,13 +252,13 @@ export function buildMechModel(
     const index = stacked.get(mount.location) ?? 0;
     stacked.set(mount.location, index + 1);
 
-    const material = mount.destroyed === true && faction === 'aurelian'
+    const material = destroyed || (mount.destroyed === true && faction === 'aurelian')
       ? new MeshStandardMaterial({ color: 0x10171a, roughness: 0.74, metalness: 0.48 })
       : createWeaponMaterial(mount.type);
     ownedMaterials.push(material);
     const heft = 0.5 + Math.min(1, mount.tonnage / 14);
     const weapon = buildWeaponModel(
-      mount,
+      destroyed ? { ...mount, destroyed: true } : mount,
       heft,
       scale,
       material,

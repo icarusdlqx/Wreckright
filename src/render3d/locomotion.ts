@@ -39,6 +39,7 @@ import { advanceTurnBalance, advanceWeightSettle, applyStanceResponse } from './
 import { resetModelArticulation } from './modelArticulation';
 import { updateMachineHeat } from './machineServices';
 import { supportTerminalOnGround } from './terminalSupport';
+import { poseTravellingAssemblies } from './assemblyMotion';
 
 export { advanceGait, gaitForTerrain, responseBlend, type GaitProfile } from './terrainGait';
 export { localTilt, sampleGround, type GroundSample } from './locomotionGround';
@@ -315,6 +316,8 @@ export class Locomotion {
       dt,
     );
 
+    poseTravellingAssemblies(model.articulation, model.faction, posePhase, state.amp,
+      model.weapons.some((weapon) => weapon.cycle > 0.12), this.reducedMotion);
     emitFootContacts(entity, model, state, this.terrainAt, this.heightAt, this.onFootfall, travelled > 0);
   }
 

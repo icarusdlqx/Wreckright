@@ -16,7 +16,11 @@
     "accent": "#79c6bc",
     "style": "bob",
     "face": "oval",
-    "detail": "visor"
+    "detail": "none",
+    "expression": "curious",
+    "kit": "officer",
+    "accessory": "glasses",
+    "age": "mature"
   },
   "personality": {
     "label": "Inquisitive analyst",

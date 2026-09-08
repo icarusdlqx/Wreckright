@@ -38,6 +38,7 @@ export async function checkCompanyWorkspaces({ page, shots, check }) {
     await page.waitForSelector('[data-testid="refit-bay"]');
     check('the workshop opens the existing detailed refit bay directly', await page.locator('[data-testid="refit-bay"]').isVisible());
     await page.keyboard.press('Escape');
+    await page.getByTestId('refit-bay').waitFor({ state: 'hidden' });
     check('closing a workshop refit restores its launch control', await refit.evaluate((button) => button === document.activeElement));
   }
   await page.locator('[data-testid="camp-area-crew"]').click();

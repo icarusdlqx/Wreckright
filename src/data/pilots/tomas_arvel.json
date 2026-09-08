@@ -13,9 +13,13 @@
     "hair": "#523b2d",
     "jacket": "#465d68",
     "accent": "#81c2b8",
-    "style": "sweep",
+    "style": "quiff",
     "face": "broad",
-    "detail": "freckles"
+    "detail": "freckles",
+    "expression": "grin",
+    "kit": "flight_vest",
+    "accessory": "goggles",
+    "age": "young"
   },
   "personality": {
     "label": "Daring show-off",

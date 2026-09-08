@@ -19,7 +19,7 @@
 .supply-fit-detail { font-size: 11px; }
 .supply-fit-detail summary { cursor: pointer; color: #2a6461; padding-block: 5px; }
 .supply-footprint { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 11px; margin: 12px 0 8px; }
-.supply-part-card .slot-boxes, .yard-machine-details .slot-boxes { display: flex; gap: 3px; flex-wrap: wrap; }
+.supply-part-card .slot-boxes, .yard-machine-details .slot-boxes { display: grid; grid-template-columns: repeat(var(--box-columns, 1), 15px); gap: 3px; flex: none; }
 .supply-part-card .rack-cell, .yard-machine-details .rack-cell { width: 15px; height: 15px; flex: 0 0 15px; border: 1.5px solid #285963; border-radius: 2px; background: #397c76; box-sizing: border-box; }
 .supply-part-card select, .supply-part-card button { width: 100%; min-height: 38px; margin-top: 8px; white-space: normal; }
 .camp .camp-strip > li > span > small { display: block; color: #536e67; margin-top: 4px; }

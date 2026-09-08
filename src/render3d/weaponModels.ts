@@ -71,6 +71,7 @@ export function buildWeaponModel(
       breech,
       scale * mount.recoil * 0.28,
       parts,
+      mount.destroyed !== true,
     ),
   };
 }
