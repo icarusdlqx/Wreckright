@@ -1,5 +1,6 @@
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import { nativeBayDrag } from './native-bay-drag.mjs';
+import { clickFittingAction } from './fitting-actions.mjs';
 
 const readCompany = page => page.evaluate(() => JSON.parse(localStorage.getItem('ironline.campaign')).state);
 
@@ -20,7 +21,7 @@ export async function runSuppliesRefitUpgradeChecks({ browser, url, shots, check
     await page.locator('[data-testid="mechbay"]').waitFor();
     await page.waitForTimeout(300);
     const original = JSON.stringify(await readCompany(page));
-    await page.locator('[data-testid="remove-weapon-0"]').click();
+    await clickFittingAction(page.locator('[data-testid="remove-weapon-0"]'));
     await page.keyboard.press('Escape');
     await page.locator('[data-testid="bay-unsaved-dialog"]').waitFor();
     check('Escape protects a dirty refit and leaves the saved company intact', JSON.stringify(await readCompany(page)) === original);
@@ -31,13 +32,13 @@ export async function runSuppliesRefitUpgradeChecks({ browser, url, shots, check
     await page.locator('[data-testid="refit-bay"]').waitFor({ state: 'hidden' });
     check('Discard restores the saved loadout without consuming stores', JSON.stringify(await readCompany(page)) === original);
     await page.locator('[data-testid="camp-refit-mech-1"]').click();
-    await page.locator('[data-testid="remove-weapon-0"]').click();
+    await clickFittingAction(page.locator('[data-testid="remove-weapon-0"]'));
     const shelf = await page.locator('[data-testid="bay-stocks"]').boundingBox();
     check('laptop fitting retains at least 160px of visible parts shelf', shelf.height >= 159 && shelf.y + shelf.height <= 720);
     const target = page.locator('[data-testid="free-slots-right_arm"]');
     const drag = await nativeBayDrag(page, page.locator('[data-testid="stock-weapon-flamer"]'), target);
     check('held-part feedback keeps the drop rectangle stable', drag.stable, JSON.stringify(drag));
-    await page.locator('[data-testid="bay-location-right_arm"] button[aria-label="Remove Flamer from Right Arm"]').waitFor();
+    await page.locator('[data-testid="bay-location-right_arm"] button[aria-label="Inspect Flamer"]').waitFor();
     check('native drag fits the Flamer in the chosen arm', await page.locator('[data-testid="bay-location-right_arm"] button[aria-label="Remove Flamer from Right Arm"]').count() === 1);
     await page.screenshot({ path: `${shots}/laptop-refit-upgraded.png` });
     await page.locator('[data-testid="bay-exit"]').click();

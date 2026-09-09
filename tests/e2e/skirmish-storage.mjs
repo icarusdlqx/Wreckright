@@ -1,3 +1,4 @@
+import { clickFittingAction } from './fitting-actions.mjs';
 export async function runSkirmishStorageChecks({ browser, url, shots, check }) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
@@ -17,7 +18,7 @@ export async function runSkirmishStorageChecks({ browser, url, shots, check }) {
   const editAndCommit = async (side) => {
     await page.getByTestId(`${side === 'enemy' ? 'enemy-' : ''}berth-customise-0`).click();
     await page.getByTestId('outfit-bay').waitFor();
-    await page.getByTestId('remove-weapon-0').click();
+    await clickFittingAction(page.getByTestId('remove-weapon-0'));
     await page.getByTestId('bay-save').click();
     await page.getByTestId('outfit-bay').waitFor({ state: 'hidden' });
   };

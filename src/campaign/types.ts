@@ -113,6 +113,9 @@ export interface PilotReport {
   pilotId: string;
   name: string;
   mech: string;
+  /** Optional presentation identity; old reports retain their authored mech name. */
+  mechId?: string;
+  chassisId?: string;
   kills: number;
   damage: number;
   xp: number;
@@ -183,6 +186,11 @@ export interface CampaignHistoryArchive {
   employers: Record<string, EmployerOutcomeSummary>;
 }
 
+export interface DeploymentSeat {
+  mechId: string | null;
+  pilotId: string | null;
+}
+
 export interface CampaignState {
   campaignId: string;
   difficulty: string;
@@ -201,6 +209,8 @@ export interface CampaignState {
   benched: string[];
   /** Null preserves the legacy automatic roster order until the commander chooses. */
   deploymentSelection: string[] | null;
+  /** Explicit cockpits preserve an empty seat instead of silently finding a replacement. */
+  deploymentSeats?: DeploymentSeat[] | null;
   lancePresets: { name: string; seats: { pilotId: string; mechId: string | null }[] }[];
   claimedRewardIds: string[];
   /** Persist beyond archived field reports so retries cannot repeat objective XP. */

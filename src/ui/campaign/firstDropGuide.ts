@@ -29,10 +29,10 @@ export function firstDropInstruction(stage: FirstDropStage): string | null {
     return 'The job is signed. Open Prepare drop to inspect the machines.';
   }
   if (stage === 'bay') {
-    return 'Check the machines. They are ready; continue to deployment when you are satisfied.';
+    return 'Select a deployment seat to inspect its machine, refit its weapons or choose its pilot. The mission map stays in preparation.';
   }
   if (stage === 'manifest') {
-    return 'Confirm the pilots and machines, then launch the first contract.';
+    return 'Assign every cockpit, check the mission allowance, then review the field briefing. Deploy starts the battle.';
   }
   return null;
 }

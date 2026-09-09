@@ -1,4 +1,5 @@
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
+import { clickFittingAction } from './fitting-actions.mjs';
 import { nativeBayDrag } from './native-bay-drag.mjs';
 
 const company = page => page.evaluate(() => JSON.parse(localStorage.getItem('ironline.campaign')).state);
@@ -99,21 +100,24 @@ export async function runMechbayCrewChecks({ browser, url, shots, check }) {
     const right = page.locator('[data-testid="bay-location-right_arm"]');
     const head = page.locator('[data-testid="bay-location-head"]');
     const original = JSON.stringify((await company(page)).mechs);
-    check('every body section exposes its mounts and available fitting boxes at rest',
+    await left.locator('.bay-location-name').focus();
+    check('every body section has fitting boxes and keyboard inspection reveals its mounts',
       await page.locator('.bay-hardpoints').count() === 8
-      && await page.locator('[data-testid^="free-slots-"]').count() === 8);
+      && await page.locator('[data-testid^="free-slots-"]').count() === 8
+      && await left.locator('.bay-hardpoints').isVisible()
+      && await left.locator('[data-testid="free-slots-left_arm"]').isVisible());
     await page.screenshot({ path: `${shots}/crew-refit-desktop.png` });
-    await page.locator('.bay-machine [data-testid="machine-dossier"]').scrollIntoViewIfNeeded();
+    await page.locator('.anatomical-profile').scrollIntoViewIfNeeded();
     await page.screenshot({ path: `${shots}/crew-machine-profile.png` });
-    await page.locator('.bay-machine').evaluate(panel => { panel.scrollTop = 0; });
-    await left.getByRole('button', { name: 'Remove Flamer from Left Arm', exact: true }).click();
+    await clickFittingAction(left.getByRole('button', { name: 'Remove Flamer from Left Arm', exact: true, includeHidden: true }));
     const flamer = page.locator('[data-testid="weapon-card-flamer"] .weapon-card__pick');
     check('shelf weapon footprint agrees with its slot cost',
       await flamer.locator('.rack-cell').count() === 1);
     await flamer.click();
-    check('picking a weapon shows a named one-box landing preview on a compatible arm',
+    await right.hover();
+    check('picking a named weapon shows its one-box landing preview and compatible arm feedback',
       await right.locator('.rack-cell--incoming').count() === 1
-      && (await right.innerText()).includes('Flamer')
+      && (await page.locator('[data-testid="bay-armed"]').innerText()).includes('Flamer')
       && (await right.innerText()).includes('Fits held part'));
     await head.hover();
     check('inspecting an incompatible head explains why the weapon cannot fit',
@@ -156,7 +160,9 @@ export async function runMechbayCrewChecks({ browser, url, shots, check }) {
       && refitted.mechs[0].design.mounts.some(mount => mount.weaponId === 'flamer' && mount.location === 'right_arm'));
     await page.locator('[data-testid="camp-area-operations"]').click();
     await page.locator('[data-testid="camp-accept"]').click();
-    await page.locator('[data-testid="camp-deploy"]').click();
+    await page.locator('[data-testid="camp-review-machines"]').click();
+    await page.waitForSelector('[data-testid="lance-manifest"]');
+    await page.locator('[data-testid="manifest-launch"]').click();
     await page.waitForSelector('[data-testid="briefing"]');
     check('campaign briefing uses the chosen tier with no mission difficulty picker',
       await page.locator('[data-testid="difficulty-picker"]').count() === 0

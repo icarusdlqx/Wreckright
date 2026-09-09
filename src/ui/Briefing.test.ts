@@ -72,6 +72,7 @@ describe('briefing deployment gate', () => {
             pilotId: 'kessa_vale',
             tonnage: 35,
             pilot: null,
+            machine: null,
           }],
           designs: [{ value: 'hornet_spotter', label: identity }],
           saved: [],

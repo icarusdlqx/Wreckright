@@ -23,6 +23,8 @@ import {
 export interface Inspected {
   kind: 'weapon' | 'ammo' | 'equipment';
   id: string;
+  /** Identifies an installed weapon when inspecting its anatomical tile. */
+  sourceIndex?: number;
 }
 
 export interface InspectorFit {

@@ -21,7 +21,7 @@ export function useCampaignRefit({ catalog, state, prep, mutate, onStatus }: {
   const setRefitting = (mechId: string | null): void => setRequest(mechId === null ? null : { mechId });
   const refitBay: BayCommission | null = mech === undefined ? null : {
     title: authoredDesignName(catalog, mech.design),
-    cancelLabel: prep === null ? 'Back to company' : prep === 'bay' ? 'Back to hangar' : 'Back to manifest',
+    cancelLabel: prep === null ? 'Back to company' : 'Back to preparation',
     design: mech.design,
     ...(request?.part === undefined ? {} : { initialPart: request.part }),
     inventory: refitAvailability(state, mech),

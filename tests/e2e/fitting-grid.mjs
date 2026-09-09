@@ -1,4 +1,5 @@
 import { openDesktopBattleMenu } from './input-safety.mjs';
+import { clickFittingAction } from './fitting-actions.mjs';
 
 async function openBay(page, url) {
   await page.goto(url);
@@ -60,7 +61,7 @@ export async function runFittingGridChecks({ browser, url, shots, check }) {
     await pointerDrop(page, page.getByTestId('bay-location-left_arm').locator('[data-testid^="inspect-weapon-"]').first(), page.getByTestId('free-slots-head'));
     check('incompatible pointer drop preserves the installed weapon and explains refusal', await weaponsAt(page, 'left_arm') === oldLeft && await weaponsAt(page, 'head') === 0 && (await page.getByTestId('bay-status').innerText()).length > 10);
 
-    await page.getByTestId('bay-location-left_arm').locator('[data-testid^="remove-weapon-"]').first().click();
+    await clickFittingAction(page.getByTestId('bay-location-left_arm').locator('[data-testid^="remove-weapon-"]').first());
     await page.getByRole('tab', { name: 'Weapons', exact: true }).click();
     if (await page.getByRole('button', { name: 'Clear filter', exact: true }).count()) await page.getByRole('button', { name: 'Clear filter', exact: true }).click();
     await page.getByTestId('stock-weapon-medium_laser').scrollIntoViewIfNeeded();
@@ -69,7 +70,7 @@ export async function runFittingGridChecks({ browser, url, shots, check }) {
     if (await page.getByRole('button', { name: 'Clear filter', exact: true }).count()) await page.getByRole('button', { name: 'Clear filter', exact: true }).click();
     check('energy weapon shelf explicitly needs no ammunition', (await page.getByTestId('weapon-ammo-medium_laser').innerText()).includes('No ammo needed'));
 
-    await page.getByTestId('bay-location-right_arm').locator('[data-testid^="remove-weapon-"]').click();
+    await clickFittingAction(page.getByTestId('bay-location-right_arm').locator('[data-testid^="remove-weapon-"]'));
     await page.getByRole('tab', { name: 'Weapons', exact: true }).click();
     if (await page.getByRole('button', { name: 'Clear filter', exact: true }).count()) await page.getByRole('button', { name: 'Clear filter', exact: true }).click();
     await pointerDrop(page, page.getByTestId('stock-weapon-machine_gun'), page.getByTestId('free-slots-right_arm'));
@@ -85,7 +86,7 @@ export async function runFittingGridChecks({ browser, url, shots, check }) {
     await page.getByTestId('open-mechbay').click();
     await page.getByTestId('bay-stored').selectOption('grid_fitting_review');
     check('saved weapon and ammunition configuration survives a full page reload exactly', JSON.stringify(await saved(page, 'grid_fitting_review')) === JSON.stringify(fitted) && await page.getByTestId('design-name').inputValue() === 'Grid Fitting Review');
-    await page.getByTestId('bay-location-left_arm').locator('[data-testid^="move-weapon-"]').first().click();
+    await clickFittingAction(page.getByTestId('bay-location-left_arm').locator('[data-testid^="move-weapon-"]').first());
     await page.getByTestId('bay-location-right_torso').getByRole('button', { name: 'Fit held part in Right Torso' }).click();
     check('the Move button supports keyboard and tap placement without dragging', await weaponsAt(page, 'left_arm') === oldLeft - 1 && await weaponsAt(page, 'right_torso') === oldRight + 1);
     await page.getByTestId('bay-undo').click();

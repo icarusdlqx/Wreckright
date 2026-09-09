@@ -1,3 +1,6 @@
+import { runPreparationWorkspaceChecks } from './preparation-workspace.mjs';
+import { runPilotCommandDockChecks } from './pilot-command-dock.mjs';
+import { runMechbayAnatomyChecks } from './mechbay-anatomy.mjs';
 import { runSkirmishForceChecks } from './skirmish-forces.mjs';
 import { runSkirmishStorageChecks } from './skirmish-storage.mjs';
 import { runMechbayPersistenceChecks } from './mechbay-persistence.mjs';
@@ -566,6 +569,7 @@ async function main() {
     process.stdout.write('\nselection\n');
     await page.locator('[data-testid="lance-bar"] button').first().click();
     check('lance card selects a mech', (await state(page)).selection.length === 1);
+    await page.getByTestId('unit-details-toggle').click();
     await page.waitForSelector('[data-testid="paper-doll"]');
     check('paper doll renders eight locations', (await page.locator('.doll-cell').count()) === 8);
     check('heat bar renders', (await page.locator('[data-testid="heat-bar"]').count()) === 1);
@@ -1439,19 +1443,17 @@ async function main() {
     check('the campaign saves to storage', savedCampaign !== null && savedCampaign.length > 100);
 
     const cashBefore = await cash();
-    // The quiet secondary keeps the full prep corridor covered: the hangar
-    // first — repairs and refits — then the manifest and launch.
+    // Machine condition and pilot assignments share one persistent preparation board.
     await page.locator('[data-testid="camp-review-machines"]').click();
     await page.waitForSelector('[data-testid="hangar-stage"]');
     check(
-      'Review machines first opens the guided hangar stage with the company machines',
+      'Review machines opens preparation with the company machines',
       (await page.locator('[data-testid="campaign"]').getAttribute('data-first-drop-stage')) ===
         'bay' &&
         (await page.locator('[data-testid="campaign-guide"]').innerText()).includes(
-          '3 · Check the machines',
+          '3 · Prepare the team',
         ) &&
-        ((await page.locator('[data-testid^="hangar-"][data-testid*="mech_"]').count()) > 0 ||
-          (await page.locator('.hangar .manifest-row').count()) > 0),
+        (await page.locator('[data-testid^="prep-machine-"]').count()) > 0,
     );
     await page.screenshot({ path: `${SHOTS}/08-hangar.png` });
     await page.locator('[data-testid="hangar-continue"]').click();
@@ -1461,70 +1463,49 @@ async function main() {
       (await page.locator('[data-testid="campaign"]').getAttribute('data-first-drop-stage')) ===
         'manifest' &&
         (await page.locator('[data-testid="campaign-guide"]').innerText()).includes(
-          '4 · Launch the lance',
+          '3 · Assign the pilots',
         ),
     );
-    // Compact cards disclose the complete five-bar rating for each named pilot.
     await page.screenshot({ path: `${SHOTS}/08-manifest.png` });
     const manifestCrew = await page.evaluate(() => JSON.parse(localStorage.getItem('ironline.campaign')).state.pilots.filter(pilot => !pilot.dead));
     let crewSkillsComplete = manifestCrew.length === 4;
     for (const pilot of manifestCrew) {
-      const card = page.locator(`[data-testid="manifest-${pilot.id}"]`);
-      await card.locator('.lance-pilot-detail summary').click();
-      const rated = card.locator('[data-testid="pilot-stats"]');
+      await page.getByTestId(`prep-pilot-${pilot.id}`).click();
+      const dossier = page.locator('.prep-pilot-detail');
+      const rated = dossier.getByTestId('pilot-stats');
       const labels = await rated.locator('.stat-label').allTextContents();
       crewSkillsComplete &&= await rated.isVisible()
-        && JSON.stringify(labels) === JSON.stringify(['Gunnery', 'Piloting', 'Sensors', 'Killer', 'Nerve'])
-        && (await card.locator('.pilot-name').textContent())?.trim() === pilot.name;
-      await card.locator('.lance-pilot-detail summary').click();
+        && JSON.stringify(labels) === JSON.stringify(['Gunnery', 'Piloting', 'Sensors'])
+        && (await dossier.locator('.pilot-name').textContent())?.trim() === pilot.name
+        && await dossier.getByTestId('pilot-ability-readout').isVisible();
     }
-    check(
-      'each manifest crew card discloses its named pilot and all five skill ratings',
-      crewSkillsComplete,
-    );
-    const manifestMachineLabels = await page
-      .locator('[data-testid^="manifest-seat-"]')
-      .first()
-      .locator('option:not([value=""])')
-      .allInnerTexts();
-    check(
-      'manifest assignments distinguish company bays and show tonnage and the current occupant',
-      manifestMachineLabels.length > 0 && new Set(manifestMachineLabels).size === manifestMachineLabels.length && manifestMachineLabels.every((label) =>
-        /^[^·]+ · Bay \d+ · \d+t · .+$/.test(label) &&
-        manifestCrew.some((pilot) => label.endsWith(` · ${pilot.name}`)) &&
-        !/\b[A-Z]{3}-\d+\b/.test(label)),
-      manifestMachineLabels.join(' | '),
-    );
-    const manifestIdentities = await page.locator('.manifest-mech .exp-machine-identity').evaluateAll((cards) =>
-      cards.map((card) => ({ identity: card.getAttribute('aria-label'), visible: card.textContent })));
-    check('manifest cards retain machine class, authored role and faction beside the shorter assignment picker',
-      manifestIdentities.length > 0 && manifestIdentities.every(({ identity, visible }) =>
-        /^[^—]+ — \d+t (Light|Medium|Heavy|Assault) · [^·]+ · (Linewrought|Aurelian Stock)$/.test(identity ?? '') &&
-        /\d+t (Light|Medium|Heavy|Assault) · .+/i.test(visible ?? '') && /Linewrought|Aurelian Stock/.test(visible ?? '')),
-      JSON.stringify(manifestIdentities));
-    check(
-      'the manifest marks who is actually dropping',
-      (await page.locator('.manifest-row.drops').count()) > 0,
-    );
-
-    // Moving a card changes its DOM position; keep following the same pilot.
-    const aboardIds = () => page.locator('.manifest-row.drops').evaluateAll(rows =>
-      rows.map(row => row.getAttribute('data-testid').replace('manifest-', '')));
+    check('each preparation pilot has three native skills, a portrait and their actual ability', crewSkillsComplete);
+    await page.getByTestId('prep-machines').click();
+    const manifestMachineLabels = await page.locator('.prep-roster-entry').allInnerTexts();
+    check('preparation distinguishes company bays and shows chassis tonnage',
+      manifestMachineLabels.length > 0 && new Set(manifestMachineLabels).size === manifestMachineLabels.length
+      && manifestMachineLabels.every(label => /\d+t · Bay \d+/.test(label) && !/\b[A-Z]{3}-\d+\b/.test(label)), manifestMachineLabels.join(' | '));
+    const manifestIdentities = await page.locator('.prep-machine-detail .exp-machine-identity').evaluateAll(cards =>
+      cards.map(card => ({ identity: card.getAttribute('aria-label'), visible: card.textContent })));
+    check('selected machine retains its class, role and faction in preparation', manifestIdentities.length > 0
+      && manifestIdentities.every(({ identity, visible }) => /^[^—]+ — \d+t (Light|Medium|Heavy|Assault) · [^·]+ · (Linewrought|Aurelian Stock)$/.test(identity ?? '')
+      && /Linewrought|Aurelian Stock/.test(visible ?? '')), JSON.stringify(manifestIdentities));
+    check('all five deployment positions stay visible', await page.locator('.prep-seats .prep-seat').count() === 5);
+    await page.getByTestId('hangar-continue').click();
+    const aboardIds = () => page.evaluate(() => JSON.parse(localStorage.getItem('ironline.campaign')).state.deploymentSelection);
     const dropsBefore = await aboardIds();
     const heldPilotId = dropsBefore[0];
-    const bench = page.locator(`[data-testid="manifest-bench-${heldPilotId}"]`);
-    await bench.click();
-    check(
-      'holding a pilot back removes them from the drop',
+    await page.getByTestId('prep-seat-0').click();
+    await page.getByTestId(`manifest-bench-${heldPilotId}`).click();
+    check('holding a pilot back leaves an explicit empty cockpit and blocks launch',
       JSON.stringify(await aboardIds()) === JSON.stringify(dropsBefore.slice(1))
-      && await page.locator(`[data-testid="manifest-${heldPilotId}"].reserve`).count() === 1,
-    );
-    await bench.click();
-    check(
-      'calling the same pilot up restores all four seats in the chosen order',
-      JSON.stringify(await aboardIds()) === JSON.stringify([...dropsBefore.slice(1), heldPilotId])
-      && await page.locator(`[data-testid="manifest-${heldPilotId}"].reserve`).count() === 0,
-    );
+      && (await page.getByTestId('prep-seat-0').innerText()).includes('Needs pilot')
+      && await page.getByTestId('manifest-launch').isDisabled());
+    await page.getByTestId(`prep-pilot-${heldPilotId}`).click();
+    await page.getByTestId('prep-assign-pilot').click();
+    check('assigning the pilot restores the original cockpit order',
+      JSON.stringify(await aboardIds()) === JSON.stringify(dropsBefore)
+      && await page.getByTestId('manifest-launch').isEnabled());
 
     // The bay opens on one of the company's own machines, stocked from its own
     // stores — mission prep is who drops, in what, carrying what.
@@ -1659,7 +1640,7 @@ async function main() {
     check('the debrief records banked experience', debriefText.includes('banked'));
     check(
       'the debrief names the signed package',
-      (await page.locator('[data-testid="debrief"] header').innerText()).includes('Salvage first'),
+      (await page.locator('[data-testid="debrief"] > .debrief > header').innerText()).includes('Salvage first'),
     );
 
     const hasDetailedSalvage =
@@ -1717,9 +1698,8 @@ async function main() {
       await page.locator('[data-testid="debrief-close"]').focus();
       await page.keyboard.press('Tab');
       check(
-        'the campaign debrief traps forward focus at its next-mission action',
-        (await page.evaluate(() => document.activeElement?.getAttribute('data-testid'))) ===
-          'debrief-next-mission',
+        'the campaign debrief traps forward focus at its first crew action',
+        await page.locator('.debrief-pair-actions button').first().evaluate(el => document.activeElement === el),
       );
       await page.keyboard.press('Shift+Tab');
       check(
@@ -1866,6 +1846,9 @@ async function main() {
     await runCommanderRadioChecks({ browser, url: URL, shots: SHOTS, check });
     await runCombatDamageChecks({ browser, url: URL, shots: SHOTS, check });
     await runTargetFeedbackChecks({ browser, url: URL, shots: SHOTS, check });
+    await runPreparationWorkspaceChecks({ browser, url: URL, shots: SHOTS, check });
+    await runPilotCommandDockChecks({ browser, url: URL, shots: SHOTS, check });
+    await runMechbayAnatomyChecks({ browser, url: URL, shots: SHOTS, check });
     await runLastSilentMomentsChecks({ browser, url: URL, check });
     await runMobilePlaythrough({ browser, url: URL, shots: SHOTS, check });
   } finally {

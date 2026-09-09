@@ -68,14 +68,18 @@ export async function runCompanyJournalChecks({ browser, url, shots, check }) {
     await page.locator('[data-testid="camp-node-marker_survey"]').click();
     await page.locator('[data-testid="camp-accept"]').click();
     await page.locator('[data-testid="camp-deploy"]').click();
-    await page.locator('[data-testid="hangar-continue"]').click();
     await page.locator('[data-testid="lance-manifest"]').waitFor();
-    const manifest = await page.locator('[data-testid="lance-manifest"]').innerText();
-    check('the manifest makes condition, duplicate bay labels and pilot strengths visible',
-      /% intact · damaged/.test(manifest) && /Bay 1/.test(manifest) && /Bay 5/.test(manifest) && /Strength:/.test(manifest));
+    await page.locator('[data-testid="prep-seat-0"]').click();
+    const machineView = await page.locator('[data-testid="lance-manifest"]').innerText();
+    const prepared = JSON.stringify(await saved(page));
     await shot('manifest-condition');
+    await page.locator('[data-testid="hangar-continue"]').click();
+    check('preparation makes condition, duplicate bay labels and paired pilot strengths visible across its views',
+      /% intact · damaged/.test(machineView) && /Bay 1/.test(machineView) && /Bay 5/.test(machineView)
+      && /Strength:/.test(await page.locator('.prep-pilot-detail').innerText())
+      && JSON.stringify(await saved(page)) === prepared);
+    await shot('manifest-pilot');
     await page.locator('[data-testid="manifest-cancel"]').click();
-    await page.locator('[data-testid="hangar-cancel"]').click();
     await page.locator('[data-testid="camp-wiki"]').click();
     await page.locator('[data-testid="wiki-machines"]').click();
     const card = page.locator('.wiki-machine-card').last();

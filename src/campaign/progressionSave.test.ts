@@ -47,5 +47,7 @@ describe('progression reports in old saves', () => {
     const restored = deserialiseCampaign(JSON.stringify(old));
     expect(restored.error).toBeNull();
     expect(restored.state?.history[0]?.pilotReports[0]?.xpBanked).toBeNull();
+    expect(restored.state?.history[0]?.pilotReports[0]?.mechId).toBeUndefined();
+    expect(restored.state?.history[0]?.pilotReports[0]?.chassisId).toBeUndefined();
   });
 });

@@ -189,7 +189,7 @@ describe('location workbench card', () => {
     control('inspect-equipment-0').props.onClick?.(event);
 
     expect(onInspect.mock.calls).toEqual([
-      [{ kind: 'weapon', id: 'ac5' }],
+      [{ kind: 'weapon', id: 'ac5', sourceIndex: 0 }],
       [{ kind: 'ammo', id: 'ac5' }],
       [{ kind: 'equipment', id: 'case' }],
     ]);

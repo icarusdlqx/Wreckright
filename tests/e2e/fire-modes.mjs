@@ -138,6 +138,7 @@ export async function runFireModeStage2Checks({ browser, url, check }) {
     await desktop.page.locator('[data-testid="bay-exit"]').click();
     await discardRefitIfPrompted(desktop.page);
     const battle = await prepareBattle(desktop.page);
+    await desktop.page.getByTestId('unit-details-toggle').click();
     const mode = desktop.page.locator(`[data-testid="weapon-mode-${battle.mountIndex}"]`);
     await mode.waitFor({ state: 'visible' });
     const before = await switchState(desktop.page, battle);

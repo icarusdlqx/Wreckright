@@ -1,6 +1,7 @@
 import type { Catalog } from '../schema/load';
 import { assign } from './roster';
 import { deploymentCandidates, deploymentPlan } from './deployment';
+import { writeDeploymentSeats } from './deploymentSeats';
 import type { CampaignState } from './types';
 
 export function chooseDeployment(state: CampaignState, pilotIds: readonly string[]): void {
@@ -10,12 +11,12 @@ export function chooseDeployment(state: CampaignState, pilotIds: readonly string
     const pair = candidates.find((entry) => entry.pilot.id === id);
     if (pair !== undefined && pair.pilot.mechId !== pair.mech.id) assign(state, id, pair.mech.id);
   }
-  state.deploymentSelection = ids;
-  state.benched = state.pilots.filter((pilot) => !ids.includes(pilot.id)).map((pilot) => pilot.id);
+  writeDeploymentSeats(state, ids.map((pilotId) => ({ pilotId,
+    mechId: state.pilots.find((pilot) => pilot.id === pilotId)?.mechId ?? null })));
 }
 
 export function autoFillDeployment(catalog: Catalog, state: CampaignState, missionId: string): void {
-  const plan = deploymentPlan(catalog, { ...state, deploymentSelection: null, benched: [] }, missionId);
+  const plan = deploymentPlan(catalog, { ...state, deploymentSeats: null, deploymentSelection: null, benched: [] }, missionId);
   chooseDeployment(state, plan.pilotIds);
 }
 
@@ -37,11 +38,5 @@ export function loadLancePreset(state: CampaignState, name: string): void {
   if (preset === undefined) return;
   // Preserve the requested seats even if somebody is wounded or a hull was sold.
   // The manifest explains each problem and requires an explicit replacement.
-  for (const seat of preset.seats) {
-    const pilot = state.pilots.find((entry) => entry.id === seat.pilotId);
-    if (pilot === undefined || pilot.dead) continue;
-    assign(state, pilot.id, seat.mechId);
-  }
-  state.deploymentSelection = preset.seats.map((seat) => seat.pilotId);
-  state.benched = state.pilots.filter((pilot) => !state.deploymentSelection?.includes(pilot.id)).map((pilot) => pilot.id);
+  writeDeploymentSeats(state, preset.seats);
 }

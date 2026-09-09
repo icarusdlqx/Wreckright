@@ -152,9 +152,11 @@ export async function runOpeningRouteChecks({ browser, url, shots, check }) {
       await page.locator('[data-testid="lance-manifest"]').waitFor();
       const profile = await page.locator('[data-testid="manifest-profile"]').textContent();
       check(`${campaignId}: survey preparation enforces one berth and its authored tonnage limit`,
-        /Machines aboard1\/1/.test(profile)
+        /1\/1 machines · 1 ready/.test(profile)
         && (await page.locator('[data-testid="manifest-tonnage"]').textContent()).endsWith(`/${fixture.allowance}t`)
-        && await page.locator('[data-testid="manifest-actual-drop"] .lance-card').count() === 1
+        && await page.locator('[data-testid="manifest-actual-drop"] .prep-seat').count() === 5
+        && await page.locator('[data-testid="manifest-actual-drop"] .prep-seat:not(:disabled)').count() === 1
+        && JSON.parse(await stored(page)).state.deploymentSeats.filter(seat => seat.mechId !== null).length === 1
         && await page.locator('[data-testid="manifest-launch"]').isEnabled());
 
       await openSaved(page, url, fixture.archivedRaw, 2);

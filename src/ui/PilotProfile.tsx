@@ -20,11 +20,12 @@ export function PilotAssessment({ pilot }: { pilot: RateablePilot }) {
   </div>;
 }
 
-export function PilotProfile({ pilot }: {
+export function PilotProfile({ pilot, prominent = false }: {
   pilot: RateablePilot & { id: string; templateId?: string; name: string; bio: string };
+  prominent?: boolean;
 }) {
   const authored = getCatalog().pilots.get(pilot.templateId ?? pilot.id);
-  return <div className="pilot-person">
+  return <div className={`pilot-person${prominent ? ' pilot-person--prominent' : ''}`}>
     <PilotPortrait pilot={pilot} />
     <div>
       <h4 className="pilot-name">{pilot.name}</h4>

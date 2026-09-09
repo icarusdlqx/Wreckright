@@ -176,6 +176,14 @@ export function assign(state: CampaignState, pilotId: string, mechId: string | n
     }
   }
   pilot.mechId = mechId;
+  if (state.deploymentSeats != null) {
+    for (const seat of state.deploymentSeats) {
+      if (seat.pilotId === pilotId) seat.pilotId = null;
+      if (mechId !== null && seat.mechId === mechId) seat.pilotId = pilotId;
+    }
+    state.deploymentSelection = state.deploymentSeats.flatMap((seat) => seat.pilotId === null ? [] : [seat.pilotId]);
+    state.benched = state.pilots.filter((entry) => !state.deploymentSelection?.includes(entry.id)).map((entry) => entry.id);
+  }
 }
 
 export interface HireResult {

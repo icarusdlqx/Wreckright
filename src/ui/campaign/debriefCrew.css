@@ -1,0 +1,48 @@
+/* Leave the sticky next-mission actions outside the target's scroll viewport,
+ * including when keyboard focus or an assistive tool brings a control into view. */
+.manifest.debrief { scroll-padding-block: 16px 110px; }
+.debrief-crew { margin: 18px 0; color: #193744; }
+.debrief-crew > header { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; margin-bottom: 12px; }
+.debrief-crew > header h4 { margin: 0; font-size: 21px; }
+.debrief-crew > header p { display: flex; gap: 12px; font-size: 11px; margin: 0; color: #52665e; flex-wrap: wrap; }
+.debrief-crew > ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; list-style: none; padding: 0; margin: 0; }
+.debrief-crew .debrief-crew-card { display: flex; flex-direction: column; min-width: 0; padding: 15px; border: 1px solid #c6cec1; border-top: 3px solid #39786a; border-radius: 4px; background: #fdfbf4; }
+.debrief-crew-card.is-injured { border-top-color: #b77829; }
+.debrief-crew-card.is-killed { border-top-color: #a34b39; }
+.debrief-pair-identity { display: grid; grid-template-columns: 72px minmax(0, 1fr) 70px; gap: 12px; align-items: center; }
+.debrief-pair-identity > .pilot-portrait { width: 72px; height: 90px; }
+.debrief-crew-card.is-killed .pilot-portrait { filter: grayscale(1); }
+.debrief-pair-identity h4 { font-size: 21px; margin: 5px 0 3px; }
+.debrief-pair-identity p { margin: 0 0 4px; font-size: 13px; }
+.debrief-pair-identity small { font-size: 10px; color: #52665e; }
+.debrief-pair-identity .debrief-fate { font-size: 10px; letter-spacing: 0; font-weight: 700; }
+.debrief-pair-machine { padding: 3px; background: #e8ecdf; border-radius: 3px; }
+.debrief-pair-machine .machine-portrait { width: 100%; height: 78px; object-fit: contain; display: block; }
+.debrief-crew-earned { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; border-top: 1px solid #dce1d7; padding-top: 12px; margin-top: 12px; align-items: baseline; }
+.debrief-crew-earned strong { font: 22px var(--font-display); color: #286757; grid-row: span 2; }
+.debrief-crew-earned span, .debrief-crew-earned small { font-size: 11px; color: #52665e; }
+.debrief-crew .debrief-shared-xp, .debrief-record-note { margin: 7px 0 0; font-size: 10px; line-height: 1.45; color: #52665e; }
+.debrief-pair-condition { display: grid; gap: 5px; font-size: 11px; margin: 12px 0 0; }
+.debrief-pair-condition > span { display: flex; justify-content: space-between; gap: 8px; }
+.debrief-pair-condition > div { height: 4px; overflow: hidden; background: #dce1d7; border-radius: 2px; }
+.debrief-pair-condition > div i { display: block; height: 100%; background: #39786a; }
+.debrief-pair-condition small { font-size: 10px; color: #52665e; }
+.debrief-service-notes { font-size: 11px; margin-top: 8px; }
+.debrief-service-notes > summary { cursor: pointer; min-height: 32px; align-content: center; color: #39786a; }
+.debrief-service-notes p { line-height: 1.5; font-size: 11px; color: #52665e; }
+.debrief-pair-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 12px; }
+.debrief .debrief-pair-actions button { min-height: 44px; padding: 8px 10px; border: 1px solid #9aaba1; background: #fdfbf4; color: #193744; border-radius: 3px; font-size: 11px; }
+.debrief .debrief-pair-actions button:first-child { color: #fdfbf4; background: #286757; border-color: #286757; }
+.debrief .debrief-pair-actions button:hover { outline: 2px solid #89aa98; outline-offset: 1px; }
+@media (max-width: 850px) {
+  .debrief-crew > header { display: block; }
+  .debrief-crew > header p { margin-top: 7px; }
+  .debrief-crew > ul { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 500px) {
+  .debrief-crew .debrief-crew-card { padding: 12px; }
+  .debrief-pair-identity { grid-template-columns: 60px minmax(0, 1fr) 52px; gap: 9px; }
+  .debrief-pair-identity > .pilot-portrait { width: 60px; height: 75px; }
+  .debrief-pair-machine .machine-portrait { height: 60px; }
+  .debrief-pair-identity h4 { font-size: 18px; }
+}

@@ -20,6 +20,8 @@ import {
 } from '../pilotProgression';
 import { assignWithReceipt, occupiedSeatLabel } from './companyLabels';
 import { PilotProfile } from '../PilotProfile';
+import { PilotStats } from '../PilotStats';
+import { PilotAbilityReadout } from '../PilotAbilityReadout';
 import './progression.css';
 
 const catalog = getCatalog();
@@ -116,8 +118,8 @@ function TrainingButton({ pilot, skill, mutate }: { pilot: PilotRecord; skill: S
       data-testid={`camp-skill-${pilot.id}-${skill}`}
     >
       <span>
-        {skill} {training.currentLevel}
-        {training.nextLevel === null ? ' — maximum' : ` → ${training.nextLevel}`}
+        {skill} {training.currentLevel}/5
+        {training.nextLevel === null ? ' — maximum' : ` → ${training.nextLevel}/5`}
       </span>
       <small>
         {training.nextEffect === null
@@ -141,7 +143,9 @@ export function PilotDetail({ pilot, state, mutate }: { pilot: PilotRecord; stat
             : `${availableXp(pilot)} XP banked${isPilotAvailable(state, pilot) ? '' : (pilot.recoveryMissions ?? 0) > 0 ? ' · misses next mission' : ` · injured to day ${pilot.injuredUntilDay}`}`}
         </span>
       </header>
-      <PilotProfile pilot={pilot} />
+      <PilotProfile pilot={pilot} prominent />
+      <div className="pilot-record-capabilities"><PilotStats catalog={catalog} pilot={pilot} showEffects={false} />
+        <PilotAbilityReadout catalog={catalog} pilot={pilot} /></div>
       {lastMission === undefined ? null : <p className="pilot-last-mission">
         Last mission: +{lastMission.xp} XP · {lastMission.kills} kills · {lastMission.damage} damage
       </p>}

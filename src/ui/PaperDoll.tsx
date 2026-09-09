@@ -20,28 +20,20 @@ interface Props {
   locations: Record<MechLocation, LocationSnapshot>;
   onSelectLocation?: (location: MechLocation) => void;
   activeLocation?: MechLocation | null;
+  miniature?: boolean;
 }
 
-export function PaperDoll({ locations, onSelectLocation, activeLocation }: Props) {
+export function PaperDoll({ locations, onSelectLocation, activeLocation, miniature = false }: Props) {
   const [face, setFace] = useState<ArmourFace>('front');
   const hasRear = LOCATIONS.some((location) => locations[location].hasRearArmourFace);
-  return <div className="paper-doll combat-damage" data-testid="paper-doll" data-face={face}>
-    <div className="combat-damage__heading">
-      <span>Section condition</span>
-      {hasRear ? <div className="combat-damage__faces" role="group" aria-label="Armour face">
-        {(['front', 'rear'] as const).map((value) => <button key={value} type="button"
-          aria-pressed={face === value} onClick={() => setFace(value)}>{value === 'front' ? 'Front' : 'Rear'}</button>)}
-      </div> : null}
-    </div>
-    <div className={`combat-damage__stage${onSelectLocation === undefined ? '' : ' combat-damage__stage--interactive'}`}>
-      <svg viewBox="0 0 256 198" aria-hidden="true" className="combat-damage__drawing">
+  const drawing = <svg viewBox="0 0 256 198" aria-hidden="true" className="combat-damage__drawing">
         <path className="combat-damage__frame" d="M30 66 H226 M128 32 V138 M90 142 H166 M88 140 V178 M168 140 V178" />
         {LOCATIONS.map((location) => {
           const shape = SHAPES[location];
           const view = sectionDamage(locations[location], face);
           const middleX = shape.x + shape.width / 2;
           const labelY = shape.y + shape.height / 2;
-          return <g key={location} data-testid={`doll-shape-${location}`} data-armour={view.armourTone} data-structure={view.internalTone}
+          return <g key={location} data-testid={`${miniature ? 'dock-damage' : 'doll-shape'}-${location}`} data-armour={view.armourTone} data-structure={view.internalTone}
             className={`combat-damage__part${activeLocation === location ? ' combat-damage__part--active' : ''}`}>
             <title>{sectionDescription(location, locations[location], face)}</title>
             <path d={shape.path} className={`combat-damage__shell combat-damage__tone--${view.armourTone}`} />
@@ -52,7 +44,21 @@ export function PaperDoll({ locations, onSelectLocation, activeLocation }: Props
             {view.destroyed ? <path className="combat-damage__cross" d={`M${middleX - 9} ${labelY + 5} l18 10 m-18 0 l18 -10`} /> : null}
           </g>;
         })}
-      </svg>
+      </svg>;
+  if (miniature) return <div className="dock-damage-miniature" data-testid="dock-damage"
+    role="img" aria-label="Front armour and internal structure. Open details for rear armour and section values.">
+    {drawing}
+  </div>;
+  return <div className="paper-doll combat-damage" data-testid="paper-doll" data-face={face}>
+    <div className="combat-damage__heading">
+      <span>Section condition</span>
+      {hasRear ? <div className="combat-damage__faces" role="group" aria-label="Armour face">
+        {(['front', 'rear'] as const).map((value) => <button key={value} type="button"
+          aria-pressed={face === value} onClick={() => setFace(value)}>{value === 'front' ? 'Front' : 'Rear'}</button>)}
+      </div> : null}
+    </div>
+    <div className={`combat-damage__stage${onSelectLocation === undefined ? '' : ' combat-damage__stage--interactive'}`}>
+      {drawing}
       {LOCATIONS.map((location) => {
         const shape = SHAPES[location];
         const view = sectionDamage(locations[location], face);

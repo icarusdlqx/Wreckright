@@ -1,4 +1,5 @@
 import { LOCATIONS, type MechLocation } from '../../schema/common';
+import type { ReactNode } from 'react';
 import type { Chassis } from '../../schema/chassis';
 import type { Design } from '../../schema/design';
 import type { Catalog } from '../../schema/load';
@@ -8,8 +9,11 @@ import type { LocationFit } from './autoFit';
 import { LocationCard, MECH_LOCATION_NAMES, type DropPayload } from './LocationCard';
 import { SlotBoxes } from './SlotBoxes';
 import './locationWorkbench.css';
+import { AnatomyBackdrop, AnatomyNavigator } from './MechAnatomy';
+import './mechAnatomy.css';
 
 interface Props {
+  machine?: ReactNode;
   catalog: Catalog;
   chassis: Chassis;
   design: Design;
@@ -40,6 +44,7 @@ interface Props {
 }
 
 export function LoadoutGrid({
+  machine,
   catalog,
   chassis,
   design,
@@ -172,7 +177,15 @@ export function LoadoutGrid({
           </button>
         </div>
       )}
-      <div className="location-overview" aria-label="Machine locations">
+      <AnatomyNavigator chassis={chassis} loadout={loadout} selected={selectedLocation}
+        compatible={compatibleLocations} targeting={targeting !== null} onSelect={onSelectLocation} />
+      <div className="location-overview anatomical-layout" aria-label="Machine locations" data-testid="anatomical-loadout">
+        <AnatomyBackdrop faction={chassis.faction} />
+        {machine === undefined ? null : <div className="anatomical-profile">{machine}</div>}
+        <div className="anatomical-notes"><strong>FRONT VIEW</strong><span>Mech's right ← · → Mech's left</span>
+          <span>1 box = 1 slot · shapes pack automatically</span>
+          <span>Select a weapon for its firing profile. Pick it up to see every legal fit.</span></div>
+        <div className="anatomical-stance" aria-hidden="true">{chassis.name}<span>{chassis.tonnage} TONNES</span></div>
         {LOCATIONS.map((location) => (
           <LocationCard
             key={location}

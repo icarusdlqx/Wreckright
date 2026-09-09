@@ -1,4 +1,7 @@
 /** Disposable-browser regression: changes made through the actual setup and bay controls. */
+import { runBriefingTeamLayoutChecks } from './briefing-team.mjs';
+import { clickFittingAction } from './fitting-actions.mjs';
+
 export async function runSkirmishForceChecks({ browser, url, shots, check }) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
@@ -6,13 +9,24 @@ export async function runSkirmishForceChecks({ browser, url, shots, check }) {
   page.on('pageerror', (error) => errors.push(String(error)));
   page.setDefaultTimeout(25000);
   await page.addInitScript(() => localStorage.setItem('ironline.muted', '1'));
-  const pick = async (testId, value) => page.getByTestId(testId).selectOption(value);
+  const pick = async (testId, value) => {
+    const berth = /^(enemy-)?berth-(?:design|pilot)-(\d+)$/.exec(testId);
+    if (berth) await page.getByTestId(`${berth[1] ?? ''}briefing-berth-${berth[2]}`).click();
+    await page.getByTestId(testId).selectOption(value);
+  };
   const waitWorld = async (missionId) => page.waitForFunction((id) =>
     globalThis.__wreckright?.world.mission.id === id, missionId);
   try {
     await page.goto(url);
     await page.getByTestId('home-skirmish').click();
     await page.getByTestId('enemy-force-setup').waitFor();
+    check('both skirmish sides show paired pilot and mech cards with one editable berth',
+      await page.getByTestId('briefing-team').locator('.briefing-team-card').count() === 4
+      && await page.getByTestId('enemy-briefing-team').locator('.briefing-team-card').count() === 4
+      && await page.getByTestId('briefing-team').locator('.briefing-berth-editor:visible').count() === 1
+      && await page.getByTestId('enemy-briefing-team').locator('.briefing-berth-editor:visible').count() === 1);
+    if (shots) await page.getByTestId('briefing-lance').screenshot({ path: `${shots}/skirmish-pilot-pairings.png` });
+    await runBriefingTeamLayoutChecks({ page, shots, check });
     const maps = await page.getByTestId('briefing-map-picker').locator('option').evaluateAll((items) => items.map((item) => item.value));
     check('skirmish offers all six terrain maps', maps.length === 6 && new Set(maps).size === 6);
     for (const map of maps) {
@@ -47,9 +61,10 @@ export async function runSkirmishForceChecks({ browser, url, shots, check }) {
       await page.getByTestId('briefing-deploy').isEnabled()
       && (await page.getByTestId('enemy-tonnage').innerText()).startsWith('45/'));
 
+    await page.getByTestId('briefing-berth-0').click();
     await page.getByTestId('berth-customise-0').click();
     await page.getByTestId('outfit-bay').waitFor();
-    await page.getByTestId('remove-weapon-0').click();
+    await clickFittingAction(page.getByTestId('remove-weapon-0'));
     await page.getByTestId('bay-save').click();
     await page.getByTestId('outfit-bay').waitFor({ state: 'hidden' });
     const savedFriendly = await page.evaluate(() => localStorage.getItem('ironline.lance.skirmish_foundry_district'));
@@ -58,11 +73,12 @@ export async function runSkirmishForceChecks({ browser, url, shots, check }) {
       && JSON.parse(savedFriendly)[0].design.mounts.length === 2
       && JSON.parse(savedFriendly)[0].design.mounts.every((mount) => mount.weaponId === 'srm2'));
 
+    await page.getByTestId('enemy-briefing-berth-0').click();
     await page.getByTestId('enemy-berth-customise-0').click();
     await page.getByTestId('outfit-bay').waitFor();
     check('enemy refit identifies its side and opens the selected chassis',
       (await page.getByTestId('bay-commission').innerText()).includes('Enemy berth 1'));
-    await page.getByTestId('remove-weapon-0').click();
+    await clickFittingAction(page.getByTestId('remove-weapon-0'));
     await page.getByTestId('bay-save').click();
     await page.getByTestId('outfit-bay').waitFor({ state: 'hidden' });
     check('enemy refit returns an edited loadout to the opposing berth',
@@ -105,7 +121,7 @@ export async function runSkirmishForceChecks({ browser, url, shots, check }) {
     await pick('enemy-berth-design-0', 'sentinel_brawler');
     await page.getByTestId('enemy-berth-customise-0').click();
     await page.getByTestId('outfit-bay').waitFor();
-    await page.getByTestId('remove-weapon-0').click();
+    await clickFittingAction(page.getByTestId('remove-weapon-0'));
     await page.getByTestId('bay-save').click();
     await page.getByTestId('outfit-bay').waitFor({ state: 'hidden' });
     if (shots) await page.getByTestId('briefing').screenshot({ path: `${shots}/skirmish-forces-desktop.png` });

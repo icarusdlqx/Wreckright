@@ -28,6 +28,7 @@ export async function runCombatDamageChecks({ browser, url, shots, check }) {
       useGame.getState().setSelection([friendly.id]);
       return { friendlyId: friendly.id, enemyId: enemy.id };
     });
+    await page.getByTestId('unit-details-toggle').click();
     const panel = page.getByTestId('sidebar');
     const doll = panel.getByTestId('paper-doll');
     await page.waitForFunction(() => document.querySelector('[data-testid="doll-shape-left_arm"]')?.getAttribute('data-armour') === 'destroyed');

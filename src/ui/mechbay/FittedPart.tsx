@@ -4,6 +4,7 @@ import type { LocationOccupant } from './locationOccupants';
 import { mutateAfterStableFocus, stableRemovalFocusTarget } from './locationFocus';
 import { SlotBoxes } from './SlotBoxes';
 import type { WeaponReplacement } from './weaponReplacement';
+import { WeaponGlyph } from './WeaponGlyph';
 
 export function FittedPart({ catalog, item, locationName, snap, target, replacement, onInspect, onMove, onRemove, onReplace }: {
   catalog: Catalog;
@@ -59,11 +60,16 @@ export function FittedPart({ catalog, item, locationName, snap, target, replacem
         onClick={(event) => {
           event.stopPropagation();
           if (replacing) onReplace(target, item.index);
-          else onInspect?.({ kind: item.kind, id: item.id });
+          else onInspect?.(item.kind === 'weapon' ? source : { kind: item.kind, id: item.id });
         }}
-        onFocus={() => { if (!replacing) onInspect?.({ kind: item.kind, id: item.id }); }}
+        onFocus={() => { if (!replacing) onInspect?.(item.kind === 'weapon' ? source : { kind: item.kind, id: item.id }); }}
       >
-        <SlotBoxes count={item.slots} />
+        <span className="fitted-part__graphic">
+          {weapon === undefined ? <svg className="fitted-part__equipment-glyph" viewBox="0 0 40 28" aria-hidden="true">
+            {item.kind === 'ammo' ? <><path d="M7 22V9l4-6 4 6v13zm11 0V9l4-6 4 6v13zm11 0V9l4-6 4 6v13z" /><path d="M5 24h34" /></> : <><rect x="8" y="5" width="24" height="18" rx="3" /><path d="M14 10h12M14 14h12M14 18h12M4 10h4M4 18h4M32 10h4M32 18h4" /></>}
+          </svg> : <WeaponGlyph catalog={catalog} weapon={weapon} />}
+          <SlotBoxes count={item.slots} />
+        </span>
         <span className="fitted-part__identity"><strong>{item.label}</strong>
           <span>{weapon === undefined ? item.kind === 'ammo' ? 'Shared ammunition' : 'Equipment' : weapon.ammoPerTon === null ? 'No ammo needed' : 'Ammo-fed'} · {item.slots} box{item.slots === 1 ? '' : 'es'}</span>
         </span>

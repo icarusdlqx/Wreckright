@@ -141,9 +141,11 @@ async function checkCampaignAndNestedRefit({ browser, url, check }) {
     await page.locator('[data-testid="camp-accept"]').click();
     await page.locator('[data-testid="camp-review-machines"]').click();
     await page.waitForSelector('[data-testid="hangar-stage"]');
+    await page.locator('[data-testid="prep-seat-0"]').click();
+    await page.locator('[data-testid="hangar-continue"]').click();
     await advanceAudioClock(page);
     const beforeRefit = (await audioProbe(page))[0];
-    await page.locator('[data-testid^="hangar-refit-"]:not([disabled])').first().click();
+    await page.locator('[data-testid^="manifest-refit-"]:enabled').click();
     await page.waitForSelector('[data-testid="refit-bay"] [data-testid="mechbay"]');
     await page.waitForFunction((count) =>
       globalThis.__audioProbe.snapshot()[0].targets > count, beforeRefit.targets);
@@ -171,7 +173,7 @@ async function checkCampaignAndNestedRefit({ browser, url, check }) {
         && includesTarget(returnTargets, 'source-18-frequency', CAMPAIGN_PULSE_HZ),
       JSON.stringify(returnTargets));
 
-    await page.locator('[data-testid="hangar-cancel"]').click();
+    await page.locator('[data-testid="manifest-cancel"]').click();
     await page.locator('[data-testid="camp-exit"]').click();
     await page.waitForSelector('[data-testid="home-screen"]');
     await waitForClosed(page, 0);

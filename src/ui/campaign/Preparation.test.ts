@@ -9,6 +9,9 @@ import type { CampaignState } from '../../campaign/types';
 import type { Catalog } from '../../schema/load';
 import { Hangar } from './Hangar';
 import { LanceManifest } from './LanceManifest';
+import { PreparationRoster } from './PreparationRoster';
+import { PreparationMachine } from './PreparationMachine';
+import { beginPreparation, clearPreparationSeat } from './preparationModel';
 
 function signedCompany() {
   const state = startCampaign(catalog, 'border_dispute', 'expedition-preparation');
@@ -56,31 +59,57 @@ function largeCompany(allowance: number) {
 }
 
 function aboardIds(html: string) {
-  return [...html.matchAll(/data-testid="manifest-aboard-([^"]+)"/g)].map((match) => match[1]);
+  return [...html.matchAll(/<li data-testid="manifest-([^"]+)"/g)].map((match) => match[1]);
 }
 
-function benchIds(html: string) {
-  return [...html.matchAll(/data-testid="manifest-bench-([^"]+)"/g)].map((match) => match[1]);
+function seats(html: string) {
+  return [...html.matchAll(/data-testid="prep-seat-(\d+)"/g)].map((match) => match[1]);
+}
+
+function roster(state: CampaignState, view: 'machines' | 'pilots', content: Catalog = catalog) {
+  return renderToStaticMarkup(createElement(PreparationRoster, {
+    catalog: content, state, view, mechId: null, pilotId: null,
+    onMech: () => undefined, onPilot: () => undefined,
+  }));
+}
+
+function rosterEntry(html: string, id: string) {
+  return html.match(new RegExp(`<button[^>]*data-testid="prep-(?:machine|pilot)-${id}"[^>]*>[\\s\\S]*?</button>`))?.[0] ?? '';
 }
 
 describe('expedition preparation readouts', () => {
-  it('shows the five-berth drop with distinct aboard and reserve groups', () => {
+  it('shows five persistent seats and a company roster with explicit reserve status', () => {
     const { state, content, mission } = largeCompany(2000);
+    beginPreparation(content, state);
+    const saved = JSON.stringify(state);
     const before = manifest(state, content);
     expect(aboardIds(before)).toEqual(dropTeam(content, state, mission.id).map((pair) => pair.pilot.id));
     expect(aboardIds(before)).toHaveLength(5);
-    expect(before).toContain('This mission permits 5 machines.');
+    expect(seats(before)).toEqual(['0', '1', '2', '3', '4']);
+    expect(before).toContain('5/5 machines · 5 ready');
+    expect(rosterEntry(before, 'exp-mech-0')).toContain('Seat 1');
+    expect(rosterEntry(before, 'exp-mech-5')).toContain('Reserve');
+    expect(rosterEntry(before, 'exp-mech-6')).toContain('Reserve');
+    const pilots = roster(state, 'pilots', content);
+    expect(pilots.match(/data-testid="prep-pilot-/g)).toHaveLength(7);
+    expect(rosterEntry(pilots, 'exp-pilot-5')).toContain('Reserve · available');
+    expect(rosterEntry(pilots, 'exp-pilot-6')).toContain('Reserve · available');
+    expect(JSON.stringify(state)).toBe(saved);
     const first = state.pilots[0];
     if (first === undefined) throw new Error('missing first pilot');
-    state.benched.push(first.id);
+    clearPreparationSeat(state, 0);
     const after = manifest(state, content);
-    expect(benchIds(after).sort()).toEqual(benchIds(before).sort());
+    expect(seats(after)).toEqual(seats(before));
+    expect(aboardIds(after)).toHaveLength(4);
     expect(aboardIds(after)).not.toContain(first.id);
     expect(aboardIds(after)).toEqual(dropTeam(content, state, mission.id).map((pair) => pair.pilot.id));
-    expect(after).toContain('Put aboard');
+    expect(after).toContain('data-testid="prep-empty-seat-0"');
+    expect(rosterEntry(after, 'exp-mech-0')).toContain('Reserve');
+    expect(rosterEntry(roster(state, 'pilots', content), first.id)).toContain('Reserve · available');
+    expect(first.mechId).toBe('exp-mech-0');
   });
 
-  it('reveals an automatic pairing and weight reserve without writing an assignment', () => {
+  it('projects the initial legacy drop within tonnage without writing seats or pilot assignments', () => {
     const { state, content, mission } = largeCompany(110);
     const first = state.pilots[0];
     if (first === undefined) throw new Error('missing first pilot');
@@ -88,8 +117,12 @@ describe('expedition preparation readouts', () => {
     const saved = JSON.stringify(state);
     const html = manifest(state, content);
     expect(aboardIds(html)).toEqual(dropTeam(content, state, mission.id).map((pair) => pair.pilot.id));
-    expect(html).toContain('Available automatic pairing.');
-    expect(html).toContain('over the mission allowance');
+    expect(aboardIds(html)).toHaveLength(3);
+    expect(seats(html)).toHaveLength(5);
+    expect(html).toContain('105/110t');
+    expect(html.match(/data-testid="prep-machine-/g)).toHaveLength(7);
+    expect(html).not.toContain('over the mission allowance');
+    expect(state.deploymentSeats).toBeNull();
     expect(JSON.stringify(state)).toBe(saved);
 
     const full = largeCompany(2000);
@@ -97,13 +130,17 @@ describe('expedition preparation readouts', () => {
     const unassigned = full.state.pilots[0];
     if (unassigned === undefined) throw new Error('missing unassigned pilot');
     unassigned.mechId = null;
+    const fullSaved = JSON.stringify(full.state);
     const automaticDrop = manifest(full.state, full.content);
-    expect(automaticDrop).toContain('Auto-assigned for this drop.');
+    expect(aboardIds(automaticDrop)).toEqual(dropTeam(full.content, full.state, full.mission.id).map((pair) => pair.pilot.id));
     expect(aboardIds(automaticDrop)).toContain(unassigned.id);
+    expect(automaticDrop).toContain(`data-testid="manifest-${unassigned.id}"`);
+    expect(seats(automaticDrop)).toHaveLength(5);
     expect(unassigned.mechId).toBeNull();
+    expect(JSON.stringify(full.state)).toBe(fullSaved);
   });
 
-  it('explains workshop, unarmed and injured reserves instead of implying they are boarding', () => {
+  it('shows unavailable reserves in the relevant roster and blocks any selected unavailable cockpit', () => {
     const state = signedCompany();
     const [workshop, unarmed] = state.mechs;
     const injured = state.pilots[2];
@@ -113,12 +150,36 @@ describe('expedition preparation readouts', () => {
     workshop.condition.centre_torso.armour -= 1;
     expect(startRepair(catalog, state, workshop).ok).toBe(true);
     unarmed.design.mounts = [];
-    injured.injuredUntilDay = state.day + 3;
+    injured.recoveryMissions = 1;
+    const saved = JSON.stringify(state);
     const html = manifest(state);
-    expect(html).toContain(`Workshop until day ${workshop.readyOnDay}`);
-    expect(html).toContain('Mech needs a weapon');
-    expect(html).toContain(`Infirmary until day ${injured.injuredUntilDay}`);
+    expect(rosterEntry(html, workshop.id)).toContain('Reserve · Workshop');
+    expect(rosterEntry(html, unarmed.id)).toContain('Reserve · Needs weapon');
+    const injuredEntry = rosterEntry(roster(state, 'pilots'), injured.id);
+    expect(injuredEntry).toContain('Injured · misses next mission');
+    expect(injuredEntry).toContain('draggable="false"');
+    const workshopDetail = renderToStaticMarkup(createElement(PreparationMachine, {
+      catalog, state, mech: workshop, mutate: () => undefined, onRefit: () => undefined,
+    }));
+    expect(workshopDetail).toContain(`<dt>Ready</dt><dd>Day ${workshop.readyOnDay}</dd>`);
+    expect(workshopDetail).toContain('<dt>Booking</dt><dd>Paid</dd>');
     expect(aboardIds(html)).toEqual(dropTeam(catalog, state, state.contract?.missionId ?? '').map((pair) => pair.pilot.id));
+    expect(aboardIds(html)).toHaveLength(1);
+    expect(JSON.stringify(state)).toBe(saved);
+
+    // Explicit choices survive a change in readiness; they are shown as problems,
+    // never replaced by a different reserve or silently omitted from the team.
+    state.deploymentSeats = state.pilots.map((pilot) => ({ pilotId: pilot.id, mechId: pilot.mechId }));
+    state.deploymentSelection = state.pilots.map((pilot) => pilot.id);
+    const chosenSave = JSON.stringify(state);
+    const chosen = manifest(state);
+    expect(aboardIds(chosen)).toEqual(state.deploymentSelection);
+    expect(chosen).toContain(`Workshop · day ${workshop.readyOnDay}`);
+    expect(chosen).toContain('Needs weapon');
+    expect(chosen).toContain('Injured · misses next mission');
+    expect(chosen.match(/<button[^>]*data-testid="manifest-launch"[^>]*>/)?.[0]).toContain('disabled=""');
+    expect(chosen).toContain(`${injured.name} is wounded. Choose a reserve.`);
+    expect(JSON.stringify(state)).toBe(chosenSave);
   });
 
   it('separates a fieldable damaged machine from its optional repair and payroll quote', () => {

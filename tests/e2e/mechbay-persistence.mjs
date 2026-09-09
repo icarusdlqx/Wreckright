@@ -1,4 +1,5 @@
 import { openDesktopBattleMenu } from './input-safety.mjs';
+import { clickFittingAction } from './fitting-actions.mjs';
 
 async function openBay(page, url) {
   await page.goto(url, { waitUntil: 'load' });
@@ -24,7 +25,7 @@ export async function runMechbayPersistenceChecks({ browser, url, shots, check }
   try {
     await openBay(page, url);
     const leftArm = page.getByTestId('bay-location-left_arm');
-    await leftArm.locator('[data-testid^="remove-weapon-"]').first().click();
+    await clickFittingAction(leftArm.locator('[data-testid^="remove-weapon-"]').first());
     await page.getByTestId('stock-weapon-small_laser').click();
     await leftArm.click();
     await page.getByTestId('design-name').fill('Audit Close Escort');
@@ -35,7 +36,7 @@ export async function runMechbayPersistenceChecks({ browser, url, shots, check }
       && closeEscort.mounts.filter(mount => mount.weaponId === 'medium_laser').length === 2
       && closeEscort.mounts.some(mount => mount.weaponId === 'ac5'));
 
-    await page.getByTestId('bay-location-right_arm').locator('[data-testid^="remove-weapon-"]').click();
+    await clickFittingAction(page.getByTestId('bay-location-right_arm').locator('[data-testid^="remove-weapon-"]'));
     await page.getByTestId('stock-weapon-medium_laser').click();
     await page.getByTestId('bay-location-right_torso').click();
     await page.getByTestId('design-name').fill('Audit Energy Escort');
@@ -197,7 +198,7 @@ async function checkPendingImports({ browser, url, shots, check }) {
 
     await stage(imported, 'delayed-edited-draft.json');
     await page.getByTestId('design-name').fill('Edited During File Read');
-    await page.getByTestId('bay-location-left_arm').locator('[data-testid^="remove-weapon-"]').first().click();
+    await clickFittingAction(page.getByTestId('bay-location-left_arm').locator('[data-testid^="remove-weapon-"]').first());
     await release('delayed-edited-draft.json');
     await page.getByTestId('bay-unsaved-dialog').waitFor();
     check('an import finishing after an edit protects the latest draft instead of using stale clean state',

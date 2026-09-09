@@ -10,7 +10,7 @@ import { MobileBattleHud } from './MobileBattleHud';
 import { HostileBar, LanceBar, SupportPalette } from './Panels';
 import { selectedUnit, useGame } from './store';
 import { selectionAfterClick } from './selectionAfterClick';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { resetCommanderView } from './commanderViewState';
 import type { SupportOption } from './supportOptions';
 import { SensorSweepReadout } from './SensorSweepReadout';
@@ -30,6 +30,8 @@ import { CommandReceipt } from './CommandReceipt';
 import { selectionAbilities } from './selectionAbilities';
 import './battleStatusLayout.css';
 import { useBattleDockSize } from './useBattleDockSize';
+import { DockUnitSummary } from './DockUnitSummary';
+import './pilotCombatDock.css';
 
 interface BattleHudProps {
   engine: Engine | null;
@@ -40,6 +42,20 @@ interface BattleHudProps {
 export function BattleHud({ engine, supportOptions, trainingStep = null }: BattleHudProps) {
   const state = useGame();
   const compact = useCompactLayout();
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const inspectorOpen = detailsOpen || state.orderMode === 'called_shot';
+  const detailsToggleRef = useRef<HTMLButtonElement>(null);
+  const inspectorCloseRef = useRef<HTMLButtonElement>(null);
+  const focusRequested = useRef(false);
+  const wasInspecting = useRef(false);
+  useEffect(() => {
+    if (inspectorOpen && focusRequested.current) {
+      inspectorCloseRef.current?.focus();
+      focusRequested.current = false;
+    }
+    if (wasInspecting.current && !inspectorOpen) detailsToggleRef.current?.focus();
+    wasInspecting.current = inspectorOpen;
+  }, [inspectorOpen]);
   const dockRef = useBattleDockSize(!compact);
   const unit = selectedUnit(state);
   const playerControlled = unit !== null && unit.team === state.playerTeam && unit.alive;
@@ -103,7 +119,10 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
   return (
     <>
       {fullHud ? <CommanderView engine={engine} /> : null}
-      {fullHud ? <UnitPanel engine={engine} /> : null}
+      {fullHud ? <UnitPanel engine={engine} hidden={!inspectorOpen} closeButtonRef={inspectorCloseRef} onClose={() => {
+        setDetailsOpen(false);
+        if (state.orderMode === 'called_shot') state.setOrderMode(null);
+      }} /> : null}
       <div className="battle-field-status">
       {showsContacts ? (
         <HostileBar
@@ -119,15 +138,19 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
       ) : null}
       <SensorSweepReadout world={engine?.world ?? null} />
       </div>
-      {fullHud ? <Minimap engine={engine} /> : null}
-      <footer ref={dockRef} className={`bottombar tactical-command-deck${fullHud ? '' : ' training-bottombar'}`}>
+      <footer ref={dockRef} className={`bottombar tactical-command-deck${fullHud ? ' pilot-command-dock' : ' training-bottombar'}`}>
         {fullHud ? <div className="battle-communications"><CommandReceipt /><FieldRadioPanel /><SupportStatus world={engine?.world ?? null} paused={state.paused} /></div> : null}
         {trainingShowsHeatReadout(trainingStep) ? (
           <TrainingHeatReadout unit={playerControlled ? unit : null} />
         ) : null}
-        <div className="camera-lance-row">
+        <div className="pilot-dock-map">
+          {fullHud ? <Minimap engine={engine} /> : null}
+          <div className="pilot-dock-map-controls">
           <CentreSelectionButton engine={engine} className="command camera-centre" />
           {fullHud ? <CommanderToggle disabled={engine === null} /> : null}
+          </div>
+        </div>
+        <div className="camera-lance-row">
           <LanceBar
             units={state.units}
             selection={state.selection}
@@ -136,6 +159,11 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
         </div>
         {fullHud || visibleCommands === null || visibleCommands.size > 0 ? (
           <div className="command-support-row">
+            {fullHud ? <DockUnitSummary engine={engine} expanded={inspectorOpen} toggleRef={detailsToggleRef} onToggle={() => {
+              focusRequested.current = !inspectorOpen;
+              if (state.orderMode === 'called_shot') state.setOrderMode(null);
+              setDetailsOpen(!inspectorOpen);
+            }} /> : null}
             {visibleCommands !== null && visibleCommands.size === 0 ? null : (
               <CommandPalette
                 leading={

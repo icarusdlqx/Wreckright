@@ -1,4 +1,5 @@
 import { checkCompanyWorkspaces } from './campaign-navigation.mjs';
+import { clickFittingAction } from './fitting-actions.mjs';
 
 /** Development-server regression: hold the deferred module so cold loading is deterministic. */
 export async function runColdMechbayChecks({ browser, url, shots, check }) {
@@ -38,7 +39,7 @@ export async function runColdMechbayChecks({ browser, url, shots, check }) {
     await release();
     await launch.click();
     await page.getByTestId('mechbay').waitFor();
-    await page.locator('[data-testid^="remove-weapon-"]').first().click();
+    await clickFittingAction(page.locator('[data-testid^="remove-weapon-"]').first());
     await page.keyboard.press('Escape');
     await page.getByTestId('bay-unsaved-dialog').waitFor();
     check('loaded bay Escape still protects an unsaved draft instead of cancelling it', await page.getByTestId('refit-bay').isVisible() && await page.getByTestId('bay-unsaved-keep').isVisible() && await page.getByTestId('bay-loading-cancel').count() === 0);

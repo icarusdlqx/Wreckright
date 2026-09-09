@@ -40,13 +40,17 @@ export async function runCommanderRadioChecks({ browser, url, shots, check }) {
       const contacts = bounds('[data-testid="hostile-bar"]');
       return {
         radioDocked: radio.top >= dock.top && radio.bottom <= dock.bottom && map.bottom <= radio.top,
-        compactCards: [...document.querySelectorAll('.lance-card')].every(card => card.getBoundingClientRect().height <= 80),
+        pairedCards: [...document.querySelectorAll('.lance-card')].every(card => {
+          const rect = card.getBoundingClientRect();
+          return rect.height <= 250 && rect.top >= dock.top && rect.bottom <= dock.bottom
+            && card.querySelector('.pilot-portrait') !== null && card.querySelector('.lance-machine') !== null;
+        }),
         topAttached: Math.abs(top.bottom - contacts.top) <= 1,
         map, radio, dock,
       };
     });
     check('radio sits inside the command dock and outside the Commander map', layout.radioDocked, JSON.stringify(layout));
-    check('squad cards remain compact selectors', layout.compactCards, JSON.stringify(layout));
+    check('paired pilot and mech cards stay inside the command dock', layout.pairedCards, JSON.stringify(layout));
     // Contacts intentionally hide in Commander mode; check physical field layout on return below.
     const selected = await page.evaluate(() => globalThis.__wreckright.useGame.getState().selection);
     if (shots) await page.screenshot({ path: `${shots}/commander-radio-docked.png` });

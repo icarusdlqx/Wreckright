@@ -10,6 +10,8 @@ import './focusedUnitPanel.css';
 import { CommandIntent } from './CommandIntent';
 import { FieldHints } from './FieldHints';
 import { CalledShotTarget } from './CalledShotTarget';
+import { PilotStats } from './PilotStats';
+import type { Ref } from 'react';
 
 
 /** A trait's painted name; the id only if the rules no longer know it. */
@@ -17,7 +19,10 @@ function traitLabel(traitId: string): string {
   return getCatalog().rules.pilotTraits.entries[traitId]?.label ?? traitId;
 }
 
-export function UnitPanel({ engine, compact = false }: { engine: Engine | null; compact?: boolean }) {
+export function UnitPanel({ engine, compact = false, hidden = false, onClose, closeButtonRef }: {
+  engine: Engine | null; compact?: boolean; hidden?: boolean; onClose?: () => void;
+  closeButtonRef?: Ref<HTMLButtonElement>;
+}) {
   const state = useGame();
   const unit = selectedUnit(state);
   const preview =
@@ -37,7 +42,15 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
     <aside
       className={`${compact ? 'mobile-unit-panel' : 'sidebar'} tactical-unit-panel`}
       data-testid={compact ? 'mobile-unit-panel' : 'sidebar'}
+      id={compact ? undefined : 'battle-unit-inspector'} hidden={hidden}
+      onKeyDown={event => {
+        if (event.key === 'Escape' && onClose !== undefined) {
+          event.stopPropagation();
+          onClose();
+        }
+      }}
     >
+      {onClose === undefined ? null : <button ref={closeButtonRef} type="button" className="unit-inspector-close" onClick={onClose}>Hide details</button>}
       {unit === null ? (
         <p className="empty">
           {compact ? 'Tap a mech or choose it from the lance.' : 'Select a mech — click it, or press Tab to cycle your lance.'}
@@ -89,12 +102,10 @@ export function UnitPanel({ engine, compact = false }: { engine: Engine | null; 
           <details className="sidebar-details" data-testid="tactical-details">
             <summary>Tactical details</summary>
             <p className="unit-full-identity">{unit.identity}</p>
-            {playerControlled ? <p className="pilot-hand" data-testid="pilot-hand">
-              <span title="Gunnery — steadies every shot">G{unit.pilotSkills.gunnery}</span>
-              <span title="Piloting — footing and recovery">P{unit.pilotSkills.piloting}</span>
-              <span title="Sensors — how far this machine sees">S{unit.pilotSkills.sensors}</span>
-              {unit.pilotTraits.map((trait) => <em key={trait}>{traitLabel(trait)}</em>)}
-            </p> : null}
+            {playerControlled ? <div className="pilot-hand" data-testid="pilot-hand">
+              <PilotStats catalog={getCatalog()} pilot={{ ...unit.pilotSkills, traits: unit.pilotTraits }} compact />
+              <div className="pilot-hand-traits">{unit.pilotTraits.map((trait) => <em key={trait}>{traitLabel(trait)}</em>)}</div>
+            </div> : null}
             {playerControlled ? <FieldHints /> : null}
             {preview === null || preview.factors.length === 0 ? null : (
               <div className="hit-factors" data-testid="hit-factors">

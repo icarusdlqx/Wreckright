@@ -230,6 +230,8 @@ export function resolveMission(
         pilotId: pair.pilot.id,
         name: pair.pilot.name,
         mech: pair.mech.design.name,
+        mechId: pair.mech.id,
+        chassisId: pair.mech.design.chassisId,
         kills: unit.kills,
         damage: Math.round(unit.damageDealt),
         xp,

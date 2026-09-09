@@ -110,6 +110,10 @@ export function snapshotUnit(world: World, entity: MechEntity): UnitSnapshot {
     identity: designIdentityLabel(world.catalog, design),
     name: authoredDesignName(world.catalog, design),
     pilotName: entity.pilot.name,
+    pilotId: entity.pilot.id,
+    chassisId: entity.chassisId,
+    pilotState: { dead: entity.pilot.dead, ejected: entity.pilot.ejected, wounds: entity.pilot.wounds },
+    withdrawn: entity.withdrawn,
     pilotSkills: {
       gunnery: entity.pilot.gunnery,
       piloting: entity.pilot.piloting,

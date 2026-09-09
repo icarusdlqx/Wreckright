@@ -1,3 +1,4 @@
+import { clickFittingAction } from './fitting-actions.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 
 const noOverflow = page => page.locator('[data-testid="wiki"]').evaluate(element =>
@@ -97,7 +98,7 @@ export async function runLoreWikiChecks({ browser, url, shots, check }) {
     await page.locator('[data-testid^="camp-refit-"]:enabled').nth(1).click();
     await page.waitForSelector('[data-testid="refit-bay"] canvas');
     const centre = page.locator('[data-testid="bay-location-centre_torso"]');
-    await centre.getByRole('button', { name: /Remove .* from Centre Torso/ }).click();
+    await clickFittingAction(centre.getByRole('button', { name: /Remove .* from Centre Torso/, includeHidden: true }));
     const draft = () => centre.evaluate(element => JSON.stringify({
       parts: [...element.querySelectorAll('button[aria-label^="Remove "]')].map(button => button.getAttribute('aria-label')),
       armour: element.querySelector('.bay-armour-read')?.getAttribute('aria-label'),
@@ -106,6 +107,18 @@ export async function runLoreWikiChecks({ browser, url, shots, check }) {
     const saveBefore = await saved(page);
     const history = page.locator('[data-testid="refit-bay"] .machine-wiki-link');
     const historyName = await history.innerText();
+    await page.setViewportSize({ width: 1280, height: 720 });
+    const compactHistory = await history.evaluate(link => {
+      const rect = link.getBoundingClientRect();
+      const profile = link.closest('.anatomical-profile').getBoundingClientRect();
+      const footer = document.querySelector('[data-testid="bay-save"]').getBoundingClientRect().top;
+      return rect.width >= 44 && rect.height >= 44 && rect.left >= profile.left && rect.right <= profile.right
+        && rect.top >= profile.top && rect.bottom <= profile.bottom
+        && document.querySelectorAll('[data-testid="refit-bay"] .machine-wiki-link').length === 1
+        && [...document.querySelectorAll('[data-testid="anatomical-loadout"] .bay-location')].every(card => card.getBoundingClientRect().bottom <= footer);
+    });
+    check('compact laptop refit keeps one visible history link and all eight body locations', await history.isVisible() && compactHistory);
+    await shot('refit-history');
     await history.click();
     await page.locator('[data-testid="wiki-article"]').waitFor();
     check('opening a refit dossier makes the game background inert',

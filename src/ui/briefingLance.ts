@@ -1,7 +1,7 @@
 import { dropTonnageFor } from '../campaign/campaign';
 import type { Catalog } from '../schema/load';
 import type { BriefingLance } from './Briefing';
-import { designIdentityLabel } from './designLabel';
+import { designIdentityLabel, machineDisplayName } from './designLabel';
 import { berthDesign, lanceTonnage, type SkirmishBerth } from './lance';
 import { listStoredDesigns, loadFromStorage } from './mechbay/editor';
 import { pilotAtDifficulty } from '../sim/pilotDifficulty';
@@ -26,6 +26,12 @@ export function briefingLanceFor(
           berth.designId === null && design !== null
             ? designIdentityLabel(catalog, design)
             : null,
+        machine: design === null ? null : {
+          chassisId: design.chassisId, name: machineDisplayName(catalog, design),
+          identity: designIdentityLabel(catalog, design),
+          role: catalog.chassis.get(design.chassisId)?.role ?? '',
+          weaponCount: design.mounts.length,
+        },
         pilotId: berth.pilotId,
         tonnage: catalog.chassis.get(design?.chassisId ?? '')?.tonnage ?? 0,
         pilot: pilot === undefined ? null : pilotAtDifficulty(pilot, 0, 0, undefined, delta),

@@ -76,7 +76,7 @@ describe('weapon card', () => {
     expect(html).toContain('>Fit<');
     expect(html).toContain('Drag to a matching part, or pick and place.');
     expect(html).not.toContain('1 ton of ammo lasts');
-    expect(html).not.toContain('line of sight is still required');
+    expect(html).not.toContain('a live sensor track to fire over cover');
   });
 
   it('keeps unavailable cards inspectable but prevents activation and dragging', () => {

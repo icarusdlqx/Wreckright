@@ -73,6 +73,16 @@ describe('compact mechbay catalog', () => {
     expect(gear).toContain('Installed · 0 spare');
   });
 
+  it('distinguishes inspecting an installed weapon from fitting a second copy', () => {
+    const mounted = render({ inspected: { kind: 'weapon', id: 'ac5', sourceIndex: 0 } });
+    expect(mounted).toContain('Mounted in right arm. Use the tile to move or remove it.');
+    expect(mounted).toMatch(/data-testid="dossier-fit"[^>]*>[\s\S]*?<strong>Installed<\/strong>/);
+    const shelf = render({ inspected: { kind: 'weapon', id: 'ac5' } });
+    expect(shelf).not.toContain('Mounted in right arm.');
+    const stale = render({ inspected: { kind: 'weapon', id: 'ac5', sourceIndex: 99 } });
+    expect(stale).not.toContain('Mounted in');
+  });
+
   it('renders searchable Weapons, Ammo, and Gear tabs with one inspector', () => {
     const html = render();
     expect(html).toContain('data-testid="shelf-weapons"');

@@ -6,6 +6,7 @@ import {
   isMechAvailable,
   isPilotAvailable,
   type CampaignState,
+  type DeploymentSeat,
   type MechRecord,
   type PilotRecord,
 } from './types';
@@ -128,6 +129,7 @@ export function deploymentCandidates(state: CampaignState): DeployablePair[] {
 }
 
 export interface DeploymentPlan {
+  seats: DeploymentSeat[];
   pilotIds: string[];
   pairs: DeployablePair[];
   tonnage: number;
@@ -138,6 +140,7 @@ export interface DeploymentPlan {
 
 /** Explicit choices remain visible when unavailable; another pilot never silently takes their place. */
 export function deploymentPlan(catalog: Catalog, state: CampaignState, missionId: string): DeploymentPlan {
+  if (state.deploymentSeats != null) return preparedDeploymentPlan(catalog, state, missionId, state.deploymentSeats);
   const candidates = deploymentCandidates(state);
   const pilotIds = state.deploymentSelection ?? legacyDropTeam(catalog, state, missionId).map((pair) => pair.pilot.id);
   const pairs: DeployablePair[] = [];
@@ -159,7 +162,45 @@ export function deploymentPlan(catalog: Catalog, state: CampaignState, missionId
   if (pilotIds.length === 0) issues.push('Choose at least one machine to put aboard.');
   if (pilotIds.length > slots) issues.push(`This mission permits ${slots} machine${slots === 1 ? '' : 's'}.`);
   if (tonnage > allowance) issues.push(`The selected lance is ${tonnage - allowance}t over the mission allowance.`);
-  return { pilotIds: [...pilotIds], pairs, tonnage, allowance, slots, issues };
+  const seats = pilotIds.map((pilotId) => ({ pilotId,
+    mechId: candidates.find((entry) => entry.pilot.id === pilotId)?.mech.id
+      ?? state.pilots.find((pilot) => pilot.id === pilotId)?.mechId ?? null }));
+  return { seats, pilotIds: [...pilotIds], pairs, tonnage, allowance, slots, issues };
+}
+
+/** Preparation describes actual cockpits, including uncrewed or damaged machines. */
+function preparedDeploymentPlan(catalog: Catalog, state: CampaignState, missionId: string, seats: readonly DeploymentSeat[]): DeploymentPlan {
+  const pairs: DeployablePair[] = [];
+  const pilotIds = seats.flatMap((seat) => seat.pilotId === null ? [] : [seat.pilotId]);
+  const issues: string[] = [];
+  const pilots = new Set<string>();
+  const machines = new Set<string>();
+  let tonnage = 0;
+  for (const [index, seat] of seats.entries()) {
+    if (seat.mechId === null && seat.pilotId === null) continue;
+    const mech = state.mechs.find((entry) => entry.id === seat.mechId);
+    const pilot = state.pilots.find((entry) => entry.id === seat.pilotId);
+    const duplicatePilot = seat.pilotId !== null && pilots.has(seat.pilotId);
+    const duplicateMech = seat.mechId !== null && machines.has(seat.mechId);
+    if (duplicatePilot) issues.push('A pilot cannot occupy two berths.');
+    if (duplicateMech) issues.push('A machine cannot occupy two berths.');
+    if (seat.pilotId !== null) pilots.add(seat.pilotId);
+    if (seat.mechId !== null) machines.add(seat.mechId);
+    if (mech !== undefined && !duplicateMech) tonnage += tonnageOf(catalog, mech.design);
+    if (seat.pilotId === null) issues.push(`Seat ${index + 1} needs a pilot.`);
+    else if (pilot === undefined || pilot.dead) issues.push(`${pilot?.name ?? 'A selected pilot'} is no longer on the active roster.`);
+    else if (!isPilotAvailable(state, pilot)) issues.push(`${pilot.name} is wounded. Choose a reserve.`);
+    else if (mech === undefined || !isFieldable(state, mech)) issues.push(`${pilot.name} needs an armed, fieldable machine.`);
+    else if (pilot.mechId !== mech.id) issues.push(`${pilot.name}'s assignment changed. Confirm a pilot for seat ${index + 1}.`);
+    else if (!duplicatePilot && !duplicateMech) pairs.push({ pilot, mech });
+  }
+  const slots = missionSlots(catalog, missionId);
+  const allowance = dropTonnageFor(catalog, missionId);
+  const occupied = seats.filter((seat) => seat.mechId !== null || seat.pilotId !== null).length;
+  if (occupied === 0) issues.push('Choose at least one machine to put aboard.');
+  if (occupied > slots) issues.push(`This mission permits ${slots} machine${slots === 1 ? '' : 's'}.`);
+  if (tonnage > allowance) issues.push(`The selected lance is ${tonnage - allowance}t over the mission allowance.`);
+  return { seats: seats.map((seat) => ({ ...seat })), pilotIds, pairs, tonnage, allowance, slots, issues };
 }
 
 export function dropTeam(catalog: Catalog, state: CampaignState, missionId: string): DeployablePair[] {
@@ -180,9 +221,9 @@ export function prepareDeployment(catalog: Catalog, state: CampaignState): Deplo
   const contract = state.contract;
   if (contract === null) throw new Error('no active contract');
 
-  fillEmptySeats(state);
+  if (state.deploymentSeats == null) fillEmptySeats(state);
   const plan = deploymentPlan(catalog, state, contract.missionId);
-  if (state.deploymentSelection !== null && plan.issues.length > 0) {
+  if ((state.deploymentSeats != null || state.deploymentSelection !== null) && plan.issues.length > 0) {
     throw new DeploymentError(plan.issues.join(' '));
   }
   const lance = dropTeam(catalog, state, contract.missionId);

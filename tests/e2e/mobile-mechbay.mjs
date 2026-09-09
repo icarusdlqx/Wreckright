@@ -92,6 +92,9 @@ export async function runMobileMechbayJourney({
       !(await page.locator('[data-workspace-panel="review"]').isVisible()) &&
       !(await page.locator('[data-testid="build-compare"]').isVisible()),
   );
+  // Re-enter the already selected tab before measuring the resting view.
+  // A touch opening the bay can leave a rack's hover/focus disclosure active.
+  await selectWorkspace(page, 'loadout');
   const restingLocations = await quietLocationState(page);
   check(
     `${prefix} location cards show only their quiet resting information`,

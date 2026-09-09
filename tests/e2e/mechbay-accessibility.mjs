@@ -1,5 +1,6 @@
 import { discardRefitIfPrompted } from './mechbay-exit.mjs';
 import { openDesktopBattleMenu } from './input-safety.mjs';
+import { clickFittingAction } from './fitting-actions.mjs';
 
 export async function quietLocationState(page, allowArmourReveal = false) {
   return page.locator('.bay-location').evaluateAll((cards, allowReveal) => {
@@ -22,7 +23,7 @@ export async function quietLocationState(page, allowArmourReveal = false) {
         slotGrid !== null && freeSlots !== null && visible(card.querySelector('.rack-cell')) &&
         armourIsSequenced && /^\d+\+\d+$/.test(armour?.textContent ?? '') &&
         card.querySelector('.bay-slots') === null &&
-        visible(card.querySelector('.bay-hardpoints')) &&
+        card.querySelector('.bay-hardpoints') !== null &&
         card.querySelector('.bay-location-flags') === null &&
         card.querySelector('.bay-location-refusal') === null &&
         card.getAttribute('data-targeting') !== 'true' &&
@@ -182,15 +183,18 @@ export async function verifyFirstFitExplainers({ page, check }) {
   );
 
   await page.locator('[data-testid="bay-workbench-disclosure"]').click();
-  await page.locator('[data-testid="bay-culture-disclosure"]').click();
+  const culture = page.locator('[data-testid="bay-culture-disclosure"]');
+  const cultureVisible = await culture.isVisible();
+  if (cultureVisible) await culture.click();
   const reopened = await explainerState(page);
   check(
-    'the folded workbench and culture explanations remain available by disclosure',
-    reopened.workbenchExpanded === 'true' && reopened.cultureExpanded === 'true',
+    'the fitting guide reopens and component provenance stays available in the selected item details',
+    reopened.workbenchExpanded === 'true' && await page.locator('#location-fit-steps').isVisible() &&
+      (cultureVisible ? reopened.cultureExpanded === 'true' : await page.locator('#bay-shelf-inspector .dossier-culture').isVisible()),
     JSON.stringify(reopened),
   );
   await page.locator('[data-testid="bay-workbench-disclosure"]').click();
-  await page.locator('[data-testid="bay-culture-disclosure"]').click();
+  if (cultureVisible) await culture.click();
 }
 
 export async function verifyAutoFitSnap({ page, check }) {
@@ -228,9 +232,9 @@ export async function verifyAutoFitSnap({ page, check }) {
     JSON.stringify({ landing, reducedAnimations }),
   );
   if (landing.testId !== null) {
-    await page.locator(
+    await clickFittingAction(page.locator(
       `[data-testid="${landing.testId}"] [data-testid^="remove-weapon-"]`,
-    ).last().click();
+    ).last());
   }
 }
 
@@ -268,8 +272,8 @@ export async function verifyOutfitDialogRerender({ page, check }) {
     '[data-testid="outfit-bay"] [data-testid="bay-location-head"] .bay-location-name',
   );
   await head.focus();
-  const priorError = await page.evaluate(async () => {
-    const { useGame } = await import('/src/ui/store.ts');
+  const priorError = await page.evaluate(() => {
+    const { useGame } = globalThis.__wreckright;
     const error = useGame.getState().error;
     useGame.getState().patch({ error: 'audit' });
     return error;
@@ -286,8 +290,8 @@ export async function verifyOutfitDialogRerender({ page, check }) {
     'closing the rerendered outfit dialog restores its berth trigger',
     await trigger.evaluate((control) => document.activeElement === control),
   );
-  await page.evaluate(async (error) => {
-    const { useGame } = await import('/src/ui/store.ts');
+  await page.evaluate((error) => {
+    const { useGame } = globalThis.__wreckright;
     useGame.getState().patch({ error });
   }, priorError);
 }
@@ -325,9 +329,9 @@ export async function verifyArmedIncompatibleRemovalFocus({ page, check }) {
         '[data-testid="bay-location-right_arm"] .bay-location-refusal',
       ).innerText()).trim() !== '',
   );
-  await page.locator(
+  await clickFittingAction(page.locator(
     '[data-testid="bay-location-right_arm"] [data-testid^="remove-weapon-"]',
-  ).first().click();
+  ).first());
   check(
     'removing there restores focus to the selected compatible location',
     await page.locator(

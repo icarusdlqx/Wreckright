@@ -189,6 +189,13 @@ export async function runCompanyOutcomeChecks({ browser, url, shots, check }) {
     await reveal(receipt);
     await shot('rewards-desktop');
     const pilotReport = page.locator(`[data-testid="debrief-${fixture.traineeId}"]`);
+    await reveal(page.locator('[data-testid="debrief-crew"]'));
+    await shot('crew-desktop');
+    check('return cards retain the pilot, fielded machine and separate current condition',
+      await pilotReport.locator('.pilot-portrait').count() === 1
+      && await pilotReport.locator('.machine-portrait').count() === 1
+      && (await pilotReport.textContent()).includes('Current machine condition')
+      && await pilotReport.locator(`[data-testid="debrief-pair-workshop-${fixture.mechId}"]`).count() === 1);
     check('a non-firing scout sees the capped shared mission XP subtotal and can choose training',
       fixture.report.damage === 0 && fixture.report.sharedXp === fixture.expectedShared
       && (await pilotReport.textContent()).includes(`Includes ${fixture.expectedShared} XP for shared mission progress.`)
@@ -203,7 +210,7 @@ export async function runCompanyOutcomeChecks({ browser, url, shots, check }) {
       && account(await company(page)) === account(settled), nextText);
     await reveal(next);
     await shot('next-steps-desktop');
-    await page.locator(`[data-testid="debrief-workshop-${fixture.mechId}"]`).click();
+    await page.locator(`[data-testid="debrief-pair-workshop-${fixture.mechId}"]`).click();
     await page.locator('[data-testid="debrief"]').waitFor({ state: 'hidden' });
     await page.waitForFunction(id => document.querySelector(`[data-testid="camp-inspect-${id}"]`)?.getAttribute('aria-pressed') === 'true', fixture.mechId);
     check('repair deep link opens its exact machine and closes the receipt without booking or spending',
@@ -213,7 +220,7 @@ export async function runCompanyOutcomeChecks({ browser, url, shots, check }) {
     await shot('repair-desktop');
 
     await openSaved(page, url, fixture.raw);
-    await page.locator(`[data-testid="debrief-train-${fixture.traineeId}"]`).click();
+    await page.locator(`[data-testid="debrief-pair-train-${fixture.traineeId}"]`).click();
     const detail = page.locator(`[data-testid="camp-pilot-detail-${fixture.traineeId}"]`);
     await detail.waitFor();
     check('training deep link selects the named pilot with a live skill choice and spends no XP',
@@ -226,6 +233,8 @@ export async function runCompanyOutcomeChecks({ browser, url, shots, check }) {
     await page.setViewportSize({ width: 390, height: 844 });
     await openSaved(page, url, fixture.raw);
     await receipt.waitFor();
+    await reveal(page.locator('[data-testid="debrief-crew"]'));
+    await shot('crew-mobile');
     await reveal(receipt);
     await shot('rewards-mobile');
     const training = page.locator(`[data-testid="debrief-train-${fixture.traineeId}"]`);

@@ -134,6 +134,8 @@ const MissionOutcomeSchema = z.strictObject({
         pilotId: z.string().min(1),
         name: z.string().min(1),
         mech: z.string(),
+        mechId: z.string().min(1).optional(),
+        chassisId: IdSchema.optional(),
         kills: z.number().nonnegative(),
         damage: z.number().nonnegative(),
         xp: z.number(),
@@ -195,6 +197,9 @@ export const CampaignStateSchema = z.strictObject({
   // nobody benched, which is what they meant.
   benched: z.array(z.string()).default([]),
   deploymentSelection: z.array(z.string().min(1)).max(12).nullable().default(null),
+  deploymentSeats: z.array(z.strictObject({
+    mechId: z.string().min(1).nullable(), pilotId: z.string().min(1).nullable(),
+  })).max(12).nullable().default(null),
   lancePresets: z.array(z.strictObject({
     name: z.string().trim().min(1).max(40),
     seats: z.array(z.strictObject({ pilotId: z.string().min(1), mechId: z.string().nullable() })).max(12),

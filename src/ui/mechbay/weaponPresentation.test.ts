@@ -88,7 +88,7 @@ describe('truthful generated copy', () => {
     expect(weaponTraitLines(catalog, weapon('flamer'))).toContain('Adds 4 heat to the target');
   });
 
-  it('describes the real minimum-range modifier and never promises indirect fire', () => {
+  it('describes the real minimum-range modifier without inventing a dead zone or power budget', () => {
     expect(weaponTraitLines(catalog, weapon('ppc'))).toContain('50% accuracy inside 30m');
     const generated = [...catalog.weapons.values()]
       .flatMap((entry) => [
@@ -98,8 +98,19 @@ describe('truthful generated copy', () => {
       ])
       .join(' ')
       .toLowerCase();
-    expect(generated).not.toMatch(/dead inside|lobs over cover|indirect fire|reactor power/);
-    expect(weaponOperatingLine(weapon('lrm10'))).toContain('line of sight is still required');
+    expect(generated).not.toMatch(/dead inside|reactor power/);
+  });
+
+  it('explains indirect missile targeting only when the weapon has that capability', () => {
+    for (const id of ['lrm10', 'lrm20']) {
+      expect(weaponOperatingLine(weapon(id))).toContain("a teammate's sight or a live sensor track to fire over cover");
+    }
+    for (const id of ['srm2', 'srm6', 'streak_srm6', 'mrm20']) {
+      expect(weaponOperatingLine(weapon(id))).toContain('need a clear line of sight from this mech');
+    }
+    // Range and family alone must never grant an indirect targeting promise.
+    const directLongshot = { ...weapon('lrm10'), tags: weapon('lrm10').tags.filter(tag => tag !== 'indirect_fire') };
+    expect(weaponOperatingLine(directLongshot)).toContain('need a clear line of sight from this mech');
   });
 
   it('exposes faction labels for text-and-colour treatment', () => {

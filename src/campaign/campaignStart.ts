@@ -26,6 +26,7 @@ export function startCampaign(
     pilots: [],
     benched: [],
     deploymentSelection: null,
+    deploymentSeats: null,
     lancePresets: [],
     claimedRewardIds: [],
     sharedXpClaims: [],

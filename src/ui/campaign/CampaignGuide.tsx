@@ -5,8 +5,8 @@ const LABELS: Record<Exclude<FirstDropStage, 'done'>, string> = {
   choose: '1 · Choose the job',
   launch: '2 · Launch the drop',
   prepare: '2 · Prepare the drop',
-  bay: '3 · Check the machines',
-  manifest: '4 · Launch the lance',
+  bay: '3 · Prepare the team',
+  manifest: '3 · Assign the pilots',
 };
 
 export function CampaignGuide({

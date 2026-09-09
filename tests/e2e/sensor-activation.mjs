@@ -113,6 +113,7 @@ export async function runSensorActivationChecks({ browser, url, shots, check }) 
       && !abilityBefore.readout.ready && abilityBefore.readout.activeRemaining > 0 && abilityBefore.readout.cooldownRemaining > 0
       && JSON.stringify(abilityBefore.clocks) === JSON.stringify(abilityAfter),
       JSON.stringify({ sweepText, abilityText, abilityBefore, abilityAfter }));
+    await page.locator('[data-testid="unit-details-toggle"]').click();
     await page.locator('[data-testid="tactical-details"] summary').click();
     const profile = await page.locator('.machine-profile').textContent();
     check('Deep Scanner is a measurable passive equipment bonus with an explicit automatic-sensor explanation',
@@ -121,6 +122,7 @@ export async function runSensorActivationChecks({ browser, url, shots, check }) 
     await shot('mech-desktop');
     const details = page.locator('[data-testid="tactical-details"][open] > summary');
     if (await details.isVisible()) await details.click();
+    await page.locator('[data-testid="unit-details-toggle"]').click();
 
     const probe = await page.evaluate(async url => {
       const { engine, world } = globalThis.__wreckright;

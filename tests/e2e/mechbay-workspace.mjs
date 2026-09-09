@@ -1,4 +1,5 @@
 import { discardRefitIfPrompted } from './mechbay-exit.mjs';
+import { clickFittingAction } from './fitting-actions.mjs';
 import { openDesktopBattleMenu } from './input-safety.mjs';
 import {
   dragStockToLocation,
@@ -298,7 +299,7 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
       await renderedTextIncludes(inspector, 'Medium Laser') &&
       (await page.locator('[data-testid="bay-location-right_torso"] [data-testid^="remove-weapon-"]').count()) === 1,
   );
-  await page.locator('[data-testid="bay-location-right_torso"] [data-testid^="remove-weapon-"]').click();
+  await clickFittingAction(page.locator('[data-testid="bay-location-right_torso"] [data-testid^="remove-weapon-"]'));
   check(
     'the explicit Remove control restores the legal build and stable location focus',
     !(await page.locator('[data-testid="bay-save"]').isDisabled()) &&
@@ -328,7 +329,7 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
       draggedTargeting.sameLiveRegionCount && (await freeTonnage(page)) < startingFree,
     JSON.stringify(draggedTargeting),
   );
-  await page.locator('[data-testid="bay-location-right_torso"] [data-testid^="remove-weapon-"]').click();
+  await clickFittingAction(page.locator('[data-testid="bay-location-right_torso"] [data-testid^="remove-weapon-"]'));
   check('dragged weapon can be removed cleanly', (await freeTonnage(page)) === startingFree);
   await page.locator('[data-testid="bay-undo"]').click();
   check('Undo restores the last removed fitting', (await freeTonnage(page)) < startingFree);
@@ -403,6 +404,8 @@ async function verifyDepletedCompanyRefit({ page, check }) {
       && mech.design.id === 'hornet_spotter'))?.id;
   });
   if (!pilotId) throw new Error('The campaign refit fixture has no assigned Gadfly');
+  const seat = await page.evaluate(id => JSON.parse(localStorage.getItem('ironline.campaign')).state.deploymentSeats.findIndex(slot => slot.pilotId === id), pilotId);
+  await page.getByTestId(`prep-seat-${seat}`).click();
   await page.locator(`[data-testid="manifest-refit-${pilotId}"]`).click();
   await page.waitForSelector('[data-testid="refit-bay"]');
   check(

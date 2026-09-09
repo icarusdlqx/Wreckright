@@ -135,7 +135,7 @@ describe('campaign debrief recovery ledger', () => {
     expect(html).toContain('Kestrel Combine');
     expect(html).toContain('1 completed · 0 failed · 100 C paid');
     expect(html).toContain('+9 XP');
-    expect(html.indexOf('</details>')).toBeLessThan(html.indexOf('+9 XP'));
+    expect(html.indexOf('+9 XP')).toBeLessThan(html.indexOf('data-testid="debrief-salvage-report"'));
 
     outcome.salvageFinalized = true;
     const restored = renderToStaticMarkup(

@@ -1,5 +1,6 @@
 import type { Catalog } from '../schema/load';
 import type { DifficultyChoice } from './battleSetupState';
+import { BriefingTeam } from './BriefingTeam';
 import { briefingLanceFor } from './briefingLance';
 import { lanceFaction, type SkirmishBerth } from './lance';
 import { skirmishEnemyAllowance } from './skirmishForces';
@@ -17,12 +18,11 @@ export interface EnemyForceSetupProps {
 }
 
 export function EnemyForceSetup(props: EnemyForceSetupProps) {
-  const lance = briefingLanceFor(props.catalog, props.missionId, props.lance, props.onLance, props.onCustomise);
+  const lance = briefingLanceFor(props.catalog, props.missionId, props.lance, props.onLance, props.onCustomise, props.difficultyId);
   lance.allowance = skirmishEnemyAllowance(props.catalog, props.missionId);
   const tier = props.difficulties.find((candidate) => candidate.id === props.difficultyId);
   const scripted = props.catalog.missions.get(props.missionId)?.triggers.some((trigger) =>
     trigger.effects.some((effect) => effect.type === 'spawn')) ?? false;
-  const taken = (id: string) => lance.berths.some((berth) => berth.designValue !== 'empty' && berth.pilotId === id);
   return <section className="enemy-force-setup briefing-lance" data-testid="enemy-force-setup">
     <h4>AI enemy <span className={`briefing-tonnage${lance.total > lance.allowance ? ' over' : ''}`}
       data-testid="enemy-tonnage">{lance.total}/{lance.allowance}t</span></h4>
@@ -45,26 +45,7 @@ export function EnemyForceSetup(props: EnemyForceSetupProps) {
     </div>
     <details className="enemy-roster" open>
       <summary>Enemy mechs &amp; loadouts <span>{lance.berths.filter((berth) => berth.designValue !== 'empty').length} deployed</span></summary>
-      {lance.berths.map((berth) => <div className="briefing-berth" key={berth.index}>
-        <select value={berth.designValue} onChange={(event) => lance.onDesign(berth.index, event.target.value)}
-          aria-label={`Enemy mech for berth ${berth.index + 1}`} data-testid={`enemy-berth-design-${berth.index}`}>
-          {berth.customLabel === null ? null : <option value="custom">{berth.customLabel} (edited loadout)</option>}
-          <option value="empty">— empty berth —</option>
-          {berth.designValue !== 'empty' && berth.designValue !== 'custom' && !lance.designs.some((design) => design.value === berth.designValue)
-            ? <option value={berth.designValue}>{props.catalog.designs.get(berth.designValue)?.name ?? berth.designValue} (scenario unit)</option> : null}
-          {lance.designs.map((design) => <option key={design.value} value={design.value}>{design.label}</option>)}
-          {lance.saved.length === 0 ? null : <optgroup label="Saved loadouts">
-            {lance.saved.map((design) => <option key={design.value} value={design.value}>{design.label}</option>)}
-          </optgroup>}
-        </select>
-        <select value={berth.pilotId} onChange={(event) => lance.onPilot(berth.index, event.target.value)}
-          aria-label={`Enemy pilot for berth ${berth.index + 1}`} data-testid={`enemy-berth-pilot-${berth.index}`}>
-          {lance.pilots.map((pilot) => <option key={pilot.id} value={pilot.id}
-            disabled={pilot.id !== berth.pilotId && taken(pilot.id)}>{pilot.name}</option>)}
-        </select>
-        <button type="button" onClick={() => lance.onCustomise(berth.index)}
-          data-testid={`enemy-berth-customise-${berth.index}`}>Refit loadout</button>
-      </div>)}
+      <BriefingTeam lance={lance} enemy />
     </details>
     <p className="setup-description">{scripted
       ? 'These are the starting enemy mechs. This scenario also has authored reinforcements; choose a Skirmish map for a pure lance battle.'

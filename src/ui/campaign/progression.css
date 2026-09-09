@@ -3,6 +3,17 @@
   max-height: 520px;
 }
 
+.pilot-person.pilot-person--prominent { grid-template-columns: 112px minmax(0, 1fr); gap: 16px; }
+.pilot-person--prominent > .pilot-portrait { width: 112px; height: 140px; }
+.pilot-person--prominent .pilot-name { font-size: 22px; }
+.pilot-record-capabilities { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; margin: 12px 0; align-items: center; }
+.pilot-record-capabilities > .pilot-readout { grid-column: auto; }
+@media (max-width: 640px) {
+  .pilot-person.pilot-person--prominent { grid-template-columns: 80px minmax(0, 1fr); gap: 12px; }
+  .pilot-person--prominent > .pilot-portrait { width: 80px; height: 100px; }
+  .pilot-record-capabilities { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+}
+
 /* Scroll containers contribute almost no height to the campaign grid. These
    are decisions, not narrow title bars with their contents trapped inside. */
 .progression-bay {

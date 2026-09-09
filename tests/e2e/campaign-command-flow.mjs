@@ -3,6 +3,14 @@ import { chromium } from 'playwright';
 
 const read = page => page.evaluate(() => JSON.parse(localStorage.getItem('ironline.campaign')).state);
 const raw = page => page.evaluate(() => localStorage.getItem('ironline.campaign'));
+// Opening preparation persists cockpits and their pilot assignments. Everything
+// outside those explicit choices must remain byte-for-byte equivalent.
+const preparationResources = raw => {
+  const state = JSON.parse(raw).state;
+  delete state.deploymentSeats; delete state.deploymentSelection; delete state.benched;
+  for (const pilot of state.pilots) delete pilot.mechId;
+  return JSON.stringify(state);
+};
 
 /** Controlled settled-field fixtures exercise navigation, not campaign balance or human victories. */
 async function fixture(page, url, campaignId) {
@@ -49,10 +57,11 @@ export async function runCampaignCommandFlow({ browser, url, shots, check }) {
       check(`${campaignId}: settled debrief offers a next-mission review without calendar waiting`,
         (await page.locator('[data-testid="debrief-continue"]').innerText()).includes('No calendar advance is needed'));
       await page.screenshot({ path: `${shots}/campaign-flow-${campaignId}-debrief.png` });
+      const firstReportAction = page.locator('.debrief-pair-actions button').first();
       await page.getByTestId('debrief-close').focus();
       await page.keyboard.press('Tab');
-      const forward = await page.getByTestId('debrief-next-mission').evaluate(el => el === document.activeElement);
-      await page.getByTestId('debrief-next-mission').focus();
+      const forward = await firstReportAction.evaluate(el => el === document.activeElement);
+      await firstReportAction.focus();
       await page.keyboard.press('Shift+Tab');
       const reverse = await page.getByTestId('debrief-close').evaluate(el => el === document.activeElement);
       focusLoops.push({ campaignId, forward, reverse });
@@ -80,15 +89,24 @@ export async function runCampaignCommandFlow({ browser, url, shots, check }) {
       const signed = await raw(page);
       await page.locator('[data-testid="camp-next-mission"]').click();
       await page.locator('[data-testid="hangar-continue"]').waitFor();
-      check(`${campaignId}: signed primary action opens outfitting without launching or changing the save`,
-        await raw(page) === signed && await page.locator('[data-testid="hangar-continue"]').isVisible());
+      const preparedSave = await raw(page);
+      const preparedState = JSON.parse(preparedSave).state;
+      check(`${campaignId}: signed primary action saves actual cockpits without launching or spending`,
+        preparationResources(preparedSave) === preparationResources(signed)
+        && preparedState.deploymentSeats.length > 0
+        && preparedState.deploymentSeats.every(seat => seat.pilotId !== null && seat.mechId !== null
+          && preparedState.pilots.find(pilot => pilot.id === seat.pilotId)?.mechId === seat.mechId)
+        && JSON.stringify(preparedState.deploymentSelection) === JSON.stringify(preparedState.deploymentSeats.map(seat => seat.pilotId))
+        && await page.locator('[data-testid="hangar-stage"]').isVisible());
       await page.locator('[data-testid="hangar-continue"]').click();
-      check(`${campaignId}: outfit continuation opens the deployment manifest for review`, await page.locator('[data-testid="lance-manifest"]').isVisible());
+      check(`${campaignId}: pilot view keeps the same saved deployment ready for review`,
+        await page.locator('[data-testid="prep-team-view"]').isVisible() && await raw(page) === preparedSave);
       await page.reload();
       await page.locator('[data-testid="home-campaign"]').click();
       if (await page.locator('[data-testid="debrief-close"]').isVisible()) await page.locator('[data-testid="debrief-close"]').click();
       check(`${campaignId}: reload retains signed contract and resumes at outfit step`,
-        (await page.locator('[data-testid="camp-next-mission"]').innerText()).includes('Outfit & deploy') && (await read(page)).contract.nodeId === prepared.next);
+        (await page.locator('[data-testid="camp-next-mission"]').innerText()).includes('Outfit & deploy')
+        && (await read(page)).contract.nodeId === prepared.next && await raw(page) === preparedSave);
       await page.locator('[data-testid="camp-area-workshop"]').click();
       await page.locator(`[data-testid="camp-repair-${prepared.mechId}"]`).click();
       const booked = await read(page);
@@ -117,9 +135,9 @@ export async function runCampaignCommandFlow({ browser, url, shots, check }) {
       await page.setViewportSize({ width: 1440, height: 1000 });
     }
     check('campaign command flow has no browser errors', errors.length === 0, errors.join('\n'));
-    check('both faction debriefs wrap Tab from the final action to next-mission review',
+    check('both faction debriefs wrap Tab from the final action to the first crew action',
       focusLoops.length === 2 && focusLoops.every(entry => entry.forward), JSON.stringify(focusLoops));
-    check('both faction debriefs wrap Shift+Tab from next-mission review to the final action',
+    check('both faction debriefs wrap Shift+Tab from the first crew action to the final action',
       focusLoops.length === 2 && focusLoops.every(entry => entry.reverse), JSON.stringify(focusLoops));
   } finally { await context.close(); }
 }

@@ -17,6 +17,11 @@ describe('shared mission progression', () => {
     const reserveXp = reserve.xp;
     const run = resolveMission(content, state, battle, participants, false);
     expect(run.outcome.pilotReports).toHaveLength(2);
+    expect(run.outcome.pilotReports.map((report) => [report.mechId, report.chassisId]))
+      .toEqual(participants.map(({ mech }) => [mech.id, mech.design.chassisId]));
+    expect(deserialiseCampaign(serialiseCampaign(state), content).state?.history.at(-1)?.pilotReports
+      .map((report) => [report.mechId, report.chassisId]))
+      .toEqual(participants.map(({ mech }) => [mech.id, mech.design.chassisId]));
     expect(run.outcome.pilotReports.map((report) => report.sharedXp)).toEqual([shared, shared]);
     expect(run.outcome.pilotReports[0]!.xp).toBe(Math.round((rules.missionSurvival + rules.missionWin)
       * traitFactor(content, participants[0]!.pilot, 'xpFactor')) + shared);

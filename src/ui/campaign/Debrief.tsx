@@ -14,7 +14,7 @@ import type {
 } from '../../campaign/types';
 import { stripSerialDesignation } from '../designLabel';
 import { useDialogFocus } from '../useDialogFocus';
-import { PilotPortrait } from '../PilotPortrait';
+import { DebriefCrew } from './DebriefCrew';
 import { salvageItemFacts, salvageSummary } from './salvageFacts';
 import './salvage.css';
 import { RewardReceipt } from './CompanyRewards';
@@ -194,12 +194,8 @@ export function Debrief({
           )}
         </header>
 
-        {onAction === undefined || nextMission === null ? null : <section className="debrief-continue" data-testid="debrief-continue">
-          <div><strong>Next mission · {nextMission.name}</strong><p>Review the contract, then outfit your mechs and choose the deployment. No calendar advance is needed.</p></div>
-          <button type="button" data-testid="debrief-next-mission" onClick={() => onAction({ area: 'operations', nodeId: nextMission.id })}>
-            {nextMission.ending ? 'Review ending choices' : 'Review next mission'} →
-          </button>
-        </section>}
+        <DebriefCrew catalog={catalog} state={state} outcome={outcome}
+          {...(onAction === undefined ? {} : { onAction })} />
 
         {candidates.length === 0 && offered.length === 0 ? null : (
           <details className="debrief-salvage-report" data-testid="debrief-salvage-report">
@@ -306,68 +302,6 @@ export function Debrief({
 
         <RewardReceipt catalog={catalog} rewards={outcome.campaignRewards ?? []} />
 
-        {outcome.pilotReports.length === 0 ? (
-          <p className="empty">No crew records for this drop.</p>
-        ) : (
-          <ul className="manifest-list">
-            {outcome.pilotReports.map((report) => (
-              <li
-                key={report.pilotId}
-                className={`manifest-row${report.fate === 'killed' ? ' unfit' : ''}`}
-                data-testid={`debrief-${report.pilotId}`}
-              >
-                <div className="manifest-pilot">
-                  <PilotPortrait pilot={state.pilots.find((pilot) => pilot.id === report.pilotId) ?? { id: report.pilotId, name: report.name }} compact />
-                  <span className="pilot-name">{report.name}</span>
-                  <small className="manifest-status">
-                    {stripSerialDesignation(report.mech)}
-                  </small>
-                </div>
-
-                <dl className="manifest-skills">
-                  <div>
-                    <dt>Fought</dt>
-                    <dd>
-                      {report.kills} kill{report.kills === 1 ? '' : 's'} · {report.damage} damage
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Earned</dt>
-                    <dd>
-                      +{report.xp} XP
-                      {report.xpBanked === null ? '' : ` · ${report.xpBanked} banked`}
-                      {(report.sharedXp ?? 0) > 0 ? <small className="debrief-shared-xp"> Includes {report.sharedXp} XP for shared mission progress.</small> : null}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Training</dt>
-                    <dd>
-                      {report.promotions.length > 0
-                        ? report.promotions.join(', ')
-                        : report.fate === 'killed'
-                          ? 'record closed'
-                          : 'choose in barracks'}
-                    </dd>
-                  </div>
-                </dl>
-
-                <div className="manifest-mech">
-                  <span
-                    className={`debrief-fate ${report.fate}`}
-                    data-testid={`debrief-fate-${report.pilotId}`}
-                  >
-                    {report.fate === 'killed'
-                      ? 'Killed in action'
-                      : report.fate === 'injured'
-                        ? 'Wounded · misses next mission'
-                        : 'Returned'}
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-
         {outcome.mechsLost.length === 0 ? null : (
           <p className="debrief-losses">
             Lost: {outcome.mechsLost.map(stripSerialDesignation).join(', ')}.
@@ -377,7 +311,15 @@ export function Debrief({
         {onAction === undefined || state.finished ? null : <DebriefActions catalog={catalog} state={state}
           outcome={{ ...outcome, salvagedItems: receiptItems }} onAction={onAction} />}
 
+        {onAction === undefined || nextMission === null ? null : <section className="debrief-continue" data-testid="debrief-continue">
+          <div><strong>Next mission · {nextMission.name}</strong><p>Review the contract, then prepare the crew and machines together. No calendar advance is needed.</p></div>
+        </section>}
+
         <footer className="manifest-actions">
+          {onAction === undefined || nextMission === null ? null : <button type="button" data-testid="debrief-next-mission"
+            onClick={() => onAction({ area: 'operations', nodeId: nextMission.id })}>
+            {nextMission.ending ? 'Review ending choices' : 'Review next mission'} →
+          </button>}
           <button type="button" onClick={onClose} data-testid="debrief-close">
             Stay at company
           </button>

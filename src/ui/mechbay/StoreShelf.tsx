@@ -8,7 +8,7 @@ import {
   remainingInventory,
   type BayInventory,
 } from './bayFit';
-import { Dossier, type Inspected } from './Dossier';
+import { Dossier, type Inspected, type InspectorFit } from './Dossier';
 import { ShelfItem } from './ShelfItem';
 import type { DropPayload } from './LocationCard';
 import { mountedWeaponProfiles as resolveMountedWeaponProfiles } from './rangeDamageChartModel';
@@ -167,7 +167,11 @@ export function StoreShelf({
           ? null
           : { kind: 'equipment', id: gearRows[0].equipment.id };
   const inspector = matchingInspected ?? defaultInspected;
-  const inspectorFit = inspector?.kind === 'weapon'
+  const installedMount = inspector?.kind === 'weapon' && inspector.sourceIndex !== undefined
+    ? design.mounts[inspector.sourceIndex] : undefined;
+  const inspectorFit: InspectorFit | null = installedMount !== undefined && installedMount.weaponId === inspector?.id
+    ? { ok: true, label: 'Installed', reason: `Mounted in ${installedMount.location.replaceAll('_', ' ')}. Use the tile to move or remove it.` }
+    : inspector?.kind === 'weapon'
     ? (weaponRows.find(({ weapon }) => weapon.id === inspector.id)?.fit ?? null)
     : inspector?.kind === 'ammo'
       ? (ammoRows.find(({ weapon }) => weapon.id === inspector.id)?.fit ?? null)

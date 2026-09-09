@@ -40,6 +40,7 @@ import { useGame } from '../store';
 import { usePlaytest } from '../playtest';
 import { CampaignGuide } from './CampaignGuide';
 import { CampaignPrep } from './CampaignPrep';
+import { beginPreparation } from './preparationModel';
 import { firstDropStage, type FirstDropPrep } from './firstDropGuide';
 import { canLaunchFirstDropDirectly } from './firstDropLaunch';
 import { useCampaignScore } from './useCampaignScore';
@@ -170,6 +171,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
       return;
     }
     record({ name: 'drop_prep_opened' });
+    mutate((draft) => beginPreparation(catalog, draft));
     setPrep('bay');
   };
 
@@ -183,6 +185,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
     if (state.contract === null) { setStatus('Accept a contract first.'); return; }
     const plan = deploymentPlan(catalog, state, state.contract.missionId);
     if (plan.issues.length > 0) {
+      mutate((draft) => beginPreparation(catalog, draft));
       setStatus(plan.issues.join(' '));
       setPrep('manifest');
       return;
@@ -407,6 +410,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
       />
       <CampaignPrep
         catalog={catalog}
+        persistent={persistence.mode === 'persistent'}
         state={state}
         prep={prep}
         refitting={refitting}

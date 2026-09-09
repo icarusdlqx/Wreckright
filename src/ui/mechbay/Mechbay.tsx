@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
 import type { AudioDirector } from '../audio';
 import type { MechLocation } from '../../schema/common';
 import type { Design } from '../../schema/design';
@@ -63,11 +63,13 @@ export function Mechbay({
   commission,
   battleAudio,
   onBattleMuted,
+  preparationContext,
 }: {
   onExit: () => void;
   commission?: BayCommission;
   battleAudio?: AudioDirector;
   onBattleMuted?: (muted: boolean) => void;
+  preparationContext?: ReactNode;
 }) {
   const initial = commission?.design ?? catalog.designs.get('sentinel_brawler');
   if (initial === undefined) throw new Error('missing default mechbay design');
@@ -256,6 +258,7 @@ export function Mechbay({
         onImport={(file) => void persistence.importFile(file)}
         onLoad={persistence.load}
       />
+      {preparationContext === undefined ? null : <div className="bay-preparation-context">{preparationContext}</div>}
       <BayWorkspaceTabs
         active={workspace}
         issueCount={report.issues.length}
@@ -263,7 +266,7 @@ export function Mechbay({
       />
 
       <BayWorkspacePanel tab="loadout" active={workspace === 'loadout'}>
-        <MachinePanel
+        <LoadoutGrid machine={<MachinePanel
           catalog={catalog}
           chassis={chassis}
           design={design}
@@ -277,8 +280,7 @@ export function Mechbay({
           onCultureExpandedChange={quietBay.setCultureExpanded}
           onSelectLocation={selectLocation}
           onHoverLocation={setHoveredLocation}
-        />
-        <LoadoutGrid
+        />}
           catalog={catalog}
           chassis={chassis}
           design={design}

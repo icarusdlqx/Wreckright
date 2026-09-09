@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef } from 'react';
+import { lazy, Suspense, useEffect, useRef, type ReactNode } from 'react';
 import type { AudioDirector } from '../audio';
 import type { BayCommission } from './Mechbay';
 import './mechbayLoading.css';
@@ -19,6 +19,7 @@ interface Props {
   commission?: BayCommission;
   battleAudio?: AudioDirector;
   onBattleMuted?: (muted: boolean) => void;
+  preparationContext?: ReactNode;
 }
 
 /** Only the unresolved bay owns this handler; loaded drafts keep their own exit guard. */
@@ -42,7 +43,7 @@ function MechbayLoading({ onCancel }: { onCancel: () => void }) {
   </div>;
 }
 
-export function LazyMechbay({ onExit, commission, battleAudio, onBattleMuted }: Props) {
+export function LazyMechbay({ onExit, commission, battleAudio, onBattleMuted, preparationContext }: Props) {
   return (
     <Suspense
       fallback={<MechbayLoading onCancel={commission?.onCancel ?? onExit} />}
@@ -52,6 +53,7 @@ export function LazyMechbay({ onExit, commission, battleAudio, onBattleMuted }: 
         {...(commission === undefined ? {} : { commission })}
         {...(battleAudio === undefined ? {} : { battleAudio })}
         {...(onBattleMuted === undefined ? {} : { onBattleMuted })}
+        {...(preparationContext === undefined ? {} : { preparationContext })}
       />
     </Suspense>
   );
