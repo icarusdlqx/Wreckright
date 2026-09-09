@@ -3,6 +3,8 @@ export const AUDIO_SETTINGS_KEY = 'ironline.audio-settings';
 
 export interface AudioPreferences {
   muted: boolean;
+  musicEnabled: boolean;
+  effectsEnabled: boolean;
   master: number;
   effects: number;
   music: number;
@@ -12,7 +14,8 @@ export interface AudioPreferences {
 
 /** Unit trims retain the existing mix; master gain still has its original 0.5 trim. */
 export const DEFAULT_AUDIO_PREFERENCES: Readonly<AudioPreferences> = Object.freeze({
-  muted: false, master: 1, effects: 1, music: 1, interface: 1, dynamicRange: 'normal',
+  muted: false, musicEnabled: true, effectsEnabled: true,
+  master: 1, effects: 1, music: 1, interface: 1, dynamicRange: 'normal',
 });
 
 const listeners = new Set<() => void>();
@@ -32,6 +35,8 @@ export function readAudioPreferences(): Readonly<AudioPreferences> {
     const record = isRecord(value) && value.version === 1 ? value : {};
     snapshot = Object.freeze({
       muted: stored.mute === '1',
+      musicEnabled: record.musicEnabled !== false,
+      effectsEnabled: record.effectsEnabled !== false,
       master: volume(record.master),
       effects: volume(record.effects),
       music: volume(record.music),
@@ -47,6 +52,8 @@ export function writeAudioPreferences(patch: Partial<AudioPreferences>): void {
   const next = { ...current, ...patch };
   snapshot = Object.freeze({
     muted: typeof next.muted === 'boolean' ? next.muted : current.muted,
+    musicEnabled: typeof next.musicEnabled === 'boolean' ? next.musicEnabled : current.musicEnabled,
+    effectsEnabled: typeof next.effectsEnabled === 'boolean' ? next.effectsEnabled : current.effectsEnabled,
     master: volume(next.master), effects: volume(next.effects),
     music: volume(next.music), interface: volume(next.interface),
     dynamicRange: next.dynamicRange === 'quiet' ? 'quiet' : 'normal',

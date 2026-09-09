@@ -19,8 +19,13 @@ interface AudioSettingsProps {
 const VOLUMES = [
   { key: 'master', label: 'Master', help: 'All sound' },
   { key: 'effects', label: 'Effects', help: 'Weapons, movement and weather' },
-  { key: 'music', label: 'Music', help: 'Campaign and battle score' },
-  { key: 'interface', label: 'Interface', help: 'Orders and alerts' },
+  { key: 'music', label: 'Music', help: 'Menu, campaign and battle score' },
+  { key: 'interface', label: 'Interface', help: 'Orders, radio and alerts' },
+] as const;
+
+const CHANNELS = [
+  { key: 'musicEnabled', id: 'music', label: 'Music', help: 'Menu, campaign and battle score' },
+  { key: 'effectsEnabled', id: 'effects', label: 'Sound effects', help: 'Weapons, movement, radio, alerts and weather' },
 ] as const;
 
 export function useAudioPreferences(): Readonly<AudioPreferences> {
@@ -75,6 +80,16 @@ export function AudioSettings({ compact = false, onPrepare, onDisplayChange }: A
             onClick={() => setSection(entry)}>{entry[0]!.toUpperCase() + entry.slice(1)}</button>)}
         </nav>
         <div hidden={section !== 'sound'}>
+        <div className="audio-settings__channels" aria-label="Audio channels">
+          {CHANNELS.map(channel => <button key={channel.key} type="button" role="switch"
+            className="audio-settings__channel" aria-label={channel.label}
+            aria-checked={preferences[channel.key]} aria-describedby={`${id}-${channel.id}-switch-help`}
+            data-testid={`audio-${channel.id}-enabled`}
+            onClick={() => writeAudioPreferences({ [channel.key]: !preferences[channel.key] })}>
+            <span><strong>{channel.label}</strong><small id={`${id}-${channel.id}-switch-help`}>{channel.help}</small></span>
+            <b aria-hidden="true">{preferences[channel.key] ? 'On' : 'Off'}</b>
+          </button>)}
+        </div>
         <label className="audio-settings__mute">
           <input
             type="checkbox"
@@ -84,6 +99,11 @@ export function AudioSettings({ compact = false, onPrepare, onDisplayChange }: A
           />
           Mute all sound
         </label>
+        {preferences.muted ? <p className="audio-settings__mute-note" role="status">
+          Master mute is on. Your music and sound effects choices are saved.
+        </p> : null}
+        <details className="audio-settings__advanced" data-testid="audio-advanced">
+        <summary>Volume and advanced mix</summary>
         {VOLUMES.map(({ key, label, help }) => (
           <label key={key} className="audio-settings__volume" htmlFor={`${id}-${key}`}>
             <span>{label}<output>{Math.round(preferences[key] * 100)}%</output></span>
@@ -125,10 +145,12 @@ export function AudioSettings({ compact = false, onPrepare, onDisplayChange }: A
           data-testid="audio-reset"
           onClick={() => writeAudioPreferences({
             ...DEFAULT_AUDIO_PREFERENCES, muted: preferences.muted,
+            musicEnabled: preferences.musicEnabled, effectsEnabled: preferences.effectsEnabled,
           })}
         >
           Reset mix
         </button>
+        </details>
         </div>
         <div hidden={section !== 'display'}><DisplayControls onChange={onDisplayChange} /></div>
         <div hidden={section !== 'controls'}><ControlGuide /></div>

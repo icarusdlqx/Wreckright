@@ -3,8 +3,7 @@ import { playerWorld, spawnDesign } from '../../tests/support';
 import type { MechEntity, World } from '../sim/types';
 import {
   battleCultureShare,
-  SCORE_CULTURE_VOICINGS,
-  scoreVoicingAt,
+  scoreCultureAt,
 } from './audioScoreVoicing';
 
 function emptyWorld(seed: string): World {
@@ -33,35 +32,21 @@ function sensorDetect(world: World, hostile: MechEntity): void {
   });
 }
 
-describe('score culture voicing', () => {
-  it('keeps exact culture endpoints and uses musical interpolation between them', () => {
-    expect(scoreVoicingAt(0)).toBe(SCORE_CULTURE_VOICINGS.linewrought);
-    expect(scoreVoicingAt(1)).toBe(SCORE_CULTURE_VOICINGS.aurelian);
-
-    const midpoint = scoreVoicingAt(0.5);
-    expect(midpoint.rootHz).toBeCloseTo(Math.sqrt(43.65 * 46.25));
-    expect(midpoint.fifthHz).toBeCloseTo(Math.sqrt(65.41 * 69.3));
-    expect(midpoint.pulseHz).toBeCloseTo(Math.sqrt(87.31 * 103.83));
-    expect(midpoint.fullHz).toBeCloseTo(Math.sqrt(103.83 * 130.81));
-    expect(midpoint.droneCutoffHz).toBeCloseTo(Math.sqrt(190 * 260));
-    expect(midpoint.pulseCutoffHz).toBeCloseTo(Math.sqrt(520 * 880));
-    expect(midpoint.fullCutoffHz).toBeCloseTo(Math.sqrt(420 * 1400));
-    expect(midpoint.droneQ).toBeCloseTo(1.05);
-    expect(midpoint.pulseQ).toBeCloseTo(1.5);
-    expect(midpoint.fullQ).toBeCloseTo(1.825);
-    expect(midpoint.rootLevel).toBeCloseTo(0.51);
-    expect(midpoint.fifthLevel).toBeCloseTo(0.26);
-    expect(midpoint.pulseLevel).toBeCloseTo(0.31);
+describe('score culture arrangement', () => {
+  it('crossfades faction colors without changing the shared theme pitch', () => {
+    expect(scoreCultureAt(0)).toEqual({ ironwork: 1, monolith: 0 });
+    expect(scoreCultureAt(1)).toEqual({ ironwork: 0, monolith: 1 });
+    const midpoint = scoreCultureAt(0.5);
+    expect(midpoint.ironwork).toBeCloseTo(Math.SQRT1_2);
+    expect(midpoint.monolith).toBeCloseTo(Math.SQRT1_2);
+    for (let index = 0; index <= 20; index += 1) {
+      const mix = scoreCultureAt(index / 20);
+      expect(mix.ironwork ** 2 + mix.monolith ** 2).toBeCloseTo(1);
+    }
   });
-
-  it('clamps out-of-range shares before interpolation', () => {
-    expect(scoreVoicingAt(-1)).toBe(SCORE_CULTURE_VOICINGS.linewrought);
-    expect(scoreVoicingAt(Number.NEGATIVE_INFINITY))
-      .toBe(SCORE_CULTURE_VOICINGS.linewrought);
-    expect(scoreVoicingAt(2)).toBe(SCORE_CULTURE_VOICINGS.aurelian);
-    expect(scoreVoicingAt(Number.POSITIVE_INFINITY))
-      .toBe(SCORE_CULTURE_VOICINGS.aurelian);
-    expect(scoreVoicingAt(Number.NaN)).toBe(SCORE_CULTURE_VOICINGS.linewrought);
+  it('clamps invalid shares', () => {
+    for (const share of [-1, -Infinity, NaN]) expect(scoreCultureAt(share)).toEqual(scoreCultureAt(0));
+    for (const share of [2, Infinity]) expect(scoreCultureAt(share)).toEqual(scoreCultureAt(1));
   });
 });
 

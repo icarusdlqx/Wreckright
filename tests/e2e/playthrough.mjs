@@ -45,6 +45,8 @@ import { runCultureSilhouetteChecks } from './culture-silhouettes.mjs';
 import { runTerrainWearChecks } from './terrain-wear.mjs';
 import { runAdaptiveScoreChecks } from './adaptive-score.mjs';
 import { runAdaptiveScoreTreatmentChecks } from './adaptive-score-treatments.mjs';
+import { runAudioChannelControlChecks } from './audio-channel-controls.mjs';
+import { runAudioThemePlaybackChecks } from './audio-theme-playback.mjs';
 import { runLastSilentMomentsChecks } from './last-silent-moments.mjs';
 import { runCommanderViewChecks } from './commander-view.mjs';
 import { runMinimapControlChecks } from './minimap-control.mjs';
@@ -1823,6 +1825,8 @@ async function main() {
     await runTerrainWearChecks({ browser, url: URL, shots: SHOTS, check });
     await runAdaptiveScoreChecks({ browser, url: URL, check });
     await runAdaptiveScoreTreatmentChecks({ browser, url: URL, check });
+    await runAudioChannelControlChecks({ browser, url: URL, shots: SHOTS, check });
+    await runAudioThemePlaybackChecks({ browser, url: URL, check });
     await verifyFirstDropLaunchPaths({ browser, url: URL, shots: SHOTS, check });
     await runMechbayCrewChecks({ browser, url: URL, shots: SHOTS, check });
     await runColdMechbayChecks({ browser, url: URL, shots: SHOTS, check });

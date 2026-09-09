@@ -49,10 +49,10 @@ export function BattleMenu({ fullHud, variant, ...props }: BattleMenuProps) {
             type="button"
             className="pause"
             onClick={() => props.onMuted(props.engine?.audio.toggleMuted() ?? score.toggleMuted())}
-            title={muted ? 'Sound is off' : 'Sound is on'}
+            title={muted ? 'Release master mute; keep your music and effects choices.' : 'Silence music and sound effects.'}
             data-testid="mute-button"
           >
-            {muted ? 'Sound off' : 'Sound on'}
+            {muted ? 'Unmute all' : 'Mute all'}
           </button>
           <AudioSettings compact onPrepare={() => props.engine?.audio.unlock()} onDisplayChange={props.onLowFx} />
           <button

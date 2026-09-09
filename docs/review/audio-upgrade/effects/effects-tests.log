@@ -1,0 +1,17 @@
+RUN  v4.1.10 /Users/davelangy/Documents/ChatGPT/wreckright/wreckright-ironwork-monolith
+
+(node:64219) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:64221) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:64214) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:64218) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:64216) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  9 passed (9)
+      Tests  43 passed (43)
+   Start at  06:07:26
+   Duration  1.42s (transform 5.22s, setup 0ms, import 10.01s, tests 225ms, environment 1ms)

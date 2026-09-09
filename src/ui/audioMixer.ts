@@ -37,8 +37,9 @@ export class AudioMixer {
     this.apply();
   }
 
-  audible(channel: 'effects' | 'interface'): boolean {
+  audible(channel: 'effects' | 'interface' | 'music'): boolean {
     return !this.preferences.muted && this.preferences.master > 0
+      && (channel === 'music' ? this.preferences.musicEnabled : this.preferences.effectsEnabled)
       && this.preferences[channel] > 0;
   }
 
@@ -55,8 +56,9 @@ export class AudioMixer {
     const quiet = prefs.dynamicRange === 'quiet';
     const master = prefs.muted ? 0 : MASTER_LEVEL * prefs.master * (quiet ? 0.85 : 1);
     for (const [node, value] of [
-      [this.master, master], [this.effects, prefs.effects],
-      [this.music, prefs.music], [this.interface, prefs.interface],
+      [this.master, master], [this.effects, prefs.effectsEnabled ? prefs.effects : 0],
+      [this.music, prefs.musicEnabled ? prefs.music : 0],
+      [this.interface, prefs.effectsEnabled ? prefs.interface : 0],
     ] as const) {
       if (initial) node.gain.value = value;
       else {

@@ -36,15 +36,36 @@ describe('shared sound preferences', () => {
     writeAudioPreferences({ master: 0.8, effects: 0.6, music: 0.2, interface: 0.9, dynamicRange: 'quiet' });
     expect(JSON.parse(stored.get(AUDIO_SETTINGS_KEY)!)).toEqual({
       version: 1, master: 0.8, effects: 0.6, music: 0.2, interface: 0.9, dynamicRange: 'quiet',
+      musicEnabled: true, effectsEnabled: true,
     });
     expect(stored.get(AUDIO_MUTED_KEY)).toBe('1');
     expect(readAudioPreferences()).toEqual({
       muted: true, master: 0.8, effects: 0.6, music: 0.2, interface: 0.9, dynamicRange: 'quiet',
+      musicEnabled: true, effectsEnabled: true,
     });
     // A new storage wrapper models reloading the saved values in a fresh route.
     vi.stubGlobal('localStorage', { getItem: (key: string) => stored.get(key) ?? null });
     expect(readAudioPreferences().music).toBe(0.2);
     expect(readAudioMuted()).toBe(true);
+  });
+
+  it('defaults old mixes to enabled channels without altering a zero or custom volume', () => {
+    stored.set(AUDIO_SETTINGS_KEY, JSON.stringify({ version: 1, music: 0, effects: 0.6, interface: 0.3 }));
+    expect(readAudioPreferences()).toMatchObject({ musicEnabled: true, effectsEnabled: true,
+      music: 0, effects: 0.6, interface: 0.3 });
+    stored.set(AUDIO_SETTINGS_KEY, JSON.stringify({ version: 1, musicEnabled: 'false', effectsEnabled: 0 }));
+    expect(readAudioPreferences()).toMatchObject({ musicEnabled: true, effectsEnabled: true });
+  });
+
+  it('persists channel switches separately from their saved volumes and master mute', () => {
+    writeAudioPreferences({ music: 0.25, effects: 0.65, interface: 0.45 });
+    writeAudioPreferences({ musicEnabled: false, effectsEnabled: false });
+    writeAudioMuted(true);
+    vi.stubGlobal('localStorage', { getItem: (key: string) => stored.get(key) ?? null });
+    expect(readAudioPreferences()).toMatchObject({ musicEnabled: false, effectsEnabled: false,
+      music: 0.25, effects: 0.65, interface: 0.45, muted: true });
+    writeAudioPreferences({ musicEnabled: true, effectsEnabled: true });
+    expect(readAudioPreferences()).toMatchObject({ music: 0.25, effects: 0.65, interface: 0.45, muted: true });
   });
 
   it.each(['{broken', '[]', 'null', '{"version":99,"music":0}'])(
@@ -85,9 +106,10 @@ describe('shared sound preferences', () => {
       getItem: () => { throw new Error('storage denied'); },
       setItem: () => { throw new Error('storage denied'); },
     });
-    writeAudioPreferences({ muted: true, music: 0.3 });
+    writeAudioPreferences({ muted: true, music: 0.3, musicEnabled: false, effectsEnabled: false });
     expect(readAudioPreferences().music).toBe(0.3);
     expect(readAudioMuted()).toBe(true);
+    expect(readAudioPreferences()).toMatchObject({ musicEnabled: false, effectsEnabled: false });
     writeAudioMuted(false);
     expect(readAudioMuted()).toBe(false);
   });

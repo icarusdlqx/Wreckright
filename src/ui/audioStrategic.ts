@@ -3,7 +3,7 @@ import { readAudioMuted, subscribeAudioPreferences, writeAudioMuted } from './au
 import {
   SCORE_CLOSE_DELAY_MS,
   SCORE_RETARGET_INTERVAL_SECONDS,
-  createProceduralScore,
+  createAuthoredScore,
   type ScoreHandle,
   type ScoreState,
 } from './audioScoreGraph';
@@ -35,6 +35,7 @@ export class StrategicScoreDirector {
   private nextOrder = 0;
   private lastShare = NEUTRAL_CULTURE_SHARE;
   private destroyed = false;
+  private closeGeneration = 0;
 
   get muted(): boolean {
     return readAudioMuted();
@@ -61,6 +62,7 @@ export class StrategicScoreDirector {
   }
 
   acquire(surface: StrategicScoreSurface, aurelianShare: number | null): StrategicScoreLease {
+    this.closeGeneration += 1;
     const key = Symbol(surface);
     const state: LeaseState = {
       surface,
@@ -81,8 +83,14 @@ export class StrategicScoreDirector {
         if (released) return;
         released = true;
         this.leases.delete(key);
-        if (this.leases.size === 0) this.closeGraph();
-        else this.apply();
+        if (this.leases.size === 0) {
+          const generation = ++this.closeGeneration;
+          // React releases the old route before acquiring the next one. Keep
+          // its gesture-unlocked graph through that same-turn handoff.
+          queueMicrotask(() => {
+            if (generation === this.closeGeneration && this.leases.size === 0) this.closeGraph();
+          });
+        } else this.apply();
       },
     };
   }
@@ -96,6 +104,7 @@ export class StrategicScoreDirector {
   destroy(): void {
     if (this.destroyed) return;
     this.destroyed = true;
+    this.closeGeneration += 1;
     this.leases.clear();
     this.closeGraph();
   }
@@ -108,7 +117,7 @@ export class StrategicScoreDirector {
     const chosen = this.chosenLease();
     const share = chosen?.aurelianShare ?? this.lastShare;
     const initialLevel = chosen === null ? 0 : STRATEGIC_SCORE_TREATMENTS[chosen.surface].level;
-    this.score = createProceduralScore(graph.musicBus, share, initialLevel);
+    this.score = createAuthoredScore(graph.musicBus, share, initialLevel);
     this.apply();
   }
 

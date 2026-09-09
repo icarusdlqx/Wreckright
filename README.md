@@ -33,6 +33,12 @@ walker designs, actual-terrain mission surveys, a selected-machine Workshop,
 authored battlefield surroundings, physical motion/effects and shared audio
 settings. Its review fixtures run in background browsers with disposable profiles.
 
+The original theme [Carry the Dawn](docs/audio/CARRY_THE_DAWN.md) links menu,
+campaign and combat with synchronized Ironwork and Monolith arrangements.
+**Settings → Sound** offers separate Music and Sound effects switches, saved
+volume trims and master mute. The [audio review](docs/review/audio-upgrade.md)
+includes the soundtrack, before/after combat previews and validation record.
+
 The [command and campaign refinement](docs/COMMAND_REFINEMENT.md) adds loadout-aware
 Attack approaches, objective duties, five optional missions, guaranteed contract
 rewards, shared objective XP, campaign endings, a planning map and previewed weapon

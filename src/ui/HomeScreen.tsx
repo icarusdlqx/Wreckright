@@ -3,7 +3,7 @@ import { loadCampaign } from '../campaign/save';
 import { getCatalog } from '../schema/load';
 import { createNewBattleCode, TRAINING_BATTLE_CODE } from './battleCode';
 import { usePlaytest } from './playtest';
-import { useStrategicScoreControls } from './StrategicScoreProvider';
+import { useStrategicScore, useStrategicScoreControls } from './StrategicScoreProvider';
 import { useGame } from './store';
 import { CommandMark } from './CommandMark';
 import { AudioSettings } from './AudioSettings';
@@ -30,6 +30,7 @@ export function HomeScreen() {
   const patch = useGame((state) => state.patch);
   const { record } = usePlaytest();
   const score = useStrategicScoreControls();
+  useStrategicScore('home', 0.5);
 
   useEffect(() => {
     record({ name: 'front_door_viewed' });

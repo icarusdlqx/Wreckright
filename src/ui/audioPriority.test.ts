@@ -184,7 +184,8 @@ describe('terminal voice priority', () => {
     const delayed = harness.context.sources
       .flatMap((source) => source.starts)
       .filter((start) => start > harness.context.currentTime);
-    expect(delayed).toHaveLength(3);
+    // The reserved landing contains impact, body, sub, bending metal and debris layers.
+    expect(delayed).toHaveLength(5);
     expect(delayed[0]! - harness.context.currentTime)
       .toBeCloseTo(machineCulture(faction).terminalFallSeconds / 4);
     expect(harness.context.sources.every((source) => source.stops.length === 1)).toBe(true);

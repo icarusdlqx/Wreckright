@@ -1,0 +1,264 @@
+PASS ability_used has a finite screen-off voice
+PASS alpha_strike has a finite screen-off voice
+PASS stood_up has a finite screen-off voice
+PASS pilot_ejected has a finite screen-off voice
+PASS unit_withdrew has a finite screen-off voice
+PASS mission_message has a finite screen-off voice
+PASS rising heat reaches a finite high-tier warning
+PASS all seven silent moments have distinct procedural signatures
+PASS hidden hostile lifecycle moments do not leak through audio
+PASS mute suppresses every one-shot without rebuilding the graph
+PASS the worst simultaneous seven-cue mix renders with real headroom and no clipped sample
+PASS destroy closes the one context with no active or unstopped source
+PASS last-silent-moments fixture reports no page errors
+
+mobile portrait
+PASS mobile portrait Home does not mount the battle engine
+PASS mobile portrait uses a coarse touch layout
+PASS mobile portrait matches the compact boundary
+PASS mobile portrait leaves browser zoom available
+PASS mobile portrait briefing has no horizontal overflow
+PASS mobile portrait keeps deploy pinned and reachable on the opening briefing
+PASS mobile portrait deploy starts the battle
+PASS mobile portrait keeps the compact topbar and dock on screen
+PASS mobile portrait selection lesson hides the untaught dock
+PASS mobile portrait first lance card accepts a touch
+PASS mobile portrait select-all chooses the live lance
+PASS mobile portrait Move control plots the initial route to the range gate
+PASS mobile portrait queued movement keeps the gate lesson and explains Resume
+PASS mobile portrait Commander is absent until its training controls are available
+PASS mobile portrait reaching and capturing the actual gate unlocks the engage lesson
+PASS mobile portrait engage lesson adds contacts and Attack without advanced heat controls
+PASS mobile portrait force stepping reaches a real optical hostile card
+PASS mobile portrait optical hostile card has a short name and complete accessible identity
+PASS mobile portrait automatic fire control does not complete the explicit Engage lesson
+PASS mobile portrait optical hostile card assigns the target through the UI
+PASS mobile portrait range drill restores the full mobile dock
+PASS mobile portrait support tab embeds the three calls without another drawer
+PASS mobile portrait keeps advanced orders behind Tactics
+PASS mobile portrait Tactics reveals advanced orders and formation
+PASS mobile portrait hides Queue and Cancel until an order is armed
+PASS mobile portrait order palette arms a move and reveals route actions
+PASS mobile portrait queue mode arms from the dock
+PASS mobile portrait cancel clears the route and hides transient actions
+PASS mobile portrait switching to a target order clears queued routing
+PASS mobile portrait cancel clears an armed order
+PASS mobile portrait Commander map accepts touch movement orders
+PASS mobile portrait Commander map and dock fit without horizontal overflow
+PASS mobile portrait repeated lance-card taps only select
+PASS mobile portrait touch drag pans the battlefield
+PASS mobile portrait centre action finds the selection
+PASS mobile portrait pause notice has its own strip above the minimap and objectives
+PASS mobile portrait Mission summary remains touchable with the range coach open
+PASS mobile portrait Mission opens readable objectives above the command dock
+PASS mobile portrait minimap touch drag pans live before touch-end
+PASS mobile portrait minimap touch cancellation releases the next gesture
+PASS mobile portrait minimap touch gestures do not select or order
+PASS mobile portrait pinch changes camera distance
+PASS mobile portrait pinch does not select or order
+PASS mobile portrait pointer cancellation does not select or order
+PASS mobile portrait battlefield tap issues a move order
+PASS mobile portrait battlefield tap issues a target order
+PASS mobile portrait campaign operations are one column
+PASS mobile portrait campaign has no horizontal overflow
+PASS mobile portrait field manual puts touch controls first
+PASS mobile portrait campaign contract controls accept touch
+PASS mobile portrait stock picker carries complete machine identity without serial designations
+PASS mobile portrait mechbay is one column
+PASS mobile portrait mechbay has no horizontal overflow
+PASS mobile portrait workspace tabs and explainer disclosures are reachable touch targets
+PASS mobile portrait opens one visible Loadout workspace
+PASS mobile portrait location cards show only their quiet resting information
+PASS mobile portrait stock comparison is contained in Review without overflow
+PASS mobile portrait loadout keeps hardpoints before the weapon shelf
+PASS mobile portrait Armour & Cooling reflows without losing touch controls
+PASS mobile portrait armour paper doll exposes eight active native location buttons
+PASS mobile portrait armour silhouette stays out of the focus order
+PASS mobile portrait armour location buttons are touch-sized and centre hit-testable
+PASS mobile portrait armour paper doll selects the left torso
+PASS mobile portrait selected armour location exposes a reachable slider
+PASS mobile portrait armour paper doll has no horizontal overflow
+PASS mobile portrait Review presents the legal build without horizontal overflow
+PASS mobile portrait mechbay hardpoint selection filters the shelf
+PASS mobile portrait filtered weapon card is visibly reachable
+PASS mobile portrait mechbay shelf arms only a compatible target
+PASS mobile portrait placement banner spans the location workbench
+PASS mobile portrait mechbay location accepts the armed item
+PASS mobile portrait first fit folds both explanations without shrinking their disclosures
+PASS mobile portrait comparison updates live after the fitted weapon
+PASS mobile portrait fitted-part inspect and Remove controls stay touch-sized
+PASS mobile portrait inspecting the fitted weapon does not remove it
+PASS mobile portrait explicit Remove restores the starting loadout
+PASS mobile portrait mechbay actions remain reachable
+PASS mobile portrait horizontal touch drag edits armour without stealing vertical scroll
+PASS mobile portrait touch drag creates an undoable armour transaction
+PASS mobile portrait one Undo restores the complete touch drag
+PASS mobile portrait mechbay exit remains reachable
+PASS mobile portrait reports no page errors
+
+mobile landscape
+PASS mobile landscape Home does not mount the battle engine
+PASS mobile landscape uses a coarse touch layout
+PASS mobile landscape matches the compact boundary
+PASS mobile landscape leaves browser zoom available
+PASS mobile landscape briefing has no horizontal overflow
+PASS mobile landscape keeps deploy pinned and reachable on the opening briefing
+PASS mobile landscape deploy starts the battle
+PASS mobile landscape keeps the compact topbar and dock on screen
+PASS mobile landscape selection lesson hides the untaught dock
+PASS mobile landscape first lance card accepts a touch
+PASS mobile landscape select-all chooses the live lance
+PASS mobile landscape Move control plots the initial route to the range gate
+PASS mobile landscape queued movement keeps the gate lesson and explains Resume
+PASS mobile landscape Commander is absent until its training controls are available
+PASS mobile landscape reaching and capturing the actual gate unlocks the engage lesson
+PASS mobile landscape engage lesson adds contacts and Attack without advanced heat controls
+PASS mobile landscape force stepping reaches a real optical hostile card
+PASS mobile landscape optical hostile card has a short name and complete accessible identity
+PASS mobile landscape automatic fire control does not complete the explicit Engage lesson
+PASS mobile landscape optical hostile card assigns the target through the UI
+PASS mobile landscape range drill restores the full mobile dock
+PASS mobile landscape support tab embeds the three calls without another drawer
+PASS mobile landscape keeps advanced orders behind Tactics
+PASS mobile landscape Tactics reveals advanced orders and formation
+PASS mobile landscape hides Queue and Cancel until an order is armed
+PASS mobile landscape order palette arms a move and reveals route actions
+PASS mobile landscape queue mode arms from the dock
+PASS mobile landscape cancel clears the route and hides transient actions
+PASS mobile landscape switching to a target order clears queued routing
+PASS mobile landscape cancel clears an armed order
+PASS mobile landscape repeated lance-card taps only select
+PASS mobile landscape touch drag pans the battlefield
+PASS mobile landscape centre action finds the selection
+PASS mobile landscape pause notice has its own strip above the minimap and objectives
+PASS mobile landscape Mission summary remains touchable with the range coach open
+PASS mobile landscape Mission opens readable objectives above the command dock
+PASS mobile landscape with 21px bottom safe area pause notice has its own strip above the minimap and objectives
+PASS mobile landscape with 21px bottom safe area Mission summary remains touchable with the range coach open
+PASS mobile landscape with 21px bottom safe area Mission opens readable objectives above the command dock
+PASS mobile landscape 21px safe area keeps the coach summary touchable above the dock
+PASS mobile landscape minimap touch drag pans live before touch-end
+PASS mobile landscape minimap touch cancellation releases the next gesture
+PASS mobile landscape minimap touch gestures do not select or order
+PASS mobile landscape pinch changes camera distance
+PASS mobile landscape pinch does not select or order
+PASS mobile landscape pointer cancellation does not select or order
+PASS mobile landscape campaign operations are one column
+PASS mobile landscape campaign has no horizontal overflow
+PASS mobile landscape field manual puts touch controls first
+PASS mobile landscape campaign contract controls accept touch
+PASS mobile landscape stock picker carries complete machine identity without serial designations
+PASS mobile landscape mechbay is one column
+PASS mobile landscape mechbay has no horizontal overflow
+PASS mobile landscape workspace tabs and explainer disclosures are reachable touch targets
+PASS mobile landscape opens one visible Loadout workspace
+PASS mobile landscape location cards show only their quiet resting information
+PASS mobile landscape stock comparison is contained in Review without overflow
+PASS mobile landscape loadout keeps hardpoints before the weapon shelf
+PASS mobile landscape Armour & Cooling reflows without losing touch controls
+PASS mobile landscape armour paper doll exposes eight active native location buttons
+PASS mobile landscape armour silhouette stays out of the focus order
+PASS mobile landscape armour location buttons are touch-sized and centre hit-testable
+PASS mobile landscape armour paper doll selects the left torso
+PASS mobile landscape selected armour location exposes a reachable slider
+PASS mobile landscape armour paper doll has no horizontal overflow
+PASS mobile landscape Review presents the legal build without horizontal overflow
+PASS mobile landscape mechbay hardpoint selection filters the shelf
+PASS mobile landscape filtered weapon card is visibly reachable
+PASS mobile landscape mechbay shelf arms only a compatible target
+PASS mobile landscape placement banner spans the location workbench
+PASS mobile landscape mechbay location accepts the armed item
+PASS mobile landscape first fit folds both explanations without shrinking their disclosures
+PASS mobile landscape comparison updates live after the fitted weapon
+PASS mobile landscape fitted-part inspect and Remove controls stay touch-sized
+PASS mobile landscape inspecting the fitted weapon does not remove it
+PASS mobile landscape explicit Remove restores the starting loadout
+PASS mobile landscape mechbay actions remain reachable
+PASS mobile landscape horizontal touch drag edits armour without stealing vertical scroll
+PASS mobile landscape touch drag creates an undoable armour transaction
+PASS mobile landscape one Undo restores the complete touch drag
+PASS mobile landscape mechbay exit remains reachable
+PASS mobile landscape reports no page errors
+
+coarse tablet
+PASS mobile tablet Home does not mount the battle engine
+PASS mobile tablet uses a coarse touch layout
+PASS mobile tablet matches the compact boundary
+PASS mobile tablet leaves browser zoom available
+PASS mobile tablet briefing has no horizontal overflow
+PASS mobile tablet keeps deploy pinned and reachable on the opening briefing
+PASS mobile tablet deploy starts the battle
+PASS mobile tablet keeps the compact topbar and dock on screen
+PASS mobile tablet selection lesson hides the untaught dock
+PASS mobile tablet first lance card accepts a touch
+PASS mobile tablet select-all chooses the live lance
+PASS mobile tablet Move control plots the initial route to the range gate
+PASS mobile tablet queued movement keeps the gate lesson and explains Resume
+PASS mobile tablet Commander is absent until its training controls are available
+PASS mobile tablet reaching and capturing the actual gate unlocks the engage lesson
+PASS mobile tablet engage lesson adds contacts and Attack without advanced heat controls
+PASS mobile tablet force stepping reaches a real optical hostile card
+PASS mobile tablet optical hostile card has a short name and complete accessible identity
+PASS mobile tablet automatic fire control does not complete the explicit Engage lesson
+PASS mobile tablet optical hostile card assigns the target through the UI
+PASS mobile tablet range drill restores the full mobile dock
+PASS mobile tablet support tab embeds the three calls without another drawer
+PASS mobile tablet keeps advanced orders behind Tactics
+PASS mobile tablet Tactics reveals advanced orders and formation
+PASS mobile tablet hides Queue and Cancel until an order is armed
+PASS mobile tablet order palette arms a move and reveals route actions
+PASS mobile tablet queue mode arms from the dock
+PASS mobile tablet cancel clears the route and hides transient actions
+PASS mobile tablet switching to a target order clears queued routing
+PASS mobile tablet cancel clears an armed order
+PASS mobile tablet repeated lance-card taps only select
+PASS mobile tablet touch drag pans the battlefield
+PASS mobile tablet centre action finds the selection
+PASS mobile tablet pause notice has its own strip above the minimap and objectives
+PASS mobile tablet Mission summary remains touchable with the range coach open
+PASS mobile tablet Mission opens readable objectives above the command dock
+PASS mobile tablet minimap touch drag pans live before touch-end
+PASS mobile tablet minimap touch cancellation releases the next gesture
+PASS mobile tablet minimap touch gestures do not select or order
+PASS mobile tablet pinch changes camera distance
+PASS mobile tablet pinch does not select or order
+PASS mobile tablet pointer cancellation does not select or order
+PASS mobile tablet campaign operations are one column
+PASS mobile tablet campaign has no horizontal overflow
+PASS mobile tablet field manual puts touch controls first
+PASS mobile tablet campaign contract controls accept touch
+PASS mobile tablet stock picker carries complete machine identity without serial designations
+PASS mobile tablet mechbay is one column
+PASS mobile tablet mechbay has no horizontal overflow
+PASS mobile tablet workspace tabs and explainer disclosures are reachable touch targets
+PASS mobile tablet opens one visible Loadout workspace
+PASS mobile tablet location cards show only their quiet resting information
+PASS mobile tablet stock comparison is contained in Review without overflow
+PASS mobile tablet loadout keeps hardpoints before the weapon shelf
+PASS mobile tablet Armour & Cooling reflows without losing touch controls
+PASS mobile tablet armour paper doll exposes eight active native location buttons
+PASS mobile tablet armour silhouette stays out of the focus order
+PASS mobile tablet armour location buttons are touch-sized and centre hit-testable
+PASS mobile tablet armour paper doll selects the left torso
+PASS mobile tablet selected armour location exposes a reachable slider
+PASS mobile tablet armour paper doll has no horizontal overflow
+PASS mobile tablet Review presents the legal build without horizontal overflow
+PASS mobile tablet mechbay hardpoint selection filters the shelf
+PASS mobile tablet filtered weapon card is visibly reachable
+PASS mobile tablet mechbay shelf arms only a compatible target
+PASS mobile tablet placement banner spans the location workbench
+PASS mobile tablet mechbay location accepts the armed item
+PASS mobile tablet first fit folds both explanations without shrinking their disclosures
+PASS mobile tablet comparison updates live after the fitted weapon
+PASS mobile tablet fitted-part inspect and Remove controls stay touch-sized
+PASS mobile tablet inspecting the fitted weapon does not remove it
+PASS mobile tablet explicit Remove restores the starting loadout
+PASS mobile tablet mechbay actions remain reachable
+PASS mobile tablet horizontal touch drag edits armour without stealing vertical scroll
+PASS mobile tablet touch drag creates an undoable armour transaction
+PASS mobile tablet one Undo restores the complete touch drag
+PASS mobile tablet mechbay exit remains reachable
+PASS mobile tablet reports no page errors
+PASS 1024px fine-pointer desktop keeps the desktop layout
+PASS 1024px fine-pointer location cards contain their fitted contents
+257/257 checks passed

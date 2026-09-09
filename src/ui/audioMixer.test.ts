@@ -4,9 +4,12 @@ import { AudioGraph } from './audioGraph';
 import { MIXER_GAIN_COUNT } from './audioMixer';
 import { readAudioMuted, writeAudioMuted, writeAudioPreferences } from './audioPreference';
 import { SCORE_CLOSE_DELAY_MS, SCORE_GAIN_COUNT, SCORE_SOURCE_COUNT } from './audioScoreGraph';
-import { FakeContext, FakeNode } from './audioScoreGraphTestSupport';
+import { FakeContext, FakeNode, flushScoreLoad } from './audioScoreGraphTestSupport';
 import { StrategicScoreDirector } from './audioStrategic';
 import { playOrder, playPowerSweep } from './audioVoices';
+
+// Register before direct AudioDirector imports resolve the authored asset loader.
+vi.mock('./audioScoreAssets', () => import('./audioScoreTestAssets'));
 
 const graphs: AudioGraph[] = [];
 const directors: Array<AudioDirector | StrategicScoreDirector> = [];
@@ -78,6 +81,45 @@ describe('shared audio mixer', () => {
     expect(graph.master.gain.value).toBeCloseTo(0.35);
   });
 
+  it('switches all nonmusic buses off immediately and restores their separate trims', () => {
+    const { graph, context } = graphHarness();
+    writeAudioPreferences({ music: 0.35, effects: 0.65, interface: 0.45 });
+    const gains = [...context.gains];
+    writeAudioPreferences({ effectsEnabled: false });
+    expect(graph.mixer.effects.gain.value).toBe(0);
+    expect(graph.ambientBus.master.gain.value).toBe(0);
+    expect(graph.mixer.interface.gain.value).toBe(0);
+    expect(graph.mixer.music.gain.value).toBe(0.35);
+    expect(graph.mixer.audible('music')).toBe(true);
+    playPowerSweep(graph, 360, 50, 0.9, { level: 1, distance: 10 });
+    playOrder(graph);
+    expect(context.sources).toHaveLength(0);
+    expect(context.gains).toEqual(gains);
+    writeAudioPreferences({ effectsEnabled: true });
+    expect(graph.mixer.effects.gain.value).toBe(0.65);
+    expect(graph.mixer.interface.gain.value).toBe(0.45);
+    expect(graph.mixer.audible('effects')).toBe(true);
+    expect(graph.mixer.audible('interface')).toBe(true);
+  });
+
+  it('switches music off independently while preserving effects and master mute precedence', () => {
+    const { graph } = graphHarness();
+    writeAudioPreferences({ music: 0.35, effects: 0.65, interface: 0.45, musicEnabled: false });
+    expect(graph.musicBus.master.gain.value).toBe(0);
+    expect(graph.mixer.audible('music')).toBe(false);
+    expect(graph.mixer.audible('effects')).toBe(true);
+    expect(graph.mixer.audible('interface')).toBe(true);
+    writeAudioMuted(true);
+    writeAudioPreferences({ musicEnabled: true });
+    expect(graph.master.gain.value).toBe(0);
+    expect(graph.musicBus.master.gain.value).toBe(0.35);
+    expect(graph.mixer.audible('music')).toBe(false);
+    writeAudioMuted(false);
+    expect(graph.mixer.audible('music')).toBe(true);
+    expect(graph.mixer.effects.gain.value).toBe(0.65);
+    expect(graph.mixer.interface.gain.value).toBe(0.45);
+  });
+
   it('makes quiet range compress earlier with lower output and preserves per-channel choices', () => {
     const { graph, context } = graphHarness();
     const compressor = context.compressors[0]!;
@@ -113,7 +155,7 @@ describe('shared audio mixer', () => {
     lease.release();
   });
 
-  it('routes battle and campaign score to music, weather to effects, and shares legacy mute', () => {
+  it('routes battle and campaign score to music, weather to effects, and shares legacy mute', async () => {
     const battle = new AudioDirector();
     const strategic = new StrategicScoreDirector();
     directors.push(battle, strategic);
@@ -121,6 +163,7 @@ describe('shared audio mixer', () => {
     battle.unlock();
     const lease = strategic.acquire('campaign', 0.5);
     strategic.prepare();
+    await flushScoreLoad();
     const [battleContext, campaignContext] = FakeContext.instances;
     expect(battleContext).toBeDefined();
     expect(campaignContext).toBeDefined();
@@ -130,6 +173,11 @@ describe('shared audio mixer', () => {
     const ambientLevel = battleContext!.gains[MIXER_GAIN_COUNT + SCORE_GAIN_COUNT]!;
     expect(ambientLevel.connections).toEqual([battleContext!.gains[1]]);
     const counts = FakeContext.instances.map((context) => [context.sources.length, context.gains.length]);
+    writeAudioPreferences({ musicEnabled: false, effectsEnabled: false });
+    for (const context of FakeContext.instances) {
+      expect(context.gains.slice(1, 4).map(gain => gain.gain.value)).toEqual([0, 0, 0]);
+    }
+    writeAudioPreferences({ musicEnabled: true, effectsEnabled: true });
     writeAudioPreferences({ music: 0, effects: 0.3, interface: 0.8 });
     for (const context of FakeContext.instances) {
       expect(context.gains[2]!.gain.value).toBe(0);

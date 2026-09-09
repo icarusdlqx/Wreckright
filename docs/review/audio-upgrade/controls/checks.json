@@ -1,0 +1,51 @@
+[
+  {
+    "name": "Home exposes separate named music and sound-effects switches before the advanced mix",
+    "passed": true
+  },
+  {
+    "name": "keyboard Music Off and Sound effects Off preserve all four selected volume trims",
+    "passed": true
+  },
+  {
+    "name": "phone sound switches remain readable, reachable and within the settings panel",
+    "passed": true
+  },
+  {
+    "name": "reload restores both disabled channels and their chosen volumes",
+    "passed": true
+  },
+  {
+    "name": "campaign keeps music on while all effects and interface buses are off",
+    "passed": true
+  },
+  {
+    "name": "campaign switches restore separate effects and interface trims without restarting audio",
+    "passed": true
+  },
+  {
+    "name": "master mute overrides both enabled channels without discarding their choices",
+    "passed": true
+  },
+  {
+    "name": "unmuting restores the chosen master and independent channel volumes",
+    "passed": true
+  },
+  {
+    "name": "battle shares the same independent switches and keeps its music bus audible with effects off",
+    "passed": true
+  },
+  {
+    "name": "Reset mix restores volume trims while preserving explicit channel Off choices",
+    "passed": true
+  },
+  {
+    "name": "legacy battle mute button remains the shared all-sound override",
+    "passed": true
+  },
+  {
+    "name": "audio switches and route changes produce no browser errors",
+    "passed": true,
+    "detail": ""
+  }
+]

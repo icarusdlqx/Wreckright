@@ -19,6 +19,9 @@ import {
   type ImpactVoiceProfile,
 } from './audioWeapons';
 import { SCORE_CLOSE_DELAY_MS } from './audioScore';
+import { flushScoreLoad } from './audioScoreGraphTestSupport';
+
+vi.mock('./audioScoreAssets', () => import('./audioScoreTestAssets'));
 
 class FakeParam {
   value = 0;
@@ -43,6 +46,7 @@ class FakeParam {
 }
 
 class FakeNode {
+  disconnect(): void {}
   connect<T>(destination: T): T {
     return destination;
   }
@@ -292,7 +296,7 @@ describe('field voice admission', () => {
     expect(context.closeCalls).toBe(1);
   });
 
-  it('bounds a thousand weapon events and closes every source with the battle', () => {
+  it('bounds a thousand weapon events and closes every source with the battle', async () => {
     vi.useFakeTimers();
     vi.stubGlobal('AudioContext', FakeContext as unknown as typeof AudioContext);
     vi.spyOn(performance, 'now').mockReturnValue(250);
@@ -306,13 +310,14 @@ describe('field voice admission', () => {
     const audio = new AudioDirector();
     audio.listenAt = shooter.pos;
     audio.unlock();
+    await flushScoreLoad();
     const baseline = FakeContext.instances.at(-1)?.sources.length ?? 0;
     audio.consume(world, Array.from({ length: 1_000 }, () => ({ ...event })));
 
     const context = FakeContext.instances.at(-1);
     expect(context).toBeDefined();
     if (context === undefined) return;
-    expect(context.sources.length).toBeLessThanOrEqual(baseline + FIELD_VOICE_LIMIT * 15);
+    expect(context.sources.length).toBeLessThanOrEqual(baseline + (FIELD_VOICE_LIMIT - TERMINAL_VOICE_RESERVE) * 17);
     expect(context.sources.slice(baseline).every((source) => source.stops.length === 1)).toBe(true);
     expect(context.sources.slice(baseline).every((source) => Number.isFinite(source.stops[0]))).toBe(true);
     audio.destroy();

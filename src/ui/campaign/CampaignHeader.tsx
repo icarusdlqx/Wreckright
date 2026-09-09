@@ -154,9 +154,9 @@ export function CampaignHeader({
               aria-expanded={manualOpen}>
               {manualOpen ? 'Close Manual' : 'Field Manual'}
             </button>
-            <button type="button" onClick={onToggleMuted} aria-pressed={!muted}
-              title={muted ? 'Sound is off' : 'Sound is on'} data-testid="campaign-mute-button">
-              {muted ? 'Sound off' : 'Sound on'}
+            <button type="button" onClick={onToggleMuted}
+              title={muted ? 'Release master mute; keep your music and effects choices.' : 'Silence music and sound effects.'} data-testid="campaign-mute-button">
+              {muted ? 'Unmute all' : 'Mute all'}
             </button>
             <AudioSettings compact />
             <button type="button" onClick={onExit} data-testid="camp-exit">Home</button>

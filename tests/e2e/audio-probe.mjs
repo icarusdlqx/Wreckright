@@ -1,5 +1,5 @@
-export async function installAudioProbe(page, scoreSourceCount) {
-  await page.addInitScript(({ fixedScoreSources }) => {
+export async function installAudioProbe(page) {
+  await page.addInitScript(() => {
     class ProbeParam {
       constructor(context, name) {
         this.context = context;
@@ -37,8 +37,10 @@ export async function installAudioProbe(page, scoreSourceCount) {
             ? `node:${destination.id}`
             : `param:${destination?.name ?? 'unknown'}`,
         );
+        if (this.loop && reaches(this.context, this, this.context.gains[2])) this.scoreMember = true;
         return destination;
       }
+      disconnect() { this.connections.length = 0; }
     }
 
     class ProbeSource extends ProbeNode {
@@ -76,6 +78,10 @@ export async function installAudioProbe(page, scoreSourceCount) {
         super(context, 'buffer');
         this.buffer = null;
         this.loop = false;
+        this.loopStart = 0;
+        this.loopEnd = 0;
+        this.playbackRate = new ProbeParam(context, `source-${this.id}-playbackRate`);
+        this.playbackRate.value = 1;
       }
     }
 
@@ -111,6 +117,8 @@ export async function installAudioProbe(page, scoreSourceCount) {
     }
 
     const contexts = [];
+    let deferDecode = false;
+    const pendingDecodes = [];
     class ProbeContext {
       constructor() {
         this.currentTime = 5;
@@ -124,6 +132,7 @@ export async function installAudioProbe(page, scoreSourceCount) {
         this.automation = [];
         this.closeCalls = 0;
         this.resumeCalls = 0;
+        this.decodeCalls = 0;
         this.state = 'running';
         this.destination = new ProbeNode(this, 'destination');
         contexts.push(this);
@@ -141,6 +150,20 @@ export async function installAudioProbe(page, scoreSourceCount) {
       createBuffer(_channels, length) {
         const data = new Float32Array(length);
         return { getChannelData: () => data };
+      }
+      decodeAudioData(bytes) {
+        this.decodeCalls += 1;
+        const data = new Uint8Array(bytes);
+        const marker = [79, 112, 117, 115, 72, 101, 97, 100];
+        const header = data.findIndex((_, index) => marker.every((value, offset) => data[index + offset] === value));
+        const buffer = {
+          numberOfChannels: header >= 0 ? data[header + 9] : 2,
+          duration: 32 * 4 * 60 / 104,
+          sampleRate: 48000,
+          getChannelData: () => new Float32Array(8),
+        };
+        if (deferDecode) return new Promise(resolve => pendingDecodes.push(() => resolve(buffer)));
+        return Promise.resolve(buffer);
       }
       createBufferSource() {
         const source = new ProbeBufferSource(this);
@@ -182,10 +205,28 @@ export async function installAudioProbe(page, scoreSourceCount) {
       frequency: source.frequency?.value ?? null,
       starts: [...source.starts],
       stops: [...source.stops],
+      loop: source.loop ?? false,
+      loopStart: source.loopStart ?? null,
+      loopEnd: source.loopEnd ?? null,
+      playbackRate: source.playbackRate?.value ?? null,
+      loaded: source.buffer !== null && source.buffer !== undefined,
+      duration: source.buffer?.duration ?? null,
+      channels: source.buffer?.numberOfChannels ?? null,
     });
+    const reaches = (context, node, destination, seen = new Set()) => {
+      if (node === destination) return true;
+      if (seen.has(node.id)) return false;
+      seen.add(node.id);
+      return node.connections.some(connection => {
+        if (!connection.startsWith('node:')) return false;
+        const next = context.nodes[Number(connection.slice(5))];
+        return next !== undefined && reaches(context, next, destination, seen);
+      });
+    };
     const contextView = (context) => ({
       state: context.state,
       closeCalls: context.closeCalls,
+      decodeCalls: context.decodeCalls,
       counts: {
         nodes: context.nodes.length,
         sources: context.sources.length,
@@ -200,6 +241,7 @@ export async function installAudioProbe(page, scoreSourceCount) {
         music: context.gains[2]?.gain.value ?? null,
         interface: context.gains[3]?.gain.value ?? null,
       },
+      gains: context.gains.map(gain => ({ name: gain.gain.name, value: gain.gain.value })),
       panners: context.panners.map((panner) => ({ id: panner.id, pan: panner.pan.value })),
       compression: context.compressors.map((compressor) => ({
         threshold: compressor.threshold.value, ratio: compressor.ratio.value,
@@ -212,9 +254,12 @@ export async function installAudioProbe(page, scoreSourceCount) {
         connections: [...node.connections],
       })),
       sources: context.sources.map(sourceView),
-      // The score is constructed before ambient or one-shot voices. Cohort
-      // position remains stable even while culture automation changes pitch.
-      scoreSources: context.sources.slice(0, fixedScoreSources).map(sourceView),
+      // Remember membership before shutdown disconnects the graph. A loop
+      // belongs to music by its bus, regardless of asynchronous decode order.
+      scoreSources: context.sources.filter(source => {
+        if (source.loop && reaches(context, source, context.gains[2])) source.scoreMember = true;
+        return source.scoreMember === true;
+      }).map(sourceView),
     });
     globalThis.__audioProbe = {
       advance: (seconds) => {
@@ -222,10 +267,13 @@ export async function installAudioProbe(page, scoreSourceCount) {
         if (context !== undefined) context.currentTime += seconds;
       },
       snapshot: () => contexts.map(contextView),
+      deferDecodes: (value) => { deferDecode = value; },
+      pendingDecodes: () => pendingDecodes.length,
+      releaseDecodes: () => { deferDecode = false; pendingDecodes.splice(0).forEach(resolve => resolve()); },
     };
     globalThis.AudioContext = ProbeContext;
     globalThis.webkitAudioContext = ProbeContext;
-  }, { fixedScoreSources: scoreSourceCount });
+  });
 }
 
 export const audioProbe = (page) => page.evaluate(() => globalThis.__audioProbe.snapshot());
@@ -251,4 +299,29 @@ export function scoreFrequencyTargets(before, after) {
 
 export function includesValues(actual, expected, epsilon = 0.001) {
   return expected.every((value) => actual.some((candidate) => Math.abs(candidate - value) <= epsilon));
+}
+
+export const activeAudioContext = (contexts) => contexts.findLast(context => context.state !== 'closed');
+
+export async function waitForScoreReady(page) {
+  await page.waitForFunction(() => {
+    const context = globalThis.__audioProbe.snapshot().findLast(candidate => candidate.state !== 'closed');
+    return context?.scoreSources.length === 3 && context.scoreSources.every(source => source.starts.length === 1 && source.loaded);
+  });
+}
+
+export function scoreGainNames(context) {
+  const [core, ironwork, monolith] = context.scoreSources;
+  const node = (id) => context.topology.find(candidate => candidate.id === id);
+  const destination = (id) => Number(node(id)?.connections.find(connection => connection.startsWith('node:'))?.slice(5));
+  const coreGain = destination(core?.id);
+  const ironworkGain = destination(ironwork?.id);
+  const monolithGain = destination(monolith?.id);
+  return {
+    level: `gain-${destination(coreGain)}`,
+    core: `gain-${coreGain}`,
+    rhythm: `gain-${destination(ironworkGain)}`,
+    ironwork: `gain-${ironworkGain}`,
+    monolith: `gain-${monolithGain}`,
+  };
 }

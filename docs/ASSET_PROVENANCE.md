@@ -40,10 +40,18 @@ rendition. The register records its introducing commit and exact shipped bytes
 as `generated-original-art-with-source-record`. This inventory entry records
 provenance without assigning the artwork a software licence.
 
-No external meshes, textures, music, or sound recordings are checked
-in. Battlefield geometry and visual effects are assembled at runtime from the
-project's TypeScript, JSON, and CSS. Sound is synthesized at runtime with the
-Web Audio API. This describes the repository inventory; it is not a claim
+The three `carry-the-dawn-*.ogg` files are synchronized layers of the original
+Wreckright theme. Their note, arrangement and instrument synthesis source is
+retained in `tools/audio/`; the [music record](audio/CARRY_THE_DAWN.md) describes
+the composition and reproduction. They were rendered locally without any
+external recordings, samples, soundfonts or reference songs. Exact shipped
+hashes and the introducing commit are retained in the asset register.
+
+No external meshes, textures, music, or sound recordings are checked in.
+Battlefield geometry and visual effects are assembled at runtime from the
+project's TypeScript, JSON, and CSS. Sound effects are synthesized at runtime
+with the Web Audio API, while the original music uses the bundled recordings
+described above. This describes the repository inventory; it is not a claim
 about authorship of every source contribution.
 
 ## Bundled typefaces

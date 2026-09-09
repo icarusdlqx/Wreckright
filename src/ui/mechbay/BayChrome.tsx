@@ -129,10 +129,10 @@ export function BayChrome({
         <button
           type="button"
           onClick={onToggleMuted}
-          title={muted ? 'Sound is off' : 'Sound is on'}
+          title={muted ? 'Release master mute; keep your music and effects choices.' : 'Silence music and sound effects.'}
           data-testid="bay-mute-button"
         >
-          {muted ? 'Sound off' : 'Sound on'}
+          {muted ? 'Unmute all' : 'Mute all'}
         </button>
         <button type="button" onClick={onExit} data-testid="bay-exit">
           {commissioned ? commissionCancelLabel ?? 'Back to manifest' : 'Back to skirmish'}

@@ -1,6 +1,4 @@
-import { audioProbe, installAudioProbe } from './audio-probe.mjs';
-
-const SCORE_SOURCE_COUNT = 5;
+import { activeAudioContext, audioProbe, installAudioProbe, waitForScoreReady } from './audio-probe.mjs';
 
 function watchPage(page) {
   const errors = [];
@@ -15,7 +13,7 @@ async function openBattle(browser, url) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
   const errors = watchPage(page);
-  await installAudioProbe(page, SCORE_SOURCE_COUNT);
+  await installAudioProbe(page);
   await page.addInitScript(() => {
     localStorage.clear();
     sessionStorage.clear();
@@ -32,7 +30,8 @@ async function openBattle(browser, url) {
   await page.waitForSelector('.viewport canvas:not(.perf-overlay)');
   await page.locator('[data-testid="pause-button"]').click();
   await page.locator('.viewport canvas:not(.perf-overlay)').click({ position: { x: 40, y: 40 } });
-  await page.waitForFunction(() => globalThis.__audioProbe.snapshot().length === 1);
+  await waitForScoreReady(page);
+  await page.waitForFunction(() => globalThis.__audioProbe.snapshot().filter(graph => graph.state !== 'closed').length === 1);
   await page.evaluate(() => {
     const { engine, world } = globalThis.__wreckright;
     for (const entity of world.entities) {
@@ -62,7 +61,7 @@ async function openBattle(browser, url) {
 }
 
 async function emitMoment(page, kind) {
-  const before = (await audioProbe(page))[0];
+  const before = activeAudioContext(await audioProbe(page));
   await page.evaluate((moment) => {
     const { engine, world } = globalThis.__wreckright;
     const ally = world.entities.find((entity) => entity.team === world.playerTeam);
@@ -77,7 +76,7 @@ async function emitMoment(page, kind) {
     world.events.push(event);
     engine.forceStep();
   }, kind);
-  const after = (await audioProbe(page))[0];
+  const after = activeAudioContext(await audioProbe(page));
   return { before, after, sources: after.sources.slice(before.sources.length) };
 }
 
@@ -164,7 +163,7 @@ async function renderWorstCaseMix(page) {
 export async function runLastSilentMomentsChecks({ browser, url, check }) {
   const { context, page, errors } = await openBattle(browser, url);
   try {
-    const initial = (await audioProbe(page))[0];
+    const initial = activeAudioContext(await audioProbe(page));
     const signatures = [];
     for (const moment of [
       'ability_used',
@@ -186,7 +185,7 @@ export async function runLastSilentMomentsChecks({ browser, url, check }) {
       );
     }
 
-    const beforeHeat = (await audioProbe(page))[0];
+    const beforeHeat = activeAudioContext(await audioProbe(page));
     await page.evaluate(() => {
       const { engine, world } = globalThis.__wreckright;
       const ally = world.entities.find((entity) => entity.team === world.playerTeam);
@@ -196,7 +195,7 @@ export async function runLastSilentMomentsChecks({ browser, url, check }) {
       // roll a shutdown or ammo explosion, adding an unrelated source.
       engine.audio.consume(world, []);
     });
-    const afterHeat = (await audioProbe(page))[0];
+    const afterHeat = activeAudioContext(await audioProbe(page));
     const heatSources = afterHeat.sources.slice(beforeHeat.sources.length);
     signatures.push(sourceSignature(heatSources));
     check(
@@ -212,7 +211,7 @@ export async function runLastSilentMomentsChecks({ browser, url, check }) {
       JSON.stringify(signatures),
     );
 
-    const beforeHidden = (await audioProbe(page))[0];
+    const beforeHidden = activeAudioContext(await audioProbe(page));
     await page.evaluate(() => {
       const { engine, world } = globalThis.__wreckright;
       const enemy = world.entities.find((entity) => entity.team !== world.playerTeam);
@@ -231,7 +230,7 @@ export async function runLastSilentMomentsChecks({ browser, url, check }) {
       );
       engine.forceStep();
     });
-    const afterHidden = (await audioProbe(page))[0];
+    const afterHidden = activeAudioContext(await audioProbe(page));
     const hiddenSources = afterHidden.sources.slice(beforeHidden.sources.length);
     check(
       'hidden hostile lifecycle moments do not leak through audio',
@@ -242,7 +241,7 @@ export async function runLastSilentMomentsChecks({ browser, url, check }) {
     const menu = page.locator('[data-testid="desktop-menu-sheet"]');
     if (!(await menu.isVisible())) await page.locator('[data-testid="desktop-menu-toggle"]').click();
     await page.locator('[data-testid="mute-button"]').click();
-    const mutedBefore = (await audioProbe(page))[0];
+    const mutedBefore = activeAudioContext(await audioProbe(page));
     await page.evaluate(() => {
       const { engine, world } = globalThis.__wreckright;
       const ally = world.entities.find((entity) => entity.team === world.playerTeam);
@@ -255,7 +254,7 @@ export async function runLastSilentMomentsChecks({ browser, url, check }) {
       );
       engine.forceStep();
     });
-    const mutedAfter = (await audioProbe(page))[0];
+    const mutedAfter = activeAudioContext(await audioProbe(page));
     check(
       'mute suppresses every one-shot without rebuilding the graph',
       mutedBefore.master === 0 && mutedAfter.master === 0
@@ -276,10 +275,10 @@ export async function runLastSilentMomentsChecks({ browser, url, check }) {
 
     await page.evaluate(() => globalThis.__wreckright.engine.audio.destroy());
     await page.waitForFunction(() => {
-      const graph = globalThis.__audioProbe.snapshot()[0];
+      const graph = globalThis.__audioProbe.snapshot().at(-1);
       return graph.state === 'closed' && graph.closeCalls === 1 && graph.activeSources === 0;
     });
-    const closed = (await audioProbe(page))[0];
+    const closed = (await audioProbe(page)).at(-1);
     check(
       'destroy closes the one context with no active or unstopped source',
       closed.activeSources === 0 && closed.sources.every((source) => source.stops.length === 1),

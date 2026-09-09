@@ -24,6 +24,13 @@ describe('shared sound settings', () => {
     expect(markup.match(/type="range"/g)).toHaveLength(4);
     expect(markup.match(/aria-valuetext="100 percent"/g)).toHaveLength(4);
     expect(markup).toContain('Mute all sound');
+    expect(markup).toMatch(/role="switch"[^>]*aria-label="Music"[^>]*aria-checked="true"/);
+    expect(markup).toMatch(/role="switch"[^>]*aria-label="Sound effects"[^>]*aria-checked="true"/);
+    expect(markup).toContain('data-testid="audio-music-enabled"');
+    expect(markup).toContain('data-testid="audio-effects-enabled"');
+    expect(markup).toContain('Weapons, movement, radio, alerts and weather');
+    expect(markup).toContain('Volume and advanced mix');
+    expect(markup).toMatch(/<details class="audio-settings__advanced" data-testid="audio-advanced">/);
     expect(markup).toContain('data-testid="audio-dynamic-range"');
     expect(markup).toContain('Quiet softens loud peaks');
   });
@@ -32,6 +39,6 @@ describe('shared sound settings', () => {
     const markup = renderToStaticMarkup(createElement(AudioSettings, { compact: true }));
     expect(markup).toContain('audio-settings--compact');
     expect(markup).toContain('data-testid="audio-reset"');
-    expect(markup).toContain('Campaign and battle score');
+    expect(markup).toContain('Menu, campaign and battle score');
   });
 });

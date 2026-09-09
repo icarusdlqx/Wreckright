@@ -24,6 +24,8 @@ class FakeParam {
 }
 
 class FakeNode {
+  disconnect(): void {}
+
   connect<T>(destination: T): T {
     return destination;
   }

@@ -3,7 +3,7 @@ import type { Design } from '../schema/design';
 import type { Faction } from '../schema/faction';
 import type { Catalog } from '../schema/load';
 
-export type StrategicScoreSurface = 'campaign' | 'mechbay';
+export type StrategicScoreSurface = 'home' | 'campaign' | 'mechbay';
 
 export interface ScoreTreatment {
   readonly intensity: number;
@@ -14,6 +14,7 @@ export interface ScoreTreatment {
 export const STRATEGIC_SCORE_TREATMENTS: Readonly<
   Record<StrategicScoreSurface, ScoreTreatment>
 > = {
+  home: { intensity: 0.22, level: 0.9 },
   campaign: { intensity: 0, level: 0.6 },
   mechbay: { intensity: 0.3, level: 0.72 },
 };

@@ -1,0 +1,18 @@
+URL http://127.0.0.1:5220/
+PASS theme creates no audio context before a player gesture
+PASS real browser decodes and starts all three shipped theme stems
+PASS decoded theme contains finite audible music with headroom
+PASS all real music stems loop at the same timestamp and unchanged playback speed
+PASS Music Off silences the real music bus without stopping or recreating the theme
+PASS Music On restores the real bus at the same musical position
+PASS real theme playback produces no uncaught browser errors
+URL file:///Users/davelangy/Documents/ChatGPT/wreckright/wreckright-ironwork-monolith/dist-single/wreckright.html
+PASS theme creates no audio context before a player gesture
+PASS real browser decodes and starts all three shipped theme stems
+PASS decoded theme contains finite audible music with headroom
+PASS all real music stems loop at the same timestamp and unchanged playback speed
+PASS Music Off silences the real music bus without stopping or recreating the theme
+PASS Music On restores the real bus at the same musical position
+PASS standalone theme works with networking disabled and zero external requests
+PASS real theme playback produces no uncaught browser errors
+15/15 assertions passed

@@ -40,7 +40,7 @@ import { playCrunch, playDestruction, playImpact, playWeapon } from './audioWeap
 import { playPilotRadio } from './audioRadio';
 
 /**
- * Every sound in the game, synthesised.
+ * Synthesized effects and the authored score share one controlled mix.
  *
  * Browsers refuse to start audio until the player has touched the page, so
  * unlock() owns graph creation. Events before then are dropped: a battle must

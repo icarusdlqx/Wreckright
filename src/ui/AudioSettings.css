@@ -32,6 +32,18 @@
 }
 .audio-settings__mute { display: flex; align-items: center; gap: 10px; min-height: 40px; margin-bottom: 12px; }
 .audio-settings__mute input { width: 18px; height: 18px; accent-color: var(--exp-teal, #32766d); }
+.audio-settings__channels { display: grid; gap: 9px; }
+.audio-settings .audio-settings__panel .audio-settings__channel { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 68px; padding: 12px; text-align: left; }
+.audio-settings__channel > span { display: grid; gap: 4px; }
+.audio-settings__channel strong { font-size: 15px; }
+.audio-settings__channel small { font-size: 11px; line-height: 1.5; color: var(--exp-muted, #52665e); }
+.audio-settings__channel > b { flex: none; min-width: 42px; padding: 5px 7px; border: 1px solid var(--exp-line, #c6cec1); border-radius: 20px; text-align: center; font-size: 12px; color: var(--exp-muted, #52665e); }
+.audio-settings__channel[aria-checked=true] > b { background: #285f59; border-color: #285f59; color: #fffdf3; }
+.audio-settings .audio-settings__panel .audio-settings__mute-note { margin: -6px 0 14px; color: var(--exp-muted, #52665e); font-size: 12px; }
+.audio-settings__advanced { border-top: 1px solid var(--exp-line, #c6cec1); padding-top: 9px; }
+.audio-settings__advanced > summary { display: flex; align-items: center; gap: 8px; min-height: 40px; cursor: pointer; font-weight: 600; list-style: none; }
+.audio-settings__advanced > summary::before { content: '+'; width: 12px; }
+.audio-settings__advanced[open] > summary::before { content: '−'; }
 .audio-settings__volume { display: grid; gap: 3px; margin: 12px 0; }
 .audio-settings__volume > span { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-weight: 650; }
 .audio-settings__volume output { font: 12px/1 var(--font-mono, monospace); }
@@ -64,4 +76,7 @@
 @media (max-width: 640px) {
   .audio-settings__panel { inset: 64px 12px auto auto; padding: 16px; max-height: calc(100dvh - 80px); }
   .audio-settings .audio-settings__panel button, .audio-settings__range select { min-height: 44px; }
+}
+@media (forced-colors: active) {
+  .audio-settings__channel[aria-checked=true] > b { background: Highlight; color: HighlightText; border-color: Highlight; }
 }

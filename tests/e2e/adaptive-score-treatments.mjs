@@ -1,47 +1,20 @@
+import { runAuthoredScoreLiveChecks } from './authored-score-live.mjs';
+import { runAuthoredScoreLoadingChecks } from './authored-score-loading.mjs';
 import { discardRefitIfPrompted } from './mechbay-exit.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import {
   advanceAudioClock,
   audioProbe,
-  includesValues,
+  activeAudioContext,
+  waitForScoreReady,
+  scoreGainNames,
   installAudioProbe,
   newTargets,
-  scoreFrequencyTargets,
 } from './audio-probe.mjs';
 
-const SCORE_SOURCE_COUNT = 5;
-const SCORE_SOURCE_IDS = [9, 11, 16, 18, 22];
-const CAMPAIGN_LEVEL = 0.052 * 0.6;
-const MECHBAY_LEVEL = 0.052 * 0.72;
-const CAMPAIGN_PULSE_HZ = 0.72;
-const MECHBAY_PULSE_HZ = 0.72 + 0.3 * 1.45;
-const LINEWROUGHT_PITCHES = [43.65, 65.41, 87.31, 103.83];
-const AURELIAN_PITCHES = [46.25, 69.3, 103.83, 130.81];
-const FIXED_TOPOLOGY = [
-  '0:destination>',
-  '1:compressor>node:0',
-  '2:gain>node:1',
-  '3:gain>node:2',
-  '4:gain>node:2',
-  '5:gain>node:2',
-  '6:gain>node:4',
-  '7:gain>node:6',
-  '8:filter>node:7',
-  '9:oscillator>node:10',
-  '10:gain>node:8',
-  '11:oscillator>node:12',
-  '12:gain>node:8',
-  '13:gain>node:6',
-  '14:filter>node:13',
-  '15:gain>node:14',
-  '16:oscillator>node:17',
-  '17:gain>node:15',
-  '18:oscillator>node:19',
-  '19:gain>param:gain-15',
-  '20:gain>node:6',
-  '21:filter>node:20',
-  '22:oscillator>node:21',
-];
+const SCORE_SOURCE_COUNT = 3;
+const CAMPAIGN_LEVEL = .8 * .6;
+const MECHBAY_LEVEL = .8 * .72;
 
 function watchPage(page) {
   const errors = [];
@@ -52,26 +25,24 @@ function watchPage(page) {
   return errors;
 }
 
-function fixedTopology(context) {
-  const boundary = Math.max(...context.scoreSources.map((source) => source.id));
-  return context.topology
-    .filter((node) => node.id <= boundary)
-    .map((node) => `${node.id}:${node.kind}>${node.connections.join(',')}`);
-}
-
 function fixedScoreGraph(context, active = true) {
-  return JSON.stringify(context.scoreSources.map((source) => source.id))
-      === JSON.stringify(SCORE_SOURCE_IDS)
-    && context.scoreSources.every((source) => source.kind === 'oscillator'
+  return context.scoreSources.length === SCORE_SOURCE_COUNT
+    && context.scoreSources.every(source => source.kind === 'buffer' && source.loop
       && source.starts.length === 1 && source.stops.length === (active ? 0 : 1)
-      && source.active === active)
-    && JSON.stringify(fixedTopology(context)) === JSON.stringify(FIXED_TOPOLOGY);
+      && source.active === active && source.playbackRate === 1);
 }
-
 function sameFixedGraph(before, after) {
-  return JSON.stringify(before.scoreSources.map((source) => source.id))
-      === JSON.stringify(after.scoreSources.map((source) => source.id))
-    && JSON.stringify(fixedTopology(before)) === JSON.stringify(fixedTopology(after));
+  return JSON.stringify(before.scoreSources.map(source => source.id))
+    === JSON.stringify(after.scoreSources.map(source => source.id))
+    && before.scoreSources.every((source, index) =>
+      JSON.stringify(source.starts) === JSON.stringify(after.scoreSources[index].starts));
+}
+function gainValue(context, role) {
+  return context.gains.find(gain => gain.name === scoreGainNames(context)[role])?.value;
+}
+function cultureMatches(context, share) {
+  return Math.abs(gainValue(context, 'ironwork') - (share === 1 ? 0 : Math.cos(share * Math.PI / 2))) < .0001
+    && Math.abs(gainValue(context, 'monolith') - (share === 0 ? 0 : Math.sin(share * Math.PI / 2))) < .0001;
 }
 
 function includesTarget(entries, name, value, epsilon = 0.0001) {
@@ -118,22 +89,23 @@ async function checkCampaignAndNestedRefit({ browser, url, check }) {
     await page.locator('[data-testid="training-skip"]').click();
     await page.waitForSelector('[data-testid="campaign"]');
     await completeInitialCampaignSetup(page);
-    await page.waitForFunction(() => globalThis.__audioProbe.snapshot().length === 1);
-    const campaign = (await audioProbe(page))[0];
+    await waitForScoreReady(page);
+    const scoreIndex = (await audioProbe(page)).length - 1;
+    const campaign = activeAudioContext(await audioProbe(page));
     check('training skip creates the campaign score before any second strategic gesture',
       campaign.state === 'running' && campaign.scoreSources.length === SCORE_SOURCE_COUNT);
     check('campaign route owns one fixed strategic score graph',
-      campaign.counts.nodes === 23 && campaign.counts.sources === SCORE_SOURCE_COUNT
-        && campaign.counts.gains === 13 && campaign.counts.filters === 3
+      campaign.counts.nodes === 14 && campaign.counts.sources === SCORE_SOURCE_COUNT
+        && campaign.counts.gains === 9 && campaign.counts.filters === 0
         && fixedScoreGraph(campaign)
-        && includesTarget(campaign.automation, 'gain-6', CAMPAIGN_LEVEL),
-      JSON.stringify({ counts: campaign.counts, topology: fixedTopology(campaign) }));
+        && Math.abs(gainValue(campaign, 'level') - CAMPAIGN_LEVEL) < .0001,
+      JSON.stringify({ counts: campaign.counts, topology: campaign.topology }));
 
     await page.locator('[data-testid="campaign-mute-button"]').click();
-    const muted = (await audioProbe(page))[0];
+    const muted = activeAudioContext(await audioProbe(page));
     check('campaign mute zeros the strategic master without rebuilding its score',
       muted.master === 0 && sameFixedGraph(campaign, muted)
-        && (await page.locator('[data-testid="campaign-mute-button"]').innerText()) === 'Sound off'
+        && (await page.locator('[data-testid="campaign-mute-button"]').innerText()) === 'Unmute all'
         && (await page.evaluate(() => localStorage.getItem('ironline.muted'))) === '1');
     await page.locator('[data-testid="campaign-mute-button"]').click();
 
@@ -144,42 +116,51 @@ async function checkCampaignAndNestedRefit({ browser, url, check }) {
     await page.locator('[data-testid="prep-seat-0"]').click();
     await page.locator('[data-testid="hangar-continue"]').click();
     await advanceAudioClock(page);
-    const beforeRefit = (await audioProbe(page))[0];
+    const beforeRefit = activeAudioContext(await audioProbe(page));
     await page.locator('[data-testid^="manifest-refit-"]:enabled').click();
     await page.waitForSelector('[data-testid="refit-bay"] [data-testid="mechbay"]');
     await page.waitForFunction((count) =>
-      globalThis.__audioProbe.snapshot()[0].targets > count, beforeRefit.targets);
-    const refit = (await audioProbe(page))[0];
+      globalThis.__audioProbe.snapshot().findLast(context => context.state !== 'closed').targets > count, beforeRefit.targets);
+    const refit = activeAudioContext(await audioProbe(page));
     const refitTargets = newTargets(beforeRefit, refit);
     check('campaign refit borrows the strategic graph and applies the mechbay treatment',
-      (await audioProbe(page)).length === 1 && sameFixedGraph(beforeRefit, refit)
+      (await audioProbe(page)).filter(context => context.state !== 'closed').length === 1 && sameFixedGraph(beforeRefit, refit)
         && JSON.stringify(beforeRefit.counts) === JSON.stringify(refit.counts)
-        && includesTarget(refitTargets, 'gain-6', MECHBAY_LEVEL)
-        && includesTarget(refitTargets, 'source-18-frequency', MECHBAY_PULSE_HZ),
+        && includesTarget(refitTargets, scoreGainNames(refit).level, MECHBAY_LEVEL)
+        && gainValue(refit, 'rhythm') > gainValue(beforeRefit, 'rhythm'),
       JSON.stringify(refitTargets));
 
     await advanceAudioClock(page);
-    const beforeReturn = (await audioProbe(page))[0];
+    const beforeReturn = activeAudioContext(await audioProbe(page));
     await page.locator('[data-testid="bay-exit"]').click();
     await discardRefitIfPrompted(page);
     await page.waitForSelector('[data-testid="refit-bay"]', { state: 'detached' });
     await page.waitForFunction((count) =>
-      globalThis.__audioProbe.snapshot()[0].targets > count, beforeReturn.targets);
-    const returned = (await audioProbe(page))[0];
+      globalThis.__audioProbe.snapshot().findLast(context => context.state !== 'closed').targets > count, beforeReturn.targets);
+    const returned = activeAudioContext(await audioProbe(page));
     const returnTargets = newTargets(beforeReturn, returned);
     check('closing campaign refit restores the map treatment on the same sources',
       sameFixedGraph(refit, returned)
-        && includesTarget(returnTargets, 'gain-6', CAMPAIGN_LEVEL)
-        && includesTarget(returnTargets, 'source-18-frequency', CAMPAIGN_PULSE_HZ),
+        && includesTarget(returnTargets, scoreGainNames(returned).level, CAMPAIGN_LEVEL)
+        && gainValue(returned, 'rhythm') === .16,
       JSON.stringify(returnTargets));
 
     await page.locator('[data-testid="manifest-cancel"]').click();
     await page.locator('[data-testid="camp-exit"]').click();
     await page.waitForSelector('[data-testid="home-screen"]');
-    await waitForClosed(page, 0);
-    const closed = (await audioProbe(page))[0];
-    check('leaving campaign stops every strategic source and closes its context once',
-      fixedScoreGraph(closed, false) && closed.closeCalls === 1 && closed.state === 'closed');
+    await advanceAudioClock(page);
+    await page.waitForFunction(() => {
+      const active = globalThis.__audioProbe.snapshot().findLast(context => context.state !== 'closed');
+      return active?.gains.some(gain => Math.abs(gain.value - .8 * .9) < .0001);
+    });
+    const home = activeAudioContext(await audioProbe(page));
+    check('campaign return reuses its strategic sources for the home theme',
+      sameFixedGraph(returned, home) && home.state === 'running' && home.closeCalls === 0);
+    await page.locator('[data-testid="home-skirmish"]').click();
+    await waitForClosed(page, scoreIndex);
+    const closed = (await audioProbe(page))[scoreIndex];
+    check('leaving strategic screens stops every started source and closes once',
+      fixedScoreGraph(closed, false) && closed.closeCalls === 1);
     check('campaign treatment fixture reports no page errors', errors.length === 0, errors.join(' | '));
   } finally {
     await context.close();
@@ -196,15 +177,16 @@ async function checkStandaloneMechbay({ browser, url, check }) {
     await openDesktopMenu(page);
     await page.locator('[data-testid="open-mechbay"]').click();
     await page.waitForSelector('[data-testid="mechbay"]');
-    await page.waitForFunction(() => globalThis.__audioProbe.snapshot().length === 1);
-    const bay = (await audioProbe(page))[0];
+    await waitForScoreReady(page);
+    const scoreIndex = (await audioProbe(page)).length - 1;
+    const bay = activeAudioContext(await audioProbe(page));
     check('standalone mechbay owns one fixed strategic score graph',
-      fixedScoreGraph(bay) && includesTarget(bay.automation, 'gain-6', MECHBAY_LEVEL)
-        && includesTarget(bay.automation, 'source-18-frequency', MECHBAY_PULSE_HZ),
-      JSON.stringify({ counts: bay.counts, topology: fixedTopology(bay) }));
+      fixedScoreGraph(bay) && Math.abs(gainValue(bay, 'level') - MECHBAY_LEVEL) < .0001
+        && gainValue(bay, 'rhythm') > .16,
+      JSON.stringify({ counts: bay.counts, topology: bay.topology }));
 
     await page.locator('[data-testid="bay-mute-button"]').click();
-    const muted = (await audioProbe(page))[0];
+    const muted = activeAudioContext(await audioProbe(page));
     check('standalone mechbay mute shares the persisted master control',
       muted.master === 0 && sameFixedGraph(bay, muted)
         && (await page.evaluate(() => localStorage.getItem('ironline.muted'))) === '1');
@@ -212,25 +194,25 @@ async function checkStandaloneMechbay({ browser, url, check }) {
     await page.locator('[data-testid="bay-exit"]').click();
     await discardRefitIfPrompted(page);
     await page.waitForSelector('[data-testid="briefing"]');
-    await waitForClosed(page, 0);
-    const closed = (await audioProbe(page))[0];
+    await waitForClosed(page, scoreIndex);
+    const closed = (await audioProbe(page))[scoreIndex];
     check('leaving standalone mechbay tears down its strategic graph before battle unlock',
-      (await audioProbe(page)).length === 1 && fixedScoreGraph(closed, false)
+      (await audioProbe(page)).filter(context => context.state !== 'closed').length === 0 && fixedScoreGraph(closed, false)
         && closed.closeCalls === 1);
     await page.locator('.viewport canvas:not(.perf-overlay)').click({
       force: true,
       position: { x: 40, y: 40 },
     });
-    await page.waitForFunction(() => globalThis.__audioProbe.snapshot().length === 2);
-    const remountedBattle = (await audioProbe(page))[1];
+    await waitForScoreReady(page);
+    const remountedBattle = activeAudioContext(await audioProbe(page));
     await openDesktopMenu(page);
     const battleMute = page.locator('[data-testid="mute-button"]');
     const returnedLabel = await battleMute.innerText();
     await battleMute.click();
     check('muted standalone bay returns a muted battle whose first toggle audibly restores sound',
-      returnedLabel === 'Sound off' && remountedBattle.master === 0
-        && (await battleMute.innerText()) === 'Sound on'
-        && (await audioProbe(page))[1].master === 0.5
+      returnedLabel === 'Unmute all' && remountedBattle.master === 0
+        && (await battleMute.innerText()) === 'Mute all'
+        && activeAudioContext(await audioProbe(page)).master === 0.5
         && (await page.evaluate(() => localStorage.getItem('ironline.muted'))) === '0');
     const stereo = await page.evaluate(() => {
       const { engine, world } = globalThis.__wreckright;
@@ -294,46 +276,43 @@ async function checkBattleOutfitterReuse({ browser, url, check }) {
     });
     await page.locator('[data-testid="berth-customise-0"]').click();
     await page.waitForSelector('[data-testid="outfit-bay"] [data-testid="mechbay"]');
-    await page.waitForFunction(() => globalThis.__audioProbe.snapshot().length === 1);
-    const outfit = (await audioProbe(page))[0];
+    await waitForScoreReady(page);
+    const scoreIndex = (await audioProbe(page)).length - 1;
+    const outfit = activeAudioContext(await audioProbe(page));
     check('battle briefing outfitter reuses the battle score graph',
-      fixedScoreGraph(outfit) && includesTarget(outfit.automation, 'gain-6', MECHBAY_LEVEL)
-        && includesTarget(outfit.automation, 'source-18-frequency', MECHBAY_PULSE_HZ)
-        && includesValues(outfit.scoreSources.map((source) => source.startFrequency), AURELIAN_PITCHES),
+      fixedScoreGraph(outfit) && Math.abs(gainValue(outfit, 'level') - MECHBAY_LEVEL) < .0001
+        && gainValue(outfit, 'rhythm') > .16 && cultureMatches(outfit, 1),
       JSON.stringify({ contexts: (await audioProbe(page)).length, counts: outfit.counts }));
 
     await advanceAudioClock(page);
-    const beforeOppositeBay = (await audioProbe(page))[0];
+    const beforeOppositeBay = activeAudioContext(await audioProbe(page));
     await page.evaluate(() => globalThis.__wreckright.engine.audio.setMechbayScore(0));
     await page.waitForFunction((count) =>
-      globalThis.__audioProbe.snapshot()[0].targets > count, beforeOppositeBay.targets);
-    const oppositeBay = (await audioProbe(page))[0];
+      globalThis.__audioProbe.snapshot().findLast(context => context.state !== 'closed').targets > count, beforeOppositeBay.targets);
+    const oppositeBay = activeAudioContext(await audioProbe(page));
     check('opposite-culture bay treatment reaches the Linewrought voicing before deployment',
-      includesValues(scoreFrequencyTargets(beforeOppositeBay, oppositeBay), LINEWROUGHT_PITCHES));
+      cultureMatches(oppositeBay, 0));
 
     const briefingTick = await page.evaluate(() => globalThis.__wreckright.world.tick);
     await advanceAudioClock(page);
-    const beforePrimeRestore = (await audioProbe(page))[0];
+    const beforePrimeRestore = activeAudioContext(await audioProbe(page));
     await page.locator('[data-testid="bay-exit"]').click();
     await discardRefitIfPrompted(page);
     await page.waitForSelector('[data-testid="outfit-bay"]', { state: 'detached' });
     await page.waitForFunction((count) =>
-      globalThis.__audioProbe.snapshot()[0].targets > count, beforePrimeRestore.targets);
-    const primeRestored = (await audioProbe(page))[0];
+      globalThis.__audioProbe.snapshot().findLast(context => context.state !== 'closed').targets > count, beforePrimeRestore.targets);
+    const primeRestored = activeAudioContext(await audioProbe(page));
     check('closing an opposite-culture bay restores the primed Aurelian battle voice before a sim step',
       (await page.evaluate(() => globalThis.__wreckright.world.tick)) === briefingTick
-        && includesValues(
-          scoreFrequencyTargets(beforePrimeRestore, primeRestored),
-          AURELIAN_PITCHES,
-        ),
-      JSON.stringify(scoreFrequencyTargets(beforePrimeRestore, primeRestored)));
+        && cultureMatches(primeRestored, 1),
+      JSON.stringify(primeRestored.gains));
 
     await advanceAudioClock(page);
     await page.locator('[data-testid="berth-customise-0"]').click();
     await page.waitForSelector('[data-testid="outfit-bay"] [data-testid="mechbay"]');
 
     await page.locator('[data-testid="bay-mute-button"]').click();
-    const muted = (await audioProbe(page))[0];
+    const muted = activeAudioContext(await audioProbe(page));
     check('embedded outfitter mute silences the existing battle master',
       muted.master === 0 && sameFixedGraph(outfit, muted)
         && (await page.evaluate(() => localStorage.getItem('ironline.muted'))) === '1');
@@ -342,24 +321,24 @@ async function checkBattleOutfitterReuse({ browser, url, check }) {
     await page.locator('[data-testid="bay-exit"]').click();
     await discardRefitIfPrompted(page);
     await page.waitForSelector('[data-testid="outfit-bay"]', { state: 'detached' });
-    const battle = (await audioProbe(page))[0];
+    const battle = activeAudioContext(await audioProbe(page));
     await openDesktopMenu(page);
     const battleMute = page.locator('[data-testid="mute-button"]');
     const syncedLabel = await battleMute.innerText();
     await battleMute.click();
     check('embedded outfitter mute synchronises the battle menu and toggles back there',
-      syncedLabel === 'Sound off'
-        && (await battleMute.innerText()) === 'Sound on'
-        && (await audioProbe(page))[0].master === 0.5
+      syncedLabel === 'Unmute all'
+        && (await battleMute.innerText()) === 'Mute all'
+        && activeAudioContext(await audioProbe(page)).master === 0.5
         && (await page.evaluate(() => localStorage.getItem('ironline.muted'))) === '0');
     await page.locator('[data-testid="desktop-menu-toggle"]').click();
     await page.locator('[data-testid="desktop-menu-sheet"]').waitFor({ state: 'hidden' });
     await advanceAudioClock(page);
     await page.locator('[data-testid="berth-customise-0"]').click();
     await page.waitForSelector('[data-testid="outfit-bay"] [data-testid="mechbay"]');
-    const reopened = (await audioProbe(page))[0];
+    const reopened = activeAudioContext(await audioProbe(page));
     check('reopening the battle outfitter allocates no context or score sources',
-      (await audioProbe(page)).length === 1 && sameFixedGraph(outfit, battle)
+      (await audioProbe(page)).filter(context => context.state !== 'closed').length === 1 && sameFixedGraph(outfit, battle)
         && sameFixedGraph(battle, reopened)
         && reopened.scoreSources.length === SCORE_SOURCE_COUNT
         && reopened.scoreSources.every((source) => source.starts.length === 1),
@@ -372,15 +351,17 @@ async function checkBattleOutfitterReuse({ browser, url, check }) {
     await page.locator('[data-testid="open-campaign"]').click();
     await page.waitForSelector('[data-testid="campaign"]');
     await completeInitialCampaignSetup(page);
-    await page.waitForFunction(() => globalThis.__audioProbe.snapshot().length === 2);
-    await waitForClosed(page, 0);
+    await waitForScoreReady(page);
+    await waitForClosed(page, scoreIndex);
     const separated = await audioProbe(page);
     check('campaign navigation closes the battle graph and opens a separate strategic graph',
-      fixedScoreGraph(separated[0], false) && fixedScoreGraph(separated[1])
-        && separated[0].closeCalls === 1 && separated[1].state === 'running');
+      fixedScoreGraph(separated[scoreIndex], false) && fixedScoreGraph(activeAudioContext(separated))
+        && separated[scoreIndex].closeCalls === 1 && activeAudioContext(separated).state === 'running');
+    const strategic = activeAudioContext(separated);
     await page.locator('[data-testid="camp-exit"]').click();
     await page.waitForSelector('[data-testid="home-screen"]');
-    await waitForClosed(page, 1);
+    check('campaign return keeps the home theme on its strategic context',
+      sameFixedGraph(strategic, activeAudioContext(await audioProbe(page))));
     check('battle outfitter fixture reports no page errors', errors.length === 0, errors.join(' | '));
   } finally {
     await context.close();
@@ -389,6 +370,8 @@ async function checkBattleOutfitterReuse({ browser, url, check }) {
 
 export async function runAdaptiveScoreTreatmentChecks({ browser, url, check }) {
   process.stdout.write('\nadaptive score treatments\n');
+  await runAuthoredScoreLiveChecks({ browser, url, check });
+  await runAuthoredScoreLoadingChecks({ browser, url, check });
   await checkCampaignAndNestedRefit({ browser, url, check });
   await checkStandaloneMechbay({ browser, url, check });
   await checkBattleOutfitterReuse({ browser, url, check });

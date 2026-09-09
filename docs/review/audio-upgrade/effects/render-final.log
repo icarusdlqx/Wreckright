@@ -1,0 +1,4 @@
+before: 31 actual Web Audio clips, 45.9s, peak 1.247, 18 clipped samples, no nonfinite samples
+after: 31 actual Web Audio clips, 45.9s, peak 0.878, 0 clipped samples, no nonfinite samples
+after-music: 31 actual Web Audio clips, 45.9s, peak 0.949, 0 clipped samples, no nonfinite samples
+after-music-seed7721: 31 actual Web Audio clips, 45.9s, peak 0.994, 0 clipped samples, no nonfinite samples
