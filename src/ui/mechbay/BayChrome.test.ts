@@ -102,7 +102,7 @@ describe('mechbay history controls', () => {
     const standalone = renderHistory();
 
     expect(standalone).toContain('Gadfly — 35t Light · Forward spotter · Linewrought');
-    expect(standalone).toContain('Sentinel — 45t Medium · Line brawler · Aurelian Stock');
+    expect(standalone).toContain('Sentinel — 45t Medium · Plasma brawler · Aurelian Stock');
     expect(standalone).not.toContain('GAD-2');
     expect(standalone).not.toContain('SNL-2');
     expect(standalone).not.toContain('Courser —');
@@ -131,7 +131,7 @@ describe('mechbay history controls', () => {
     });
 
     expect(standalone).toMatch(
-      /<option value="" selected="">Field Sparrow — 45t Medium · Line brawler · Aurelian Stock \(edited loadout\)<\/option>/,
+      /<option value="" selected="">Field Sparrow — 45t Medium · Plasma brawler · Aurelian Stock \(edited loadout\)<\/option>/,
     );
     expect(standalone).not.toContain('SNL-2');
   });

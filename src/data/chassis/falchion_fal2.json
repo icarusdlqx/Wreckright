@@ -95,18 +95,18 @@
     "stance": 0.92
   },
   "role": "Mobile duellist",
-  "summary": "A polished duellist. Jets and reach buy the first answer; heat decides the second.",
+  "summary": "A burst laser, paired torso Shortbows and secondary emitters reward flanking. Jump jets buy an angle; the narrow hull still punishes careless trades.",
   "lore": "The Falchion cradles at Vasi were marked INTERCEPT and faced the door. Long limbs and integrated lift channels survived beneath the preservation armour. Modern service work restores the alignment; shared mounts let workshop racks serve beside advanced emitters when replacements are scarce. A Falchion can cross a firing lane and answer a heavier machine, but its pilot still has to leave. Staying for another exchange spends cooling margin that precise maintenance cannot supply in the field.",
   "traits": [
     "long_stride",
     "narrow_profile"
   ],
   "strengths": [
-    "Long stride and jump jets",
-    "Narrow profile"
+    "Accurate burst laser and close missile volleys",
+    "Fast, narrow frame with jump jets"
   ],
   "weaknesses": [
-    "Heat limits sustained fire",
-    "Specialist repairs are expensive"
+    "Hot battery needs pauses between volleys",
+    "Missile bins and light structure punish exposure"
   ]
 }

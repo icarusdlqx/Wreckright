@@ -80,6 +80,7 @@ export function useBattleEngine({ setup, revision, nextStart, hostRef, engineRef
         onMuted(engine.audio.muted);
         onLowFx(engine.renderer.lowFx);
         if (deployOnReady) {
+          engine.audio.unlock();
           engine.renderer.camera.beginDropIn();
           useGame.getState().patch({
             briefingSeen: true,

@@ -2,13 +2,13 @@ import { readFileSync } from 'node:fs';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { catalog } from '../../../tests/support';
+import { catalog, legacySentinelDesign } from '../../../tests/support';
 import { beginDesignHistory } from './designHistory';
 import { Mechbay } from './Mechbay';
 
 describe('campaign cooling inventory', () => {
   it('shows an unavailable heat-sink type without allowing it to be selected', () => {
-    const design = catalog.designs.get('sentinel_brawler');
+    const design = legacySentinelDesign;
     if (design === undefined) throw new Error('missing Sentinel design');
 
     const html = renderToStaticMarkup(
@@ -89,7 +89,7 @@ describe('mechbay presentation', () => {
     expect(html).toContain('data-testid="machine-culture-primary"');
     expect(html).toContain('data-testid="machine-culture-shelf"');
     expect(html).toContain('Aurelian Stock');
-    expect(html).toContain('Mixed refit installed');
+    expect(html).not.toContain('Mixed refit installed');
     expect(html).toContain('Both origins can be mixed. Mount type, size, boxes, weight and stock decide fit; cooling and ammunition decide how it fights.');
     expect(html).toContain('Linewrought');
     expect(html).toContain('data-testid="shelf-search"');

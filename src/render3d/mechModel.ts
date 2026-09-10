@@ -38,6 +38,7 @@ export { disposeModel } from './modelDisposal';
 export type { MechModel, LegRig, Footprint } from './modelTypes';
 import type { MechModel, LegRig, Footprint } from './modelTypes';
 import { createTerminalSupport } from './terminalSupport';
+import { WeaponMountStack } from './weaponMountStack';
 
 type PresentedMount = MountArt & { destroyed?: boolean };
 
@@ -244,13 +245,10 @@ export function buildMechModel(
   if (startup !== null) torso.add(...startup.lights);
 
   // --------------------------------------------------------------- weapons
-  const stacked = new Map<MechLocation, number>();
+  const stacked = new WeaponMountStack(scale);
   for (const mount of mounts) {
     const anchor = plan.hardpoints[mount.location];
     if (anchor === undefined) continue;
-
-    const index = stacked.get(mount.location) ?? 0;
-    stacked.set(mount.location, index + 1);
 
     const material = destroyed || (mount.destroyed === true && faction === 'aurelian')
       ? new MeshStandardMaterial({ color: 0x10171a, roughness: 0.74, metalness: 0.48 })
@@ -273,7 +271,7 @@ export function buildMechModel(
     hardpoint.userData.detachmentLocation = mount.location;
     hardpoint.position.set(
       anchor[0] * scale,
-      (anchor[1] + index * 0.22) * scale,
+      anchor[1] * scale + stacked.place(mount.location, weapon.root),
       anchor[2] * scale,
     );
     hardpoint.add(weapon.root);

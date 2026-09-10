@@ -1,3 +1,4 @@
+import { importLegacySentinel } from './mechbay-legacy-fixture.mjs';
 import { openDesktopBattleMenu } from './input-safety.mjs';
 import { clickFittingAction } from './fitting-actions.mjs';
 
@@ -24,6 +25,7 @@ export async function runMechbayPersistenceChecks({ browser, url, shots, check }
   await page.addInitScript(() => localStorage.setItem('ironline.muted', '1'));
   try {
     await openBay(page, url);
+    await importLegacySentinel(page);
     const leftArm = page.getByTestId('bay-location-left_arm');
     await clickFittingAction(leftArm.locator('[data-testid^="remove-weapon-"]').first());
     await page.getByTestId('stock-weapon-small_laser').click();

@@ -41,13 +41,24 @@ paint or the company that captured a machine.
 
 ## Existing stock configurations
 
-No stock weapon, chassis or mission statistics were changed for this pass.
 Linewrought's Bulwark has a mixed fit with three recovered lasers and three local
 guns/racks. The other seven Linewrought walkers use local armament. Aurelian's
-Vesper, Votive, Obsequy and Pallvault carry Aurelian armament; Sentinel, Falchion,
-Warden and Halberd carry mixed service refits. Each mixed Aurelian fit retains a
-majority of Aurelian weapons. These configurations make salvage interoperability
-visible from existing content without recasting every machine as an energy boat.
+Falchion and Warden retain mixed service refits with a majority of native weapons.
+The other six Aurelian standards carry native armament.
+
+The September balance review restored the Sentinel, Halberd and Pallvault to
+coherent native batteries with Compound Heat Sinks. Sentinel trades its cannon
+and missile bins for burst lasers and torso plasma; Halberd fields paired arm arc
+projectors and large lasers behind heavier plate; Pallvault exchanges some engine
+mass for full armour and a central plasma rifle. Existing saved mixed refits keep
+their weapons. Physical mounts and compartment capacities remain unchanged, so
+local guns still fit wherever the chassis interfaces permit them.
+
+The revision also fixed a reactor-governor fault that could silence an entire
+energy group when its full volley could not fit the safe heat budget. The governor
+now admits individual ready weapons and rotates waiting emitters, while preserving
+the player's weapon-group orders. The measured comparison and its limits are in
+`docs/review/faction-balance-evidence.md`; there is no hidden faction damage bonus.
 
 ## Recovery and repair
 

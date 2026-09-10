@@ -26,7 +26,7 @@ export function combatIntent(world: World, unit: UnitSnapshot): CommandIntent | 
   const live = unit.weapons.filter((weapon) => !weapon.destroyed);
   if (live.length === 0) return { label: 'Weapons lost', detail: 'Withdraw or use this machine to scout and secure ground.', tone: 'warn' };
   if (live.every((weapon) => weapon.rounds === 0)) return { label: 'Out of ammunition', detail: 'The remaining weapons have no usable ammunition.', tone: 'warn' };
-  const enabled = live.filter((weapon) => entity.groupEnabled[weapon.group - 1]);
+  const enabled = live.filter((weapon) => entity.groupEnabled[weapon.group - 1] && entity.weapons.find((mount) => mount.index === weapon.index)?.governorBlocked !== true);
   if (enabled.length === 0) return { label: unit.reactor.shedGroups.length > 0 ? 'Cooling weapon groups' : 'Weapon groups off', detail: unit.reactor.shedGroups.length > 0 ? 'Heat safety will restore these groups when the reactor cools.' : 'Enable a weapon group to resume fire.', tone: 'warn' };
   const usable = preview.weapons.filter((weapon) => enabled.some((mount) => mount.index === weapon.index));
   if (usable.every((weapon) => weapon.blocked !== null)) {

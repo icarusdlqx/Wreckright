@@ -6,6 +6,32 @@
       "designId": "bulwark_assault",
       "width": 320,
       "height": 360,
+      "mounts": [
+        {
+          "weaponId": "large_laser",
+          "location": "left_arm"
+        },
+        {
+          "weaponId": "large_laser",
+          "location": "left_arm"
+        },
+        {
+          "weaponId": "medium_laser",
+          "location": "centre_torso"
+        },
+        {
+          "weaponId": "ac5",
+          "location": "right_torso"
+        },
+        {
+          "weaponId": "lrm10",
+          "location": "left_torso"
+        },
+        {
+          "weaponId": "lrm10",
+          "location": "left_torso"
+        }
+      ],
       "bounds": {
         "min": [
           -11.601114394538609,
@@ -14,7 +40,7 @@
         ],
         "max": [
           14.455344291687013,
-          34.66372011505127,
+          38.35544034515381,
           23.355878185211182
         ]
       }
@@ -24,6 +50,24 @@
       "designId": "cairn_battery",
       "width": 320,
       "height": 360,
+      "mounts": [
+        {
+          "weaponId": "lrm20",
+          "location": "left_torso"
+        },
+        {
+          "weaponId": "lrm10",
+          "location": "right_torso"
+        },
+        {
+          "weaponId": "streak_srm6",
+          "location": "left_torso"
+        },
+        {
+          "weaponId": "streak_srm6",
+          "location": "right_torso"
+        }
+      ],
       "bounds": {
         "min": [
           -12.093120198364257,
@@ -32,7 +76,7 @@
         ],
         "max": [
           14.405039799499512,
-          36.4613039973259,
+          42.09703998229981,
           27.250354594006346
         ]
       }
@@ -42,6 +86,28 @@
       "designId": "colossus_siege",
       "width": 320,
       "height": 360,
+      "mounts": [
+        {
+          "weaponId": "gauss_rifle",
+          "location": "left_arm"
+        },
+        {
+          "weaponId": "gauss_rifle",
+          "location": "right_torso"
+        },
+        {
+          "weaponId": "flamer",
+          "location": "right_arm"
+        },
+        {
+          "weaponId": "flamer",
+          "location": "right_arm"
+        },
+        {
+          "weaponId": "lrm10",
+          "location": "left_torso"
+        }
+      ],
       "bounds": {
         "min": [
           -19.213205363716124,
@@ -60,6 +126,24 @@
       "designId": "courser_patrol",
       "width": 320,
       "height": 360,
+      "mounts": [
+        {
+          "weaponId": "flamer",
+          "location": "centre_torso"
+        },
+        {
+          "weaponId": "machine_gun",
+          "location": "centre_torso"
+        },
+        {
+          "weaponId": "machine_gun",
+          "location": "left_torso"
+        },
+        {
+          "weaponId": "flamer",
+          "location": "right_torso"
+        }
+      ],
       "bounds": {
         "min": [
           -10.341939926147461,
@@ -68,7 +152,7 @@
         ],
         "max": [
           10.530928611755371,
-          15.773862699089047,
+          16.41206085940688,
           9.05239985485077
         ]
       }
@@ -78,6 +162,20 @@
       "designId": "drover_carrier",
       "width": 320,
       "height": 360,
+      "mounts": [
+        {
+          "weaponId": "lrm20",
+          "location": "left_torso"
+        },
+        {
+          "weaponId": "lrm10",
+          "location": "left_torso"
+        },
+        {
+          "weaponId": "lrm10",
+          "location": "centre_torso"
+        }
+      ],
       "bounds": {
         "min": [
           -19.592399993515016,
@@ -86,7 +184,7 @@
         ],
         "max": [
           15.294194221496582,
-          23.631000078201296,
+          29.685000312805172,
           17.237699704360963
         ]
       }
@@ -96,6 +194,28 @@
       "designId": "falchion_duellist",
       "width": 320,
       "height": 360,
+      "mounts": [
+        {
+          "weaponId": "large_pulse_laser",
+          "location": "left_arm"
+        },
+        {
+          "weaponId": "srm6",
+          "location": "left_torso"
+        },
+        {
+          "weaponId": "srm6",
+          "location": "right_torso"
+        },
+        {
+          "weaponId": "medium_laser",
+          "location": "right_arm"
+        },
+        {
+          "weaponId": "medium_laser",
+          "location": "centre_torso"
+        }
+      ],
       "bounds": {
         "min": [
           -8.311949961853028,
@@ -114,6 +234,28 @@
       "designId": "halberd_prime",
       "width": 320,
       "height": 360,
+      "mounts": [
+        {
+          "weaponId": "er_ppc",
+          "location": "left_arm"
+        },
+        {
+          "weaponId": "large_laser",
+          "location": "left_arm"
+        },
+        {
+          "weaponId": "er_ppc",
+          "location": "right_arm"
+        },
+        {
+          "weaponId": "large_laser",
+          "location": "right_arm"
+        },
+        {
+          "weaponId": "medium_laser",
+          "location": "centre_torso"
+        }
+      ],
       "bounds": {
         "min": [
           -12.864900109863282,
@@ -121,7 +263,7 @@
           -21.084761890411375
         ],
         "max": [
-          16.806196668569697,
+          17.174044330701825,
           50.12782455305452,
           21.084761890411375
         ]
@@ -132,6 +274,20 @@
       "designId": "hornet_spotter",
       "width": 320,
       "height": 360,
+      "mounts": [
+        {
+          "weaponId": "flamer",
+          "location": "left_arm"
+        },
+        {
+          "weaponId": "srm2",
+          "location": "left_torso"
+        },
+        {
+          "weaponId": "srm2",
+          "location": "left_torso"
+        }
+      ],
       "bounds": {
         "min": [
           -7.554947789301312,
@@ -150,6 +306,20 @@
       "designId": "obsequy_vigil",
       "width": 320,
       "height": 360,
+      "mounts": [
+        {
+          "weaponId": "er_ppc",
+          "location": "left_arm"
+        },
+        {
+          "weaponId": "ppc",
+          "location": "right_arm"
+        },
+        {
+          "weaponId": "ppc",
+          "location": "centre_torso"
+        }
+      ],
       "bounds": {
         "min": [
           -14.176400866401291,
@@ -168,6 +338,28 @@
       "designId": "pallvault_procession",
       "width": 320,
       "height": 360,
+      "mounts": [
+        {
+          "weaponId": "large_pulse_laser",
+          "location": "left_arm"
+        },
+        {
+          "weaponId": "large_pulse_laser",
+          "location": "right_arm"
+        },
+        {
+          "weaponId": "medium_pulse_laser",
+          "location": "left_arm"
+        },
+        {
+          "weaponId": "medium_pulse_laser",
+          "location": "right_arm"
+        },
+        {
+          "weaponId": "plasma_rifle",
+          "location": "centre_torso"
+        }
+      ],
       "bounds": {
         "min": [
           -18.149823480957032,
@@ -175,7 +367,7 @@
           -36.715605029754634
         ],
         "max": [
-          20.75321605340576,
+          27.49356804953929,
           38.68523998950005,
           36.715605029754634
         ]
@@ -186,6 +378,24 @@
       "designId": "prybar_courier",
       "width": 320,
       "height": 360,
+      "mounts": [
+        {
+          "weaponId": "machine_gun",
+          "location": "left_arm"
+        },
+        {
+          "weaponId": "machine_gun",
+          "location": "right_arm"
+        },
+        {
+          "weaponId": "srm2",
+          "location": "left_torso"
+        },
+        {
+          "weaponId": "srm2",
+          "location": "right_torso"
+        }
+      ],
       "bounds": {
         "min": [
           -3.724160013313294,
@@ -204,6 +414,20 @@
       "designId": "rampart_breaker",
       "width": 320,
       "height": 360,
+      "mounts": [
+        {
+          "weaponId": "ac20",
+          "location": "right_arm"
+        },
+        {
+          "weaponId": "gauss_rifle",
+          "location": "right_torso"
+        },
+        {
+          "weaponId": "lrm10",
+          "location": "left_torso"
+        }
+      ],
       "bounds": {
         "min": [
           -15.59682393199463,
@@ -222,6 +446,28 @@
       "designId": "redoubt_emplacement",
       "width": 320,
       "height": 360,
+      "mounts": [
+        {
+          "weaponId": "lbx_ac10",
+          "location": "centre_torso"
+        },
+        {
+          "weaponId": "flamer",
+          "location": "left_torso"
+        },
+        {
+          "weaponId": "flamer",
+          "location": "right_torso"
+        },
+        {
+          "weaponId": "flamer",
+          "location": "head"
+        },
+        {
+          "weaponId": "ac5",
+          "location": "right_torso"
+        }
+      ],
       "bounds": {
         "min": [
           -15.381600379943848,
@@ -240,6 +486,20 @@
       "designId": "rivet_escort",
       "width": 320,
       "height": 360,
+      "mounts": [
+        {
+          "weaponId": "ac5",
+          "location": "right_arm"
+        },
+        {
+          "weaponId": "srm6",
+          "location": "left_arm"
+        },
+        {
+          "weaponId": "srm6",
+          "location": "left_torso"
+        }
+      ],
       "bounds": {
         "min": [
           -7.634055165790558,
@@ -258,6 +518,28 @@
       "designId": "sentinel_brawler",
       "width": 320,
       "height": 360,
+      "mounts": [
+        {
+          "weaponId": "medium_pulse_laser",
+          "location": "left_arm"
+        },
+        {
+          "weaponId": "medium_pulse_laser",
+          "location": "left_arm"
+        },
+        {
+          "weaponId": "plasma_rifle",
+          "location": "right_torso"
+        },
+        {
+          "weaponId": "er_medium_laser",
+          "location": "right_torso"
+        },
+        {
+          "weaponId": "medium_laser",
+          "location": "centre_torso"
+        }
+      ],
       "bounds": {
         "min": [
           -8.053954639148712,
@@ -265,9 +547,9 @@
           -13.07520091648102
         ],
         "max": [
-          12.417049532995769,
+          10.256575793204444,
           32.978660422668455,
-          13.708838225555422
+          13.07520091648102
         ]
       }
     },
@@ -276,6 +558,20 @@
       "designId": "trestle_battery",
       "width": 320,
       "height": 360,
+      "mounts": [
+        {
+          "weaponId": "ac5",
+          "location": "left_arm"
+        },
+        {
+          "weaponId": "lrm10",
+          "location": "left_torso"
+        },
+        {
+          "weaponId": "lrm10",
+          "location": "right_torso"
+        }
+      ],
       "bounds": {
         "min": [
           -10.654019599609375,
@@ -294,6 +590,24 @@
       "designId": "votive_picket",
       "width": 320,
       "height": 360,
+      "mounts": [
+        {
+          "weaponId": "er_medium_laser",
+          "location": "left_arm"
+        },
+        {
+          "weaponId": "small_laser",
+          "location": "left_arm"
+        },
+        {
+          "weaponId": "er_medium_laser",
+          "location": "right_arm"
+        },
+        {
+          "weaponId": "small_laser",
+          "location": "right_arm"
+        }
+      ],
       "bounds": {
         "min": [
           -5.575885637336347,
@@ -312,6 +626,24 @@
       "designId": "warden_lancer",
       "width": 320,
       "height": 360,
+      "mounts": [
+        {
+          "weaponId": "large_laser",
+          "location": "left_arm"
+        },
+        {
+          "weaponId": "large_laser",
+          "location": "right_arm"
+        },
+        {
+          "weaponId": "srm6",
+          "location": "left_torso"
+        },
+        {
+          "weaponId": "medium_laser",
+          "location": "centre_torso"
+        }
+      ],
       "bounds": {
         "min": [
           -9.741468972240082,
@@ -330,6 +662,16 @@
       "designId": "wisp_scout",
       "width": 320,
       "height": 360,
+      "mounts": [
+        {
+          "weaponId": "medium_laser",
+          "location": "left_arm"
+        },
+        {
+          "weaponId": "medium_laser",
+          "location": "right_arm"
+        }
+      ],
       "bounds": {
         "min": [
           -6.398533274583816,

@@ -355,7 +355,13 @@ export async function runAdaptiveScoreChecks({ browser, url, check }) {
       check(`adaptive score battle ${battle} closes the prior context`,
         contexts[battleContextIndex + battle - 1].state === 'closed' && contexts[battleContextIndex + battle - 1].closeCalls === 1);
     }
-    await restart(page);
+    // Restart now correctly unlocks the next battle immediately. Return to
+    // briefing to finish the tenth lifetime without starting an eleventh score.
+    await openMenu(page);
+    await page.locator('[data-testid="choose-mission"]').click();
+    await page.waitForSelector('[data-testid="briefing"]');
+    await page.waitForFunction(() => globalThis.__audioProbe.snapshot()
+      .every(context => context.state === 'closed' && context.closeCalls === 1));
     const lifetime = await audioProbe(page);
     const battles = lifetime.slice(battleContextIndex);
     const scoreSources = battles.flatMap((entry) => entry.scoreSources);

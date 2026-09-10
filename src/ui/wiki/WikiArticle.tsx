@@ -1,7 +1,7 @@
 import type { MechArticle, StoryArticle, WikiArticle as Article, WikiDiscovery } from '../../wiki/library';
 import { getWikiLibrary, isWikiDiscovered, wikiKey } from '../../wiki/library';
 import { getCatalog } from '../../schema/load';
-import { weaponSize, weaponSizeLabel } from '../../sim/loadout';
+import { LoadoutMap } from '../mechbay/LoadoutMap';
 import { MachinePortrait } from '../mechbay/MachinePortrait';
 import { WikiLink } from './WikiLink';
 import { FactionLogo } from '../FactionLogo';
@@ -60,14 +60,7 @@ function MechDossier({ article }: { article: MechArticle }) {
       </div>
       <aside className="wiki-fit" aria-labelledby="wiki-fit-title"><span className="wiki-eyebrow">Current game catalogue</span>
         <h2 id="wiki-fit-title">Standard fit</h2><p>Your company may refit this chassis differently.</p>
-        <ul className="wiki-weapons">{design.mounts.map((mount, index) => {
-          const weapon = catalog.weapons.get(mount.weaponId)!;
-          return <li key={index}><strong>{weapon.name}</strong><span>{locationName(mount.location)} · {weapon.type}</span>
-            <span className="wiki-weapon-spec">{weaponSizeLabel(catalog, weaponSize(catalog, weapon))} · {weapon.tonnage} t · {weapon.heat} heat</span>
-            <span className="wiki-boxes" aria-label={`${weapon.slots} equipment boxes`}>
-              {Array.from({ length: weapon.slots }, (_, box) => <i key={box} aria-hidden="true" />)}<small>{weapon.slots} {weapon.slots === 1 ? 'box' : 'boxes'}</small>
-            </span></li>;
-        })}</ul>
+        <LoadoutMap catalog={catalog} design={design} />
         <p>{design.heatSinks} × {catalog.equipment.get(design.heatSinkId)?.name ?? 'heat sink'}</p>
         {design.equipment.length === 0 ? null : <ul>{design.equipment.map((fit, index) =>
           <li key={index}>{catalog.equipment.get(fit.equipmentId)!.name} · {locationName(fit.location)}</li>)}</ul>}

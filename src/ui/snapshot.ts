@@ -65,6 +65,9 @@ function weaponsOf(world: World, entity: MechEntity): WeaponSnapshot[] {
       cooldown: mount.cooldown,
       cooldownMax: mount.cooldown > 0 ? mount.cycleDuration : (profile?.cooldown ?? 1),
       destroyed: mount.destroyed,
+      cooling: mount.governorBlocked === true && entity.groupIntent[mount.group - 1] === true
+        && !mount.destroyed && world.tick > entity.alphaUntilTick
+        && (weapon?.ammoPerTon === null || (roundsByWeapon.get(mount.weaponId) ?? 0) > 0),
       rounds: weapon?.ammoPerTon === null ? null : (roundsByWeapon.get(mount.weaponId) ?? 0),
       shortRange: weapon?.range.short ?? 0,
       longRange: weapon?.range.long ?? 0,

@@ -59,6 +59,25 @@ describe('battle mechbay score treatment', () => {
     expect(context.closeCalls).toBe(1);
   });
 
+  it('adds the deployment pulse before contact without restarting the music', async () => {
+    installFakeAudio();
+    const { world } = cultureWorld('deployment-score', 'linewrought');
+    const audio = new AudioDirector(); audio.unlock(); await flushScoreLoad();
+    const context = FakeContext.instances[0]!;
+    const rhythm = scoreParams(context).intensity[1]!;
+    const before = rhythm.value;
+    world.tick = 1; context.currentTime = 2;
+    audio.consume(world, []);
+    expect(rhythm.value).toBeGreaterThan(before * 3);
+    expect(context.sources.every(source => source.starts.length === 1)).toBe(true);
+    context.currentTime = 3;
+    audio.consume(world, [{ type: 'battle_ended', tick: world.tick, winner: 0 }]);
+    expect(rhythm.value).toBe(.16);
+    context.currentTime = 4; audio.consume(world, []);
+    expect(rhythm.value).toBe(.16);
+    audio.destroy();
+  });
+
   it('caches a bay treatment before unlock and keeps mute on the same sources', async () => {
     installFakeAudio();
     const audio = new AudioDirector();

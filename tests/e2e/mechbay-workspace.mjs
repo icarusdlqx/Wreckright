@@ -1,3 +1,4 @@
+import { importLegacySentinel, comparisonMetrics, addedWeaponComparison } from './mechbay-legacy-fixture.mjs';
 import { discardRefitIfPrompted } from './mechbay-exit.mjs';
 import { clickFittingAction } from './fitting-actions.mjs';
 import { openDesktopBattleMenu } from './input-safety.mjs';
@@ -170,7 +171,7 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
     .allInnerTexts();
   check(
     'the desktop stock picker carries complete machine identity without serial designations',
-    stockIdentity === 'Sentinel — 45t Medium · Line brawler · Aurelian Stock' &&
+    stockIdentity === 'Sentinel — 45t Medium · Plasma brawler · Aurelian Stock' &&
       stockOptions.every((label) => !/\b[A-Z]{3}-\d+\b/.test(label)) &&
       stockOptions.every((label) => label.includes(' — ') && label.split(' · ').length === 3),
     stockOptions.join(' | '),
@@ -187,6 +188,9 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
   );
   await verifyArmourPaperDoll({ page, check, shots });
   await selectWorkspace(page, 'loadout');
+
+  await importLegacySentinel(page);
+  const startingComparison = await comparisonMetrics(page);
 
   const firstWeaponRow = page.locator('[data-testid^="stock-weapon-"]').first();
   await firstWeaponRow.focus();
@@ -259,16 +263,10 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
   check('keyboard pick-to-hardpoint mounts the weapon', afterFit < startingFree, `${startingFree}t → ${afterFit}t`);
   await verifyFirstFitExplainers({ page, check });
   await selectWorkspace(page, 'review');
-  const fittedComparison = await comparisonDirections(page);
+  const fittedComparison = await comparisonMetrics(page);
   check(
     'Review exposes the fitted weapon trade across heat, alpha, and all range bands',
-    fittedComparison.speed === 'neutral' &&
-      fittedComparison.armour === 'neutral' &&
-      fittedComparison.heat_margin === 'bad' &&
-      fittedComparison.alpha_damage === 'good' &&
-      fittedComparison.dps_short === 'good' &&
-      fittedComparison.dps_medium === 'good' &&
-      fittedComparison.dps_long === 'good',
+    addedWeaponComparison(startingComparison, fittedComparison),
     JSON.stringify(fittedComparison),
   );
   await page.screenshot({ path: `${shots}/05-mechbay-build-compare.png` });
@@ -312,11 +310,11 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
   );
   check('free tonnage returns to its starting value', (await freeTonnage(page)) === startingFree);
   await selectWorkspace(page, 'review');
-  const restoredComparison = await comparisonDirections(page);
+  const restoredComparison = await comparisonMetrics(page);
   check(
-    'removing the edit restores all stock comparison metrics to neutral',
+    'removing the edit restores all seven saved-refit comparison metrics exactly',
     Object.keys(restoredComparison).length === 7 &&
-      Object.values(restoredComparison).every((direction) => direction === 'neutral'),
+      JSON.stringify(restoredComparison) === JSON.stringify(startingComparison),
     JSON.stringify(restoredComparison),
   );
   await selectWorkspace(page, 'loadout');

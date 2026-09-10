@@ -91,7 +91,7 @@ describe('battle result view', () => {
     expect(view.lance[1]?.accuracy).toBeNull();
     expect(view.lance[0]).toMatchObject({
       name: 'Sentinel',
-      identity: 'Sentinel — 45t Medium · Line brawler · Aurelian Stock',
+      identity: 'Sentinel — 45t Medium · Plasma brawler · Aurelian Stock',
     });
     expect(view.lance[0]?.identity).not.toContain('SNL-2');
   });

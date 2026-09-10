@@ -16,7 +16,7 @@
     "armourCostPerPoint": 250,
     "internalCostPerPoint": 1200,
     "locationReplaceCostFraction": 0.02,
-    "armourPointsPerDay": 120,
+    "armourPointsPerDay": 140,
     "internalPointsPerDay": 60,
     "locationReplaceDays": 1,
     "minimumDays": 1,

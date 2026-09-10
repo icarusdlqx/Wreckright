@@ -88,6 +88,7 @@ export function usableWeapon(
 ): Weapon | null {
   const groups = state === 'enabled' ? mech.groupEnabled : mech.groupIntent;
   if (mount.destroyed || groups[mount.group - 1] !== true) return null;
+  if (state === 'enabled' && mount.governorBlocked === true) return null;
   const weapon = world.catalog.weapons.get(mount.weaponId);
   if (weapon === undefined) return null;
   if (weapon.ammoPerTon !== null && findAmmoBin(mech, weapon.id) === null) return null;

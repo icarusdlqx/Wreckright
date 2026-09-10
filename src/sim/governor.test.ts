@@ -5,9 +5,12 @@ import { effectiveDissipationPerSecond } from './heat';
 import { isHoldingFire, setGroupEnabled, setHoldFire } from './orders';
 import type { MechEntity, World } from './types';
 
+const worldHeatResume = (world: World): number => world.rules.ai.heat.resumeFraction;
+
 function readyHeat(world: World, mech: MechEntity, enabledOnly: boolean): number {
   return mech.weapons.reduce((total, mount) => {
     if (enabledOnly && mech.groupEnabled[mount.group - 1] !== true) return total;
+    if (enabledOnly && mount.governorBlocked === true) return total;
     return total + (world.catalog.weapons.get(mount.weaponId)?.heat ?? 0);
   }, 0);
 }
@@ -95,14 +98,12 @@ describe('pilot intent versus the reactor governor', () => {
     const dryWorld = playerWorld('weather-governor');
     const dryMech = unitOf(dryWorld, 'sentinel_brawler');
     dryMech.pos = { x: 12, y: 12 };
-    dryMech.heat = dryMech.heatCapacity * 0.95;
-    for (const mount of dryMech.weapons) mount.cooldown = 10;
+    dryMech.heat = dryMech.heatCapacity * worldHeatResume(dryWorld);
 
     const harshWorld = playerWorld('weather-governor');
     const harshMech = unitOf(harshWorld, 'sentinel_brawler');
     harshMech.pos = { x: 12, y: 12 };
-    harshMech.heat = harshMech.heatCapacity * 0.95;
-    for (const mount of harshMech.weapons) mount.cooldown = 10;
+    harshMech.heat = harshMech.heatCapacity * worldHeatResume(harshWorld);
     harshWorld.atmosphere = {
       ...harshWorld.atmosphere,
       mechanics: { ...harshWorld.atmosphere.mechanics, heatDissipationFactor: 0.5 },
@@ -111,8 +112,7 @@ describe('pilot intent versus the reactor governor', () => {
     const wetWorld = playerWorld('weather-governor');
     const wetMech = unitOf(wetWorld, 'sentinel_brawler');
     wetMech.pos = { x: 18 * 24 + 12, y: 33 * 24 + 12 };
-    wetMech.heat = wetMech.heatCapacity * 0.95;
-    for (const mount of wetMech.weapons) mount.cooldown = 10;
+    wetMech.heat = wetMech.heatCapacity * worldHeatResume(wetWorld);
     wetWorld.atmosphere = {
       ...wetWorld.atmosphere,
       mechanics: { ...wetWorld.atmosphere.mechanics, heatDissipationFactor: 0.5 },

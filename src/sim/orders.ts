@@ -242,12 +242,21 @@ export function setGroupEnabled(entity: MechEntity, group: number, enabled: bool
   if (group < 1 || group > entity.groupIntent.length) return;
   entity.groupIntent[group - 1] = enabled;
   entity.groupEnabled[group - 1] = enabled;
+  for (const mount of entity.weapons) {
+    if (mount.group !== group) continue;
+    mount.governorBlocked = false;
+    mount.governorWaitTicks = 0;
+  }
 }
 
 export function setHoldFire(entity: MechEntity, holdFire: boolean): void {
   for (let group = 0; group < entity.groupIntent.length; group += 1) {
     entity.groupIntent[group] = !holdFire;
     entity.groupEnabled[group] = !holdFire;
+  }
+  for (const mount of entity.weapons) {
+    mount.governorBlocked = false;
+    mount.governorWaitTicks = 0;
   }
 }
 

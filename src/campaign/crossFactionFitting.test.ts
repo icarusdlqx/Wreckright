@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { catalog } from '../../tests/support';
+import { catalog, legacySentinelDesign } from '../../tests/support';
 import { validateDesign } from '../schema/designValidation';
 import { startCampaign } from './campaign';
 import { applyRefit, stripToStore } from './refit';
@@ -12,7 +12,8 @@ describe('cross-faction recovered weapon reuse', () => {
     ['bulwark_assault', 'large_laser'],
     ['sentinel_brawler', 'ac5'],
   ])('moves %s weapon %s through stores and back without a hidden adapter or faction penalty', (designId, weaponId) => {
-    const design = catalog.designs.get(designId);
+    // The old mixed Sentinel is a saved custom build with a foreign autocannon.
+    const design = designId === 'sentinel_brawler' ? legacySentinelDesign : catalog.designs.get(designId);
     if (design === undefined) throw new Error(`missing ${designId}`);
     const original = structuredClone(design);
     const state = startCampaign(catalog, 'border_dispute', `cross-fit-${designId}`);

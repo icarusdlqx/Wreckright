@@ -5,7 +5,7 @@
   "class": "assault",
   "tonnage": 100,
   "baseCost": 29500000,
-  "engineRating": 390,
+  "engineRating": 375,
   "internalHeatSinks": 20,
   "jumpCapable": false,
   "hardpoints": {
@@ -95,15 +95,15 @@
     "stance": 1.12
   },
   "role": "Assault skirmisher",
-  "summary": "A fast assault skirmisher behind a seamless shell. Four cycling emitters track well inside two hundred metres, then heat and distance take their price.",
-  "lore": "Pallvaults were stored standing directly on their depot floors, their broad upper housings nearly touching the roof. Compact manuals assumed service docks able to exchange whole assemblies. Tessellan workshops developed slower methods using jigs, careful measurements and heavy recovery crews. Repairs are possible, costly and dependent on finding the right components. An intact Pallvault moves more quickly than its broad silhouette suggests. Its standard emitter banks make a short exchange formidable; repeated volleys still demand restraint.",
+  "summary": "Paired burst-emitter arms close behind full assault plate. A central plasma rifle pressures enemy reactors while compound cooling supports repeated salvos.",
+  "lore": "A Pallvault carries its command enclosure below a broad armoured crown. Restoration crews reduced the engine package slightly to restore full assault plate and a central plasma rifle alongside the paired burst-emitter arms. Compound exchangers support the resulting battery without ammunition bins. It remains unusually mobile for its weight, but the procession still needs room to turn. The Continuance calls the armour ceremonial. The crews who return with it missing know what it costs.",
   "traits": [],
   "strengths": [
-    "Fast for an assault frame",
-    "Deep cooling capacity"
+    "Heavy armour and accurate burst batteries",
+    "Central plasma remains after an arm is lost"
   ],
   "weaknesses": [
-    "Short-reach standard armament",
-    "Heat limits repeated volleys"
+    "Full battery works best at medium and close range",
+    "Expensive repairs and replacement emitters"
   ]
 }

@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { chromium } from 'playwright';
 
 const base = new URL(process.env.BASE_URL ?? 'http://127.0.0.1:5217/');
-const output = resolve('src/assets/machines');
+const output = resolve(process.env.OUTPUT_DIR ?? 'src/assets/machines');
 const executable = process.env.CHROMIUM_PATH ?? '/opt/pw-browsers/chromium';
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ headless: true,
@@ -72,6 +72,7 @@ try {
           scene.background = new THREE.Color(chassis.faction === 'aurelian' ? 0xdde8e2 : 0xf1ddc5);
           renderer.render(scene, camera);
           records.push({ id: chassis.id, designId: design.id, width: 320, height: 360,
+            mounts: design.mounts.map(({ weaponId, location }) => ({ weaponId, location })),
             image: renderer.domElement.toDataURL('image/webp', 0.9),
             bounds: { min: bounds.min.toArray(), max: bounds.max.toArray() } });
         } finally { scene.remove(model.root); factory.disposeModel(model.root); }

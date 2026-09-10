@@ -97,6 +97,10 @@ export interface WeaponMount {
   /** Duration of the shot currently cycling, even if its next mode differs. */
   cycleDuration: number;
   destroyed: boolean;
+  /** Transient reactor scheduling; the pilot's weapon-group intent is unchanged. */
+  governorBlocked?: boolean;
+  /** Waiting ready mounts take their turn before recently admitted mounts. */
+  governorWaitTicks?: number;
 }
 
 export interface AmmoBin {

@@ -94,19 +94,19 @@
     "legLength": 1.08,
     "stance": 1.0
   },
-  "role": "Heavy skirmisher",
-  "summary": "A fast command heavy. It keeps pace with mediums because some of the missing weight is armour.",
+  "role": "Command skirmisher",
+  "summary": "Paired arm lasers, a torso Shortbow and a command console form a mobile centre for the lance. The Warden supports coordinated fire behind heavier machines.",
   "lore": "Warden roots appear in the depot ledger beside moving substations and survey towers. Their second working position and lance display first served crews coordinating a moving work party. Restored communications equipment now helps a commander keep a company together; it exchanges reports and orders, never control of another cockpit. The broad shoulder roof protects a machine built to move with its companions. Alone, a Warden is a fast heavy with less armour than its classification invites an enemy to expect.",
   "traits": [
     "long_stride",
     "command_console"
   ],
   "strengths": [
-    "Long stride",
-    "Command console"
+    "Command console improves lance fire control",
+    "Mobile paired-laser battery"
   ],
   "weaknesses": [
-    "Light armour for its weight",
-    "No jump jets"
+    "Shortbow requires ammunition",
+    "Cannot replace an assault mech in a straight trade"
   ]
 }

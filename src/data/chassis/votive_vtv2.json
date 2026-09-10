@@ -95,18 +95,18 @@
     "stance": 0.92
   },
   "role": "Sensor picket",
-  "summary": "A precise light hunter. Jump jets and a narrow frame let it choose the range; its armour leaves little room for mistakes.",
+  "summary": "Paired focused and small arm lasers guard a deep scanner. The Votive jumps between observation points and keeps missile crews informed without carrying bins.",
   "lore": "Votives were found upright in a Compact service vault, their narrow white armour forms aligned in regular rows. Restoring the survivors required careful calibration and scarce replacements, work Aurelian crews regard as proof of proper custody. Tessellan fitters can service them too; the invoice is longer and the local Yard cannot supply a replacement emitter. The restored machine is a quick, precise hunter. Its clean shell does not spare a careless pilot from heat or incoming fire.",
   "traits": [
     "long_stride",
     "narrow_profile"
   ],
   "strengths": [
-    "Fast jumping hunter",
-    "Narrow target"
+    "Mobile scanner with jump escape",
+    "Focused lasers reach beyond most light weapons"
   ],
   "weaknesses": [
-    "Light protection",
-    "Energy volleys demand cooling"
+    "Thin armour if pinned in place",
+    "Small lasers add little at long range"
   ]
 }

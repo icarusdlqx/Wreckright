@@ -1,3 +1,4 @@
+import { importLegacySentinel, comparisonMetrics, addedWeaponComparison } from './mechbay-legacy-fixture.mjs';
 import { discardRefitIfPrompted } from './mechbay-exit.mjs';
 import {
   explainerState,
@@ -54,7 +55,7 @@ export async function runMobileMechbayJourney({
   const stockOptions = await stockPicker.locator('option').allInnerTexts();
   check(
     `${prefix} stock picker carries complete machine identity without serial designations`,
-    stockIdentity === 'Sentinel — 45t Medium · Line brawler · Aurelian Stock' &&
+    stockIdentity === 'Sentinel — 45t Medium · Plasma brawler · Aurelian Stock' &&
       stockOptions.every((label) => !/\b[A-Z]{3}-\d+\b/.test(label)) &&
       stockOptions.every((label) => label.includes(' — ') && label.split(' · ').length === 3),
     stockOptions.join(' | '),
@@ -234,6 +235,8 @@ export async function runMobileMechbayJourney({
   await page.locator('[data-testid="bay-location-head"]').scrollIntoViewIfNeeded();
   await page.screenshot({ path: `${shots}/14-mobile-${shotLabel}-mechbay-rest.png` });
 
+  await importLegacySentinel(page);
+  const startingComparison = await comparisonMetrics(page);
   const beforeFit = await page.locator('[data-testid="free-tonnage"]').innerText();
   const locationTarget = page.locator('[data-testid="bay-location-right_torso"] .bay-location-name');
   const locationTargetBounds = await locationTarget.boundingBox();
@@ -303,16 +306,10 @@ export async function runMobileMechbayJourney({
     JSON.stringify(foldedExplainers),
   );
   await selectWorkspace(page, 'review');
-  const comparisonAfterFit = await comparisonDirections(page);
+  const comparisonAfterFit = await comparisonMetrics(page);
   check(
     `${prefix} comparison updates live after the fitted weapon`,
-    comparisonAfterFit.speed === 'neutral' &&
-      comparisonAfterFit.armour === 'neutral' &&
-      comparisonAfterFit.heat_margin === 'bad' &&
-      comparisonAfterFit.alpha_damage === 'good' &&
-      comparisonAfterFit.dps_short === 'good' &&
-      comparisonAfterFit.dps_medium === 'good' &&
-      comparisonAfterFit.dps_long === 'good',
+    addedWeaponComparison(startingComparison, comparisonAfterFit),
     JSON.stringify(comparisonAfterFit),
   );
   await selectWorkspace(page, 'loadout');
@@ -336,12 +333,12 @@ export async function runMobileMechbayJourney({
   );
   await remove.tap();
   await selectWorkspace(page, 'review');
-  const comparisonAfterRemove = await comparisonDirections(page);
+  const comparisonAfterRemove = await comparisonMetrics(page);
   check(
     `${prefix} explicit Remove restores the starting loadout`,
     (await page.locator('[data-testid="free-tonnage"]').innerText()) === beforeFit &&
       Object.keys(comparisonAfterRemove).length === 7 &&
-      Object.values(comparisonAfterRemove).every((direction) => direction === 'neutral'),
+      JSON.stringify(comparisonAfterRemove) === JSON.stringify(startingComparison),
     JSON.stringify(comparisonAfterRemove),
   );
   await selectWorkspace(page, 'loadout');

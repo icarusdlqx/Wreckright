@@ -95,7 +95,7 @@
     "stance": 0.95
   },
   "role": "Sensor scout",
-  "summary": "A bright, factory-refurbished survey frame. It finds trouble early and survives by leaving before trouble can answer.",
+  "summary": "A deep scanner, tall sensor mast and paired arm lasers make the Vesper a fast reconnaissance machine. Jump jets let it break contact before the line arrives.",
   "lore": "The Karst Reach register calls the Vesper a boundary reader. The recovery books record a hall of upright machines under covers that had rotted around their preserved armour. Restored optics and carefully serviced running gear can make an inherited survey root look newly built. The sensor glass sits deep inside the hull, protected but expensive to replace. A Vesper earns its keep by finding trouble and leaving before the counting is noticed. Its crew needs a retreat route more than another reason to fire.",
   "traits": [
     "long_stride",
@@ -103,11 +103,11 @@
     "narrow_profile"
   ],
   "strengths": [
-    "Long stride and jump jets",
-    "Extended sensor coverage"
+    "Exceptional detection and a small profile",
+    "Fast stride, jump jets and no weapon ammunition"
   ],
   "weaknesses": [
-    "Very light armour",
-    "Limited payload"
+    "Light armour and a modest laser pair",
+    "Not built to trade with line mechs"
   ]
 }

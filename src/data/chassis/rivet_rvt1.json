@@ -96,17 +96,17 @@
     "stance": 1.1
   },
   "role": "Convoy guard",
-  "summary": "A medium escort with a workhorse cannon, short-range racks and protected bins. Built to keep walking beside something slower.",
+  "summary": "A right-arm field cannon and left-side Shortbows cover the convoy. Protected bins, anti-missile gear and reinforced legs favour dependable escort work.",
   "lore": "Sarn wrote the first Rivet conversion against a freight guarantee, not a military order. The surviving root could carry a better engine, but the carrier wanted a cannon it could feed and legs that could finish a shift damaged. The right gun cradle and left rack do not balance on the gantry; the counterweight is armour and the workshop keeps its measurements beside the root collar. Crews value the missile screen. The freight office values a machine that can stand between a stopped hauler and the reason it stopped.",
   "traits": [
     "reinforced_legs"
   ],
   "strengths": [
-    "Reinforced legs",
-    "Flexible escort armament"
+    "Steady local cannon and short-range volleys",
+    "Anti-missile support and reinforced legs"
   ],
   "weaknesses": [
-    "No jump jets",
+    "Finite ammunition",
     "Limited long-range firepower"
   ]
 }

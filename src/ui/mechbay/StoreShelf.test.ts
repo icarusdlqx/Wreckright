@@ -2,13 +2,13 @@ import { readFileSync } from 'node:fs';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { catalog } from '../../../tests/support';
+import { catalog, legacySentinelDesign } from '../../../tests/support';
 import type { MechLocation } from '../../schema/common';
 import { evaluateDrop } from './mechbayEdits';
 import { StoreShelf } from './StoreShelf';
 
 function requireDesign() {
-  const found = catalog.designs.get('sentinel_brawler');
+  const found = legacySentinelDesign;
   if (found === undefined) throw new Error('missing Sentinel design');
   return found;
 }

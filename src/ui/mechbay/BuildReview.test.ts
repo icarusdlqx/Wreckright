@@ -2,13 +2,13 @@ import { readFileSync } from 'node:fs';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
-import { catalog } from '../../../tests/support';
+import { catalog, legacySentinelDesign } from '../../../tests/support';
 import type { Design } from '../../schema/design';
 import { computeHeatProfile, computeLoadout } from '../../sim/loadout';
 import { BuildReview, navigateAndFocusWorkspace } from './BuildReview';
 
 function stock(): Design {
-  const design = catalog.designs.get('sentinel_brawler');
+  const design = legacySentinelDesign;
   if (design === undefined) throw new Error('missing Sentinel design');
   return structuredClone(design);
 }

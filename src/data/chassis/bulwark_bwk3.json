@@ -94,19 +94,19 @@
     "legLength": 0.96,
     "stance": 1.06
   },
-  "role": "Line anchor",
-  "summary": "Wide, low and patient. The mech you put where the ground must not move.",
+  "role": "Mixed line anchor",
+  "summary": "Recovered lasers on the left arm work beside a local cannon and twin shoulder Longshots. The Bulwark is a flexible anchor with several ways to keep firing.",
   "lore": "The BWK is a Compact siege root with the hips widened and the legs cut down, a rebuild Sarn tried once by accident and then repeated because the resulting stance is almost impossible to knock over. It walks at twelve metres a second and does not care. Ridgeward militias buy the named survivors second-hand and park them across roads, which is, in fairness, exactly what they are for.",
   "traits": [
     "wide_stance",
     "reinforced_legs"
   ],
   "strengths": [
-    "Stable line holder",
-    "Reinforced legs"
+    "Mixed battery covers several range bands",
+    "Stable platform with reinforced legs"
   ],
   "weaknesses": [
-    "No jump jets",
-    "Heavy frame commits to its position"
+    "Heat and ammunition both need attention",
+    "Both large lasers depend on the left arm"
   ]
 }

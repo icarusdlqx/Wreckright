@@ -3,32 +3,32 @@
   "name": "Halberd",
   "chassisId": "halberd_hlb4",
   "armour": {
-    "head": 22,
-    "centre_torso": 92,
-    "left_torso": 64,
-    "right_torso": 64,
-    "left_arm": 28,
-    "right_arm": 28,
-    "left_leg": 48,
-    "right_leg": 48
+    "head": 24,
+    "centre_torso": 118,
+    "left_torso": 84,
+    "right_torso": 84,
+    "left_arm": 38,
+    "right_arm": 38,
+    "left_leg": 64,
+    "right_leg": 64
   },
-  "heatSinkId": "heat_sink",
+  "heatSinkId": "double_heat_sink",
   "heatSinks": 13,
   "mounts": [
     {
-      "weaponId": "lrm10",
-      "location": "left_torso"
-    },
-    {
-      "weaponId": "lrm10",
-      "location": "right_torso"
-    },
-    {
-      "weaponId": "er_large_laser",
+      "weaponId": "er_ppc",
       "location": "left_arm"
     },
     {
-      "weaponId": "er_large_laser",
+      "weaponId": "large_laser",
+      "location": "left_arm"
+    },
+    {
+      "weaponId": "er_ppc",
+      "location": "right_arm"
+    },
+    {
+      "weaponId": "large_laser",
       "location": "right_arm"
     },
     {
@@ -36,26 +36,6 @@
       "location": "centre_torso"
     }
   ],
-  "ammo": [
-    {
-      "weaponId": "lrm10",
-      "location": "left_torso",
-      "tons": 1
-    },
-    {
-      "weaponId": "lrm10",
-      "location": "right_torso",
-      "tons": 1
-    }
-  ],
-  "equipment": [
-    {
-      "equipmentId": "case",
-      "location": "left_torso"
-    },
-    {
-      "equipmentId": "case",
-      "location": "right_torso"
-    }
-  ]
+  "ammo": [],
+  "equipment": []
 }

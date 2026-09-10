@@ -1,3 +1,4 @@
+import { audioPlaybackFocus } from './audioPlaybackFocus';
 import {
   readAudioPreferences,
   subscribeAudioPreferences,
@@ -13,6 +14,7 @@ export class AudioMixer {
   readonly music: GainNode;
   readonly interface: GainNode;
   private readonly unsubscribe: () => void;
+  private readonly unsubscribeFocus: () => void;
   private preferences: Readonly<AudioPreferences>;
 
   constructor(
@@ -25,6 +27,7 @@ export class AudioMixer {
     this.music = this.createBus();
     this.interface = this.createBus();
     this.preferences = { ...readAudioPreferences(), muted };
+    this.unsubscribeFocus = audioPlaybackFocus.subscribe(() => this.apply());
     this.apply(true);
     this.unsubscribe = subscribeAudioPreferences(() => {
       this.preferences = readAudioPreferences();
@@ -38,12 +41,12 @@ export class AudioMixer {
   }
 
   audible(channel: 'effects' | 'interface' | 'music'): boolean {
-    return !this.preferences.muted && this.preferences.master > 0
+    return audioPlaybackFocus.active && !this.preferences.muted && this.preferences.master > 0
       && (channel === 'music' ? this.preferences.musicEnabled : this.preferences.effectsEnabled)
       && this.preferences[channel] > 0;
   }
 
-  destroy(): void { this.unsubscribe(); }
+  destroy(): void { this.unsubscribe(); this.unsubscribeFocus(); }
 
   private createBus(): GainNode {
     const node = this.context.createGain();
@@ -54,7 +57,7 @@ export class AudioMixer {
   private apply(initial = false): void {
     const prefs = this.preferences;
     const quiet = prefs.dynamicRange === 'quiet';
-    const master = prefs.muted ? 0 : MASTER_LEVEL * prefs.master * (quiet ? 0.85 : 1);
+    const master = prefs.muted || !audioPlaybackFocus.active ? 0 : MASTER_LEVEL * prefs.master * (quiet ? 0.85 : 1);
     for (const [node, value] of [
       [this.master, master], [this.effects, prefs.effectsEnabled ? prefs.effects : 0],
       [this.music, prefs.musicEnabled ? prefs.music : 0],

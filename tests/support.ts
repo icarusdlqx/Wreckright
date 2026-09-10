@@ -1,4 +1,6 @@
 import { loadCatalog } from '../src/schema/load';
+import { DesignSchema } from '../src/schema/design';
+import legacySentinelSource from './fixtures/legacy-sentinel-brawler.json';
 import type { TerrainMapData } from '../src/schema/map';
 import { createMech } from '../src/sim/entity';
 import { createTerrainGrid, type TerrainGrid } from '../src/sim/terrain';
@@ -6,6 +8,8 @@ import type { MechEntity, World } from '../src/sim/types';
 import { createWorld } from '../src/sim/world';
 
 export const catalog = loadCatalog();
+/** Saved mixed refits still need real cannon, ammunition and removal coverage. */
+export const legacySentinelDesign = DesignSchema.parse(legacySentinelSource);
 
 // Unit tests need a stable mechanical laboratory even when the public
 // skirmish roster is rebalanced. Keep the original weapon-rich opponents here
@@ -23,6 +27,7 @@ duellist.designId = 'falchion_duellist';
 halberdier.designId = 'halberd_prime';
 const fixtureCatalog = {
   ...catalog,
+  designs: new Map(catalog.designs).set(legacySentinelDesign.id, legacySentinelDesign),
   missions: new Map(catalog.missions).set('skirmish_ridge', fixtureMission),
 };
 
@@ -41,7 +46,7 @@ export function spawnDesign(
   team: number = 1,
   spawn: { x: number; y: number } = { x: 480, y: 480 },
 ): MechEntity {
-  const entity = createMech(catalog, catalog.rules, {
+  const entity = createMech(world.catalog, world.rules, {
     id: Math.max(0, ...world.entities.map((other) => other.id)) + 1,
     team,
     designId,

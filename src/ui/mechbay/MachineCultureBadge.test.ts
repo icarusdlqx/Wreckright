@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { catalog } from '../../../tests/support';
+import { catalog, legacySentinelDesign } from '../../../tests/support';
 import type { Faction } from '../../schema/faction';
 import { MachineCultureBadge } from './MachineCultureBadge';
 import {
@@ -79,8 +79,8 @@ describe('machine culture badge', () => {
     expect(expanded).toContain('Mixed refit installed');
   });
 
-  it('detects the actual mixed-pattern Sentinel fit without treating missing legacy ids as foreign', () => {
-    const design = catalog.designs.get('sentinel_brawler');
+  it('detects a saved mixed-pattern Sentinel fit without treating missing legacy ids as foreign', () => {
+    const design = legacySentinelDesign;
     if (design === undefined) throw new Error('missing Sentinel design');
     expect(designUsesForeignComponents(catalog, design, 'aurelian')).toBe(true);
 

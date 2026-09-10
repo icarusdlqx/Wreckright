@@ -1,3 +1,4 @@
+import { importLegacySentinel } from './mechbay-legacy-fixture.mjs';
 import { openDesktopBattleMenu } from './input-safety.mjs';
 import { clickFittingAction } from './fitting-actions.mjs';
 
@@ -30,7 +31,7 @@ async function pointerDrop(page, source, target) {
 const weaponsAt = (page, location) => page.getByTestId(`bay-location-${location}`).locator('[data-testid^="remove-weapon-"]').count();
 const saved = (page, id) => page.evaluate(key => JSON.parse(localStorage.getItem(`ironline.design.${key}`)), id);
 
-/** Real pointer actions and private storage; no design injection or campaign state edits. */
+/** Real pointer actions, UI file import and private storage; no campaign state edits. */
 export async function runFittingGridChecks({ browser, url, shots, check }) {
   const context = await browser.newContext({ viewport: { width: 1600, height: 1000 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
@@ -39,7 +40,8 @@ export async function runFittingGridChecks({ browser, url, shots, check }) {
   page.on('pageerror', error => errors.push(String(error)));
   try {
     await openBay(page, url);
-    const counts = await page.locator('[data-testid="rack-capacity"]').evaluateAll(racks => racks.map(rack => ({
+    await importLegacySentinel(page);
+    const counts = await page.getByTestId('bay-grid').getByTestId('rack-capacity').evaluateAll(racks => racks.map(rack => ({
       capacity: Number(rack.getAttribute('data-capacity')), cells: rack.querySelectorAll('.rack-cell').length,
       rows: getComputedStyle(rack).gridTemplateRows.split(' ').length,
       width: rack.getBoundingClientRect().width,

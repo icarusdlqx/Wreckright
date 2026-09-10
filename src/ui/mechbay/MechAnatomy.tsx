@@ -1,14 +1,23 @@
+import { useMemo } from 'react';
 import { LOCATIONS, type MechLocation } from '../../schema/common';
 import type { Chassis } from '../../schema/chassis';
-import type { Faction } from '../../schema/faction';
 import type { Loadout } from '../../sim/loadout';
 import { MECH_LOCATION_NAMES } from './LocationCard';
+import { projectChassisAnatomy } from './anatomyProjection';
 
-/** A schematic keeps the construction locations fixed while the model remains a preview. */
-export function AnatomyBackdrop({ faction }: { faction: Faction }) {
-  return <svg className={`anatomical-backdrop is-${faction}`} viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true">
-    <path className="anatomical-backdrop__body" d="M455 25h90l24 65-19 28 128 16 30 45 180 18 20 193-71 24-50-144-36-6-36 129-60 37 22 157-87 3-55-145h-70l-55 145-87-3 22-157-60-37-36-129-36 6-50 144-71-24 20-193 180-18 30-45 128-16-19-28z" />
-    <path d="M500 114v304M316 164l94 52h180l94-52M355 388l92-48h106l92 48M405 440l-15 115M595 440l15 115" />
+/** The actual hull stays behind fixed fitting locations; it never changes placement rules. */
+export function AnatomyBackdrop({ chassis }: { chassis: Chassis }) {
+  const projection = useMemo(() => projectChassisAnatomy(chassis), [chassis]);
+  const [x, y, width, height] = projection.viewBox.split(' ').map(Number) as [number, number, number, number];
+  const scale = Math.min(1000 / width, 600 / height);
+  return <svg className={`anatomical-backdrop is-${chassis.faction}`} viewBox="0 0 1000 600"
+    preserveAspectRatio="xMidYMid meet" data-chassis={chassis.id} aria-hidden="true">
+    <g transform={`translate(500 300) scale(${scale}) translate(${-x - width / 2} ${-y - height / 2})`}>
+      {projection.pieces.map((piece, index) => <polygon key={index} className="anatomical-backdrop__body"
+        data-location={piece.location ?? undefined} data-tone={piece.tone}
+        points={piece.points.map(point => `${point.x},${point.y}`).join(' ')}
+        vectorEffect="non-scaling-stroke" />)}
+    </g>
     <path className="anatomical-backdrop__axis" d="M500 0v600M50 315h900" />
   </svg>;
 }
@@ -22,7 +31,7 @@ export function AnatomyNavigator({ chassis, loadout, selected, compatible, targe
   onSelect: (location: MechLocation) => void;
 }) {
   return <nav className="anatomical-navigator" aria-label="Complete mech fitting overview" data-testid="anatomical-navigator">
-    <AnatomyBackdrop faction={chassis.faction} />
+    <AnatomyBackdrop chassis={chassis} />
     {LOCATIONS.map(location => <button key={location} type="button" className={`loc-${location}`}
       aria-label={`Open ${MECH_LOCATION_NAMES[location]} rack`} aria-pressed={selected === location}
       data-fit={targeting ? compatible.has(location) : undefined}

@@ -29,14 +29,24 @@ export async function runMechbayAnatomyChecks({ browser, url, shots, check }) {
     const picker = page.getByTestId('design-picker');
     const choices = await picker.locator('option').evaluateAll(options => options.map(option => option.value).filter(Boolean));
     const failures = [];
+    const artFailures = [];
+    const expectedDesigns = await page.evaluate(async () => {
+      const { getCatalog } = await import('/src/schema/load.ts');
+      return Object.fromEntries([...getCatalog().designs.values()].map(design => [design.id, { chassisId: design.chassisId, mounts: design.mounts }]));
+    });
     for (const id of choices) {
       await picker.selectOption(id);
       const bounds = await anatomyBounds(page);
+      const backdrop = page.locator('[data-testid="anatomical-loadout"] > .anatomical-backdrop');
+      if (await backdrop.getAttribute('data-chassis') !== expectedDesigns[id].chassisId
+        || await backdrop.locator('polygon[data-location]').count() < 8) artFailures.push(id);
       if (bounds.length !== 8 || bounds.some(part => !part.visible || !part.contentsFit)) failures.push({ id, bounds });
     }
     check('all authored loadouts keep eight anatomical racks and their installed tiles visible at 1280×720', failures.length === 0, JSON.stringify(failures));
+    check('every fitting diagram uses the selected chassis actual blueprint and body locations', artFailures.length === 0, JSON.stringify(artFailures));
     await picker.selectOption('sentinel_brawler');
-    check('installed weapons retain the same recognizable artwork as catalogue weapons', await page.locator('[data-testid^="inspect-weapon-"] .weapon-glyph').count() === 5
+    const expectedMounts = expectedDesigns.sentinel_brawler.mounts;
+    check('installed weapons retain the same recognizable artwork as catalogue weapons', await page.locator('[data-testid^="inspect-weapon-"] .weapon-glyph').count() === expectedMounts.length
       && await page.locator('.weapon-card__quick-stats').first().isVisible());
     const guide = page.getByTestId('bay-workbench-disclosure');
     check('expanded fitting guide is visibly expanded without requiring hover', await guide.getAttribute('aria-expanded') === 'true' && await page.locator('#location-fit-steps').isVisible());
@@ -44,7 +54,7 @@ export async function runMechbayAnatomyChecks({ browser, url, shots, check }) {
     await mounted.focus();
     check('focusing an installed weapon exposes keyboard accessible Move and Remove actions', await page.getByTestId('move-weapon-0').isVisible() && await page.getByTestId('remove-weapon-0').isVisible());
     check('inspecting a fitted weapon describes its installed location rather than trying to fit another copy', (await page.getByTestId('dossier-fit').innerText()).toLowerCase().includes('installed')
-      && (await page.getByTestId('dossier-fit').innerText()).includes('right arm'));
+      && (await page.getByTestId('dossier-fit').innerText()).includes(expectedMounts[0].location.replaceAll('_', ' ')));
     await guide.focus();
     await shot('1280');
     await page.setViewportSize({ width: 390, height: 844 });

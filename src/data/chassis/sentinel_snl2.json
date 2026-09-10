@@ -4,7 +4,7 @@
   "faction": "aurelian",
   "class": "medium",
   "tonnage": 45,
-  "baseCost": 3400000,
+  "baseCost": 4800000,
   "engineRating": 270,
   "internalHeatSinks": 10,
   "jumpCapable": false,
@@ -94,16 +94,16 @@
     "legLength": 1.0,
     "stance": 1.0
   },
-  "role": "Line brawler",
-  "summary": "The Aurelian medium issued when a commander cannot choose the ground. Flexible mounts behind clean, expensive armour.",
-  "lore": "More Sentinel bays have been opened than any other Aurelian store. Their practical weapon interfaces let recovered machines return to service under several kinds of owner. Local guns beside precisely fitted armour are a familiar sight, including in custodian companies whose officers publicly prefer a pure Aurelian standard. Workshops can repair the hull and service its inherited systems, but specialist work is costly and damaged Aurelian weapons still need actual replacements. Common in the register does not mean cheap in the bay.",
+  "role": "Plasma brawler",
+  "summary": "Twin left-arm burst lasers support a torso plasma rifle and secondary emitters. Compound cooling keeps the compact fighter firing through close exchanges.",
+  "lore": "The Sentinel is the Continuance's answer to a crowded loading yard: compact armour, a plasma projector protected in the torso and burst emitters where an older refit carried a cannon. Certified compound exchangers make the restored battery practical. The unused right-arm ballistic interface remains compatible with local guns; a commander can fit one, but the standard machine now carries Aurelian emitters throughout. Crews call it a line fighter. Depot officers insist on calling it a custody instrument.",
   "traits": [],
   "strengths": [
-    "Flexible mixed mounts",
-    "Balanced medium frame"
+    "Accurate burst fire and target-heating plasma",
+    "Compound cooling with no weapon ammunition"
   ],
   "weaknesses": [
-    "No jump jets",
-    "Expensive, slow repairs"
+    "Best output needs close engagement",
+    "Left arm and right torso carry the main weapons"
   ]
 }

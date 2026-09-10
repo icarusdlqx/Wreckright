@@ -29,6 +29,8 @@ export interface ZoneView {
 }
 
 export interface WeaponSnapshot {
+  /** A temporary heat-safety pause, independent of the player group switch. */
+  cooling?: boolean;
   index: number;
   name: string;
   modeId: string | null;

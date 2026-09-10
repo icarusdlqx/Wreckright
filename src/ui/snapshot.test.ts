@@ -267,3 +267,34 @@ describe('privacy-safe battle snapshots', () => {
     expect(snapshotUnits(world, vision.team).contacts).toEqual([]);
   });
 });
+
+describe('partial heat-safety snapshots', () => {
+  it('marks a paused emitter without marking its firing sibling, disabled group or lost weapon', () => {
+    const world = playerWorld('partial-heat-readout');
+    world.tick = 1;
+    const unit = world.entities.find((candidate) => candidate.team === 0)!;
+    const [first, second] = unit.weapons;
+    if (first === undefined || second === undefined) throw new Error('two weapons required');
+    first.group = second.group = 1;
+    unit.groupIntent[0] = unit.groupEnabled[0] = true;
+    first.governorBlocked = true;
+    second.governorBlocked = false;
+    let view = snapshotUnit(world, unit);
+    expect(view.weapons.find((mount) => mount.index === first.index)?.cooling).toBe(true);
+    expect(view.weapons.find((mount) => mount.index === second.index)?.cooling).toBe(false);
+    expect(view.groupEnabled[0]).toBe(true);
+    unit.alphaUntilTick = world.tick + 1;
+    expect(snapshotUnit(world, unit).weapons.find((mount) => mount.index === first.index)?.cooling).toBe(false);
+    unit.alphaUntilTick = -1;
+    first.weaponId = 'ac5';
+    for (const bin of unit.ammoBins) bin.rounds = 0;
+    expect(snapshotUnit(world, unit).weapons.find((mount) => mount.index === first.index)?.cooling).toBe(false);
+    first.weaponId = 'medium_laser';
+    unit.groupIntent[0] = false;
+    expect(snapshotUnit(world, unit).weapons.find((mount) => mount.index === first.index)?.cooling).toBe(false);
+    unit.groupIntent[0] = true;
+    first.destroyed = true;
+    view = snapshotUnit(world, unit);
+    expect(view.weapons.find((mount) => mount.index === first.index)?.cooling).toBe(false);
+  });
+});

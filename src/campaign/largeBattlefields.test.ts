@@ -167,7 +167,7 @@ describe('large battlefield mission contracts', () => {
       reserves: [],
     });
     expect(data.briefing).toBe(
-      'Sarn’s service plate shows Kestrel moved a bone-white wreck through Blackglass under a number assigned to slag. Take the west brake, lift table and east brake, then hold all three for thirty seconds while the root attestation copies. The rim has the sightlines; the floor has the controls.',
+      'Sarn’s service plate shows Kestrel moved a bone-white wreck through Blackglass under a number assigned to slag. Take the west brake, lift table and east brake, then hold all three for thirty seconds while the root attestation copies. The rim has the sightlines; the floor has the controls. Local lift guards have Aurelian support, with a single heavy machine held in reserve.',
     );
     expect(data.lances.map((lance) => lance.name)).toEqual([
       'Sarn Receipt Lance',
@@ -180,7 +180,7 @@ describe('large battlefield mission contracts', () => {
       'cairn_battery/ilse_brant@156,1188/-45',
     ]);
     expect(unitLedger(data, 1)).toEqual([
-      'sentinel_brawler/anja_verrin@708,636/135',
+      'rivet_escort/anja_verrin@708,636/135',
       'falchion_duellist/suri_kell@1092,516/135',
       'warden_lancer/corin_dast@1164,156/135',
     ]);
@@ -237,12 +237,6 @@ describe('large battlefield mission contracts', () => {
               designId: 'halberd_prime',
               pilotId: 'tomas_arvel',
               spawn: { x: 1260, y: 84 },
-              facingDegrees: 135,
-            }),
-            expect.objectContaining({
-              designId: 'votive_picket',
-              pilotId: 'oksana_valev',
-              spawn: { x: 1188, y: 84 },
               facingDegrees: 135,
             }),
           ],

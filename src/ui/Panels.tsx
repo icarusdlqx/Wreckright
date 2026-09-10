@@ -166,6 +166,7 @@ export function WeaponGroups({
                           : weapon.rounds}
                     </span>
                     {(() => {
+                      if (weapon.cooling === true) return <span className="weapon-hit blocked" title="Heat safety is spacing this weapon’s shots; it resumes automatically.">cooling</span>;
                       if (preview === undefined) return null;
                       const priced = previewByIndex.get(weapon.index);
                       if (priced === undefined || weapon.destroyed) return null;

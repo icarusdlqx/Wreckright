@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { catalog } from '../../../tests/support';
+import { catalog, legacySentinelDesign } from '../../../tests/support';
 import type { Design } from '../../schema/design';
 import { computeLoadout } from '../../sim/loadout';
 import { remainingInventory } from './bayFit';
@@ -7,7 +7,7 @@ import { beginDesignHistory, pushDesign, redoDesign, undoDesign } from './design
 import { confirmWeaponReplacement, evaluateWeaponReplacement } from './weaponReplacement';
 
 function fixture(): Design {
-  const design = structuredClone(catalog.designs.get('sentinel_brawler'));
+  const design = structuredClone(legacySentinelDesign);
   if (design === undefined) throw new Error('missing Sentinel');
   design.mounts = [{ weaponId: 'machine_gun', location: 'right_torso' }];
   design.ammo = [{ weaponId: 'machine_gun', location: 'left_torso', tons: 2 }];

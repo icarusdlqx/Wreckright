@@ -96,17 +96,17 @@
     "stance": 0.84
   },
   "role": "Courier scout",
-  "summary": "A light walker for the work a company cannot spare a heavier root to do. Quick, thinly plated and armed only for a close escape.",
+  "summary": "A light courier with twin arm machine guns and torso Shortbows. It scouts cheaply and punishes exposed flanks, but cannot hold a firing line.",
   "lore": "The first Prybar in the Halloran books was a survey root returned with its sealed instruments missing. A road crew fitted an offset cab, two feed boxes and enough plate to get the driver home. The name followed the machine through four yards. Later rebuilds keep the narrow shoulders and ordinary gait bearings because those are the parts small shops can reach. There is no beacon and no jump assembly. A Prybar carries the message, watches the next bend and leaves the argument to whoever arrives behind it.",
   "traits": [
     "narrow_profile"
   ],
   "strengths": [
-    "Fast courier",
-    "Narrow target"
+    "Small profile and inexpensive upkeep",
+    "Four local guns and racks"
   ],
   "weaknesses": [
-    "Thin protection",
-    "Small weapon mounts"
+    "Thin armour for sustained exchanges",
+    "Short reach and finite ammunition"
   ]
 }

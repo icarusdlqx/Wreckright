@@ -180,12 +180,16 @@ export function LoadoutGrid({
       <AnatomyNavigator chassis={chassis} loadout={loadout} selected={selectedLocation}
         compatible={compatibleLocations} targeting={targeting !== null} onSelect={onSelectLocation} />
       <div className="location-overview anatomical-layout" aria-label="Machine locations" data-testid="anatomical-loadout">
-        <AnatomyBackdrop faction={chassis.faction} />
+        <AnatomyBackdrop chassis={chassis} />
         {machine === undefined ? null : <div className="anatomical-profile">{machine}</div>}
-        <div className="anatomical-notes"><strong>FRONT VIEW</strong><span>Mech's right ← · → Mech's left</span>
-          <span>1 box = 1 slot · shapes pack automatically</span>
-          <span>Select a weapon for its firing profile. Pick it up to see every legal fit.</span></div>
-        <div className="anatomical-stance" aria-hidden="true">{chassis.name}<span>{chassis.tonnage} TONNES</span></div>
+        <div className="anatomical-notes" data-testid="bay-role-brief">
+          <strong>{chassis.role}</strong>
+          <span><b>Excels:</b> {chassis.strengths[0]}</span>
+          <span><b>Watch:</b> {chassis.weaknesses[0]}</span>
+          <small>Standard role · your refit can change its fighting style</small>
+        </div>
+        <div className="anatomical-stance" aria-hidden="true">{chassis.name}<span>{chassis.tonnage} TONNES</span>
+          <small>FRONT VIEW</small><small>Right ← · → Left</small></div>
         {LOCATIONS.map((location) => (
           <LocationCard
             key={location}

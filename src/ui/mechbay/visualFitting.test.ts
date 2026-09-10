@@ -2,7 +2,7 @@ import type { DragEvent } from 'react';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
-import { catalog } from '../../../tests/support';
+import { catalog, legacySentinelDesign } from '../../../tests/support';
 import { computeLoadout } from '../../sim/loadout';
 import { fitByLocation } from './autoFit';
 import { LocationCard, type DropPayload } from './LocationCard';
@@ -12,7 +12,7 @@ import { payloadFootprint } from './SlotBoxes';
 import { WeaponCard } from './WeaponCard';
 
 function sentinel() {
-  const design = catalog.designs.get('sentinel_brawler');
+  const design = legacySentinelDesign;
   const chassis = catalog.chassis.get('sentinel_snl2');
   if (design === undefined || chassis === undefined) throw new Error('Missing Sentinel');
   return { design: structuredClone(design), chassis };

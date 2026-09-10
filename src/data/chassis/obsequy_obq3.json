@@ -95,17 +95,17 @@
     "stance": 0.96
   },
   "role": "Long-range assault",
-  "summary": "A long-range assault frame with a projector battery, deep sensors and no ammunition in its standard fit. Cooling still limits sustained fire.",
+  "summary": "Three arc projectors span both arms and the centre torso. A sensor mast and deep scanner find the firing line before the slow advance begins.",
   "lore": "The Karst ledger places Obsequy frames under PERIMETER, although the opened bays never accounted for the whole register. The tall armour forms and separate projector channels suit a machine assigned to watch an approach. Restored sensors and replacement emitters keep that inherited duty useful. Its standard fit needs no ammunition, but cooling service and rare components still tie it to a workshop. Sustained fire can exhaust even a well-maintained Obsequy's cooling margin.",
   "traits": [
     "sensor_mast"
   ],
   "strengths": [
-    "Extended sensor coverage",
-    "Deep cooling capacity"
+    "Distributed long-range arc weapons",
+    "Deep armour, cooling and long sensor reach"
   ],
   "weaknesses": [
-    "Large assault target",
-    "Projectors punish reckless sustained fire"
+    "Short-range pressure reduces its advantage",
+    "No jump escape from a poor firing position"
   ]
 }

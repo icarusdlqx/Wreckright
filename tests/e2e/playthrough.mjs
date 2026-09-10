@@ -50,6 +50,7 @@ import { runAdaptiveScoreChecks } from './adaptive-score.mjs';
 import { runAdaptiveScoreTreatmentChecks } from './adaptive-score-treatments.mjs';
 import { runAudioChannelControlChecks } from './audio-channel-controls.mjs';
 import { runAudioThemePlaybackChecks } from './audio-theme-playback.mjs';
+import { runAudioPlaybackFocusChecks } from './audio-playback-focus.mjs';
 import { runLastSilentMomentsChecks } from './last-silent-moments.mjs';
 import { runCommanderViewChecks } from './commander-view.mjs';
 import { runMinimapControlChecks } from './minimap-control.mjs';
@@ -728,11 +729,13 @@ async function main() {
     await page.keyboard.press('Space');
 
     process.stdout.write('\nweapon groups and hold fire\n');
-    await page.locator('[data-testid="group-2"]').click();
+    const mountedGroup = await page.evaluate((id) => globalThis.__wreckright.world.entities
+      .find(entity => entity.id === id).weapons[0].group, selectedId);
+    await page.locator(`[data-testid="group-${mountedGroup}"]`).click();
     const toggled = await sim(page);
     check(
       'clicking a group toggles it off',
-      toggled.entities.find((entity) => entity.id === selectedId).groupEnabled[1] === false,
+      toggled.entities.find((entity) => entity.id === selectedId).groupEnabled[mountedGroup - 1] === false,
     );
     await page.locator('[data-testid="command-hold_fire"]').click();
     const holding = await sim(page);
@@ -1832,6 +1835,7 @@ async function main() {
     await runAdaptiveScoreTreatmentChecks({ browser, url: URL, check });
     await runAudioChannelControlChecks({ browser, url: URL, shots: SHOTS, check });
     await runAudioThemePlaybackChecks({ browser, url: URL, check });
+    await runAudioPlaybackFocusChecks({ browser, url: URL, check });
     await verifyFirstDropLaunchPaths({ browser, url: URL, shots: SHOTS, check });
     await runMechbayCrewChecks({ browser, url: URL, shots: SHOTS, check });
     await runColdMechbayChecks({ browser, url: URL, shots: SHOTS, check });

@@ -95,18 +95,18 @@
     "stance": 1.0
   },
   "role": "Heavy striker",
-  "summary": "A fast heavy with broad shoulder mounts and carefully balanced cooling. It reaches the firing line before most heavy opponents.",
-  "lore": "Recovered Halberds stood in their depot without weapons. Sarn fitted cradles to the surviving shoulder interfaces and hung local racks where certified replacements were missing. Later service restored advanced emitters and carefully balanced cooling without always removing those practical additions. Tall shoulder pylons identify the fast heavy at a distance. Its cooling surfaces can be serviced, but precise work takes time and replacement Aurelian components remain scarce. A polished Halberd may carry a thoroughly mixed repair history.",
+  "summary": "Paired arm arc projectors and large lasers strike behind reinforced plate. Compound cooling and a fast stride favour coordinated pushes over lone duels.",
+  "lore": "Early recovered Halberds reached Sarn without their weapons. Local shoulder racks kept them in service until certified emitters became available. The current service fit restores paired arm arc projectors and large lasers, compound cooling and heavier plate without changing the inherited root or its fast gait. The empty shoulder interfaces still accept local missiles. Three Halberds advancing together can choose the range and concentrate their first volley; one caught alone against a mixed battery has fewer answers.",
   "traits": [
     "long_stride",
     "oversized_sinks"
   ],
   "strengths": [
-    "Fast heavy frame",
-    "Oversized cooling banks"
+    "Long-reaching paired arc and laser batteries",
+    "Fast heavy with compound cooling and no bins"
   ],
   "weaknesses": [
-    "No jump escape",
-    "Long-range armament needs room"
+    "Losing an arm removes two primary weapons",
+    "A close mixed battery can win the lone duel"
   ]
 }

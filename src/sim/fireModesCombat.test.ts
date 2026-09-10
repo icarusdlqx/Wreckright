@@ -161,8 +161,11 @@ describe('active weapon fire profiles', () => {
       const { world, shooter } = lbxDuel(seed, true);
       const mount = selectedMount(shooter);
       mount.modeId = modeId;
-      mount.cooldown = 10;
-      shooter.heat = shooter.heatCapacity * 0.8;
+      // Mode selection matters when the gun can fire; cooling mounts do not
+      // reserve a future spike ahead of another emitter that is ready now.
+      mount.cooldown = 0;
+      shooter.heat = shooter.heatCapacity * 0.7;
+      shooter.ai.coolingDown = true;
       shooter.groupIntent.fill(false);
       shooter.groupEnabled.fill(false);
       shooter.groupIntent[mount.group - 1] = true;

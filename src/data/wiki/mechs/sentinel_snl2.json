@@ -6,11 +6,23 @@
     "The service standard surrounds a narrow optical channel with tall, clean armour forms. What hangs beside them varies. Tessellan shops fitted available guns to surviving mounts; later custodian crews adopted some of the same arrangements when certified replacement weapons failed to arrive.",
     "This makes the Sentinel an uncomfortable machine for an officer who judges ownership by appearances. A workshop cannon can be documented, maintained and entirely useful while offending the officer's preferred picture of Aurelian service. Fitters tend to leave that discussion to the person signing the invoice."
   ],
-  "fieldNotes": "The standard Sentinel is a mixed service refit, with an energy battery supported by local armament. Its flexible mounts offer choices, not unlimited space: ammunition and cooling compete with the rest of the load. The balanced frame can answer changing conditions, but specialist repairs remain costly and there is no jump exit.",
+  "fieldNotes": "The current Aurelian standard is a plasma brawler: twin burst lasers in the left arm, plasma and a focused laser in the right torso, and a central backup emitter. Compound sinks support close exchanges without ammunition bins. The battery still needs time to cool; protect the left arm and right torso, and avoid chasing long-range guns across open ground. The broad mount interfaces still accept workshop cannons and missile refits, including older saved company machines.",
   "related": [
-    { "kind": "story", "id": "the_sealed" },
-    { "kind": "story", "id": "the_shared_mounts" },
-    { "kind": "mech", "id": "rivet_rvt1" },
-    { "kind": "mech", "id": "falchion_fal2" }
+    {
+      "kind": "story",
+      "id": "the_sealed"
+    },
+    {
+      "kind": "story",
+      "id": "the_shared_mounts"
+    },
+    {
+      "kind": "mech",
+      "id": "rivet_rvt1"
+    },
+    {
+      "kind": "mech",
+      "id": "falchion_fal2"
+    }
   ]
 }

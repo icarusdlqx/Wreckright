@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { catalog } from '../../../tests/support';
+import { catalog, legacySentinelDesign } from '../../../tests/support';
 import { parsedDrop } from './dropPayload';
 import { evaluateDrop } from './mechbayEdits';
 import { RackCapacity } from './RackCapacity';
@@ -10,7 +10,7 @@ import { buildLocationOccupants } from './locationOccupants';
 import { WeaponCard } from './WeaponCard';
 import { beginDesignHistory, pushDesign, undoDesign } from './designHistory';
 
-const sentinel = catalog.designs.get('sentinel_brawler')!;
+const sentinel = legacySentinelDesign!;
 
 describe('two dimensional fitting racks', () => {
   it('draws exact slot counts in compact regular groups without inflating five or seven box weapons', () => {

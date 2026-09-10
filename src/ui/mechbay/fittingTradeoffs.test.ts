@@ -60,10 +60,17 @@ describe('faction fitting tradeoffs', () => {
   });
 
   it('labels mixed stock configurations by their actual armament', () => {
-    for (const id of ['bulwark_assault', 'sentinel_brawler', 'halberd_prime', 'warden_lancer']) {
+    for (const id of ['bulwark_assault', 'warden_lancer']) {
       const design = catalog.designs.get(id);
       if (design === undefined) throw new Error(`missing ${id}`);
       expect(weaponConfiguration(catalog, design)?.label).toBe('Mixed refit');
+    }
+    for (const id of ['sentinel_brawler', 'halberd_prime']) {
+      const design = catalog.designs.get(id);
+      if (design === undefined) throw new Error(`missing ${id}`);
+      expect(weaponConfiguration(catalog, design)).toMatchObject({
+        label: 'Aurelian armament', nativeWeapons: 5, foreignWeapons: 0,
+      });
     }
     const votive = catalog.designs.get('votive_picket');
     if (votive === undefined) throw new Error('missing Votive');

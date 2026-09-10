@@ -1,0 +1,23 @@
+.loadout-map { min-width: 0; }
+.loadout-map__key { margin: 8px 0 12px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.loadout-map__locations { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.loadout-map__location { min-width: 0; padding: 10px; border: 1px solid var(--edge); border-radius: 5px; background: var(--panel); }
+.loadout-map__location > header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; align-items: center; font-size: 12px; }
+.loadout-map__location > header > span:not(.rack-capacity) { color: var(--muted); font: 10px var(--font-mono); }
+.loadout-map__location .rack-capacity { grid-column: 1 / -1; --box-size: 10px; gap: 3px; }
+.loadout-map__location ul { margin: 10px 0 0; padding: 0; list-style: none; }
+.loadout-map__part { display: grid; grid-template-columns: 68px minmax(0, 1fr); gap: 8px; padding: 8px 0; border-top: 1px solid var(--edge); }
+.loadout-map__part > div:last-child { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.loadout-map__part strong { font-size: 12px; overflow-wrap: anywhere; }
+.loadout-map__part span { font-size: 10px; line-height: 1.45; color: var(--muted); }
+.loadout-map__art { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.loadout-map__art .weapon-glyph { width: 64px; height: 40px; }
+.loadout-map__art .slot-boxes { --box-size: 7px; gap: 2px; }
+.loadout-map__art > span:not(.slot-boxes) { padding: 10px 0; font: 10px var(--font-mono); }
+.loadout-map__part .loadout-map__warning { color: var(--danger, #ad4829); }
+.loadout-map__empty { font-size: 11px; color: var(--muted); margin: 10px 0 0; }
+.build-review__positions { margin: 12px 0; }
+.build-review__positions > summary { cursor: pointer; min-height: 44px; align-content: center; color: var(--accent); font-weight: 700; }
+.build-review__positions > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wiki-fit .loadout-map__locations { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 600px) { .loadout-map__locations { grid-template-columns: minmax(0, 1fr); } }

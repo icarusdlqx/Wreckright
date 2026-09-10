@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { catalog } from '../../tests/support';
+import { catalog, legacySentinelDesign } from '../../tests/support';
 import type { Design } from '../schema/design';
 import {
   quoteRefit,
@@ -16,7 +16,8 @@ function designOf(id = 'sentinel_brawler'): Design {
 
 describe('refit quotes', () => {
   it('reports every exact weapon, equipment, and heat-sink shortage at once', () => {
-    const original = designOf();
+    // Exercise a genuine Standard-to-Compound cooling-bank replacement.
+    const original = structuredClone(legacySentinelDesign);
     const next = structuredClone(original);
     next.mounts.push(
       { weaponId: 'gauss_rifle', location: 'right_arm' },

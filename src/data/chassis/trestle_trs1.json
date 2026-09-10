@@ -96,17 +96,17 @@
     "stance": 1.18
   },
   "role": "Field battery",
-  "summary": "Two standoff racks on an open shoulder truss, with a cannon for direct fire. Lighter than a Cairn and much less forgiving under fire.",
+  "summary": "A left-arm field cannon supports paired shoulder Longshots. The Trestle gives a company affordable reach and wants a scout ahead of its firing position.",
   "lore": "A Trestle wears its repair around the shoulders. Separate launcher bins hang from a bolted crossmember, clear of the old root keel, and a fitter can reach either feed without opening the other. The arrangement came from a quarry walker whose original upper hull could not be recovered. Halloran kept the gun arm for the minutes before a spotter finds a firing lane. The smaller battery follows a moving company more easily than a Cairn, but the foreman paints the same instruction inside every cab: this is not the front rank.",
   "traits": [
     "wide_stance"
   ],
   "strengths": [
-    "Stable firing stance",
-    "Standoff missile support"
+    "Paired long-range missile racks",
+    "Stable stance and anti-missile support"
   ],
   "weaknesses": [
-    "Light for a sustained brawl",
-    "Missile ammunition needs space"
+    "Close defence rests on one cannon",
+    "Needs ammunition and an observer behind cover"
   ]
 }

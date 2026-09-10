@@ -6,6 +6,17 @@ import { snapshotUnit } from './snapshot';
 import { TacticalReadout } from './TacticalReadout';
 
 describe('TacticalReadout', () => {
+  it('explains partial weapon spacing while the group remains enabled', () => {
+    const world = playerWorld('readout-partial-spacing');
+    world.tick = 1;
+    const mech = world.entities.find((entity) => entity.team === 0)!;
+    mech.weapons[0]!.governorBlocked = true;
+    const unit = snapshotUnit(world, mech);
+    expect(unit.reactor.shedGroups).toEqual([]);
+    const html = renderToStaticMarkup(createElement(TacticalReadout, { unit }));
+    expect(html).toContain('SPACING 1 WEAPON');
+  });
+
   it('puts the selected pilot and reactor decisions into the panel', () => {
     const world = playerWorld('readout-panel');
     const mech = world.entities.find((entity) => entity.team === 0);

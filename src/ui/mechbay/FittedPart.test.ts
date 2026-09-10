@@ -1,7 +1,7 @@
 import { isValidElement, type ReactElement, type ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
-import { catalog } from '../../../tests/support';
+import { catalog, legacySentinelDesign } from '../../../tests/support';
 import { FittedPart } from './FittedPart';
 import { evaluateWeaponReplacement } from './weaponReplacement';
 
@@ -18,7 +18,7 @@ function descendants(node: ReactNode): ReactElement<ElementProps>[] {
   return [node, ...descendants(node.props.children)];
 }
 function fixture(weaponId = 'machine_gun', targeting = true) {
-  const design = catalog.designs.get('sentinel_brawler');
+  const design = legacySentinelDesign;
   if (design === undefined) throw new Error('missing Sentinel');
   const onReplace = vi.fn();
   const onRemove = vi.fn();

@@ -6,7 +6,7 @@ import {
 } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
-import { catalog } from '../../../tests/support';
+import { catalog, legacySentinelDesign } from '../../../tests/support';
 import { FittedPart } from './FittedPart';
 import { computeLoadout } from '../../sim/loadout';
 import {
@@ -40,7 +40,7 @@ function fixtureProps(
   location: 'left_arm' | 'right_arm' | 'right_torso',
   overrides: Partial<CardProps> = {},
 ): CardProps {
-  const design = catalog.designs.get('sentinel_brawler');
+  const design = legacySentinelDesign;
   const chassis = catalog.chassis.get('sentinel_snl2');
   if (design === undefined || chassis === undefined) throw new Error('missing Sentinel fixture');
   const loadout = computeLoadout(catalog, design);
@@ -105,7 +105,7 @@ describe('location workbench card', () => {
   });
 
   it('reads an explicit design front and rear allocation', () => {
-    const design = catalog.designs.get('sentinel_brawler');
+    const design = legacySentinelDesign;
     const chassis = catalog.chassis.get('sentinel_snl2');
     if (design === undefined || chassis === undefined) throw new Error('missing Sentinel fixture');
     const exact = structuredClone(design);
@@ -211,7 +211,7 @@ describe('location workbench card', () => {
   });
 
   it('labels compatible, blocked, selected, and invalid states in text', () => {
-    const design = catalog.designs.get('sentinel_brawler');
+    const design = legacySentinelDesign;
     if (design === undefined) throw new Error('missing Sentinel fixture');
     const broken = structuredClone(design);
     broken.mounts.push({ weaponId: 'ac20', location: 'left_arm' });

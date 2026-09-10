@@ -56,7 +56,7 @@ export async function runLoreWikiChecks({ browser, url, shots, check }) {
     await page.getByRole('heading', { name: 'Vesper', exact: true }).waitFor();
     await page.waitForFunction(() => { const img = document.querySelector('.wiki-mech-portrait img'); return img?.complete && img.naturalWidth > 0; });
     check('dossier shows portrait, live standard armament and actionable tradeoffs',
-      await page.locator('.wiki-weapons li').count() > 0 && await page.locator('.wiki-boxes').count() > 0
+      await page.locator('.loadout-map__part[data-kind="weapon"]').count() > 0 && await page.locator('.loadout-map .slot-boxes').count() > 0
       && /Strengths/.test(await page.locator('.wiki-article').innerText()) && /Weaknesses/.test(await page.locator('.wiki-article').innerText()));
     await shot('vesper');
     await page.locator('[data-testid="wiki-copy"]').click();
