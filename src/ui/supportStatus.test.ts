@@ -100,7 +100,7 @@ describe('friendly support status', () => {
 
   it('keeps the paused dispatch explanation in the collapsed summary and exposes expandable details', () => {
     const html = renderToStaticMarkup(createElement(SupportStatus, { world: queuedWorld(), paused: true }));
-    const summary = html.match(/<summary>(.*?)<\/summary>/u)?.[1] ?? '';
+    const summary = html.match(/<summary\b[^>]*>(.*?)<\/summary>/u)?.[1] ?? '';
     expect(summary).toContain('Air Strike · 4s to arrival');
     expect(summary).toContain('Paused — resume to dispatch');
     expect(html).toContain('data-testid="support-status-queued"');

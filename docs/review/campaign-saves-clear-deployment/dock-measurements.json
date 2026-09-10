@@ -1,0 +1,1356 @@
+{
+  "before": [
+    {
+      "width": 1440,
+      "height": 900,
+      "touch": false,
+      "quiet": {
+        "dock": {
+          "x": 12,
+          "y": 675.90625,
+          "width": 1416,
+          "height": 212.09375
+        },
+        "card": {
+          "x": 174,
+          "y": 675.90625,
+          "width": 160.390625,
+          "height": 212.09375
+        },
+        "radio": null,
+        "commands": {
+          "x": 1014,
+          "y": 752,
+          "width": 408,
+          "height": 97
+        }
+      },
+      "radio": {
+        "dock": {
+          "x": 12,
+          "y": 620.90625,
+          "width": 1416,
+          "height": 267.09375
+        },
+        "card": {
+          "x": 174,
+          "y": 675.90625,
+          "width": 160.390625,
+          "height": 212.09375
+        },
+        "radio": {
+          "x": 12,
+          "y": 620.90625,
+          "width": 1416,
+          "height": 47
+        },
+        "commands": {
+          "x": 1014,
+          "y": 752,
+          "width": 408,
+          "height": 97
+        }
+      },
+      "errors": []
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "touch": false,
+      "quiet": {
+        "dock": {
+          "x": 12,
+          "y": 495.90625,
+          "width": 1256,
+          "height": 212.09375
+        },
+        "card": {
+          "x": 174,
+          "y": 495.90625,
+          "width": 128.390625,
+          "height": 212.09375
+        },
+        "radio": null,
+        "commands": {
+          "x": 854,
+          "y": 572,
+          "width": 408,
+          "height": 97
+        }
+      },
+      "radio": {
+        "dock": {
+          "x": 12,
+          "y": 440.90625,
+          "width": 1256,
+          "height": 267.09375
+        },
+        "card": {
+          "x": 174,
+          "y": 495.90625,
+          "width": 128.390625,
+          "height": 212.09375
+        },
+        "radio": {
+          "x": 12,
+          "y": 440.90625,
+          "width": 1256,
+          "height": 47
+        },
+        "commands": {
+          "x": 854,
+          "y": 572,
+          "width": 408,
+          "height": 97
+        }
+      },
+      "errors": []
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "touch": false,
+      "quiet": {
+        "dock": {
+          "x": 12,
+          "y": 855.90625,
+          "width": 1896,
+          "height": 212.09375
+        },
+        "card": {
+          "x": 302,
+          "y": 855.90625,
+          "width": 205.1875,
+          "height": 212.09375
+        },
+        "radio": null,
+        "commands": {
+          "x": 1494,
+          "y": 932,
+          "width": 408,
+          "height": 97
+        }
+      },
+      "radio": {
+        "dock": {
+          "x": 12,
+          "y": 800.90625,
+          "width": 1896,
+          "height": 267.09375
+        },
+        "card": {
+          "x": 302,
+          "y": 855.90625,
+          "width": 205.1875,
+          "height": 212.09375
+        },
+        "radio": {
+          "x": 12,
+          "y": 800.90625,
+          "width": 1896,
+          "height": 47
+        },
+        "commands": {
+          "x": 1494,
+          "y": 932,
+          "width": 408,
+          "height": 97
+        }
+      },
+      "errors": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "touch": true,
+      "quiet": {
+        "dock": {
+          "x": 8,
+          "y": 586,
+          "width": 374,
+          "height": 250
+        },
+        "card": {
+          "x": 65,
+          "y": 586,
+          "width": 198.890625,
+          "height": 72
+        },
+        "radio": null,
+        "commands": {
+          "x": 9,
+          "y": 713,
+          "width": 372,
+          "height": 122
+        }
+      },
+      "radio": {
+        "dock": {
+          "x": 8,
+          "y": 586,
+          "width": 374,
+          "height": 250
+        },
+        "card": {
+          "x": 65,
+          "y": 647,
+          "width": 198.890625,
+          "height": 72
+        },
+        "radio": {
+          "x": 8,
+          "y": 586,
+          "width": 374,
+          "height": 56
+        },
+        "commands": {
+          "x": 9,
+          "y": 774,
+          "width": 372,
+          "height": 61
+        }
+      },
+      "errors": []
+    }
+  ],
+  "after": [
+    {
+      "viewport": "1440",
+      "quiet": {
+        "dock": {
+          "x": 12,
+          "y": 716,
+          "width": 1416,
+          "height": 172,
+          "right": 1428,
+          "bottom": 888
+        },
+        "cards": [
+          {
+            "x": 152,
+            "y": 716,
+            "width": 173.59375,
+            "height": 100,
+            "right": 325.59375,
+            "bottom": 816,
+            "id": "lance-card-1",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 331.59375,
+            "y": 716,
+            "width": 173.59375,
+            "height": 100,
+            "right": 505.1875,
+            "bottom": 816,
+            "id": "lance-card-2",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 511.1875,
+            "y": 716,
+            "width": 173.609375,
+            "height": 100,
+            "right": 684.796875,
+            "bottom": 816,
+            "id": "lance-card-3",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 690.796875,
+            "y": 716,
+            "width": 173.59375,
+            "height": 100,
+            "right": 864.390625,
+            "bottom": 816,
+            "id": "lance-card-4",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 870.390625,
+            "y": 716,
+            "width": 173.609375,
+            "height": 100,
+            "right": 1044,
+            "bottom": 816,
+            "id": "lance-card-9",
+            "paired": true,
+            "contentsFit": true
+          }
+        ],
+        "commands": {
+          "x": 1058,
+          "y": 787,
+          "width": 364,
+          "height": 69,
+          "right": 1422,
+          "bottom": 856
+        },
+        "radio": null,
+        "receipt": null,
+        "communications": {
+          "x": 152,
+          "y": 824,
+          "width": 892,
+          "height": 64,
+          "right": 1044,
+          "bottom": 888
+        },
+        "overflow": false
+      },
+      "active": {
+        "dock": {
+          "x": 12,
+          "y": 716,
+          "width": 1416,
+          "height": 172,
+          "right": 1428,
+          "bottom": 888
+        },
+        "cards": [
+          {
+            "x": 152,
+            "y": 716,
+            "width": 173.59375,
+            "height": 100,
+            "right": 325.59375,
+            "bottom": 816,
+            "id": "lance-card-1",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 331.59375,
+            "y": 716,
+            "width": 173.59375,
+            "height": 100,
+            "right": 505.1875,
+            "bottom": 816,
+            "id": "lance-card-2",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 511.1875,
+            "y": 716,
+            "width": 173.609375,
+            "height": 100,
+            "right": 684.796875,
+            "bottom": 816,
+            "id": "lance-card-3",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 690.796875,
+            "y": 716,
+            "width": 173.59375,
+            "height": 100,
+            "right": 864.390625,
+            "bottom": 816,
+            "id": "lance-card-4",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 870.390625,
+            "y": 716,
+            "width": 173.609375,
+            "height": 100,
+            "right": 1044,
+            "bottom": 816,
+            "id": "lance-card-9",
+            "paired": true,
+            "contentsFit": true
+          }
+        ],
+        "commands": {
+          "x": 1058,
+          "y": 787,
+          "width": 364,
+          "height": 69,
+          "right": 1422,
+          "bottom": 856
+        },
+        "radio": {
+          "x": 152,
+          "y": 824,
+          "width": 892,
+          "height": 46,
+          "right": 1044,
+          "bottom": 870
+        },
+        "receipt": {
+          "x": 157,
+          "y": 873,
+          "width": 887,
+          "height": 14.296875,
+          "right": 1044,
+          "bottom": 887.296875
+        },
+        "communications": {
+          "x": 152,
+          "y": 824,
+          "width": 892,
+          "height": 64,
+          "right": 1044,
+          "bottom": 888
+        },
+        "overflow": false
+      }
+    },
+    {
+      "viewport": "1280",
+      "quiet": {
+        "dock": {
+          "x": 12,
+          "y": 536,
+          "width": 1256,
+          "height": 172,
+          "right": 1268,
+          "bottom": 708
+        },
+        "cards": [
+          {
+            "x": 152,
+            "y": 536,
+            "width": 141.59375,
+            "height": 100,
+            "right": 293.59375,
+            "bottom": 636,
+            "id": "lance-card-1",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 299.59375,
+            "y": 536,
+            "width": 141.59375,
+            "height": 100,
+            "right": 441.1875,
+            "bottom": 636,
+            "id": "lance-card-2",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 447.1875,
+            "y": 536,
+            "width": 141.609375,
+            "height": 100,
+            "right": 588.796875,
+            "bottom": 636,
+            "id": "lance-card-3",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 594.796875,
+            "y": 536,
+            "width": 141.59375,
+            "height": 100,
+            "right": 736.390625,
+            "bottom": 636,
+            "id": "lance-card-4",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 742.390625,
+            "y": 536,
+            "width": 141.609375,
+            "height": 100,
+            "right": 884,
+            "bottom": 636,
+            "id": "lance-card-9",
+            "paired": true,
+            "contentsFit": true
+          }
+        ],
+        "commands": {
+          "x": 898,
+          "y": 607,
+          "width": 364,
+          "height": 69,
+          "right": 1262,
+          "bottom": 676
+        },
+        "radio": null,
+        "receipt": null,
+        "communications": {
+          "x": 152,
+          "y": 644,
+          "width": 732,
+          "height": 64,
+          "right": 884,
+          "bottom": 708
+        },
+        "overflow": false
+      },
+      "active": {
+        "dock": {
+          "x": 12,
+          "y": 536,
+          "width": 1256,
+          "height": 172,
+          "right": 1268,
+          "bottom": 708
+        },
+        "cards": [
+          {
+            "x": 152,
+            "y": 536,
+            "width": 141.59375,
+            "height": 100,
+            "right": 293.59375,
+            "bottom": 636,
+            "id": "lance-card-1",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 299.59375,
+            "y": 536,
+            "width": 141.59375,
+            "height": 100,
+            "right": 441.1875,
+            "bottom": 636,
+            "id": "lance-card-2",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 447.1875,
+            "y": 536,
+            "width": 141.609375,
+            "height": 100,
+            "right": 588.796875,
+            "bottom": 636,
+            "id": "lance-card-3",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 594.796875,
+            "y": 536,
+            "width": 141.59375,
+            "height": 100,
+            "right": 736.390625,
+            "bottom": 636,
+            "id": "lance-card-4",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 742.390625,
+            "y": 536,
+            "width": 141.609375,
+            "height": 100,
+            "right": 884,
+            "bottom": 636,
+            "id": "lance-card-9",
+            "paired": true,
+            "contentsFit": true
+          }
+        ],
+        "commands": {
+          "x": 898,
+          "y": 607,
+          "width": 364,
+          "height": 69,
+          "right": 1262,
+          "bottom": 676
+        },
+        "radio": {
+          "x": 152,
+          "y": 644,
+          "width": 732,
+          "height": 46,
+          "right": 884,
+          "bottom": 690
+        },
+        "receipt": {
+          "x": 157,
+          "y": 693,
+          "width": 727,
+          "height": 14.296875,
+          "right": 884,
+          "bottom": 707.296875
+        },
+        "communications": {
+          "x": 152,
+          "y": 644,
+          "width": 732,
+          "height": 64,
+          "right": 884,
+          "bottom": 708
+        },
+        "overflow": false
+      }
+    },
+    {
+      "viewport": "1920",
+      "quiet": {
+        "dock": {
+          "x": 12,
+          "y": 896,
+          "width": 1896,
+          "height": 172,
+          "right": 1908,
+          "bottom": 1068
+        },
+        "cards": [
+          {
+            "x": 313,
+            "y": 896,
+            "width": 205.1875,
+            "height": 100,
+            "right": 518.1875,
+            "bottom": 996,
+            "id": "lance-card-1",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 524.1875,
+            "y": 896,
+            "width": 205.203125,
+            "height": 100,
+            "right": 729.390625,
+            "bottom": 996,
+            "id": "lance-card-2",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 735.390625,
+            "y": 896,
+            "width": 205.203125,
+            "height": 100,
+            "right": 940.59375,
+            "bottom": 996,
+            "id": "lance-card-3",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 946.59375,
+            "y": 896,
+            "width": 205.203125,
+            "height": 100,
+            "right": 1151.796875,
+            "bottom": 996,
+            "id": "lance-card-4",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 1157.796875,
+            "y": 896,
+            "width": 205.1875,
+            "height": 100,
+            "right": 1362.984375,
+            "bottom": 996,
+            "id": "lance-card-9",
+            "paired": true,
+            "contentsFit": true
+          }
+        ],
+        "commands": {
+          "x": 1538,
+          "y": 967,
+          "width": 364,
+          "height": 69,
+          "right": 1902,
+          "bottom": 1036
+        },
+        "radio": null,
+        "receipt": null,
+        "communications": {
+          "x": 152,
+          "y": 1004,
+          "width": 1372,
+          "height": 64,
+          "right": 1524,
+          "bottom": 1068
+        },
+        "overflow": false
+      },
+      "active": {
+        "dock": {
+          "x": 12,
+          "y": 896,
+          "width": 1896,
+          "height": 172,
+          "right": 1908,
+          "bottom": 1068
+        },
+        "cards": [
+          {
+            "x": 313,
+            "y": 896,
+            "width": 205.1875,
+            "height": 100,
+            "right": 518.1875,
+            "bottom": 996,
+            "id": "lance-card-1",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 524.1875,
+            "y": 896,
+            "width": 205.203125,
+            "height": 100,
+            "right": 729.390625,
+            "bottom": 996,
+            "id": "lance-card-2",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 735.390625,
+            "y": 896,
+            "width": 205.203125,
+            "height": 100,
+            "right": 940.59375,
+            "bottom": 996,
+            "id": "lance-card-3",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 946.59375,
+            "y": 896,
+            "width": 205.203125,
+            "height": 100,
+            "right": 1151.796875,
+            "bottom": 996,
+            "id": "lance-card-4",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 1157.796875,
+            "y": 896,
+            "width": 205.1875,
+            "height": 100,
+            "right": 1362.984375,
+            "bottom": 996,
+            "id": "lance-card-9",
+            "paired": true,
+            "contentsFit": true
+          }
+        ],
+        "commands": {
+          "x": 1538,
+          "y": 967,
+          "width": 364,
+          "height": 69,
+          "right": 1902,
+          "bottom": 1036
+        },
+        "radio": {
+          "x": 152,
+          "y": 1004,
+          "width": 1372,
+          "height": 46,
+          "right": 1524,
+          "bottom": 1050
+        },
+        "receipt": {
+          "x": 157,
+          "y": 1053,
+          "width": 1367,
+          "height": 14.296875,
+          "right": 1524,
+          "bottom": 1067.296875
+        },
+        "communications": {
+          "x": 152,
+          "y": 1004,
+          "width": 1372,
+          "height": 64,
+          "right": 1524,
+          "bottom": 1068
+        },
+        "overflow": false
+      }
+    },
+    {
+      "viewport": "1024",
+      "quiet": {
+        "dock": {
+          "x": 12,
+          "y": 584,
+          "width": 1000,
+          "height": 172,
+          "right": 1012,
+          "bottom": 756
+        },
+        "cards": [
+          {
+            "x": 128,
+            "y": 584,
+            "width": 110.390625,
+            "height": 100,
+            "right": 238.390625,
+            "bottom": 684,
+            "id": "lance-card-1",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 242.390625,
+            "y": 584,
+            "width": 110.40625,
+            "height": 100,
+            "right": 352.796875,
+            "bottom": 684,
+            "id": "lance-card-2",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 356.796875,
+            "y": 584,
+            "width": 110.390625,
+            "height": 100,
+            "right": 467.1875,
+            "bottom": 684,
+            "id": "lance-card-3",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 471.1875,
+            "y": 584,
+            "width": 110.40625,
+            "height": 100,
+            "right": 581.59375,
+            "bottom": 684,
+            "id": "lance-card-4",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 585.59375,
+            "y": 584,
+            "width": 110.40625,
+            "height": 100,
+            "right": 696,
+            "bottom": 684,
+            "id": "lance-card-9",
+            "paired": true,
+            "contentsFit": true
+          }
+        ],
+        "commands": {
+          "x": 708,
+          "y": 655,
+          "width": 298,
+          "height": 69,
+          "right": 1006,
+          "bottom": 724
+        },
+        "radio": null,
+        "receipt": null,
+        "communications": {
+          "x": 128,
+          "y": 692,
+          "width": 568,
+          "height": 64,
+          "right": 696,
+          "bottom": 756
+        },
+        "overflow": false
+      },
+      "active": {
+        "dock": {
+          "x": 12,
+          "y": 584,
+          "width": 1000,
+          "height": 172,
+          "right": 1012,
+          "bottom": 756
+        },
+        "cards": [
+          {
+            "x": 128,
+            "y": 584,
+            "width": 110.390625,
+            "height": 100,
+            "right": 238.390625,
+            "bottom": 684,
+            "id": "lance-card-1",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 242.390625,
+            "y": 584,
+            "width": 110.40625,
+            "height": 100,
+            "right": 352.796875,
+            "bottom": 684,
+            "id": "lance-card-2",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 356.796875,
+            "y": 584,
+            "width": 110.390625,
+            "height": 100,
+            "right": 467.1875,
+            "bottom": 684,
+            "id": "lance-card-3",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 471.1875,
+            "y": 584,
+            "width": 110.40625,
+            "height": 100,
+            "right": 581.59375,
+            "bottom": 684,
+            "id": "lance-card-4",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 585.59375,
+            "y": 584,
+            "width": 110.40625,
+            "height": 100,
+            "right": 696,
+            "bottom": 684,
+            "id": "lance-card-9",
+            "paired": true,
+            "contentsFit": true
+          }
+        ],
+        "commands": {
+          "x": 708,
+          "y": 655,
+          "width": 298,
+          "height": 69,
+          "right": 1006,
+          "bottom": 724
+        },
+        "radio": {
+          "x": 128,
+          "y": 692,
+          "width": 568,
+          "height": 46,
+          "right": 696,
+          "bottom": 738
+        },
+        "receipt": {
+          "x": 133,
+          "y": 741,
+          "width": 563,
+          "height": 14.296875,
+          "right": 696,
+          "bottom": 755.296875
+        },
+        "communications": {
+          "x": 128,
+          "y": 692,
+          "width": 568,
+          "height": 64,
+          "right": 696,
+          "bottom": 756
+        },
+        "overflow": false
+      }
+    },
+    {
+      "viewport": "touch-390",
+      "quiet": {
+        "dock": {
+          "x": 8,
+          "y": 558,
+          "width": 374,
+          "height": 278,
+          "right": 382,
+          "bottom": 836
+        },
+        "cards": [
+          {
+            "x": 65,
+            "y": 558,
+            "width": 198.890625,
+            "height": 58,
+            "right": 263.890625,
+            "bottom": 616,
+            "id": "lance-card-1",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 268.890625,
+            "y": 558,
+            "width": 198.890625,
+            "height": 58,
+            "right": 467.78125,
+            "bottom": 616,
+            "id": "lance-card-2",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 472.78125,
+            "y": 558,
+            "width": 198.890625,
+            "height": 58,
+            "right": 671.671875,
+            "bottom": 616,
+            "id": "lance-card-3",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 676.671875,
+            "y": 558,
+            "width": 198.890625,
+            "height": 58,
+            "right": 875.5625,
+            "bottom": 616,
+            "id": "lance-card-4",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 880.5625,
+            "y": 558,
+            "width": 198.890625,
+            "height": 58,
+            "right": 1079.453125,
+            "bottom": 616,
+            "id": "lance-card-9",
+            "paired": true,
+            "contentsFit": true
+          }
+        ],
+        "commands": {
+          "x": 9,
+          "y": 671,
+          "width": 372,
+          "height": 101,
+          "right": 381,
+          "bottom": 772
+        },
+        "radio": null,
+        "receipt": null,
+        "communications": {
+          "x": 8,
+          "y": 778,
+          "width": 374,
+          "height": 58,
+          "right": 382,
+          "bottom": 836
+        },
+        "overflow": false
+      },
+      "active": {
+        "dock": {
+          "x": 8,
+          "y": 558,
+          "width": 374,
+          "height": 278,
+          "right": 382,
+          "bottom": 836
+        },
+        "cards": [
+          {
+            "x": 65,
+            "y": 558,
+            "width": 198.890625,
+            "height": 58,
+            "right": 263.890625,
+            "bottom": 616,
+            "id": "lance-card-1",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 268.890625,
+            "y": 558,
+            "width": 198.890625,
+            "height": 58,
+            "right": 467.78125,
+            "bottom": 616,
+            "id": "lance-card-2",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 472.78125,
+            "y": 558,
+            "width": 198.890625,
+            "height": 58,
+            "right": 671.671875,
+            "bottom": 616,
+            "id": "lance-card-3",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 676.671875,
+            "y": 558,
+            "width": 198.890625,
+            "height": 58,
+            "right": 875.5625,
+            "bottom": 616,
+            "id": "lance-card-4",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 880.5625,
+            "y": 558,
+            "width": 198.890625,
+            "height": 58,
+            "right": 1079.453125,
+            "bottom": 616,
+            "id": "lance-card-9",
+            "paired": true,
+            "contentsFit": true
+          }
+        ],
+        "commands": {
+          "x": 9,
+          "y": 671,
+          "width": 372,
+          "height": 101,
+          "right": 381,
+          "bottom": 772
+        },
+        "radio": {
+          "x": 8,
+          "y": 778,
+          "width": 374,
+          "height": 44,
+          "right": 382,
+          "bottom": 822
+        },
+        "receipt": {
+          "x": 11,
+          "y": 824,
+          "width": 368,
+          "height": 12,
+          "right": 379,
+          "bottom": 836
+        },
+        "communications": {
+          "x": 8,
+          "y": 778,
+          "width": 374,
+          "height": 58,
+          "right": 382,
+          "bottom": 836
+        },
+        "overflow": false
+      }
+    },
+    {
+      "viewport": "touch-844",
+      "quiet": {
+        "dock": {
+          "x": 8,
+          "y": 258,
+          "width": 828,
+          "height": 124,
+          "right": 836,
+          "bottom": 382
+        },
+        "cards": [
+          {
+            "x": 65,
+            "y": 258,
+            "width": 196.25,
+            "height": 61,
+            "right": 261.25,
+            "bottom": 319,
+            "id": "lance-card-1",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 266.25,
+            "y": 258,
+            "width": 196.25,
+            "height": 61,
+            "right": 462.5,
+            "bottom": 319,
+            "id": "lance-card-2",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 467.5,
+            "y": 258,
+            "width": 196.25,
+            "height": 61,
+            "right": 663.75,
+            "bottom": 319,
+            "id": "lance-card-3",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 668.75,
+            "y": 258,
+            "width": 196.25,
+            "height": 61,
+            "right": 865,
+            "bottom": 319,
+            "id": "lance-card-4",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 870,
+            "y": 258,
+            "width": 196.25,
+            "height": 61,
+            "right": 1066.25,
+            "bottom": 319,
+            "id": "lance-card-9",
+            "paired": true,
+            "contentsFit": true
+          }
+        ],
+        "commands": {
+          "x": 385.359375,
+          "y": 325,
+          "width": 449.640625,
+          "height": 56,
+          "right": 835,
+          "bottom": 381
+        },
+        "radio": null,
+        "receipt": null,
+        "communications": {
+          "x": 8,
+          "y": 324,
+          "width": 371.359375,
+          "height": 58,
+          "right": 379.359375,
+          "bottom": 382
+        },
+        "overflow": false
+      },
+      "active": {
+        "dock": {
+          "x": 8,
+          "y": 258,
+          "width": 828,
+          "height": 124,
+          "right": 836,
+          "bottom": 382
+        },
+        "cards": [
+          {
+            "x": 65,
+            "y": 258,
+            "width": 196.25,
+            "height": 61,
+            "right": 261.25,
+            "bottom": 319,
+            "id": "lance-card-1",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 266.25,
+            "y": 258,
+            "width": 196.25,
+            "height": 61,
+            "right": 462.5,
+            "bottom": 319,
+            "id": "lance-card-2",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 467.5,
+            "y": 258,
+            "width": 196.25,
+            "height": 61,
+            "right": 663.75,
+            "bottom": 319,
+            "id": "lance-card-3",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 668.75,
+            "y": 258,
+            "width": 196.25,
+            "height": 61,
+            "right": 865,
+            "bottom": 319,
+            "id": "lance-card-4",
+            "paired": true,
+            "contentsFit": true
+          },
+          {
+            "x": 870,
+            "y": 258,
+            "width": 196.25,
+            "height": 61,
+            "right": 1066.25,
+            "bottom": 319,
+            "id": "lance-card-9",
+            "paired": true,
+            "contentsFit": true
+          }
+        ],
+        "commands": {
+          "x": 385.359375,
+          "y": 325,
+          "width": 449.640625,
+          "height": 56,
+          "right": 835,
+          "bottom": 381
+        },
+        "radio": {
+          "x": 8,
+          "y": 324,
+          "width": 371.359375,
+          "height": 44,
+          "right": 379.359375,
+          "bottom": 368
+        },
+        "receipt": {
+          "x": 11,
+          "y": 370,
+          "width": 365.359375,
+          "height": 12,
+          "right": 376.359375,
+          "bottom": 382
+        },
+        "communications": {
+          "x": 8,
+          "y": 324,
+          "width": 371.359375,
+          "height": 58,
+          "right": 379.359375,
+          "bottom": 382
+        },
+        "overflow": false
+      }
+    }
+  ],
+  "focusedChecks": {
+    "passed": 41,
+    "total": 41
+  }
+}

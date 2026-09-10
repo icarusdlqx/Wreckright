@@ -66,6 +66,11 @@ export function CampaignHeader({
     if (filesRef.current !== null) filesRef.current.open = false;
     filesToggleRef.current?.focus();
   };
+  const dialogAction = (action: () => void, launcher: HTMLButtonElement): void => {
+    if (filesRef.current !== null) filesRef.current.open = false;
+    launcher.focus();
+    action();
+  };
   const fileAction = (action: () => void): void => {
     closeFiles();
     action();
@@ -103,6 +108,10 @@ export function CampaignHeader({
         </div>
 
         <div className="camp-command-tools">
+          <div className="camp-save-actions" aria-label="Campaign saves">
+            <button type="button" onClick={(event) => dialogAction(onSave, event.currentTarget)} data-testid="camp-save">Save Game</button>
+            <button type="button" onClick={(event) => dialogAction(onLoad, event.currentTarget)} data-testid="camp-load">Load Game</button>
+          </div>
           <details className="camp-company-files" ref={filesRef} data-testid="camp-files"
             onKeyDown={(event) => {
               if (event.key !== 'Escape' || restartOpen || filesRef.current?.open !== true) return;
@@ -113,12 +122,6 @@ export function CampaignHeader({
             <div className="camp-files-panel">
               <p>Save or transfer your company.</p>
               <div className="camp-files-actions">
-                <button type="button" onClick={() => fileAction(onSave)} data-testid="camp-save">
-                  Save
-                </button>
-                <button type="button" onClick={() => fileAction(onLoad)} data-testid="camp-load">
-                  Load
-                </button>
                 <button type="button" onClick={() => fileAction(onExport)} data-testid="camp-export">
                   Export
                 </button>

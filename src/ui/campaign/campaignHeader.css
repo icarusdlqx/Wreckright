@@ -187,6 +187,7 @@
   .camp-command-header .camp-command-main { grid-template-columns: 1fr; gap: 16px; }
   .camp-command-header .camp-company-status { justify-content: space-between; gap: 12px; }
   .camp-command-header .camp-command-tools { align-items: flex-start; }
+  .camp-command-header .campaign-waiting { flex-basis: 100%; }
   .camp-command-header .camp-utility-actions { gap: 3px; }
   .camp .camp-command-header .camp-utility-actions button { padding-inline: 8px; }
   .camp .camp-restart-dialog { padding: 22px; }
@@ -203,3 +204,8 @@
   .camp .camp-command-header .camp-file-import,
   .camp .camp-restart-actions button { border-color: ButtonText; }
 }
+
+.camp-save-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.camp .camp-command-header .camp-save-actions button { min-height: 44px; }
+.camp-command-header .camp-command-tools { justify-content: flex-start; gap: 8px 12px; }
+.camp-command-header .camp-utility-actions { margin-left: auto; }

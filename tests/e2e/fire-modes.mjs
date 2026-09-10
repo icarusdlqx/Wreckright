@@ -1,14 +1,19 @@
 import { discardRefitIfPrompted } from './mechbay-exit.mjs';
 import { readFileSync } from 'node:fs';
 
-const STORAGE_KEY = 'ironline.design.e2e_fire_modes_redoubt';
+const STORAGE_KEY = 'ironline.design.e2e_fire_modes_bulwark';
 const source = JSON.parse(
-  readFileSync(new URL('../../src/data/designs/redoubt_emplacement.json', import.meta.url), 'utf8'),
+  readFileSync(new URL('../../src/data/designs/bulwark_assault.json', import.meta.url), 'utf8'),
 );
+// The old Redoubt fixture was an emplacement, which cannot occupy a mech berth.
+// A six-slot Bulwark arm carries the same modal cannon in a legal player hull.
 const fixture = {
   ...source,
-  id: 'e2e_fire_modes_redoubt',
-  name: 'Fire Modes Redoubt',
+  id: 'e2e_fire_modes_bulwark',
+  name: 'Fire Modes Bulwark',
+  mounts: [{ weaponId: 'lbx_ac10', location: 'right_arm' }],
+  ammo: [{ weaponId: 'lbx_ac10', location: 'right_torso', tons: 1 }],
+  equipment: [{ equipmentId: 'case', location: 'right_torso' }],
 };
 
 function watchPage(page) {
@@ -47,15 +52,18 @@ async function openFixtureBriefing(page) {
   await page.locator('[data-testid="home-skirmish"]').click();
   await page.waitForSelector('[data-testid="briefing"]');
   await page.waitForFunction(() => globalThis.__wreckright?.useGame.getState().ready === true);
-  await page.evaluate(() => {
-    const state = globalThis.__wreckright.useGame.getState();
-    state.patch({ error: state.error });
-  });
+  await page.getByTestId('briefing-faction-picker').selectOption('linewrought');
+  for (let index = 1; index < 4; index++) {
+    await page.getByTestId(`briefing-berth-${index}`).click();
+    await page.getByTestId(`berth-design-${index}`).selectOption('empty');
+  }
+  await page.getByTestId('briefing-berth-0').click();
   const berth = page.locator('[data-testid="berth-design-0"]');
-  await berth.selectOption('saved:e2e_fire_modes_redoubt');
+  await berth.selectOption('saved:e2e_fire_modes_bulwark');
   await page.waitForFunction(
     () => document.querySelector('[data-testid="berth-design-0"]')?.value === 'custom',
   );
+  await page.waitForFunction(() => globalThis.__wreckright?.world.entities.some(entity => entity.designId === 'e2e_fire_modes_bulwark'));
 }
 
 async function prepareBattle(page) {
@@ -67,7 +75,7 @@ async function prepareBattle(page) {
     const { engine, useGame, world } = globalThis.__wreckright;
     const state = useGame.getState();
     const shooter = world.entities.find(
-      (entity) => entity.designId === 'e2e_fire_modes_redoubt',
+      (entity) => entity.designId === 'e2e_fire_modes_bulwark',
     );
     const target = world.entities.find(
       (entity) => entity.team !== state.playerTeam && !entity.destroyed,
@@ -115,6 +123,16 @@ export async function runFireModeStage2Checks({ browser, url, check }) {
   const desktop = await freshPage(browser, url, { width: 1440, height: 900 });
   try {
     await openFixtureBriefing(desktop.page);
+    check('the fire-mode fixture is a legal, deployable Linewrought mech with cannon ammunition',
+      await desktop.page.getByTestId('briefing-deploy').isEnabled()
+      && await desktop.page.evaluate(() => {
+        const world = globalThis.__wreckright.world;
+        const mech = world.entities.find(entity => entity.designId === 'e2e_fire_modes_bulwark');
+        const chassis = world.catalog.chassis.get(mech?.chassisId);
+        return chassis?.frame === 'mech' && chassis.faction === 'linewrought'
+          && mech.weapons.length === 1 && mech.weapons[0].weaponId === 'lbx_ac10'
+          && mech.ammoBins.some(bin => bin.weaponId === 'lbx_ac10' && bin.rounds > 0);
+      }));
     await desktop.page.locator('[data-testid="berth-customise-0"]').click();
     await desktop.page.waitForSelector('[data-testid="outfit-bay"]');
     await desktop.page.locator('[data-testid="inspect-weapon-0"]').click();

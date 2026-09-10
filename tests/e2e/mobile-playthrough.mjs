@@ -235,7 +235,7 @@ async function runOrientation({ browser, url, shots, check, viewport, label, sho
     }
 
     await verifyTouchNavigation({ page, check, prefix });
-    if (label === 'portrait') await verifyTouchOrders({ page, check, prefix });
+    if (label === 'portrait') await verifyTouchOrders({ page, check, prefix, shots });
     await page.screenshot({ path: `${shots}/12-mobile-${shotLabel}-battle.png` });
 
     await openBattleMenu(page);

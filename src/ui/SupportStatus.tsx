@@ -8,7 +8,7 @@ export function SupportStatus({ world, paused }: { world: World | null; paused: 
   if (first === undefined) return null;
   return <aside className="support-status" aria-label="Support status" data-testid="support-status">
     <details>
-      <summary>
+      <summary title={`${supportStatusTitle(first)} · ${supportStatusProgress(first, paused)}`}>
         <span className="support-status-mark" aria-hidden="true">{first.kind === 'repair' ? 'FIX' : 'SUPPORT'}</span>
         <span className="support-status-summary"><strong>{supportStatusTitle(first)}</strong>
           <span className={paused && first.kind === 'queued' ? 'support-status-paused' : ''}>{supportStatusProgress(first, paused)}</span>

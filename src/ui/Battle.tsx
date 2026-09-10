@@ -8,7 +8,6 @@ import { BattleTopbar } from './BattleTopbar';
 import { Briefing } from './Briefing';
 import { briefingLanceFor } from './briefingLance';
 import type { Engine } from './engine';
-import { lanceFaction } from './lance';
 import { ObjectiveList } from './ObjectiveList';
 import { createBattleOutfitBay, OutfitBayDialog } from './OutfitBayDialog';
 import { BriefingSetup } from './BattleSetup';
@@ -153,10 +152,11 @@ export function Battle(props: BattleProps = {}) {
 
   const briefingLance = state.campaignPending || activeTraining
     ? null
-    : briefingLanceFor(catalog, missionId, lance, setLance, openOutfitBay, playerDifficulty);
+    : briefingLanceFor(catalog, missionId, lance, setLance, openOutfitBay, playerDifficulty, forces.friendlyFaction);
   const outfittingEnemy = outfitting?.side === 'enemy';
   const outfitBay = createBattleOutfitBay(catalog, outfittingEnemy ? forces.enemy : lance,
-    outfitting?.index ?? null, outfittingEnemy ? forces.setEnemy : setLance, closeOutfitBay, outfitting?.side);
+    outfitting?.index ?? null, outfittingEnemy ? forces.setEnemy : setLance, closeOutfitBay, outfitting?.side,
+    outfittingEnemy ? forces.enemyFaction : forces.friendlyFaction);
   const skirmishIssue = state.campaignPending || activeTraining ? null : forces.issue;
   const deployIssue = skirmishIssue ?? (battleCodeCheck.ok ? null : battleCodeCheck.reason);
   const outfitAudio = engineRef.current?.audio ?? null;
@@ -222,7 +222,7 @@ export function Battle(props: BattleProps = {}) {
               missions={missions}
               difficulties={difficulties}
               campaignMissionName={state.campaignPending ? state.missionName : null}
-              lanceFactionId={activeTraining ? null : lanceFaction(catalog, lance) ?? 'mixed'}
+              lanceFactionId={activeTraining ? null : forces.friendlyFaction}
               onLanceFaction={(faction) => forces.setFaction('player', faction)}
               maps={forces.maps} mapId={forces.mapId}
               playerDifficulty={forces.playerDifficulty} onPlayerDifficulty={forces.setPlayerDifficulty}
@@ -235,7 +235,7 @@ export function Battle(props: BattleProps = {}) {
           }
           {...(briefingLance === null ? {} : { lance: briefingLance })}
           opposition={state.campaignPending || activeTraining ? null : <EnemyForceSetup catalog={catalog}
-            missionId={missionId} lance={forces.enemy} difficultyId={difficulty} difficulties={difficulties}
+            missionId={missionId} lance={forces.enemy} faction={forces.enemyFaction} difficultyId={difficulty} difficulties={difficulties}
             onDifficulty={setup.selectDifficulty} onLance={forces.setEnemy}
             onFaction={(faction) => forces.setFaction('enemy', faction)} onCustomise={(index) => openOutfitBay(index, 'enemy')} />}
           {...(activeTraining ? { training: { onSkip: training.skip } } : {})}

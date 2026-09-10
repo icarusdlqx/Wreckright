@@ -103,6 +103,9 @@ async function verifySavedLoadoutJourney({ page, check }) {
   await page.locator('[data-testid="bay-exit"]').click();
   await discardRefitIfPrompted(page);
   await page.waitForSelector('[data-testid="briefing"]');
+  // This Workshop fixture may return to an Aurelian scenario. Deliberately
+  // allow both hull cultures before selecting its saved Linewrought scout.
+  await page.getByTestId('briefing-faction-picker').selectOption('mixed');
   const berth = page.locator('[data-testid="berth-design-0"]');
   check(
     'the briefing exposes the saved loadout through the existing picker',

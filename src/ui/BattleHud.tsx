@@ -14,7 +14,7 @@ import { useEffect, useRef, useState } from 'react';
 import { resetCommanderView } from './commanderViewState';
 import type { SupportOption } from './supportOptions';
 import { SensorSweepReadout } from './SensorSweepReadout';
-import { SupportStatus } from './SupportStatus';
+import { BattleCommunications } from './BattleCommunications';
 import { TrainingHeatReadout } from './TrainingHeatReadout';
 import {
   trainingCommandIds,
@@ -25,8 +25,6 @@ import {
 import type { TrainingStep } from './trainingProgress';
 import { UnitPanel } from './UnitPanel';
 import { useCompactLayout } from './useCompactLayout';
-import { FieldRadioPanel } from './FieldRadioPanel';
-import { CommandReceipt } from './CommandReceipt';
 import { selectionAbilities } from './selectionAbilities';
 import './battleStatusLayout.css';
 import { useBattleDockSize } from './useBattleDockSize';
@@ -139,7 +137,7 @@ export function BattleHud({ engine, supportOptions, trainingStep = null }: Battl
       <SensorSweepReadout world={engine?.world ?? null} />
       </div>
       <footer ref={dockRef} className={`bottombar tactical-command-deck${fullHud ? ' pilot-command-dock' : ' training-bottombar'}`}>
-        {fullHud ? <div className="battle-communications"><CommandReceipt /><FieldRadioPanel /><SupportStatus world={engine?.world ?? null} paused={state.paused} /></div> : null}
+        {fullHud ? <BattleCommunications world={engine?.world ?? null} paused={state.paused} /> : null}
         {trainingShowsHeatReadout(trainingStep) ? (
           <TrainingHeatReadout unit={playerControlled ? unit : null} />
         ) : null}

@@ -10,7 +10,7 @@ import { HostileBar, LanceBar, SupportPalette } from './Panels';
 import { selectedUnit, useGame } from './store';
 import { selectionAfterClick } from './selectionAfterClick';
 import type { SupportOption } from './supportOptions';
-import { SupportStatus } from './SupportStatus';
+import { BattleCommunications } from './BattleCommunications';
 import { TrainingHeatReadout } from './TrainingHeatReadout';
 import {
   trainingCommandIds,
@@ -20,8 +20,6 @@ import {
 } from './trainingPresentation';
 import type { TrainingStep } from './trainingProgress';
 import { UnitPanel } from './UnitPanel';
-import { FieldRadioPanel } from './FieldRadioPanel';
-import { CommandReceipt } from './CommandReceipt';
 import { useBattleDockSize } from './useBattleDockSize';
 import { selectionAbilities } from './selectionAbilities';
 
@@ -121,7 +119,7 @@ export function MobileBattleHud({
         }`}
         data-testid="mobile-dock"
       >
-        {fullHud ? <div className="battle-communications"><CommandReceipt /><FieldRadioPanel /><SupportStatus world={engine?.world ?? null} paused={state.paused} /></div> : null}
+        {fullHud ? <BattleCommunications world={engine?.world ?? null} paused={state.paused} /> : null}
         <div className="mobile-lance-row">
           <button
             type="button"

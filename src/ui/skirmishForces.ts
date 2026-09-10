@@ -1,7 +1,8 @@
 import type { Catalog } from '../schema/load';
 import { validateDesign } from '../schema/designValidation';
 import { dropTonnageFor } from '../campaign/campaign';
-import { berthDesign, defaultLance, lanceTonnage, type SkirmishBerth } from './lance';
+import { berthDesign, defaultLance, lanceTonnage, type SkirmishBerth, type SkirmishFaction } from './lance';
+import { skirmishFactionName } from './skirmishFaction';
 
 export interface SkirmishMapChoice { id: string; name: string; missionId: string }
 
@@ -25,6 +26,7 @@ export function skirmishForceIssue(
   missionId: string,
   berths: readonly SkirmishBerth[],
   side: 'Your' | 'Enemy',
+  faction: SkirmishFaction = 'mixed',
 ): string | null {
   const active = berths.filter((berth) => berth.empty !== true);
   if (active.length === 0) return `${side} lance needs at least one mech.`;
@@ -35,6 +37,9 @@ export function skirmishForceIssue(
     const design = berthDesign(catalog, berth);
     if (design === null || !catalog.pilots.has(berth.pilotId)) {
       return `${side} lance contains a missing mech or pilot. Select another loadout.`;
+    }
+    if (faction !== 'mixed' && catalog.chassis.get(design.chassisId)?.faction !== faction) {
+      return `${side} lance is set to ${skirmishFactionName(faction)}. Choose a mech from that faction, or select Mixed company.`;
     }
     if (!validateDesign(catalog, design).valid) {
       return `${side} lance has an invalid loadout. Open Refit loadout to correct it.`;

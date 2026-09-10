@@ -247,11 +247,11 @@ export function CommandPalette({
             {advanced.map((command) => (
               <CommandButton key={command.id} command={command} {...buttonProps} />
             ))}
+            <SelectionAbilityDetails summary={abilitySelection} />
             <OrderGuide jumpNote={jumpTitle(jump)} />
           </div>
         </details>
       )}
-      <SelectionAbilityDetails summary={abilitySelection} />
       <ActiveOrderHelp mode={orderMode} />
     </div>
   );

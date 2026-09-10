@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react';
-import { loadCampaign } from '../campaign/save';
+import { parseLibraryCampaign } from '../campaign/saveLibrary';
+import { peekCampaignText } from '../campaign/storage';
+import { useCampaignFiles } from './campaign/useCampaignFiles';
+import { CampaignChooser } from './campaign/CampaignChooser';
+import { campaignOutcomeCount } from '../campaign/history';
+import { resetDebriefed, revealLatestDebrief } from './campaign/Debrief';
 import { getCatalog } from '../schema/load';
 import { createNewBattleCode, TRAINING_BATTLE_CODE } from './battleCode';
 import { usePlaytest } from './playtest';
@@ -21,10 +26,13 @@ const menuArtwork = new URL('../assets/art/tessell-crossing-menu.webp', import.m
 
 export function HomeScreen() {
   const [artwork, setArtwork] = useState<'loading' | 'ready' | 'fallback'>('loading');
-  const [entry] = useState(() => ({
-    training: readTraining(),
-    campaign: loadCampaign(getCatalog(), { storedOnly: true }).state !== null,
-  }));
+  const catalog = getCatalog();
+  const [entry] = useState(() => {
+    const saved = peekCampaignText();
+    return { training: readTraining(), campaign: saved.kind === 'found' && parseLibraryCampaign(saved.text, catalog).state !== null };
+  });
+  const [newCampaignOpen, setNewCampaignOpen] = useState(false);
+  const [fileNotice, setFileNotice] = useState<string | null>(null);
   const battleCode = useGame((state) => state.battleCode);
   const enterBattle = useGame((state) => state.enterBattle);
   const patch = useGame((state) => state.patch);
@@ -50,6 +58,13 @@ export function HomeScreen() {
     skipTraining();
     patch({ screen: 'campaign', campaignPending: false, error: null });
   };
+
+  const files = useCampaignFiles({ catalog, onNotice: setFileNotice,
+    onAdopt: (restored, fresh) => {
+      if (fresh) resetDebriefed();
+      else revealLatestDebrief(campaignOutcomeCount(restored));
+      campaign();
+    }, onContinue: campaign });
 
   const skirmish = (): void => {
     record({ name: 'route_chosen', route: 'skirmish' });
@@ -94,6 +109,10 @@ export function HomeScreen() {
             <span className="home-route-copy"><strong>{entry.campaign ? 'Continue Campaign' : 'Start Campaign'}</strong><span>Build a company. Choose your contracts.</span></span>
             <span className="home-route-arrow" aria-hidden="true">↗</span>
           </button>
+          <div className="home-save-actions" aria-label="Campaign files">
+            <button type="button" data-testid="home-load-game" onClick={files.openLoad}>Load Game</button>
+            <button type="button" data-testid="home-new-campaign" onClick={() => { setFileNotice(null); setNewCampaignOpen(true); }}>New Campaign</button>
+          </div>
           <button type="button" className="home-route" onClick={skirmish} data-testid="home-skirmish">
             <span className="home-route-copy"><strong>Skirmish</strong><span>Choose your machines and the battlefield.</span></span>
             <span className="home-route-arrow" aria-hidden="true">↗</span>
@@ -104,6 +123,9 @@ export function HomeScreen() {
           </WikiLink>
         </nav>
       </section>
+      {files.dialog}
+      {newCampaignOpen ? <CampaignChooser campaigns={[...catalog.campaigns.values()]} currentId="border_dispute" newRun
+        onClose={() => setNewCampaignOpen(false)} onStart={files.startNew} notice={fileNotice} /> : null}
       <aside className="home-location" aria-label="Setting">
         <span>TESSELL / THE GREAT RECALL</span>
         <p>The Aurelian Continuance has returned to Tessell.<br />Nothing here is theirs to take without a fight.</p>

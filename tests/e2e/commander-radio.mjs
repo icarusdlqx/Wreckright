@@ -42,7 +42,7 @@ export async function runCommanderRadioChecks({ browser, url, shots, check }) {
         radioDocked: radio.top >= dock.top && radio.bottom <= dock.bottom && map.bottom <= radio.top,
         pairedCards: [...document.querySelectorAll('.lance-card')].every(card => {
           const rect = card.getBoundingClientRect();
-          return rect.height <= 250 && rect.top >= dock.top && rect.bottom <= dock.bottom
+          return rect.height <= 110 && rect.top >= dock.top && rect.bottom <= dock.bottom
             && card.querySelector('.pilot-portrait') !== null && card.querySelector('.lance-machine') !== null;
         }),
         topAttached: Math.abs(top.bottom - contacts.top) <= 1,

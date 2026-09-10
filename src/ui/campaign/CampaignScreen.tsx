@@ -4,25 +4,23 @@ import { abandonContract, acceptContract, availableNodes, campaignOf, standDownC
 import {
   campaignBlob,
   campaignPersistenceStatus,
-  deserialiseCampaign,
-  loadCampaign,
   rawCampaignBlob,
   saveCampaign,
 } from '../../campaign/save';
 import type { CampaignState, ContractTermsId } from '../../campaign/types';
 import { getCatalog } from '../../schema/load';
 import { isSideContract } from '../../campaign/sidework';
-import { createCampaignSeed, startFreshCampaign } from '../../campaign/freshness';
 import { deploymentCandidates, deploymentPlan } from '../../campaign/deployment';
 import { campaignOutcomeCount } from '../../campaign/history';
 import { assessSolvency, retireCompany } from '../../campaign/solvency';
 import { employerHistories } from '../../campaign/employers';
 import { useCampaignRefit } from './useCampaignRefit';
-import { parkCompany, readCompanySlot } from '../../campaign/companySlots';
+import { readCompanySlot } from '../../campaign/companySlots';
 import { CampaignWorkspace } from './CampaignWorkspace';
 import { useCampaignNavigation } from './campaignNavigation';
 import { CampaignHeader } from './CampaignHeader';
 import { CampaignChooser } from './CampaignChooser';
+import { useCampaignFiles } from './useCampaignFiles';
 import { CampaignMap, type NodeState } from './CampaignMap';
 import { CampaignPostBattle } from './CampaignPostBattle';
 import { resolveCurrentEmployer } from './campaignEmployer';
@@ -124,42 +122,21 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
   const { refitting, refitBay, setRefitting, onRefitPart } = useCampaignRefit({ catalog, state, prep, mutate, onStatus: setStatus });
   const previewsActive = state.difficultyConfigured && prep === null && refitting === null && !manualOpen && !choosingCampaign && outcomeCount <= debriefed;
 
-  const restore = (restored: CampaignState, message: string, recover = false): void => {
-    const saved = saveCampaign(restored, { recover });
-    setDebriefed(revealLatestDebrief(campaignOutcomeCount(restored)));
-    setPrep(null);
-    setRefitting(null);
-    setState(restored);
-    setPersistence(saved.status);
-    setStatus(saved.ok ? message : 'Campaign opened in memory; the save was not written.');
-  };
-
-  const startNewCampaign = (campaignId: string, difficulty: string): void => {
-    const parkedSlot = readCompanySlot(campaignId);
-    if (parkedSlot.error !== null && parkedSlot.raw !== undefined) { setStatus('The parked company needs recovery before this slot can be replaced.'); return; }
-    if (campaignId !== state.campaignId) {
-      const parked = parkCompany(state);
-      if (!parked.ok) { setStatus(parked.error ?? 'Company switch held.'); return; }
-    }
-    resetDebriefed();
-    setDebriefed(0);
-    let saved = campaignPersistenceStatus();
-    let stored = false;
-    const fresh = startFreshCampaign(catalog, campaignId, createCampaignSeed, (next) => {
-      const result = saveCampaign(next, { recover: true });
-      saved = result.status;
-      stored = result.ok;
-    }, difficulty);
-    setPrep(null);
-    setGuideDismissed(false);
-    setRefitting(null);
-    setSelectedNode(null);
-    setSelectedTerms('standard');
-    setChoosingCampaign(false);
-    setState(fresh);
-    setPersistence(saved);
-    setStatus(stored ? `New campaign. Run ${fresh.seed}.` : `New campaign opened in memory. Run ${fresh.seed}.`);
-  };
+  const files = useCampaignFiles({ catalog, current: state, onNotice: setStatus,
+    onAdopt: (restored, fresh, message) => {
+      if (fresh) resetDebriefed();
+      setDebriefed(fresh ? 0 : revealLatestDebrief(campaignOutcomeCount(restored)));
+      setPrep(null);
+      setRefitting(null);
+      setSelectedNode(null);
+      setSelectedTerms('standard');
+      setChoosingCampaign(false);
+      if (fresh) setGuideDismissed(false);
+      setState(restored);
+      setPersistence(campaignPersistenceStatus());
+      setStatus(message);
+    },
+  });
 
   const onDeploy = (): void => {
     if (state.finished) {
@@ -237,26 +214,13 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         onNext={continueMission}
         waiting={<CampaignWaiting catalog={catalog} state={state}
           onWait={(day) => mutate((draft) => waitCompany(catalog, draft, day))} />}
-        onSave={() => {
-          const saved = saveCampaign(state);
-          setPersistence(saved.status);
-          setStatus(saved.ok ? 'Campaign saved.' : 'Save not written; campaign is memory-only.');
-        }}
-        onLoad={() => {
-          const loaded = loadCampaign(catalog, { storedOnly: true });
-          setPersistence(loaded.persistence);
-          if (loaded.state === null) setStatus(loaded.error ?? 'no save');
-          else restore(loaded.state, 'Campaign loaded.');
-        }}
+        onSave={files.openSave}
+        onLoad={files.openLoad}
         onExport={onExportSave}
         onExportRecovery={onExportRecovery}
-        onImport={(text) => {
-          const loaded = deserialiseCampaign(text);
-          if (loaded.state === null) setStatus(loaded.error ?? 'bad save');
-          else restore(loaded.state, 'Save imported.', true);
-        }}
+        onImport={files.importSave}
         onChooseCampaign={() => setChoosingCampaign(true)}
-        onRestart={(difficulty) => startNewCampaign(state.campaignId, difficulty)}
+        onRestart={(difficulty) => files.startNew(state.campaignId, difficulty)}
         onToggleManual={() => setManualOpen((open) => !open)}
         onToggleMuted={score.toggleMuted}
         onExit={() => {
@@ -269,6 +233,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
           onExit();
         }}
       />
+      {files.dialog}
       {!choosingCampaign && state.difficultyConfigured ? null : (
         <CampaignChooser
           campaigns={[...catalog.campaigns.values()]}
@@ -277,14 +242,11 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
           initial={!state.difficultyConfigured}
           onClose={() => state.difficultyConfigured ? setChoosingCampaign(false) : onExit()}
           notice={status}
-          onStart={startNewCampaign}
+          onStart={files.startNew}
           onResume={(campaignId) => {
             const slot = readCompanySlot(campaignId);
             if (slot.state === null) { setStatus(slot.error ?? 'No saved company.'); return; }
-            const parked = parkCompany(state);
-            if (!parked.ok) { setStatus(parked.error ?? 'Company switch held.'); return; }
-            restore(slot.state, 'Company resumed.');
-            setChoosingCampaign(false);
+            files.loadRaw(slot.raw ?? '');
           }}
         />
       )}

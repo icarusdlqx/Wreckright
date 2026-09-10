@@ -32,7 +32,7 @@ export function LanceBar({ units, selection, onSelect }: {
           <span className="lance-seat" aria-label={`Deployment seat ${index + 1}`}>{String(index + 1).padStart(2, '0')}</span>
           {speaking ? <span className="lance-speaking" aria-label="Speaking on company radio">◖</span> : null}
         </span>
-        <span className="lance-name">{unit.pilotName}</span>
+        <span className="lance-name" title={unit.pilotName}>{unit.pilotName}</span>
         <span className="lance-chassis" title={unit.identity}>{unit.name} · {unit.tonnage}t</span>
         <span className={`lance-health${integrity < .3 ? ' critical' : integrity < .6 ? ' damaged' : ''}`}
           role="meter" aria-label={`${unit.name} integrity`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(integrity * 100)}>

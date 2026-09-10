@@ -170,7 +170,7 @@ export class Renderer {
       { x: 0, y: 0 },
     );
     this.camera.centreOn(lance.length === 0 ? { x: mapWidth / 2, y: mapHeight / 2 } : centroid);
-    this.camera.beginDropIn();
+    // Setup changes rebuild this preview; deployment owns the opening camera move.
     this.resize();
     this.snapshot(world);
     this.unsubscribeQuality = subscribeLowFx(() => {

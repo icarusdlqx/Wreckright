@@ -26,8 +26,8 @@ export function CampaignRestartDialog({
         <p className="camp-command-kicker">Company files</p>
         <h2 id="camp-restart-title">Restart this company?</h2>
         <p id="camp-restart-detail">
-          This replaces your current company in <strong>{title}</strong> with a new run.
-          Export your campaign from Company files first if you want to keep a copy.
+          Start a new company in <strong>{title}</strong>. Your current company will be
+          kept in Load Game before the new run begins.
         </p>
         <CampaignDifficulty value={selectedDifficulty} onChange={setSelectedDifficulty} />
         <div className="camp-restart-actions">

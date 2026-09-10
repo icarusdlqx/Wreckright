@@ -21,7 +21,7 @@ interface SharedSetupProps {
 interface BriefingSetupProps extends SharedSetupProps {
   battleCode: string;
   onBattleCode: (battleCode: string) => void;
-  /** Which culture's machines fill the lance; null hides the choice. */
+  /** Explicit hull filter, independent of current roster composition; null hides the choice. */
   lanceFactionId: 'linewrought' | 'aurelian' | 'mixed' | null;
   onLanceFaction: (faction: 'linewrought' | 'aurelian' | 'mixed') => void;
   maps?: readonly SkirmishMapChoice[];
@@ -88,7 +88,7 @@ export function BriefingSetup(props: BriefingSetupProps) {
               <option value="aurelian">Aurelian</option>
             </select>
             <small className="setup-description">
-              Choosing a faction refills your berths. Individual picks below can mix both cultures.
+              Choosing a faction refills your berths and limits mech choices. Choose Mixed company to use both cultures.
             </small>
           </label>
         ) : null}

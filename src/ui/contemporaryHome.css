@@ -182,3 +182,8 @@
   .contemporary-home .home-route.primary .home-route-copy > span, .contemporary-home .home-route.primary .home-route-arrow { color: HighlightText; }
   .contemporary-home :is(.home-route, .audio-settings__trigger):focus-visible { outline-color: Highlight; }
 }
+
+.home-save-actions { display: flex; gap: 10px; }
+.home-save-actions button { flex: 1; min-height: 44px; padding: 10px 15px; color: #f6f1e3; background: #122e36b8; border: 1px solid #bfc9b969; border-radius: 4px; cursor: pointer; font: 600 12px/1.4 var(--font-body); }
+.home-save-actions button:hover { border-color: #f0bd76; background: #24484edb; }
+.home-save-actions button:focus-visible { outline: 2px solid #f0bd76; outline-offset: 3px; }

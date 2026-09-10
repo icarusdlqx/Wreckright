@@ -1,4 +1,16 @@
 export async function companyFile(page, testId) {
+  if (testId === 'camp-save' || testId === 'camp-load') {
+    await page.getByTestId(testId).click();
+    await page.getByTestId(testId === 'camp-save' ? 'save-new-checkpoint' : 'save-load-selected').click();
+    await page.getByTestId('campaign-save-dialog').waitFor({ state: 'hidden' });
+    if (testId === 'camp-load') {
+      // Current company is a Continue action; verify durable restoration with a real reload.
+      await page.reload();
+      await page.getByTestId('home-campaign').click();
+      await page.getByTestId('campaign').waitFor();
+    }
+    return;
+  }
   const files = page.locator('[data-testid="camp-files"]');
   if ((await files.getAttribute('open')) === null) {
     await page.locator('[data-testid="camp-files-toggle"]').click();

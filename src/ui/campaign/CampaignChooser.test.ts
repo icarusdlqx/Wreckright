@@ -49,6 +49,19 @@ describe('campaign chooser', () => {
     expect(html).toContain('A Clean Account');
   });
 
+  it('an explicit New Campaign choice offers fresh difficulty even when a parked company exists', () => {
+    const state = startCampaign(catalog, 'border_dispute', 'parked-new');
+    vi.stubGlobal('localStorage', { getItem: () => serialiseCampaign(state) });
+    const html = renderToStaticMarkup(createElement(CampaignChooser, {
+      campaigns: [...catalog.campaigns.values()], currentId: state.campaignId, newRun: true,
+      onStart: vi.fn(), onClose: vi.fn(), onResume: vi.fn(),
+    }));
+    expect(html).toContain('data-testid="campaign-difficulty-picker"');
+    expect(html).not.toContain('disabled="" data-testid="campaign-choice-start"');
+    expect(html).not.toContain('data-testid="campaign-choice-resume"');
+    expect(html).toContain('Your current company is kept in Load Game before starting another.');
+  });
+
   it('selects a real available faction if an old campaign identifier is no longer present', () => {
     vi.stubGlobal('localStorage', { getItem: () => null });
     const html = renderToStaticMarkup(createElement(CampaignChooser, {

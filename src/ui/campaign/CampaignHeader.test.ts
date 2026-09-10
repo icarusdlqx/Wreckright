@@ -23,17 +23,17 @@ function header(overrides: Partial<CampaignHeaderProps> = {}): string {
 }
 
 describe('campaign command header', () => {
-  it('keeps file controls in one closed native disclosure and help controls outside it', () => {
+  it('exposes Save Game and Load Game beside a closed disclosure for transfer and company controls', () => {
     const markup = header();
     const files = markup.slice(markup.indexOf('<details'), markup.indexOf('</details>'));
     expect(files).toContain('data-testid="camp-files"');
     expect(files).toContain('<summary');
     expect(files).toContain('data-testid="camp-files-toggle"');
     expect(files).not.toMatch(/<details[^>]*\sopen(?:\s|=|>)/);
-    for (const action of ['save', 'load', 'export', 'import', 'campaigns', 'restart']) {
+    for (const action of ['export', 'import', 'campaigns', 'restart']) {
       expect(files).toContain(`data-testid="camp-${action}"`);
     }
-    for (const id of ['camp-manual-toggle', 'campaign-mute-button', 'audio-settings', 'camp-exit', 'feedback-link']) {
+    for (const id of ['camp-save', 'camp-load', 'camp-manual-toggle', 'campaign-mute-button', 'audio-settings', 'camp-exit', 'feedback-link']) {
       expect(markup).toContain(`data-testid="${id}"`);
       expect(files).not.toContain(`data-testid="${id}"`);
     }
@@ -54,7 +54,7 @@ describe('campaign command header', () => {
     expect(markup).toContain('data-testid="camp-recovery-export"');
   });
 
-  it('labels restart as a replacement and presents keeping the run before confirming', () => {
+  it('explains that restarting keeps the current company and offers cancellation first', () => {
     const markup = renderToStaticMarkup(createElement(CampaignRestartDialog, {
       title: 'The Border Dispute', onCancel: () => undefined, onConfirm: () => undefined,
       returnFocus: () => null,
@@ -63,7 +63,7 @@ describe('campaign command header', () => {
     expect(markup).toContain('aria-modal="true"');
     expect(markup).toContain('aria-labelledby="camp-restart-title"');
     expect(markup).toContain('aria-describedby="camp-restart-detail"');
-    expect(markup).toContain('This replaces your current company');
+    expect(markup).toContain('kept in Load Game before the new run begins.');
     expect(markup.indexOf('data-testid="camp-restart-cancel"'))
       .toBeLessThan(markup.indexOf('data-testid="camp-restart-confirm"'));
   });

@@ -13,9 +13,9 @@ export function FieldRadioPanel() {
     return () => clearTimeout(timer);
   }, [message]);
   if (message === null) return null;
-  return <aside className={`field-radio field-radio--${message.priority}`} data-testid="field-radio" aria-label={message.priority === 'urgent' ? 'Priority report' : 'Company radio'} aria-live="polite">
+  return <aside className={`field-radio field-radio--${message.priority}`} data-testid="field-radio" aria-label={message.priority === 'urgent' ? 'Priority report' : 'Company radio'} aria-live="polite" onKeyDown={event => event.stopPropagation()}>
     {message.pilot === null ? <span className="field-radio__mark" aria-hidden="true">⌁</span> : <PilotPortrait pilot={message.pilot} compact />}
-    <div><span className="field-radio__channel">{message.priority === 'urgent' ? 'Priority report' : 'Company radio'}</span><strong>{message.speaker}</strong><p>{message.text}</p></div>
+    <div className="field-radio__copy" tabIndex={0} aria-label="Radio report"><span className="field-radio__channel">{message.priority === 'urgent' ? 'Priority report' : 'Company radio'}</span><strong>{message.speaker}</strong><p>{message.text}</p></div>
     <button type="button" onClick={() => dismissRadio(message.id)} aria-label="Dismiss radio report">×</button>
   </aside>;
 }

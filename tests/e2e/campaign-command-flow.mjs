@@ -120,12 +120,27 @@ export async function runCampaignCommandFlow({ browser, url, shots, check }) {
       check(`${campaignId}: paid-repair wait finishes the booked mech and retains the signed mission`,
         ready.day === targetDay && ready.mechs.find(mech => mech.id === prepared.mechId).status === 'ready' && ready.contract.nodeId === prepared.next);
       await page.locator('[data-testid="camp-waiting"] > summary').click();
+      for (const width of [390, 320, 1440]) {
+        await page.setViewportSize({ width, height: width === 1440 ? 1000 : 844 });
+        await page.locator('[data-testid="camp-waiting"] > summary').click();
+        const waitingBounds = await page.locator('.campaign-waiting-panel').evaluate(el => {
+          const rect = el.getBoundingClientRect();
+          const buttons = [...el.querySelectorAll('button')].map(button => {
+            const box = button.getBoundingClientRect();
+            return { left: box.left, right: box.right, height: box.height,
+              hit: button.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2)) };
+          });
+          return { left: rect.left, right: rect.right, viewport: innerWidth, buttons };
+        });
+        const label = width === 390 ? 'phone waiting controls stay inside the viewport' : `${width}px waiting controls stay inside the viewport`;
+        check(`${campaignId}: ${label}`, waitingBounds.left >= 0 && waitingBounds.right <= width,
+          JSON.stringify(waitingBounds));
+        check(`${campaignId}: ${width}px waiting actions remain complete ${width <= 900 ? 'touch' : 'pointer'} hit targets`,
+          waitingBounds.buttons.length > 0 && waitingBounds.buttons.every(button => button.left >= 0 && button.right <= width && button.height >= (width <= 900 ? 44 : 36) && button.hit), JSON.stringify(waitingBounds));
+        await page.screenshot({ path: `${shots}/campaign-flow-${campaignId}-wait-${width}.png` });
+        await page.locator('[data-testid="camp-waiting"] > summary').click();
+      }
       await page.setViewportSize({ width: 390, height: 844 });
-      await page.locator('[data-testid="camp-waiting"] > summary').click();
-      check(`${campaignId}: phone waiting controls stay inside the viewport`, await page.locator('.campaign-waiting-panel').evaluate(el => {
-        const rect = el.getBoundingClientRect(); return rect.left >= 0 && rect.right <= innerWidth;
-      }));
-      await page.locator('[data-testid="camp-waiting"] > summary').click();
       await page.locator('[data-testid="camp-area-journal"]').click();
       await page.locator('[data-testid="camp-next-step"]').scrollIntoViewIfNeeded();
       check(`${campaignId}: phone continuation fits without horizontal overflow`,

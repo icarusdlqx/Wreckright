@@ -24,6 +24,9 @@ export interface SkirmishBerth {
   empty?: boolean;
 }
 
+export type SkirmishFaction = Faction | 'mixed';
+export interface SkirmishSelection { lance: SkirmishBerth[]; faction: SkirmishFaction }
+
 const STORAGE_PREFIX = 'ironline.lance.';
 
 /** The lance the mission itself fields, as the starting point. */
@@ -38,12 +41,18 @@ export function defaultLance(catalog: Catalog, missionId: string, team = 0): Ski
 
 /** The stored lance for a mission, falling back to the authored one. */
 export function loadLance(catalog: Catalog, missionId: string, team = 0): SkirmishBerth[] {
-  const fallback = defaultLance(catalog, missionId, team);
+  return loadLanceSelection(catalog, missionId, team).lance;
+}
+
+/** Legacy rosters infer a starting choice; an explicit choice survives composition changes. */
+export function loadLanceSelection(catalog: Catalog, missionId: string, team = 0): SkirmishSelection {
+  const authored = defaultLance(catalog, missionId, team);
+  const fallback = { lance: authored, faction: lanceFaction(catalog, authored) ?? 'mixed' };
   try {
     const raw = globalThis.localStorage?.getItem(`${STORAGE_PREFIX}${team === 0 ? '' : 'enemy.'}${missionId}`);
     if (raw === null || raw === undefined) return fallback;
-    const parsed = JSON.parse(raw) as SkirmishBerth[];
-    if (!Array.isArray(parsed) || parsed.length !== fallback.length) return fallback;
+    const parsed = JSON.parse(raw) as (SkirmishBerth & { factionChoice?: unknown })[];
+    if (!Array.isArray(parsed) || parsed.length !== authored.length || parsed.length === 0) return fallback;
 
     const berths: SkirmishBerth[] = [];
     for (const entry of parsed) {
@@ -63,17 +72,23 @@ export function loadLance(catalog: Catalog, missionId: string, team = 0): Skirmi
       if (!design.success || !catalog.chassis.has(design.data.chassisId)) return fallback;
       berths.push({ designId: null, design: design.data, pilotId: entry.pilotId });
     }
-    return berths;
+    const choice = parsed[0]?.factionChoice;
+    return { lance: berths, faction: choice === 'linewrought' || choice === 'aurelian' || choice === 'mixed'
+      ? choice : lanceFaction(catalog, berths) ?? 'mixed' };
   } catch {
     return fallback;
   }
 }
 
-export function storeLance(missionId: string, lance: SkirmishBerth[], team = 0): boolean {
+export function storeLance(missionId: string, lance: SkirmishBerth[], team = 0, faction?: SkirmishFaction): boolean {
   try {
     const storage = globalThis.localStorage;
     if (storage === undefined) return false;
-    storage.setItem(`${STORAGE_PREFIX}${team === 0 ? '' : 'enemy.'}${missionId}`, JSON.stringify(lance));
+    // Keep the legacy array readable while saving the choice and roster in one
+    // atomic write. Loading strips this metadata before it reaches the engine.
+    const stored = faction === undefined ? lance : lance.map((berth, index) =>
+      index === 0 ? { ...berth, factionChoice: faction } : berth);
+    storage.setItem(`${STORAGE_PREFIX}${team === 0 ? '' : 'enemy.'}${missionId}`, JSON.stringify(stored));
     return true;
   } catch {
     return false;

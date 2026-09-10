@@ -1,7 +1,10 @@
 import { runPreparationWorkspaceChecks } from './preparation-workspace.mjs';
 import { runPilotCommandDockChecks } from './pilot-command-dock.mjs';
+import { runCompactCommandDockChecks } from './compact-command-dock.mjs';
 import { runMechbayAnatomyChecks } from './mechbay-anatomy.mjs';
 import { runSkirmishForceChecks } from './skirmish-forces.mjs';
+import { runSkirmishFactionChecks } from './skirmish-factions.mjs';
+import { runDeploymentCameraChecks } from './deployment-camera.mjs';
 import { runSkirmishStorageChecks } from './skirmish-storage.mjs';
 import { runMechbayPersistenceChecks } from './mechbay-persistence.mjs';
 import { runFittingGridChecks } from './fitting-grid.mjs';
@@ -52,6 +55,7 @@ import { runCommanderViewChecks } from './commander-view.mjs';
 import { runMinimapControlChecks } from './minimap-control.mjs';
 import { runReadableRouteChecks } from './readable-routes.mjs';
 import { runCampaignRecovery } from './campaign-recovery.mjs';
+import { runCampaignSaveLibraryChecks } from './campaign-save-library.mjs';
 import { runCampaignCommandFlow } from './campaign-command-flow.mjs';
 import { runMobilePlaythrough } from './mobile-playthrough.mjs';
 import { runRangeDamageChartChecks } from './range-damage-chart.mjs';
@@ -1338,6 +1342,7 @@ async function main() {
       && persistedRun.difficulty === 'regular', JSON.stringify(persistedRun));
 
     await runCampaignRecovery({ page, shots: SHOTS, check });
+    await runCampaignSaveLibraryChecks({ page, shots: SHOTS, check });
 
     await page.locator('[data-testid="camp-manual-toggle"]').click();
     await page.waitForSelector('[data-testid="manual-controls"]');
@@ -1841,6 +1846,8 @@ async function main() {
     await runSensorActivationChecks({ browser, url: URL, shots: SHOTS, check });
     await runSupportServicesChecks({ browser, url: URL, shots: SHOTS, check });
     await runSkirmishForceChecks({ browser, url: URL, shots: SHOTS, check });
+    await runSkirmishFactionChecks({ browser, url: URL, shots: SHOTS, check });
+    await runDeploymentCameraChecks({ browser, url: URL, shots: SHOTS, check });
     await runSkirmishStorageChecks({ browser, url: URL, shots: SHOTS, check });
     await runMechbayPersistenceChecks({ browser, url: URL, shots: SHOTS, check });
     await runFittingGridChecks({ browser, url: URL, shots: SHOTS, check });
@@ -1852,6 +1859,7 @@ async function main() {
     await runTargetFeedbackChecks({ browser, url: URL, shots: SHOTS, check });
     await runPreparationWorkspaceChecks({ browser, url: URL, shots: SHOTS, check });
     await runPilotCommandDockChecks({ browser, url: URL, shots: SHOTS, check });
+    await runCompactCommandDockChecks({ browser, url: URL, shots: SHOTS, check });
     await runMechbayAnatomyChecks({ browser, url: URL, shots: SHOTS, check });
     await runLastSilentMomentsChecks({ browser, url: URL, check });
     await runMobilePlaythrough({ browser, url: URL, shots: SHOTS, check });

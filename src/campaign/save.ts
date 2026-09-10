@@ -198,6 +198,7 @@ export function deserialiseCampaign(text: string, catalog: Catalog = getCatalog(
   }
 
   const state = parsed.data.state as CampaignState;
+  if (!catalog.campaigns.has(state.campaignId)) return { state: null, error: `This game does not contain campaign “${state.campaignId}”.` };
   coalesceMigratedWeaponItems(state);
   pruneSideOffers(catalog, state);
   pruneCampaignHistory(catalog, state);

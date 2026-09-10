@@ -151,3 +151,15 @@ export function removeCampaignText(
     };
   }
 }
+
+/** Explicit switch: a failed write must leave the active session and recovery lock intact. */
+export function activateCampaignText(text: string): CampaignPersistenceResult {
+  try {
+    const storage = globalThis.localStorage;
+    if (storage === undefined) throw new Error('local storage is not available');
+    storage.setItem(STORAGE_KEY, text);
+    return { ok: true, error: null, status: markCampaignStorageReady() };
+  } catch (error) {
+    return { ok: false, error: errorDetail(error), status: campaignPersistenceStatus() };
+  }
+}
