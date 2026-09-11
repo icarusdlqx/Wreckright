@@ -1,8 +1,25 @@
-.pilot-portrait { display: block; flex: none; width: 88px; height: 107px; border-radius: 8px; }
+.pilot-portrait {
+  display: block;
+  flex: none;
+  width: 88px;
+  height: 107px;
+  overflow: visible;
+  border: 1px solid color-mix(in srgb, var(--portrait-signal, #75c9b8) 54%, #17343c);
+  border-radius: 8px;
+  background: #143039;
+  box-shadow: 0 5px 14px rgba(8, 30, 36, .18), inset 0 0 0 1px rgba(255, 255, 255, .08);
+}
+.pilot-portrait[data-specialty='gunnery'] { --portrait-signal: #e59655; }
+.pilot-portrait[data-specialty='piloting'] { --portrait-signal: #75cdbb; }
+.pilot-portrait[data-specialty='sensors'] { --portrait-signal: #68aeca; }
+.pilot-portrait[data-specialty='balanced'] { --portrait-signal: #d4bc73; }
+.pilot-field-mark { stroke-width: 2; opacity: .64; }
 .pilot-portrait.is-compact { width: 42px; height: 51px; }
+.pilot-portrait.is-compact .pilot-field-mark { opacity: .84; stroke-width: 3; }
 .pilot-person { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 14px; align-items: start; }
 .progression-roster .pilot-card { min-width: 0; grid-template-columns: minmax(0, 1fr); }
 .pilot-person, .pilot-person > div, .pilot-seat { min-width: 0; }
+.pilot-person--prominent > .pilot-portrait { width: 102px; height: 124px; }
 .pilot-seat select { min-width: 0; flex: 1; }
 .pilot-person h4, .pilot-person p { margin: 0 0 6px; }
 .pilot-person .pilot-name { font-size: 15px; white-space: normal; }
@@ -30,4 +47,8 @@
   .pilot-person { grid-template-columns: 66px minmax(0, 1fr); gap: 10px; }
   .pilot-person > .pilot-portrait { width: 66px; height: 80px; }
   .pilot-bio { font-size: 11px; }
+}
+
+@media (forced-colors: active) {
+  .pilot-portrait { border-color: CanvasText; box-shadow: none; }
 }

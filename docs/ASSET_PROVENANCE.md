@@ -30,8 +30,16 @@ is retained in the repository; `tools/render-machine-portraits.mjs` produces
 them with one disposable headless renderer. `provenance.json` in that directory
 records the design IDs and model bounds. The asset register records each image's
 exact bytes and introducing commit. No external image or mesh input was used.
+Machine field plates are rendered at 640 × 720 from the actual repository
+battlefield models and standard equipment. The renderer adds original,
+code-authored Graphic Expedition framing: irregular survey contours for
+Linewrought and measured arcs for Aurelian Stock. No outside image input is
+used. The smaller dimensions declared by the interface provide a sharp 2×
+source at ordinary display sizes.
+
 Pilot portraits remain editable, authored SVG geometry in `PilotPortrait.tsx`
-with individual appearance data in the pilot JSON files.
+with individual appearance data in the pilot JSON files. Their field marks are
+derived from the pilot's strongest skill and do not add an opaque media asset.
 
 The main menu's Tessell crossing is original generated artwork from a text-only
 prompt, with no source-image inputs. Its [generation record](art/TESSELL_CROSSING.md)

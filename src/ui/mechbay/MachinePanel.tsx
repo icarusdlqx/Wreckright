@@ -1,14 +1,19 @@
+import { useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { Chassis } from '../../schema/chassis';
 import type { MechLocation } from '../../schema/common';
 import type { Design } from '../../schema/design';
 import type { DesignIssue } from '../../schema/designValidation';
 import type { Catalog } from '../../schema/load';
 import type { HeatProfile, Loadout } from '../../sim/loadout';
+import { useDialogFocus } from '../useDialogFocus';
 import { MachineDossier } from './MachineDossier';
 import { MachineCultureBadge } from './MachineCultureBadge';
 import { designWalkSpeed } from './buildCompareModel';
 import { designUsesForeignComponents } from './machineCulturePresentation';
+import { MECH_LOCATION_NAMES } from './LocationCard';
 import { MechPreview } from './MechPreview';
+import './machineFocus.css';
 
 function Gauge({
   label,
@@ -55,6 +60,45 @@ interface Props {
   onCultureExpandedChange: (expanded: boolean) => void;
 }
 
+function MachineFocus({ catalog, chassis, design, loadout, heat, selectedLocation,
+  hoveredLocation, compatibleLocations, onSelectLocation, onHoverLocation, onClose,
+  returnFocus }: Pick<Props, 'catalog' | 'chassis' | 'design' | 'loadout' | 'heat' |
+  'selectedLocation' | 'hoveredLocation' | 'compatibleLocations' | 'onSelectLocation' |
+  'onHoverLocation'> & { onClose: () => void; returnFocus: () => HTMLElement | null }) {
+  const root = useRef<HTMLElement>(null);
+  const close = useRef<HTMLButtonElement>(null);
+  useDialogFocus(root, close, onClose, returnFocus);
+  const focusedLocation = hoveredLocation ?? selectedLocation;
+  return createPortal(<div className="machine-focus-backdrop" role="presentation" onMouseDown={(event) => {
+    if (event.target === event.currentTarget) onClose();
+  }}>
+    <section ref={root} className="machine-focus" role="dialog" aria-modal="true"
+      aria-labelledby="machine-focus-title" data-testid="machine-focus">
+      <header className="machine-focus__header">
+        <div><span>Live fitted build</span><h2 id="machine-focus-title">{chassis.name}</h2>
+          <p>{chassis.tonnage}t {chassis.class} · {chassis.role}</p></div>
+        <button ref={close} type="button" onClick={onClose}>Return to fitting</button>
+      </header>
+      <div className="machine-focus__stage" data-faction={chassis.faction}>
+        <MechPreview catalog={catalog} chassis={chassis} design={design}
+          selected={selectedLocation} hovered={hoveredLocation} compatible={compatibleLocations}
+          onHoverLocation={onHoverLocation} onSelectLocation={onSelectLocation} fitToMachine />
+        <div className="machine-focus__readout">
+          <span>{focusedLocation === null ? 'Hover or select a body zone' : 'Body zone'}</span>
+          <strong>{focusedLocation === null ? 'Complete chassis' : MECH_LOCATION_NAMES[focusedLocation]}</strong>
+          <p>Highlights match the fitting grid. Green zones accept the held component.</p>
+        </div>
+      </div>
+      <footer className="machine-focus__footer">
+        <span><b>{loadout.freeTonnage.toFixed(1)}t</b> free</span>
+        <span><b>{loadout.totalSlotsUsed}/{loadout.totalSlotsAvailable}</b> boxes used</span>
+        <span><b>{heat.sustainable ? 'Stable' : `${(heat.secondsToShutdownRisk ?? 0).toFixed(0)}s`}</b> heat profile</span>
+        <small>This view shows the current draft. The dossier portrait records standard equipment.</small>
+      </footer>
+    </section>
+  </div>, document.body);
+}
+
 export function MachinePanel({
   catalog,
   chassis,
@@ -71,6 +115,9 @@ export function MachinePanel({
   onCultureExpandedChange,
 }: Props) {
   const overweight = loadout.freeTonnage < 0;
+  const [focusOpen, setFocusOpen] = useState(false);
+  const openFocus = useRef<HTMLButtonElement>(null);
+  const focusedLocation = hoveredLocation ?? selectedLocation;
   return (
     <section className="bay-machine" data-testid="bay-budget">
       <h3>
@@ -102,7 +149,14 @@ export function MachinePanel({
         onHoverLocation={onHoverLocation}
         onSelectLocation={onSelectLocation}
       />
-      <p className="bay-preview-help">Select a hardpoint on the machine or in the location grid.</p>
+      <div className="mech-preview-controls">
+        <button ref={openFocus} type="button" onClick={() => setFocusOpen(true)}
+          data-testid="open-machine-focus" aria-haspopup="dialog">
+          Inspect mech
+        </button>
+        <span>{focusedLocation === null ? 'Live fitted build' : MECH_LOCATION_NAMES[focusedLocation]}</span>
+      </div>
+      <p className="bay-preview-help">Select a body zone on the machine or in the location grid.</p>
 
       <div className="bay-gauges">
         <Gauge
@@ -160,6 +214,13 @@ export function MachinePanel({
           </li>
         ))}
       </ul>
+      {focusOpen ? (
+        <MachineFocus catalog={catalog} chassis={chassis} design={design} loadout={loadout}
+          heat={heat} selectedLocation={selectedLocation} hoveredLocation={hoveredLocation}
+          compatibleLocations={compatibleLocations} onSelectLocation={onSelectLocation}
+          onHoverLocation={onHoverLocation} onClose={() => setFocusOpen(false)}
+          returnFocus={() => openFocus.current} />
+      ) : null}
     </section>
   );
 }

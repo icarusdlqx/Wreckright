@@ -13,5 +13,6 @@ export function machinePortraitSource(chassisId: string): string | undefined {
 export function MachinePortrait({ chassis }: { chassis: Chassis }) {
   return <img className="machine-portrait" src={machinePortraitSource(chassis.id)}
     alt={`${chassis.name} chassis portrait`} width={320} height={360}
-    loading="lazy" decoding="async" title="Chassis portrait · standard equipment" />;
+    data-faction={chassis.faction} loading="lazy" decoding="async"
+    title="Chassis portrait · standard equipment · field plate" />;
 }

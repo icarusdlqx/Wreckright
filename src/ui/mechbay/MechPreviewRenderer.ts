@@ -72,6 +72,7 @@ export class MechPreviewRenderer {
     private readonly host: HTMLElement,
     private readonly catalog: Catalog,
     reducedMotion: boolean,
+    private readonly fitToMachine = false,
   ) {
     let heaviest = 50;
     for (const chassis of catalog.chassis.values()) {
@@ -253,8 +254,8 @@ export class MechPreviewRenderer {
     // A machine may still outgrow the reference frame — a long-gunned build's
     // bounding sphere can beat the heaviest bare hull — so the frame gives
     // ground only when it must, and a light stays honestly small in it.
-    const framed = Math.max(this.referenceRadius, this.radius);
-    const distance = (framed / Math.sin(halfFov)) * 1.12;
+    const framed = this.fitToMachine ? this.radius : Math.max(this.referenceRadius, this.radius);
+    const distance = (framed / Math.sin(halfFov)) * (this.fitToMachine ? 1.02 : 1.12);
     this.camera.position.copy(CAMERA_DIRECTION).multiplyScalar(distance);
     this.camera.near = Math.max(0.1, distance - framed * 1.6);
     this.camera.far = distance + framed * 3;

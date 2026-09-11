@@ -1,11 +1,12 @@
 {
-  "note": "Original battlefield models, standard equipment; portraits are identification art, not a live loadout preview.",
+  "visualVersion": 2,
+  "note": "Original battlefield models and standard equipment, composited into faction field plates; portraits are identification art, not a live loadout preview.",
   "portraits": [
     {
       "id": "bulwark_bwk3",
       "designId": "bulwark_assault",
-      "width": 320,
-      "height": 360,
+      "width": 640,
+      "height": 720,
       "mounts": [
         {
           "weaponId": "large_laser",
@@ -48,8 +49,8 @@
     {
       "id": "cairn_crn3",
       "designId": "cairn_battery",
-      "width": 320,
-      "height": 360,
+      "width": 640,
+      "height": 720,
       "mounts": [
         {
           "weaponId": "lrm20",
@@ -84,8 +85,8 @@
     {
       "id": "colossus_cls1",
       "designId": "colossus_siege",
-      "width": 320,
-      "height": 360,
+      "width": 640,
+      "height": 720,
       "mounts": [
         {
           "weaponId": "gauss_rifle",
@@ -124,8 +125,8 @@
     {
       "id": "courser_crs1",
       "designId": "courser_patrol",
-      "width": 320,
-      "height": 360,
+      "width": 640,
+      "height": 720,
       "mounts": [
         {
           "weaponId": "flamer",
@@ -160,8 +161,8 @@
     {
       "id": "drover_dvr2",
       "designId": "drover_carrier",
-      "width": 320,
-      "height": 360,
+      "width": 640,
+      "height": 720,
       "mounts": [
         {
           "weaponId": "lrm20",
@@ -192,8 +193,8 @@
     {
       "id": "falchion_fal2",
       "designId": "falchion_duellist",
-      "width": 320,
-      "height": 360,
+      "width": 640,
+      "height": 720,
       "mounts": [
         {
           "weaponId": "large_pulse_laser",
@@ -232,8 +233,8 @@
     {
       "id": "halberd_hlb4",
       "designId": "halberd_prime",
-      "width": 320,
-      "height": 360,
+      "width": 640,
+      "height": 720,
       "mounts": [
         {
           "weaponId": "er_ppc",
@@ -272,8 +273,8 @@
     {
       "id": "hornet_hnt2",
       "designId": "hornet_spotter",
-      "width": 320,
-      "height": 360,
+      "width": 640,
+      "height": 720,
       "mounts": [
         {
           "weaponId": "flamer",
@@ -304,8 +305,8 @@
     {
       "id": "obsequy_obq3",
       "designId": "obsequy_vigil",
-      "width": 320,
-      "height": 360,
+      "width": 640,
+      "height": 720,
       "mounts": [
         {
           "weaponId": "er_ppc",
@@ -336,8 +337,8 @@
     {
       "id": "pallvault_plv1",
       "designId": "pallvault_procession",
-      "width": 320,
-      "height": 360,
+      "width": 640,
+      "height": 720,
       "mounts": [
         {
           "weaponId": "large_pulse_laser",
@@ -376,8 +377,8 @@
     {
       "id": "prybar_pry1",
       "designId": "prybar_courier",
-      "width": 320,
-      "height": 360,
+      "width": 640,
+      "height": 720,
       "mounts": [
         {
           "weaponId": "machine_gun",
@@ -412,8 +413,8 @@
     {
       "id": "rampart_rmp4",
       "designId": "rampart_breaker",
-      "width": 320,
-      "height": 360,
+      "width": 640,
+      "height": 720,
       "mounts": [
         {
           "weaponId": "ac20",
@@ -444,8 +445,8 @@
     {
       "id": "redoubt_rdt1",
       "designId": "redoubt_emplacement",
-      "width": 320,
-      "height": 360,
+      "width": 640,
+      "height": 720,
       "mounts": [
         {
           "weaponId": "lbx_ac10",
@@ -484,8 +485,8 @@
     {
       "id": "rivet_rvt1",
       "designId": "rivet_escort",
-      "width": 320,
-      "height": 360,
+      "width": 640,
+      "height": 720,
       "mounts": [
         {
           "weaponId": "ac5",
@@ -516,8 +517,8 @@
     {
       "id": "sentinel_snl2",
       "designId": "sentinel_brawler",
-      "width": 320,
-      "height": 360,
+      "width": 640,
+      "height": 720,
       "mounts": [
         {
           "weaponId": "medium_pulse_laser",
@@ -556,8 +557,8 @@
     {
       "id": "trestle_trs1",
       "designId": "trestle_battery",
-      "width": 320,
-      "height": 360,
+      "width": 640,
+      "height": 720,
       "mounts": [
         {
           "weaponId": "ac5",
@@ -588,8 +589,8 @@
     {
       "id": "votive_vtv2",
       "designId": "votive_picket",
-      "width": 320,
-      "height": 360,
+      "width": 640,
+      "height": 720,
       "mounts": [
         {
           "weaponId": "er_medium_laser",
@@ -624,8 +625,8 @@
     {
       "id": "warden_wrd5",
       "designId": "warden_lancer",
-      "width": 320,
-      "height": 360,
+      "width": 640,
+      "height": 720,
       "mounts": [
         {
           "weaponId": "large_laser",
@@ -660,8 +661,8 @@
     {
       "id": "wisp_wsp1",
       "designId": "wisp_scout",
-      "width": 320,
-      "height": 360,
+      "width": 640,
+      "height": 720,
       "mounts": [
         {
           "weaponId": "medium_laser",

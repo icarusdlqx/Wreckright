@@ -11,6 +11,8 @@ describe('authored pilot identity', () => {
     const html = renderToStaticMarkup(createElement(PilotPortrait, { pilot: { id: 'pilot-81', templateId: pilot.id, name: 'Kessa Vale' }, compact: true }));
     expect(html).toContain('data-testid="portrait-kessa_vale"');
     expect(html).toContain('data-expression="resolute"');
+    expect(html).toContain('data-specialty="gunnery"');
+    expect(html).toContain('Patient inspector');
     expect(html).toContain('Portrait of Kessa Vale');
     expect(html).toContain('is-compact');
   });
@@ -29,5 +31,6 @@ describe('authored pilot identity', () => {
     const html = renderToStaticMarkup(createElement(PilotPortrait, { pilot: { id: 'imported-crew', name: 'Visiting pilot' } }));
     expect(html).toContain('Portrait of Visiting pilot');
     expect(html).toContain('viewBox="0 0 160 200"');
+    expect(html).toContain('data-specialty="balanced"');
   });
 });

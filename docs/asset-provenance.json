@@ -58,135 +58,135 @@
     },
     {
       "path": "src/assets/machines/bulwark_bwk3.webp",
-      "sha256": "59b6c782472c87210ca06c5592934e8b759b5e9edc0e6e1c4aaaf2c89d17ae7b",
+      "sha256": "94211a184d0369309990a8ce73237a00b57e20a4fe59bcce6cefbbf71278539f",
       "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
-      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Refreshed and visually inspected on 2026-09-10: current armour finish, actual standard weapon IDs and locations, non-overlapping stacked housings, and visible launcher mouths. Per-chassis bounds, design IDs and mounts are retained in src/assets/machines/provenance.json.",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
       "clearance": "rendered-from-repository-source"
     },
     {
       "path": "src/assets/machines/cairn_crn3.webp",
-      "sha256": "ab5d7bfaa44d28bd0134bfb7a4ddaad5fdfb1866e79b52299310016da7113dc7",
+      "sha256": "4f234e204e383eb4823a6d6b60f4eee94800ccc42dfce4644b3ed98fdebc6e33",
       "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
-      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Refreshed and visually inspected on 2026-09-10: current armour finish, actual standard weapon IDs and locations, non-overlapping stacked housings, and visible launcher mouths. Per-chassis bounds, design IDs and mounts are retained in src/assets/machines/provenance.json.",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
       "clearance": "rendered-from-repository-source"
     },
     {
       "path": "src/assets/machines/colossus_cls1.webp",
-      "sha256": "960071870f326903475a85f850b50a018ddb84f28acaf7cf73b22b8b1068f407",
+      "sha256": "70a5e736eef77342c0aa1a92c245f9ca7dd126e9fb9b2be5226d8d73dbe1e9d2",
       "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
-      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Refreshed and visually inspected on 2026-09-10: current armour finish, actual standard weapon IDs and locations, non-overlapping stacked housings, and visible launcher mouths. Per-chassis bounds, design IDs and mounts are retained in src/assets/machines/provenance.json.",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
       "clearance": "rendered-from-repository-source"
     },
     {
       "path": "src/assets/machines/courser_crs1.webp",
-      "sha256": "c923fd3ce6747b0ec03115f7a0143ba1592bd4712476df1479f8383226811ffa",
+      "sha256": "6245c3217e91b2b04e005c90aef5d5de044602aea87b4e0973598bf7afd580b0",
       "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
-      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Refreshed and visually inspected on 2026-09-10: current armour finish, actual standard weapon IDs and locations, non-overlapping stacked housings, and visible launcher mouths. Per-chassis bounds, design IDs and mounts are retained in src/assets/machines/provenance.json.",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
       "clearance": "rendered-from-repository-source"
     },
     {
       "path": "src/assets/machines/drover_dvr2.webp",
-      "sha256": "5597e371b94c9b7b6c81ca9211a070951fd05f58fe9c54f9401759dfbcd25909",
+      "sha256": "52a52fc70d7be241b5c0686d9cc74fe6205a4a45f92037667d744cd493213a11",
       "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
-      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Refreshed and visually inspected on 2026-09-10: current armour finish, actual standard weapon IDs and locations, non-overlapping stacked housings, and visible launcher mouths. Per-chassis bounds, design IDs and mounts are retained in src/assets/machines/provenance.json.",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
       "clearance": "rendered-from-repository-source"
     },
     {
       "path": "src/assets/machines/falchion_fal2.webp",
-      "sha256": "b758119ae9a687ce9bef0ae2112a42d9a7575e8278d94ad000a03425c2f4edc7",
+      "sha256": "44fcb8cbceefb030b865590812ed5d26868db9c0e074670f28618e0c7f975250",
       "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
-      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Refreshed and visually inspected on 2026-09-10: current armour finish, actual standard weapon IDs and locations, non-overlapping stacked housings, and visible launcher mouths. Per-chassis bounds, design IDs and mounts are retained in src/assets/machines/provenance.json.",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
       "clearance": "rendered-from-repository-source"
     },
     {
       "path": "src/assets/machines/halberd_hlb4.webp",
-      "sha256": "07ab4ec748bb15a05ac58622c31925f1a223db515aef285bb382dbaea42f7fd0",
+      "sha256": "95ba812ad02e24d82cf8d0822da8b9f2f85b802dc5d28f7b51b82fe94dd405d3",
       "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
-      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Refreshed and visually inspected on 2026-09-10: current armour finish, actual standard weapon IDs and locations, non-overlapping stacked housings, and visible launcher mouths. Per-chassis bounds, design IDs and mounts are retained in src/assets/machines/provenance.json.",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
       "clearance": "rendered-from-repository-source"
     },
     {
       "path": "src/assets/machines/hornet_hnt2.webp",
-      "sha256": "4f44457e6022aa813ccde0afbcdf2c236278369da91ec7b21dbc57ab3e9591df",
+      "sha256": "ff9aa4c9706a984ea9bf9ca69bce29a51d1065a027f36589dd6d4da5694a406f",
       "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
-      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Refreshed and visually inspected on 2026-09-10: current armour finish, actual standard weapon IDs and locations, non-overlapping stacked housings, and visible launcher mouths. Per-chassis bounds, design IDs and mounts are retained in src/assets/machines/provenance.json.",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
       "clearance": "rendered-from-repository-source"
     },
     {
       "path": "src/assets/machines/obsequy_obq3.webp",
-      "sha256": "5841c21a782613ad5a0b1d4bb2c6de316701d660ac791dae295718c8f59752f3",
+      "sha256": "2d007f4d7a8b64087a31102917c68fd619379a117eff0fdc2cbd3eef056cf0c0",
       "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
-      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Refreshed and visually inspected on 2026-09-10: current armour finish, actual standard weapon IDs and locations, non-overlapping stacked housings, and visible launcher mouths. Per-chassis bounds, design IDs and mounts are retained in src/assets/machines/provenance.json.",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
       "clearance": "rendered-from-repository-source"
     },
     {
       "path": "src/assets/machines/pallvault_plv1.webp",
-      "sha256": "9306c11dc56cddfa205d61ca3f0da3b1d45308a320b0a4d7a3108617cd4ffa06",
+      "sha256": "3ffc55f56344376564fca95c33e20212a0b5d7a277b82efda89e420256e010d0",
       "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
-      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Refreshed and visually inspected on 2026-09-10: current armour finish, actual standard weapon IDs and locations, non-overlapping stacked housings, and visible launcher mouths. Per-chassis bounds, design IDs and mounts are retained in src/assets/machines/provenance.json.",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
       "clearance": "rendered-from-repository-source"
     },
     {
       "path": "src/assets/machines/prybar_pry1.webp",
-      "sha256": "bb77b41c8e3367fed6a0ba31ebf3d12b4b284d88ea5ca1f7dba9c95928c1f239",
+      "sha256": "bd71c7ed8010dde6dac5c48a5a6288d049732c2419f29e72b440cf488d292ce3",
       "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
-      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Refreshed and visually inspected on 2026-09-10: current armour finish, actual standard weapon IDs and locations, non-overlapping stacked housings, and visible launcher mouths. Per-chassis bounds, design IDs and mounts are retained in src/assets/machines/provenance.json.",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
       "clearance": "rendered-from-repository-source"
     },
     {
       "path": "src/assets/machines/rampart_rmp4.webp",
-      "sha256": "d6cf873c0891fd749636810abaea1e81990ab2528f65b467e1f77a05fc55bfc4",
+      "sha256": "0a28dbab3649aeacaf7d2e9a7f516885ea46bf4fcdd4451f3c38ed1b8c5e3084",
       "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
-      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Refreshed and visually inspected on 2026-09-10: current armour finish, actual standard weapon IDs and locations, non-overlapping stacked housings, and visible launcher mouths. Per-chassis bounds, design IDs and mounts are retained in src/assets/machines/provenance.json.",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
       "clearance": "rendered-from-repository-source"
     },
     {
       "path": "src/assets/machines/redoubt_rdt1.webp",
-      "sha256": "80d69405ad42bd6a9cd3ad965a2fb8b3561934d81cb267b34bc47af424feb056",
+      "sha256": "17dbd51528f358dd9f2ff675674c7e4bb4c20b324112f97b61d838188bdb9ab0",
       "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
-      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Refreshed and visually inspected on 2026-09-10: current armour finish, actual standard weapon IDs and locations, non-overlapping stacked housings, and visible launcher mouths. Per-chassis bounds, design IDs and mounts are retained in src/assets/machines/provenance.json.",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
       "clearance": "rendered-from-repository-source"
     },
     {
       "path": "src/assets/machines/rivet_rvt1.webp",
-      "sha256": "fd0ccef734426c9db2ec313eece19edabeb434765aa894cb73d2ea0333f4436e",
+      "sha256": "4dbbdbc5954348352857dd75112faf472ab817918ab207c291c574fc6334f082",
       "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
-      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Refreshed and visually inspected on 2026-09-10: current armour finish, actual standard weapon IDs and locations, non-overlapping stacked housings, and visible launcher mouths. Per-chassis bounds, design IDs and mounts are retained in src/assets/machines/provenance.json.",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
       "clearance": "rendered-from-repository-source"
     },
     {
       "path": "src/assets/machines/sentinel_snl2.webp",
-      "sha256": "0d1b0e77a9b261a0d1e002ead209408d1196bcbf018740e900fab085fd93885c",
+      "sha256": "29b589b331530509879808865555bbcb86c12a7795021ddd4bd9ce7939e9da50",
       "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
-      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Refreshed and visually inspected on 2026-09-10: current armour finish, actual standard weapon IDs and locations, non-overlapping stacked housings, and visible launcher mouths. Per-chassis bounds, design IDs and mounts are retained in src/assets/machines/provenance.json.",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
       "clearance": "rendered-from-repository-source"
     },
     {
       "path": "src/assets/machines/trestle_trs1.webp",
-      "sha256": "c7e8355d65b7f7f30c994924b37de9a6247d39a827d5ec179e77218e5e218d34",
+      "sha256": "09b6dbe2af0dfc5b7794373e6c3a87e6374bd04f8de7b6f88c05888b3a2f733f",
       "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
-      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Refreshed and visually inspected on 2026-09-10: current armour finish, actual standard weapon IDs and locations, non-overlapping stacked housings, and visible launcher mouths. Per-chassis bounds, design IDs and mounts are retained in src/assets/machines/provenance.json.",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
       "clearance": "rendered-from-repository-source"
     },
     {
       "path": "src/assets/machines/votive_vtv2.webp",
-      "sha256": "85f475e62ae918b662878c5f9ce0298d6845d9fc9f2082cfaf33e4e995559319",
+      "sha256": "d1c4dcbf7886edffbac9fad6ac558287a81448015ff6aadc698ef688af4a4207",
       "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
-      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Refreshed and visually inspected on 2026-09-10: current armour finish, actual standard weapon IDs and locations, non-overlapping stacked housings, and visible launcher mouths. Per-chassis bounds, design IDs and mounts are retained in src/assets/machines/provenance.json.",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
       "clearance": "rendered-from-repository-source"
     },
     {
       "path": "src/assets/machines/warden_wrd5.webp",
-      "sha256": "18f65643280f42064221caf0cf958b0a9e12a0336b763b5c8ea4ace004014c16",
+      "sha256": "6acf08c88ebc7ea57c93ceebe564b76f24a70d83a9fce9bf8a62fc64c49a7019",
       "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
-      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Refreshed and visually inspected on 2026-09-10: current armour finish, actual standard weapon IDs and locations, non-overlapping stacked housings, and visible launcher mouths. Per-chassis bounds, design IDs and mounts are retained in src/assets/machines/provenance.json.",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
       "clearance": "rendered-from-repository-source"
     },
     {
       "path": "src/assets/machines/wisp_wsp1.webp",
-      "sha256": "b2961dbe87a2cdfa414ac138fc85d4555bdf939e03f67cb9a9055c3bdfb8fa5d",
+      "sha256": "3264ce56497558850af846c7ad0d02f5b98fd40c11605d667031e7f5aa184812",
       "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
-      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Refreshed and visually inspected on 2026-09-10: current armour finish, actual standard weapon IDs and locations, non-overlapping stacked housings, and visible launcher mouths. Per-chassis bounds, design IDs and mounts are retained in src/assets/machines/provenance.json.",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
       "clearance": "rendered-from-repository-source"
     },
     {

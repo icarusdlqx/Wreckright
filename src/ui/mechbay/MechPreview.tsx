@@ -21,6 +21,8 @@ export interface MechPreviewProps {
   className?: string;
   reducedMotion?: boolean;
   condition?: PreviewCondition;
+  /** Use the current machine's bounds for a close inspection view. */
+  fitToMachine?: boolean;
 }
 
 /** React owns the host; the renderer owns every object placed inside it. */
@@ -36,6 +38,7 @@ export function MechPreview({
   className,
   reducedMotion,
   condition,
+  fitToMachine = false,
 }: MechPreviewProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<MechPreviewRenderer | null>(null);
@@ -62,7 +65,7 @@ export function MechPreview({
       setFailed(true);
     };
     try {
-      renderer = new MechPreviewRenderer(host, catalog, resolvedReducedMotion);
+      renderer = new MechPreviewRenderer(host, catalog, resolvedReducedMotion, fitToMachine);
       renderer.setCallbacks({ onFailure: fail });
       rendererRef.current = renderer;
       setFailed(false);
@@ -73,7 +76,7 @@ export function MechPreview({
       if (rendererRef.current === renderer) rendererRef.current = null;
       renderer?.destroy();
     };
-  }, [catalog, resolvedReducedMotion]);
+  }, [catalog, resolvedReducedMotion, fitToMachine]);
 
   useEffect(() => {
     const renderer = rendererRef.current;

@@ -55,9 +55,26 @@ export async function runMechbayAnatomyChecks({ browser, url, shots, check }) {
     check('focusing an installed weapon exposes keyboard accessible Move and Remove actions', await page.getByTestId('move-weapon-0').isVisible() && await page.getByTestId('remove-weapon-0').isVisible());
     check('inspecting a fitted weapon describes its installed location rather than trying to fit another copy', (await page.getByTestId('dossier-fit').innerText()).toLowerCase().includes('installed')
       && (await page.getByTestId('dossier-fit').innerText()).includes(expectedMounts[0].location.replaceAll('_', ' ')));
+    await page.getByTestId('bay-location-left_arm').getByRole('button', { name: 'Select Left Arm' }).click();
+    await page.getByTestId('open-machine-focus').click();
+    const focusText = (await page.getByTestId('machine-focus').innerText()).toLowerCase();
+    check('full-size fitted-mech inspection opens without leaving the loadout', await page.getByTestId('machine-focus').isVisible()
+      && focusText.includes('live fitted build')
+      && focusText.includes('left arm'));
+    await shot('focus-1280');
+    await page.getByTestId('machine-focus').getByRole('button', { name: 'Return to fitting' }).click();
+    check('closing fitted-mech inspection restores focus to its launcher', await page.getByTestId('open-machine-focus').evaluate(button => button === document.activeElement));
     await guide.focus();
     await shot('1280');
     await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByTestId('open-machine-focus').scrollIntoViewIfNeeded();
+    await page.getByTestId('open-machine-focus').click();
+    check('full-size fitted-mech inspection becomes a phone-safe sheet without horizontal overflow',
+      await page.getByTestId('machine-focus').isVisible()
+      && await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await shot('focus-phone');
+    await page.getByTestId('machine-focus').getByRole('button', { name: 'Return to fitting' }).click();
+    await page.getByTestId('bay-location-head').getByRole('button', { name: 'Select Head' }).click();
     const navigator = page.getByTestId('anatomical-navigator');
     await navigator.scrollIntoViewIfNeeded();
     check('phone overview has eight labeled touch sized body locations', await navigator.locator('button').evaluateAll(buttons => buttons.length === 8 && buttons.every(button => {
