@@ -15,7 +15,7 @@ async function openingFixture(page, url, campaignId) {
     const firstId = line ? 'militia_raid' : 'first_warrant';
     const surveyId = line ? 'marker_survey' : 'custody_survey';
     const recoveryId = line ? 'recovery_window' : 'custody_resupply';
-    const alternateId = line ? 'pass_skirmish' : 'cutbank_attestation';
+    const alternateId = line ? 'recovery_window' : 'cutbank_attestation';
     const state = campaignApi.startCampaign(catalog, campaignId, `opening-diagnostic-${campaignId}`, 'regular');
     const freshRaw = save.serialiseCampaign(state);
     const settle = nodeId => {

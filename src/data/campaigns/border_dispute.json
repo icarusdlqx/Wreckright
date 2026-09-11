@@ -1,6 +1,30 @@
 {
   "id": "border_dispute",
   "name": "The Great Recall",
+  "contentRevision": 2,
+  "legacyRoutes": [
+    {
+      "revision": 1,
+      "victoryNodeId": "depot_burn",
+      "alternateVictoryNodeIds": ["depot_take"],
+      "nodes": [
+        { "id": "militia_raid", "requires": [] },
+        { "id": "marker_survey", "requires": ["militia_raid"] },
+        { "id": "recovery_window", "requires": ["marker_survey"] },
+        { "id": "workshop_defence", "requires": ["recovery_window"] },
+        { "id": "pass_skirmish", "requires": ["militia_raid"] },
+        { "id": "supply_line", "requires": ["militia_raid"] },
+        { "id": "ridge_hold", "requires": ["shale_overwatch_node"] },
+        { "id": "causeway_push", "requires": ["supply_line"] },
+        { "id": "foundry_sweep_node", "requires": ["pass_skirmish"] },
+        { "id": "shale_overwatch_node", "requires": ["foundry_sweep_node"] },
+        { "id": "depot_burn", "requires": ["ridge_hold"] },
+        { "id": "depot_take", "requires": ["ridge_hold"] },
+        { "id": "cutbank_register", "requires": ["supply_line"] },
+        { "id": "blackglass_receipt", "requires": ["foundry_sweep_node"] }
+      ]
+    }
+  ],
   "presentation": {
     "faction": "linewrought",
     "title": "Linewrought",
@@ -147,7 +171,7 @@
       "employerId": "halloran_freight",
       "brief": "The survey has found a repair crew trapped in a foundry service yard. Protect their cradle, secure the road-junction winch, then hold both for a 25-second lift. Bring up to 140 tonnes and three machines. The optional service cabinet supplies field support. You are paid to get the crew out.",
       "requires": [
-        "marker_survey"
+        "militia_raid"
       ],
       "basePayout": 650000,
       "maxSalvageShare": 0.95,
@@ -226,7 +250,7 @@
       "employerId": "halloran_freight",
       "brief": "A Halloran camera caught Kestrel escorting one bone-white walker with a Continuance seal and no shop stamp. Bring the claim detail down and hold the ground. Halloran waives its share of the first Aurelian Stock the company can recover.",
       "requires": [
-        "militia_raid"
+        "workshop_defence"
       ],
       "basePayout": 1450000,
       "maxSalvageShare": 1,

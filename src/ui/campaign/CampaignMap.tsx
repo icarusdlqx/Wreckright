@@ -6,12 +6,14 @@ import { layoutCampaignMap, mapLabelHeight, MAP_SSR_SIZE, campaignAnchor } from 
 import { CampaignTheatre, theatreIdentity } from './CampaignTheatre';
 import './campaignTheatre.css';
 import { mainStoryNodeIds, missingPrerequisites } from './campaignFlow';
+import { campaignRouteForRevision } from '../../campaign/campaignRoute';
 
 export type NodeState = 'locked' | 'available' | 'complete' | 'failed';
 
 interface Props {
   campaign: Campaign;
   catalog: Catalog;
+  contentRevision?: number;
   stateOf: (node: CampaignNode) => NodeState;
   selectedId: string | null;
   onSelect: (id: string) => void;
@@ -33,11 +35,12 @@ function missionGlyph(catalog: Catalog, missionId: string): { glyph: string; kin
   return { glyph: '✳', kind: 'Strike' };
 }
 
-export function CampaignMap({ campaign, catalog, stateOf, selectedId, onSelect, onReview }: Props) {
+export function CampaignMap({ campaign, catalog, contentRevision, stateOf, selectedId, onSelect, onReview }: Props) {
   const mapRef = useRef<HTMLElement>(null);
   const [measured, setMeasured] = useState({ ...MAP_SSR_SIZE, borderHeight: 2, heights: {} as Record<string, number> });
-  const nodes = campaign.nodes;
-  const story = mainStoryNodeIds(campaign);
+  const revision = contentRevision ?? campaign.contentRevision;
+  const nodes = campaignRouteForRevision(campaign, revision)?.nodes ?? campaign.nodes;
+  const story = mainStoryNodeIds(campaign, revision);
   const completed = nodes.filter((node) => stateOf(node) === 'complete').map((node) => node.id);
   useEffect(() => {
     const map = mapRef.current;
@@ -126,7 +129,7 @@ export function CampaignMap({ campaign, catalog, stateOf, selectedId, onSelect, 
             onClick={() => state === 'available' ? onSelect(node.id) : onReview?.(node.id)}
             data-testid={`camp-node-${node.id}`}
             data-map-node={node.id}
-            title={`${story.has(node.id) ? 'Main story' : 'Optional work'} · ${employer} · ${kind}${state === 'locked' ? ` · Complete: ${missingPrerequisites(campaign, node, completed).join(' + ')}` : ''}`}
+            title={`${story.has(node.id) ? 'Main story' : 'Optional work'} · ${employer} · ${kind}${state === 'locked' ? ` · Complete: ${missingPrerequisites(campaign, node, completed, revision).join(' + ')}` : ''}`}
           >
             <span className="node-glyph" aria-hidden="true">
               {state === 'complete' ? '✓' : state === 'failed' ? '✕' : glyph}

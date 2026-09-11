@@ -1,6 +1,27 @@
 {
   "id": "aurelian_recall",
   "name": "The Great Recall: Custodians",
+  "contentRevision": 2,
+  "legacyRoutes": [
+    {
+      "revision": 1,
+      "victoryNodeId": "continuance_export",
+      "alternateVictoryNodeIds": ["local_stewardship"],
+      "nodes": [
+        { "id": "first_warrant", "requires": [] },
+        { "id": "custody_survey", "requires": ["first_warrant"] },
+        { "id": "custody_resupply", "requires": ["custody_survey"] },
+        { "id": "cutbank_attestation", "requires": ["first_warrant"] },
+        { "id": "sarn_inventory", "requires": ["cutbank_attestation"] },
+        { "id": "root_exchange", "requires": ["sarn_inventory"] },
+        { "id": "quarry_receipt", "requires": ["root_exchange"] },
+        { "id": "conduit_injunction", "requires": ["quarry_receipt"] },
+        { "id": "barrow_warrant", "requires": ["conduit_injunction"] },
+        { "id": "continuance_export", "requires": ["barrow_warrant"] },
+        { "id": "local_stewardship", "requires": ["barrow_warrant"] }
+      ]
+    }
+  ],
   "presentation": {
     "faction": "aurelian",
     "title": "Aurelian Stock",

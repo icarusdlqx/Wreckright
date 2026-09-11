@@ -8,7 +8,7 @@ const CAMPAIGN_ID = 'border_dispute';
 const LEAF_IDS = ['cutbank_register', 'blackglass_receipt'] as const;
 const RECOVERY_REQUIRES = {
   marker_survey: ['militia_raid'],
-  recovery_window: ['marker_survey'],
+  recovery_window: ['militia_raid'],
   workshop_defence: ['recovery_window'],
 } as const;
 const LEGACY_COMPANY_PILOTS = [
@@ -248,7 +248,7 @@ describe('large battlefield mission contracts', () => {
 });
 
 describe('large battlefield campaign compatibility', () => {
-  it('keeps the large-map leaves and optional recovery branch outside the original spine', () => {
+  it('keeps large-map leaves while preserving the original route as revision one', () => {
     expect(campaign.victoryNodeId).toBe('depot_burn');
     expect(campaign.alternateVictoryNodeIds).toEqual(['depot_take']);
     expect(campaign.sideWork).toEqual({
@@ -269,13 +269,11 @@ describe('large battlefield campaign compatibility', () => {
         'ostrow_holdings',
       ],
     });
-    expect(
-      Object.fromEntries(
-        campaign.nodes
-          .filter((node) => node.id in LEGACY_REQUIRES)
-          .map((node) => [node.id, node.requires]),
-      ),
-    ).toEqual(LEGACY_REQUIRES);
+    const legacy = campaign.legacyRoutes.find((route) => route.revision === 1)!;
+    expect(Object.fromEntries(legacy.nodes.filter((node) => node.id in LEGACY_REQUIRES)
+      .map((node) => [node.id, node.requires]))).toEqual(LEGACY_REQUIRES);
+    expect(campaign.nodes.find((node) => node.id === 'pass_skirmish')?.requires)
+      .toEqual(['workshop_defence']);
     expect(campaign.nodes.slice(-2).map((node) => node.id)).toEqual(LEAF_IDS);
     expect(campaign.nodes.slice(0, -2).filter((node) => !(node.id in RECOVERY_REQUIRES)).map((node) => node.id)).toEqual(
       Object.keys(LEGACY_REQUIRES),

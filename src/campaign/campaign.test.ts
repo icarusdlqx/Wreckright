@@ -135,7 +135,7 @@ describe('mission resolution', () => {
     expect(state.cbills).toBeGreaterThan(before);
     expect(state.completedNodes).toContain('militia_raid');
     expect(campaignNodes(catalog, state).map((node) => node.id)).toEqual(expect.arrayContaining([
-      'marker_survey', 'pass_skirmish', 'supply_line',
+      'marker_survey', 'recovery_window', 'supply_line',
     ]));
   });
 
@@ -317,6 +317,7 @@ describe('save and load', () => {
     fightNode(state, 'militia_raid');
     const mech = state.mechs.find((entry) => estimateRepair(catalog, entry).days > 0);
     if (mech !== undefined) startRepair(catalog, state, mech);
+    state.campaignContentRevision = 1;
     acceptContract(catalog, state, 'pass_skirmish', 'standard');
 
     const restored = deserialiseCampaign(serialiseCampaign(state));
@@ -342,6 +343,7 @@ describe('save and load', () => {
   // Fights a whole mission twice over to compare the streams.
   it('resumes the same random stream after a reload', { timeout: 30_000 }, () => {
     fightNode(state, 'militia_raid');
+    state.campaignContentRevision = 1;
 
     const reloaded = deserialiseCampaign(serialiseCampaign(state)).state;
     expect(reloaded).not.toBeNull();

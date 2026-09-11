@@ -279,6 +279,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
       <CampaignMap
         campaign={campaign}
         catalog={catalog}
+        contentRevision={state.campaignContentRevision}
         selectedId={node?.id ?? null}
         onSelect={setSelectedNode}
         onReview={(nodeId) => navigation.navigate({ area: 'journal', nodeId })}

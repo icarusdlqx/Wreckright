@@ -89,19 +89,25 @@ describe('campaign command refinements', () => {
       .every((trigger) => trigger.fired === 1)).toBe(true);
   });
 
-  it('keeps the old campaign spine open and suggests survey then recovery after First Notice', () => {
+  it('promotes rescue and workshop defence while retaining the old route definition', () => {
     const campaign = catalog.campaigns.get('border_dispute')!;
     expect(campaign.nodes.slice(0, 4).map((node) => node.id)).toEqual([
       'militia_raid', 'marker_survey', 'recovery_window', 'workshop_defence',
     ]);
-    const oldSpine = [
-      ['militia_raid', []], ['pass_skirmish', ['militia_raid']],
+    const currentSpine = [
+      ['militia_raid', []], ['recovery_window', ['militia_raid']],
+      ['workshop_defence', ['recovery_window']], ['pass_skirmish', ['workshop_defence']],
       ['foundry_sweep_node', ['pass_skirmish']], ['shale_overwatch_node', ['foundry_sweep_node']],
       ['ridge_hold', ['shale_overwatch_node']], ['depot_burn', ['ridge_hold']], ['depot_take', ['ridge_hold']],
     ] as const;
-    for (const [id, requires] of oldSpine) {
+    for (const [id, requires] of currentSpine) {
       expect(campaign.nodes.find((node) => node.id === id)?.requires).toEqual(requires);
     }
+    const legacy = campaign.legacyRoutes.find((route) => route.revision === 1)!;
+    expect(legacy.nodes.find((node) => node.id === 'pass_skirmish')?.requires)
+      .toEqual(['militia_raid']);
+    expect(legacy.nodes.find((node) => node.id === 'recovery_window')?.requires)
+      .toEqual(['marker_survey']);
     expect(catalog.missions.get('line_maintenance')?.enemyDirectives).toEqual([]);
     for (const id of ['mirror_ridge', 'salvage_tactics']) {
       expect(catalog.missions.get(id)?.enemyDirectives, id).toEqual([]);

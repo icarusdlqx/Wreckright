@@ -25,6 +25,7 @@ import {
 import type { CampaignState } from './types';
 import { CampaignStateSchema, SAVE_VERSION, SaveFileSchema } from './saveSchema';
 import { coalesceMigratedWeaponItems, migrateWeaponSave } from './weaponSaveMigration';
+import { campaignRouteForRevision, hasCompletedRouteVictory } from './campaignRoute';
 
 export { CampaignStateSchema, SaveFileSchema };
 export type { SaveFile } from './saveSchema';
@@ -70,9 +71,8 @@ function reopenExpandedCampaign(catalog: Catalog, state: CampaignState): void {
   if (!state.finished || !state.won) return;
   const campaign = catalog.campaigns.get(state.campaignId);
   if (campaign === undefined) return;
-
-  const currentVictories = [campaign.victoryNodeId, ...campaign.alternateVictoryNodeIds];
-  if (currentVictories.some((nodeId) => state.completedNodes.includes(nodeId))) return;
+  const route = campaignRouteForRevision(campaign, state.campaignContentRevision);
+  if (route === null || hasCompletedRouteVictory(route, state.completedNodes)) return;
 
   state.finished = false;
   state.won = false;
@@ -198,7 +198,14 @@ export function deserialiseCampaign(text: string, catalog: Catalog = getCatalog(
   }
 
   const state = parsed.data.state as CampaignState;
-  if (!catalog.campaigns.has(state.campaignId)) return { state: null, error: `This game does not contain campaign “${state.campaignId}”.` };
+  const campaign = catalog.campaigns.get(state.campaignId);
+  if (campaign === undefined) return { state: null, error: `This game does not contain campaign “${state.campaignId}”.` };
+  if (campaignRouteForRevision(campaign, state.campaignContentRevision) === null) {
+    return {
+      state: null,
+      error: `This game cannot open content revision ${state.campaignContentRevision} of campaign “${state.campaignId}”.`,
+    };
+  }
   coalesceMigratedWeaponItems(state);
   pruneSideOffers(catalog, state);
   pruneCampaignHistory(catalog, state);

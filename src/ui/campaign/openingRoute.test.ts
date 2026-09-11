@@ -29,7 +29,7 @@ describe('suggested opening routes', () => {
   it('retains the main route choices alongside the suggested survey', () => {
     const line = company('border_dispute', ['militia_raid']);
     const stock = company('aurelian_recall', ['first_warrant']);
-    expect(availableNodes(catalog, line).map((node) => node.id)).toContain('pass_skirmish');
+    expect(availableNodes(catalog, line).map((node) => node.id)).toContain('recovery_window');
     expect(availableNodes(catalog, stock).map((node) => node.id)).toContain('cutbank_attestation');
     expect(suggest(line)?.node.id).toBe('marker_survey');
     expect(suggest(stock)?.node.id).toBe('custody_survey');
@@ -47,7 +47,7 @@ describe('suggested opening routes', () => {
 
   it('leaves an active contract alone even if a different route would be suggested', () => {
     const state = company('border_dispute', ['militia_raid']);
-    expect(acceptContract(catalog, state, 'pass_skirmish', 'standard').ok).toBe(true);
+    expect(acceptContract(catalog, state, 'recovery_window', 'standard').ok).toBe(true);
     const before = structuredClone(state);
     expect(suggest(state)).toBeNull();
     expect(state).toEqual(before);

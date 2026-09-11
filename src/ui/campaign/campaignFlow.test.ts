@@ -13,7 +13,7 @@ import { companyWait, mainStoryNodeIds, missingPrerequisites, nextCampaignNode, 
 
 describe('company mission continuation', () => {
   it.each([
-    ['border_dispute', 'militia_raid', 'pass_skirmish', 'marker_survey'],
+    ['border_dispute', 'militia_raid', 'recovery_window', 'marker_survey'],
     ['aurelian_recall', 'first_warrant', 'cutbank_attestation', 'custody_survey'],
   ])('prioritises the next main story contract for %s without signing or spending', (campaignId, first, next, optional) => {
     const state = startCampaign(catalog, campaignId, 'next-story');
@@ -34,6 +34,13 @@ describe('company mission continuation', () => {
     }));
     expect(unsigned).toContain('does not advance the calendar');
     expect(unsigned).toContain('Review next mission');
+  });
+
+  it('recommends the preserved next stage for a legacy Linewrought company', () => {
+    const state = startCampaign(catalog, 'border_dispute', 'legacy-next');
+    state.campaignContentRevision = 1;
+    state.completedNodes.push('militia_raid');
+    expect(nextCampaignNode(catalog, state)?.id).toBe('pass_skirmish');
   });
 
   it('keeps both endings available and labels the actual missing prerequisites', () => {

@@ -184,6 +184,8 @@ const CampaignEventEffectsSchema = z.strictObject({
 
 export const CampaignStateSchema = z.strictObject({
   campaignId: IdSchema,
+  // Saves created before route versioning use the preserved first route.
+  campaignContentRevision: z.number().int().positive().default(1),
   // Older campaigns used the normal simulation tier; freeze that rule on load.
   difficulty: z.enum(['green', 'regular', 'veteran', 'elite']).default('regular'),
   difficultyConfigured: z.boolean().default(true),

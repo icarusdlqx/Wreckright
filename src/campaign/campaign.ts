@@ -1,4 +1,4 @@
-import type { Campaign, CampaignNode } from '../schema/campaign';
+import type { CampaignNode } from '../schema/campaign';
 import type { Catalog } from '../schema/load';
 import { missionTickBudget } from '../schema/missionClock';
 import { pruneMarket } from './market';
@@ -17,6 +17,12 @@ import { employerById, recordEmployerFailure } from './employers';
 import { pruneCampaignHistory } from './history';
 import { fillEmptySeats, PLAYER_TEAM, prepareDeployment, type DeployablePair } from './deployment';
 import { logCampaign, withCampaignRng } from './campaignState';
+import {
+  campaignRouteForRevision,
+  hasCompletedRouteVictory,
+  isRouteVictory,
+  type CampaignRouteView,
+} from './campaignRoute';
 import { applyRestDayEvent } from './events';
 import { needsCrewStandDown, recoverRestingCrew } from './crewRecovery';
 import {
@@ -30,14 +36,6 @@ export {
 } from './deployment';
 export type { DeployablePair, Deployment } from './deployment';
 
-function isVictoryNode(campaign: Campaign, nodeId: string): boolean {
-  return campaign.victoryNodeId === nodeId || campaign.alternateVictoryNodeIds.includes(nodeId);
-}
-
-function completedVictory(campaign: Campaign, completedNodes: readonly string[]): boolean {
-  return completedNodes.some((nodeId) => isVictoryNode(campaign, nodeId));
-}
-
 export { startCampaign } from './campaignStart';
 
 export function campaignOf(catalog: Catalog, state: CampaignState) {
@@ -46,12 +44,23 @@ export function campaignOf(catalog: Catalog, state: CampaignState) {
   return campaign;
 }
 
+export function campaignRouteOf(catalog: Catalog, state: CampaignState): CampaignRouteView {
+  const campaign = campaignOf(catalog, state);
+  const route = campaignRouteForRevision(campaign, state.campaignContentRevision);
+  if (route === null) {
+    throw new Error(
+      `campaign "${campaign.id}" has no content revision ${state.campaignContentRevision}`,
+    );
+  }
+  return route;
+}
+
 /** The authored campaign only — the jobs that advance the war. */
 export function campaignNodes(catalog: Catalog, state: CampaignState): CampaignNode[] {
-  const campaign = campaignOf(catalog, state);
+  const route = campaignRouteOf(catalog, state);
   const done = new Set(state.completedNodes);
 
-  return campaign.nodes.filter(
+  return route.nodes.filter(
     (node) =>
       !done.has(node.id) &&
       !state.failedNodes.includes(node.id) &&
@@ -303,7 +312,8 @@ export function resolveMission(
   );
 
   const campaign = campaignOf(catalog, state);
-  if (won && isVictoryNode(campaign, contract.nodeId)) {
+  const route = campaignRouteOf(catalog, state);
+  if (won && isRouteVictory(route, contract.nodeId)) {
     state.finished = true;
     state.won = true;
     logCampaign(state, `${campaign.name} won.`);
@@ -381,7 +391,7 @@ export function advanceDays(catalog: Catalog, state: CampaignState, days: number
   // asking whether anything at all is on offer would never be false again.
   if (campaignNodes(catalog, state).length === 0 && state.contract === null) {
     state.finished = true;
-    state.won = completedVictory(campaignOf(catalog, state), state.completedNodes);
+    state.won = hasCompletedRouteVictory(campaignRouteOf(catalog, state), state.completedNodes);
     logCampaign(state, state.won ? 'Campaign won.' : 'No contracts remain. Campaign over.');
   }
 }

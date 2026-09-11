@@ -161,9 +161,11 @@ describe('faction campaign story', () => {
     }
   });
 
-  it('authors the four acts as one required spine', () => {
+  it('authors rescue and workshop defence into the required spine', () => {
     const spine = [
       ['militia_raid', 'line_maintenance'],
+      ['recovery_window', 'recovery_window'],
+      ['workshop_defence', 'workshop_defence'],
       ['pass_skirmish', 'sealed_contact'],
       ['foundry_sweep_node', 'rules_break'],
       ['shale_overwatch_node', 'conduit_breach'],
@@ -172,6 +174,8 @@ describe('faction campaign story', () => {
 
     expect(spine.map(([nodeId]) => nodeId)).toEqual([
       'militia_raid',
+      'recovery_window',
+      'workshop_defence',
       'pass_skirmish',
       'foundry_sweep_node',
       'shale_overwatch_node',

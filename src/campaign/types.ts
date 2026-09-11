@@ -193,6 +193,8 @@ export interface DeploymentSeat {
 
 export interface CampaignState {
   campaignId: string;
+  /** Authored route revision, independent from the save-file schema version. */
+  campaignContentRevision: number;
   difficulty: string;
   difficultyConfigured: boolean;
   seed: string;

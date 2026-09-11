@@ -3,16 +3,23 @@ import { dailyPayroll, payrollThrough } from '../../campaign/ledger';
 import type { CampaignState } from '../../campaign/types';
 import type { Campaign, CampaignNode } from '../../schema/campaign';
 import type { Catalog } from '../../schema/load';
+import { campaignRouteForRevision } from '../../campaign/campaignRoute';
 
 /** Follow the actual prerequisites of every ending, without choosing an ending for the player. */
-export function mainStoryNodeIds(campaign: Campaign): Set<string> {
+export function mainStoryNodeIds(
+  campaign: Campaign,
+  revision = campaign.contentRevision,
+): Set<string> {
+  const route = campaignRouteForRevision(campaign, revision);
+  if (route === null) return new Set();
+  const byId = new Map(route.nodes.map((node) => [node.id, node]));
   const ids = new Set<string>();
   const visit = (id: string): void => {
     if (ids.has(id)) return;
     ids.add(id);
-    campaign.nodes.find((node) => node.id === id)?.requires.forEach(visit);
+    byId.get(id)?.requires.forEach(visit);
   };
-  [campaign.victoryNodeId, ...campaign.alternateVictoryNodeIds].forEach(visit);
+  [route.victoryNodeId, ...route.alternateVictoryNodeIds].forEach(visit);
   return ids;
 }
 
@@ -20,13 +27,20 @@ export function nextCampaignNode(catalog: Catalog, state: CampaignState): Campai
   if (state.finished || state.contract !== null) return null;
   const campaign = catalog.campaigns.get(state.campaignId);
   if (campaign === undefined) return null;
-  const story = mainStoryNodeIds(campaign);
+  const story = mainStoryNodeIds(campaign, state.campaignContentRevision);
   const open = availableNodes(catalog, state);
   return open.find((node) => story.has(node.id)) ?? open[0] ?? null;
 }
 
-export function missingPrerequisites(campaign: Campaign, node: CampaignNode, completed: readonly string[]): string[] {
-  return node.requires.filter((id) => !completed.includes(id))
+export function missingPrerequisites(
+  campaign: Campaign,
+  node: CampaignNode,
+  completed: readonly string[],
+  revision = campaign.contentRevision,
+): string[] {
+  const route = campaignRouteForRevision(campaign, revision);
+  const routedNode = route?.nodes.find((entry) => entry.id === node.id) ?? node;
+  return routedNode.requires.filter((id) => !completed.includes(id))
     .map((id) => campaign.nodes.find((entry) => entry.id === id)?.name ?? id);
 }
 

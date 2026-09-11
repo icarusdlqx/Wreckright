@@ -16,6 +16,7 @@ export function startCampaign(
 
   const state: CampaignState = {
     campaignId,
+    campaignContentRevision: campaign.contentRevision,
     difficulty,
     difficultyConfigured: true,
     seed,
