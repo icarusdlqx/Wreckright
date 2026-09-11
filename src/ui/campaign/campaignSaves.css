@@ -20,6 +20,9 @@
 .campaign-saves-list { max-height: 365px; overflow: auto; padding: 7px; background: #eceee2; }
 .campaign-saves .campaign-save-row { width: 100%; min-height: 88px; display: flex; align-items: center; text-align: left; gap: 12px; padding: 12px; margin-bottom: 5px; border-color: transparent; background: transparent; }
 .campaign-saves .campaign-save-row[aria-pressed="true"] { background: #fffdf5; border-color: #33756e; box-shadow: inset 3px 0 #33756e; }
+.campaign-saves .campaign-save-row--aurelian[aria-pressed="true"] { border-color: #446f86; box-shadow: inset 3px 0 #a88439; }
+.campaign-save-row--linewrought .faction-logo { color: #2c7067; }
+.campaign-save-row--aurelian .faction-logo { color: #8c722f; }
 .campaign-save-row > svg, .campaign-save-icon { flex-shrink: 0; }
 .campaign-save-row > span { min-width: 0; }
 .campaign-save-row strong, .campaign-save-row span span, .campaign-save-row small { display: block; overflow-wrap: anywhere; }

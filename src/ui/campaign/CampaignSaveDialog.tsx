@@ -62,7 +62,8 @@ export function CampaignSaveDialog({ mode, catalog, current, onClose, onSaved, o
         <div className="campaign-saves-list" aria-label="Saved campaigns" data-testid="save-list">
           {listing.entries.length === 0 ? <p className="campaign-saves-empty">No saved campaigns yet. Start a company from the main menu.</p> : listing.entries.map(entry => {
             const campaign = entry.state === null ? undefined : catalog.campaigns.get(entry.state.campaignId);
-            return <button type="button" key={entry.id} className="campaign-save-row" aria-pressed={entry.id === selectedId} onClick={() => choose(entry)} data-testid={`save-entry-${entry.id}`}>
+            return <button type="button" key={entry.id} className={`campaign-save-row campaign-save-row--${campaign?.presentation?.faction ?? 'unknown'}`}
+              data-campaign-faction={campaign?.presentation?.faction} aria-pressed={entry.id === selectedId} onClick={() => choose(entry)} data-testid={`save-entry-${entry.id}`}>
               {campaign?.presentation === undefined ? <span className="campaign-save-icon" aria-hidden="true">▤</span> : <FactionLogo faction={campaign.presentation.faction} size={30} decorative />}
               <span><strong>{entry.name}</strong><span>{entry.state === null ? 'Needs recovery · original file available' : `${campaign?.name} · Day ${entry.state.day}`}</span><small>{entry.kind === 'current' ? entry.name.includes('session only') ? 'Not saved to this browser · export a copy' : 'Continue from here' : entry.kind === 'parked' ? 'Earlier company slot' : entry.kind === 'safety' ? 'Kept automatically before switching' : entry.kind === 'recovery' ? 'Original bytes preserved' : 'Named checkpoint'}</small></span>
             </button>;

@@ -35,6 +35,19 @@ function missionGlyph(catalog: Catalog, missionId: string): { glyph: string; kin
   return { glyph: '✳', kind: 'Strike' };
 }
 
+function deploymentNote(catalog: Catalog, missionId: string): { allowance: string; reason: string } {
+  const mission = catalog.missions.get(missionId);
+  const tonnage = mission?.dropTonnage === null || mission?.dropTonnage === undefined ? 'Open tonnage' : `${mission.dropTonnage}t`;
+  const berths = mission?.maxPlayerUnits ?? mission?.lances.find((lance) => lance.team === 0)?.units.length;
+  const allowance = `${tonnage}${berths === undefined ? '' : ` / ${berths}`}`;
+  if ((mission?.dropTonnage ?? Infinity) <= 50 || berths === 1) return { allowance, reason: 'Solo survey' };
+  if (berths === 2) return { allowance, reason: 'Verification detail' };
+  if ((mission?.dropTonnage ?? Infinity) <= 150) return { allowance, reason: 'Restricted access' };
+  if (mission?.type === 'defend') return { allowance, reason: 'Site defence lift' };
+  if (mission?.type === 'recon') return { allowance, reason: 'Survey lift' };
+  return { allowance, reason: 'Operational lift' };
+}
+
 export function CampaignMap({ campaign, catalog, contentRevision, stateOf, selectedId, onSelect, onReview }: Props) {
   const mapRef = useRef<HTMLElement>(null);
   const [measured, setMeasured] = useState({ ...MAP_SSR_SIZE, borderHeight: 2, heights: {} as Record<string, number> });
@@ -85,7 +98,8 @@ export function CampaignMap({ campaign, catalog, contentRevision, stateOf, selec
   );
 
   return (
-    <section className="camp-map" ref={mapRef} style={mapStyle} data-testid="camp-map">
+    <section className={`camp-map camp-map-${campaign.presentation?.faction ?? 'linewrought'}`} ref={mapRef} style={mapStyle}
+      data-campaign-faction={campaign.presentation?.faction ?? 'linewrought'} data-testid="camp-map">
       <svg className="camp-terrain" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
         <CampaignTheatre campaignId={campaign.id} />
 
@@ -110,26 +124,28 @@ export function CampaignMap({ campaign, catalog, contentRevision, stateOf, selec
           </g>;
         })}
       </svg>
-      <div className="campaign-cartouche"><strong>{theatreIdentity(campaign.id).name}</strong><span>Fixed sites · contract links</span></div>
+      <div className="campaign-cartouche"><strong>{theatreIdentity(campaign.id).name}</strong><span>{campaign.presentation?.faction === 'aurelian' ? 'Surveyed stages · warrant sequence' : 'Workshop sites · service routes'}</span></div>
 
       {nodes.map((node) => {
         const state = stateOf(node);
         const { glyph, kind } = missionGlyph(catalog, node.missionId);
         const position = at(node);
         const employer = employerDisplayName(campaign, node.employerId);
+        const main = story.has(node.id);
+        const deployment = deploymentNote(catalog, node.missionId);
 
         return (
           <button
             key={node.id}
             type="button"
-            className={`camp-node ${state} ${selectedId === node.id ? 'selected' : ''}`}
+            className={`camp-node ${state} ${main ? 'main-route' : 'optional-route'} ${selectedId === node.id ? 'selected' : ''}`}
             style={{ left: `${position.x}%`, top: `${position.y}%`,
               '--camp-node-height': `${mapLabelHeight(state === 'available')}px` } as CSSProperties}
             disabled={state === 'locked' || (state !== 'available' && onReview === undefined)}
             onClick={() => state === 'available' ? onSelect(node.id) : onReview?.(node.id)}
             data-testid={`camp-node-${node.id}`}
             data-map-node={node.id}
-            title={`${story.has(node.id) ? 'Main story' : 'Optional work'} · ${employer} · ${kind}${state === 'locked' ? ` · Complete: ${missingPrerequisites(campaign, node, completed, revision).join(' + ')}` : ''}`}
+            title={`${main ? 'Main story' : 'Optional work'} · ${employer} · ${kind} · ${deployment.allowance} · ${deployment.reason}${state === 'locked' ? ` · Complete: ${missingPrerequisites(campaign, node, completed, revision).join(' + ')}` : ''}`}
           >
             <span className="node-glyph" aria-hidden="true">
               {state === 'complete' ? '✓' : state === 'failed' ? '✕' : glyph}
@@ -137,12 +153,12 @@ export function CampaignMap({ campaign, catalog, contentRevision, stateOf, selec
             <span className="node-body">
               <span className="node-name">{node.name}</span>
               <span className="node-meta">
-                {kind} · {employer}
+                {main ? 'Main route' : 'Optional work'} · {kind}
               </span>
               <span className="node-state">
                 {state === 'available'
-                  ? `${(node.basePayout / 1000).toFixed(0)}k · salvage to ${(node.maxSalvageShare * 100).toFixed(0)}%`
-                  : state === 'locked' ? 'locked' : `${state} · Review`}
+                  ? `${deployment.allowance} · ${deployment.reason}`
+                  : state === 'locked' ? `${deployment.allowance} · locked` : `${deployment.allowance} · ${state}`}
               </span>
             </span>
           </button>

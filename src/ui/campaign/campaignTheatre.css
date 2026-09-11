@@ -9,6 +9,11 @@
 .campaign-cartouche span { font-size: 8px; opacity: .85; }
 .camp-workspace .camp-route { stroke: #607d6c; stroke-width: .22; stroke-dasharray: .7 .6; }
 .camp-workspace .camp-route.open { stroke: #326c61; stroke-width: .38; }
+.camp-map-aurelian .campaign-cartouche { color: #345c70; }
+.camp-map-aurelian .campaign-anchor.available { fill: #315f78; }
+.camp-map-aurelian .campaign-label-leader { stroke: #71888f; }
+.camp-workspace .camp-map-aurelian .camp-route.open { stroke: #315f78; }
+.camp-map-linewrought .campaign-cartouche { color: #3f6558; }
 @media (max-width: 640px) {
   .campaign-cartouche span { display: none; }
 }

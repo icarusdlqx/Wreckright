@@ -44,8 +44,10 @@ export function CampaignWorkspace({
   const ready = deploymentCandidates(state).length;
   const completion = state.won ? 'Campaign complete'
     : state.log.some((entry) => entry.text.startsWith('The company retired.')) ? 'Company retired' : 'Campaign over';
+  const faction = catalog.campaigns.get(state.campaignId)?.presentation?.faction ?? 'linewrought';
   return (
-    <main className={`company-workspace${state.finished ? ' company-workspace--finished' : ''}`}>
+    <main className={`company-workspace company-workspace--${faction}${state.finished ? ' company-workspace--finished' : ''}`}
+      data-campaign-faction={faction}>
       <div className="company-overview" aria-label="Company readiness">
         <span><strong>{ready}</strong> fieldable machines <small>of {state.mechs.length} owned</small></span>
         <span><strong>{state.pilots.filter((pilot) => !pilot.dead).length}</strong> crew <small>{cbills(dailyPayroll(catalog, state))} wages / day</small></span>

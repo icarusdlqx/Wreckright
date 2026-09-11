@@ -129,7 +129,7 @@ describe('presentation bounds and measured cards', () => {
 
 describe('fixed theatre sites', () => {
   it('keeps route anchors at authored positions while narrow layouts move collision labels', () => {
-    const campaign = [...catalog.campaigns.values()][0]!;
+    const campaign = catalog.campaigns.get('border_dispute')!;
     const labels = campaign.nodes.map((node) => ({ id: node.id, position: node.position, available: true }));
     const narrow = layoutCampaignMap(labels, { width: 343, height: 550 });
     let displaced = false;
@@ -146,5 +146,18 @@ describe('fixed theatre sites', () => {
     const start = campaignAnchor(from.position);
     const end = campaignAnchor(route.position);
     expect(markup).toContain(`x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" class="camp-route`);
+    expect(markup).toContain('data-campaign-faction="linewrought"');
+    expect(markup).toContain('Main route');
+    expect(markup).toMatch(/205t \/ 4 · Operational lift/);
+    expect(markup).toContain('optional-route');
+  });
+
+  it('uses the selected campaign identity even when its company can fit salvaged equipment', () => {
+    const campaign = catalog.campaigns.get('aurelian_recall')!;
+    const markup = renderToStaticMarkup(createElement(CampaignMap, { campaign, catalog, selectedId: null,
+      stateOf: () => 'available' as const, onSelect: () => undefined }));
+    expect(markup).toContain('camp-map-aurelian');
+    expect(markup).toContain('Surveyed stages · warrant sequence');
+    expect(markup).toContain('100t / 2 · Verification detail');
   });
 });

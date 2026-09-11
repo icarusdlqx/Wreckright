@@ -23,7 +23,7 @@ export function mapLabelWidth(width: number): number {
   return Math.max(1, Math.min(width - MAP_EDGE_PADDING * 2, width >= 720 ? 144 : width >= 480 ? 120 : 112));
 }
 
-export function mapLabelHeight(available: boolean): number { return available ? 68 : 56; }
+export function mapLabelHeight(available: boolean): number { return available ? 72 : 60; }
 
 function clamp(value: number, low: number, high: number): number {
   return Math.min(Math.max(value, low), high);
