@@ -1,10 +1,10 @@
 {
   "id": "conduit_breach",
-  "name": "Hold — The Cold Yards",
+  "name": "Hold \u2014 The Cold Yards",
   "type": "defend",
   "mapId": "shale_steps",
-  "briefing": "Kestrel cut Sarn's western power trunk after the foundry refused a Recall Authority inventory. Six repair halls are cold, with named walkers still on their gantries. The east breaker can carry the yard load if it remains under Assembly control for ninety seconds.",
-  "maxDurationSeconds": 420,
+  "briefing": "Restore the east switching position, then hold it through the response while Sarn restarts the cold yards. The capture starts the counterattack; keeping the breaker is the contract.",
+  "maxDurationSeconds": 360,
   "startingResourcePoints": 500,
   "lances": [
     {
@@ -14,25 +14,37 @@
         {
           "designId": "cairn_battery",
           "pilotId": "ilse_brant",
-          "spawn": { "x": 636, "y": 36 },
+          "spawn": {
+            "x": 636,
+            "y": 36
+          },
           "facingDegrees": 135
         },
         {
           "designId": "hornet_spotter",
           "pilotId": "marek_sud",
-          "spawn": { "x": 708, "y": 36 },
+          "spawn": {
+            "x": 708,
+            "y": 36
+          },
           "facingDegrees": 135
         },
         {
           "designId": "bulwark_assault",
           "pilotId": "dorn_hess",
-          "spawn": { "x": 780, "y": 36 },
+          "spawn": {
+            "x": 780,
+            "y": 36
+          },
           "facingDegrees": 135
         },
         {
           "designId": "hornet_spotter",
           "pilotId": "kessa_vale",
-          "spawn": { "x": 852, "y": 36 },
+          "spawn": {
+            "x": 852,
+            "y": 36
+          },
           "facingDegrees": 135
         }
       ]
@@ -44,31 +56,46 @@
         {
           "designId": "votive_picket",
           "pilotId": "anja_verrin",
-          "spawn": { "x": 36, "y": 636 },
+          "spawn": {
+            "x": 36,
+            "y": 636
+          },
           "facingDegrees": -45
         },
         {
           "designId": "sentinel_brawler",
           "pilotId": "oksana_valev",
-          "spawn": { "x": 108, "y": 636 },
+          "spawn": {
+            "x": 108,
+            "y": 636
+          },
           "facingDegrees": -45
         },
         {
           "designId": "falchion_duellist",
           "pilotId": "tomas_arvel",
-          "spawn": { "x": 180, "y": 636 },
+          "spawn": {
+            "x": 180,
+            "y": 636
+          },
           "facingDegrees": -45
         },
         {
           "designId": "warden_lancer",
           "pilotId": "corin_dast",
-          "spawn": { "x": 252, "y": 636 },
+          "spawn": {
+            "x": 252,
+            "y": 636
+          },
           "facingDegrees": -45
         },
         {
           "designId": "wisp_scout",
           "pilotId": "suri_kell",
-          "spawn": { "x": 348, "y": 636 },
+          "spawn": {
+            "x": 348,
+            "y": 636
+          },
           "facingDegrees": -45
         }
       ]
@@ -77,27 +104,37 @@
   "zones": [
     {
       "id": "east_breaker",
-      "name": "East Breaker",
+      "name": "Cold Yard Switching Position",
       "x": 792,
       "y": 96,
-      "radius": 80,
-      "owner": 0,
+      "radius": 70,
+      "owner": 1,
       "captureSeconds": 12,
       "resourcePoints": 0
     }
   ],
   "objectives": [
     {
+      "id": "restore_breaker",
+      "label": "Restore the switching position",
+      "type": "capture_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": [
+        "east_breaker"
+      ],
+      "resourcePoints": 150
+    },
+    {
       "id": "hold_breaker",
-      "label": "Hold the east breaker for 90 seconds",
+      "label": "Hold the breaker through restart",
       "type": "hold_zones",
       "team": 0,
       "required": true,
       "zoneIds": [
         "east_breaker"
       ],
-      "holdSeconds": 90,
-      "resourcePoints": 300
+      "holdSeconds": 55
     },
     {
       "id": "lance_survives",
@@ -110,30 +147,81 @@
   "triggers": [
     {
       "id": "breach_report",
-      "when": { "type": "elapsed", "seconds": 5 },
+      "when": {
+        "type": "elapsed",
+        "seconds": 5
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Assembly: western trunk is open to air. Six gantries are on reserve power; the oldest named root has forty minutes."
+          "text": "Assembly: take the east breaker. The pale service road is exposed; the lower shale route reaches its side."
         },
         {
           "type": "reveal",
-          "x": 192,
-          "y": 624,
-          "radius": 200,
-          "seconds": 25
+          "x": 792,
+          "y": 96,
+          "radius": 240,
+          "seconds": 28
+        }
+      ]
+    },
+    {
+      "id": "restart_response",
+      "when": {
+        "type": "objective_complete",
+        "objectiveId": "restore_breaker"
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Breaker restored. Aurelian response climbing from the western trunk; hold for restart."
+        },
+        {
+          "type": "spawn",
+          "team": 1,
+          "units": [
+            {
+              "designId": "votive_picket",
+              "pilotId": "mira_solvang",
+              "spawn": {
+                "x": 84,
+                "y": 636
+              },
+              "facingDegrees": 0
+            },
+            {
+              "designId": "sentinel_brawler",
+              "pilotId": "willem_torrance",
+              "spawn": {
+                "x": 156,
+                "y": 636
+              },
+              "facingDegrees": 0
+            }
+          ]
+        },
+        {
+          "type": "reveal",
+          "x": 120,
+          "y": 636,
+          "radius": 220,
+          "seconds": 26
         }
       ]
     },
     {
       "id": "load_transferred",
-      "when": { "type": "objective_complete", "objectiveId": "hold_breaker" },
+      "when": {
+        "type": "objective_complete",
+        "objectiveId": "hold_breaker"
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Assembly: east breaker has the load. Gantries are live again. Sarn keeps custody of the roots in its bays."
+          "text": "The yard lights are returning. Sarn has power and a record of who tried to cut it."
         }
       ]
     }
@@ -145,8 +233,10 @@
       "team": 1,
       "zoneId": "east_breaker",
       "behavior": "retake",
-      "units": 5,
-      "pursuitRadius": 380
+      "units": 7,
+      "pursuitRadius": 520
     }
-  ]
+  ],
+  "maxPlayerUnits": 5,
+  "atmosphereId": "dawn"
 }

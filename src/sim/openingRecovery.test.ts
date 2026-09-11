@@ -5,7 +5,7 @@ import { isOperational } from './types';
 import { createWorld, stepWorld } from './world';
 
 const RECOVERY = [
-  ['recovery_window', 'winch_controls', 'foundry_district'],
+  ['recovery_window', 'winch_controls', 'line_recovery_cut'],
   ['custody_resupply', 'transfer_relay', 'causeway'],
 ] as const;
 

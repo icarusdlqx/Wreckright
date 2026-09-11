@@ -81,7 +81,8 @@ describe('campaign command refinements', () => {
     expect(issueMove(world, scout, stores, true)).toBe(true);
     advance(world, () => stores.owner === 0);
     expect(stores.owner).toBe(0);
-    expect(issueMove(world, scout, { x: 444, y: 492 }, true)).toBe(true);
+    const gantry = world.zones.find((zone) => zone.id === 'gantry_control')!;
+    expect(issueMove(world, scout, gantry, true)).toBe(true);
     advance(world, () => world.finished);
     expect(world.missionStatus).toBe('success');
     expect(world.objectives.find((objective) => objective.id === 'recover_workshop_stock')?.status).toBe('complete');
@@ -108,7 +109,7 @@ describe('campaign command refinements', () => {
       .toEqual(['militia_raid']);
     expect(legacy.nodes.find((node) => node.id === 'recovery_window')?.requires)
       .toEqual(['marker_survey']);
-    expect(catalog.missions.get('line_maintenance')?.enemyDirectives).toEqual([]);
+    expect(catalog.missions.get('line_maintenance')?.enemyDirectives.map(directive => directive.id)).toEqual(['registry_cordon']);
     for (const id of ['mirror_ridge', 'salvage_tactics']) {
       expect(catalog.missions.get(id)?.enemyDirectives, id).toEqual([]);
     }

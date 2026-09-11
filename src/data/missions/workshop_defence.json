@@ -2,67 +2,67 @@
   "id": "workshop_defence",
   "name": "Defence \u2014 Keep the Gantries",
   "type": "defend",
-  "mapId": "foundry_district",
-  "briefing": "The recovered service trail has brought Kestrel to Sarn's working repair hall. Hold the gantry control for 150 seconds while the crew moves its named roots into shelter. The apron carries 205 tonnes and up to five machines. Three gate reports will warn of incoming sections. One fast machine can recover the optional stores cabinet while the main lance guards the workshop. Losing gantry control fails the contract; chasing survivors is unnecessary.",
-  "maxDurationSeconds": 150,
+  "mapId": "line_workshop_belt",
+  "briefing": "Keep Sarn\u2019s repair gantry working through the announced north and east attacks. A scout can secure the stores cabinet while the main lance holds the yard.",
+  "maxDurationSeconds": 210,
   "startingResourcePoints": 500,
   "dropTonnage": 205,
   "maxPlayerUnits": 5,
   "lances": [
     {
       "team": 0,
-      "name": "Company Detail",
+      "name": "Linewrought Company",
       "units": [
         {
           "designId": "hornet_spotter",
           "pilotId": "kessa_vale",
           "spawn": {
-            "x": 444,
-            "y": 492
+            "x": 684,
+            "y": 324
           },
-          "facingDegrees": -135
+          "facingDegrees": 0
         },
         {
           "designId": "bulwark_assault",
           "pilotId": "dorn_hess",
           "spawn": {
-            "x": 516,
-            "y": 492
+            "x": 732,
+            "y": 252
           },
-          "facingDegrees": -45
+          "facingDegrees": 0
         },
         {
           "designId": "hornet_spotter",
           "pilotId": "marek_sud",
           "spawn": {
-            "x": 492,
-            "y": 444
+            "x": 780,
+            "y": 252
           },
-          "facingDegrees": 135
+          "facingDegrees": 0
         },
         {
           "designId": "cairn_battery",
           "pilotId": "ilse_brant",
           "spawn": {
-            "x": 492,
-            "y": 540
+            "x": 756,
+            "y": 300
           },
-          "facingDegrees": -45
+          "facingDegrees": 0
         }
       ]
     },
     {
       "team": 1,
-      "name": "Local Guard",
+      "name": "Kestrel Yard Seizure",
       "units": [
         {
           "designId": "courser_patrol",
           "pilotId": "leda_morcant",
           "spawn": {
-            "x": 36,
-            "y": 36
+            "x": 588,
+            "y": 60
           },
-          "facingDegrees": 45
+          "facingDegrees": 90
         }
       ]
     }
@@ -70,29 +70,29 @@
   "zones": [
     {
       "id": "gantry_control",
-      "name": "Workshop Gantry Control",
-      "x": 492,
-      "y": 492,
+      "name": "Sarn Repair Gantry",
+      "x": 756,
+      "y": 252,
       "radius": 76,
       "owner": 0,
-      "captureSeconds": 14,
+      "captureSeconds": 12,
       "resourcePoints": 0
     },
     {
       "id": "stores_cabinet",
-      "name": "Optional Stores Cabinet",
+      "name": "Forward Stores Cabinet",
       "x": 300,
-      "y": 684,
-      "radius": 48,
+      "y": 612,
+      "radius": 45,
       "owner": null,
-      "captureSeconds": 10,
+      "captureSeconds": 8,
       "resourcePoints": 150
     }
   ],
   "objectives": [
     {
       "id": "keep_gantries",
-      "label": "Keep gantry control secure for 150 seconds",
+      "label": "Protect Sarn repair gantry",
       "type": "protect_zones",
       "team": 0,
       "required": true,
@@ -101,8 +101,19 @@
       ]
     },
     {
+      "id": "hold_workshop_cycle",
+      "label": "Keep the gantry working for 135 seconds",
+      "type": "hold_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": [
+        "gantry_control"
+      ],
+      "holdSeconds": 135
+    },
+    {
       "id": "recover_workshop_stock",
-      "label": "Optional: secure the workshop stores cabinet",
+      "label": "Optional: secure the stores cabinet",
       "type": "capture_zones",
       "team": 0,
       "required": false,
@@ -113,7 +124,7 @@
     },
     {
       "id": "guard_survives",
-      "label": "Keep a workshop guard operational",
+      "label": "Keep at least one defender operational",
       "type": "survive",
       "team": 0,
       "required": true
@@ -140,66 +151,66 @@
       "effects": [
         {
           "type": "message",
-          "text": "Sarn foreman: gantry control is the job. Guard the crossings. A fast machine can reach the stores cabinet, but keep a guard at the workshop."
+          "text": "Sarn foreman: first approach is the north freight gate. East service gate follows."
         }
       ]
     },
     {
-      "id": "north_east_section",
+      "id": "north_section",
       "when": {
         "type": "elapsed",
-        "seconds": 30
+        "seconds": 28
       },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Sarn lookout: north-east gate opening. Two light machines on the road."
+          "text": "North freight gate: two contacts inbound."
         },
         {
           "type": "spawn",
           "team": 1,
           "units": [
             {
-              "designId": "prybar_courier",
-              "pilotId": "suri_kell",
+              "designId": "drover_carrier",
+              "pilotId": "tomas_arvel",
               "spawn": {
-                "x": 876,
-                "y": 36
+                "x": 588,
+                "y": 60
               },
-              "facingDegrees": 135
+              "facingDegrees": 90
             },
             {
               "designId": "hornet_spotter",
-              "pilotId": "bram_nyen",
+              "pilotId": "corin_dast",
               "spawn": {
-                "x": 924,
-                "y": 84
+                "x": 660,
+                "y": 60
               },
-              "facingDegrees": 135
+              "facingDegrees": 90
             }
           ]
         },
         {
           "type": "reveal",
-          "x": 900,
+          "x": 624,
           "y": 60,
-          "radius": 170,
-          "seconds": 18
+          "radius": 220,
+          "seconds": 25
         }
       ]
     },
     {
-      "id": "south_west_section",
+      "id": "east_section",
       "when": {
         "type": "elapsed",
-        "seconds": 70
+        "seconds": 78
       },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Sarn lookout: south-west gate. A patrol vehicle and missile carrier are taking the workshop road."
+          "text": "East service gate: second section inbound."
         },
         {
           "type": "spawn",
@@ -207,81 +218,59 @@
           "units": [
             {
               "designId": "courser_patrol",
-              "pilotId": "oksana_valev",
+              "pilotId": "roz_havel",
               "spawn": {
-                "x": 36,
-                "y": 876
+                "x": 1140,
+                "y": 420
               },
-              "facingDegrees": -45
+              "facingDegrees": 180
             },
             {
-              "designId": "drover_carrier",
-              "pilotId": "anja_verrin",
+              "designId": "prybar_courier",
+              "pilotId": "suri_kell",
               "spawn": {
-                "x": 84,
-                "y": 924
+                "x": 1140,
+                "y": 492
               },
-              "facingDegrees": -45
+              "facingDegrees": 180
             }
           ]
         },
         {
           "type": "reveal",
-          "x": 60,
-          "y": 900,
-          "radius": 170,
-          "seconds": 18
+          "x": 1068,
+          "y": 456,
+          "radius": 220,
+          "seconds": 25
         }
       ]
     },
     {
-      "id": "south_east_section",
+      "id": "last_section",
       "when": {
         "type": "elapsed",
-        "seconds": 110
+        "seconds": 112
       },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Sarn lookout: south-east gate. One battery machine; last scheduled arrival. Forty seconds to shelter the roots."
+          "text": "Final carrier on the north road. Keep the gantry moving."
         },
         {
           "type": "spawn",
           "team": 1,
           "units": [
             {
-              "designId": "cairn_battery",
-              "pilotId": "corin_dast",
+              "designId": "drover_carrier",
+              "pilotId": "nadia_ostrow",
               "spawn": {
-                "x": 876,
-                "y": 876
+                "x": 588,
+                "y": 60
               },
-              "facingDegrees": -135
+              "facingDegrees": 90
             }
           ]
-        },
-        {
-          "type": "reveal",
-          "x": 876,
-          "y": 876,
-          "radius": 170,
-          "seconds": 18
-        }
-      ]
-    },
-    {
-      "id": "stores_secured",
-      "when": {
-        "type": "zone_captured",
-        "zoneId": "stores_cabinet",
-        "team": 0
-      },
-      "once": true,
-      "effects": [
-        {
-          "type": "message",
-          "text": "Sarn foreman: the cabinet is safe. Keep the gantries turning until every root is inside."
         }
       ]
     }

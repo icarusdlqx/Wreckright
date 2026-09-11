@@ -1,24 +1,24 @@
 {
   "id": "recovery_window",
-  "name": "Recovery — The Quiet Claim",
+  "name": "Recovery \u2014 The Quiet Claim",
   "type": "extraction",
-  "mapId": "foundry_district",
-  "briefing": "Halloran has a repair crew trapped in a foundry service yard. Keep their recovery cradle secure, take the winch controls at the road junction, then hold both for a 25-second lift. The contract ends when the crew is clear; opposing walkers may survive. Bring up to 140 tonnes and three machines. The optional service cabinet releases field support. If both enemy legs are disabled, use Hold Fire to preserve a recovery chance; a legged machine can still shoot.",
-  "maxDurationSeconds": 180,
+  "mapId": "line_recovery_cut",
+  "briefing": "Get the fitters out. Secure the road-junction winch and protect the recovery cradle while the lift runs. Bring no more than three machines and 140 tonnes. Surviving guards do not block extraction.",
+  "maxDurationSeconds": 240,
   "startingResourcePoints": 350,
   "dropTonnage": 140,
   "maxPlayerUnits": 3,
   "lances": [
     {
       "team": 0,
-      "name": "Company Detail",
+      "name": "Linewrought Company",
       "units": [
         {
           "designId": "hornet_spotter",
           "pilotId": "kessa_vale",
           "spawn": {
-            "x": 540,
-            "y": 780
+            "x": 612,
+            "y": 636
           },
           "facingDegrees": -90
         },
@@ -26,17 +26,17 @@
           "designId": "cairn_battery",
           "pilotId": "ilse_brant",
           "spawn": {
-            "x": 588,
-            "y": 828
+            "x": 516,
+            "y": 636
           },
           "facingDegrees": -90
         },
         {
-          "designId": "hornet_spotter",
+          "designId": "prybar_courier",
           "pilotId": "marek_sud",
           "spawn": {
-            "x": 636,
-            "y": 780
+            "x": 564,
+            "y": 636
           },
           "facingDegrees": -90
         }
@@ -44,14 +44,14 @@
     },
     {
       "team": 1,
-      "name": "Local Guard",
+      "name": "Kestrel Recovery Claim",
       "units": [
         {
           "designId": "hornet_spotter",
           "pilotId": "corin_dast",
           "spawn": {
-            "x": 492,
-            "y": 444
+            "x": 540,
+            "y": 492
           },
           "facingDegrees": 90
         },
@@ -59,10 +59,10 @@
           "designId": "prybar_courier",
           "pilotId": "leda_morcant",
           "spawn": {
-            "x": 300,
-            "y": 492
+            "x": 252,
+            "y": 612
           },
-          "facingDegrees": 90
+          "facingDegrees": 45
         }
       ]
     }
@@ -71,8 +71,8 @@
     {
       "id": "recovery_ground",
       "name": "Recovery Cradle",
-      "x": 588,
-      "y": 780,
+      "x": 540,
+      "y": 636,
       "radius": 78,
       "owner": 0,
       "captureSeconds": 14,
@@ -81,8 +81,8 @@
     {
       "id": "service_cabinet",
       "name": "Optional Service Cabinet",
-      "x": 300,
-      "y": 684,
+      "x": 252,
+      "y": 612,
       "radius": 44,
       "owner": null,
       "captureSeconds": 8,
@@ -91,9 +91,9 @@
     {
       "id": "winch_controls",
       "name": "Recovery Winch Controls",
-      "x": 492,
-      "y": 684,
-      "radius": 44,
+      "x": 540,
+      "y": 252,
+      "radius": 48,
       "owner": null,
       "captureSeconds": 8,
       "resourcePoints": 0
@@ -112,7 +112,7 @@
     },
     {
       "id": "complete_recovery_lift",
-      "label": "Run the lift: hold cradle and winch for 25 seconds",
+      "label": "Hold cradle and winch for 25 seconds",
       "type": "hold_zones",
       "team": 0,
       "required": true,
@@ -170,21 +170,29 @@
       "effects": [
         {
           "type": "message",
-          "text": "Recovery desk: take the road-junction winch controls and keep the cradle. Twenty-five seconds on both sites lifts the crew clear."
+          "text": "Recovery desk: winch first, then cover the cradle for twenty-five seconds. The west cabinet is optional."
         }
       ]
     },
     {
-      "id": "preserve_hulls",
+      "id": "north_warning",
       "when": {
-        "type": "elapsed",
-        "seconds": 24
+        "type": "zone_captured",
+        "zoneId": "winch_controls",
+        "team": 0
       },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Recovery desk: both enemy legs disabled? Hold Fire if you want the hull. The guns may still work. Your job is the crew and the winch."
+          "text": "Winch live. Kestrel movement on the west shelf; keep the cradle covered."
+        },
+        {
+          "type": "reveal",
+          "x": 252,
+          "y": 612,
+          "radius": 180,
+          "seconds": 24
         }
       ]
     },
@@ -199,37 +207,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Recovery desk: service cabinet secured. Its field allocation is now on your support account."
-        }
-      ]
-    },
-    {
-      "id": "claim_closing",
-      "when": {
-        "type": "zone_captured",
-        "zoneId": "winch_controls",
-        "team": 0
-      },
-      "once": true,
-      "effects": [
-        {
-          "type": "message",
-          "text": "Recovery desk: winch live. Hold the controls and cradle for the lift cycle shown in Objectives. The cabinet is optional; the crew comes first."
-        }
-      ]
-    },
-    {
-      "id": "claimant_warning",
-      "when": {
-        "type": "elapsed",
-        "seconds": 6
-      },
-      "once": true,
-      "effects": [
-        {
-          "type": "message",
-          "speakerPilotId": "corin_dast",
-          "text": "That winch runs on our meter. Leave the controls alone and take your patched machines home."
+          "text": "Service cabinet secured. Field support authority transferred to the company."
         }
       ]
     }

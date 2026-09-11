@@ -1,56 +1,74 @@
 {
   "id": "depot_road",
-  "name": "Hold — Manifest Key",
+  "name": "Hold \u2014 Manifest Key",
   "type": "defend",
-  "mapId": "ridge_pass",
-  "briefing": "A Sarn title fragment carries an Aurelian service address. Halloran can resolve the depot approach if the attestation reader stays in company hands for two minutes. Kestrel has the same fragment and a rearguard above the reader.",
-  "maxDurationSeconds": 300,
+  "mapId": "barrow_archive",
+  "briefing": "Open Barrow\u2019s service access. A scout can take the west reader by the short cooling lane while heavier machines push through the freight court. Hold the key long enough to resolve both archive doors.",
+  "maxDurationSeconds": 390,
   "startingResourcePoints": 650,
   "lances": [
     {
       "team": 0,
-      "name": "Manifest Survey Lance",
+      "name": "Linewrought Company",
       "units": [
         {
           "designId": "hornet_spotter",
           "pilotId": "kessa_vale",
-          "spawn": { "x": 108, "y": 852 },
+          "spawn": {
+            "x": 204,
+            "y": 1212
+          },
           "facingDegrees": -45
         },
         {
           "designId": "bulwark_assault",
           "pilotId": "dorn_hess",
-          "spawn": { "x": 156, "y": 876 },
+          "spawn": {
+            "x": 228,
+            "y": 1212
+          },
           "facingDegrees": -45
         },
         {
           "designId": "hornet_spotter",
           "pilotId": "marek_sud",
-          "spawn": { "x": 204, "y": 828 },
+          "spawn": {
+            "x": 252,
+            "y": 1212
+          },
           "facingDegrees": -45
         },
         {
           "designId": "cairn_battery",
           "pilotId": "ilse_brant",
-          "spawn": { "x": 132, "y": 780 },
+          "spawn": {
+            "x": 228,
+            "y": 1140
+          },
           "facingDegrees": -45
         }
       ]
     },
     {
       "team": 1,
-      "name": "Kestrel Rearguard",
+      "name": "Archive Approach Guard",
       "units": [
         {
           "designId": "falchion_duellist",
           "pilotId": "corin_dast",
-          "spawn": { "x": 804, "y": 132 },
+          "spawn": {
+            "x": 1116,
+            "y": 300
+          },
           "facingDegrees": 135
         },
         {
           "designId": "votive_picket",
           "pilotId": "tomas_arvel",
-          "spawn": { "x": 876, "y": 180 },
+          "spawn": {
+            "x": 1044,
+            "y": 300
+          },
           "facingDegrees": 135
         }
       ]
@@ -59,26 +77,46 @@
   "zones": [
     {
       "id": "survey_key",
-      "name": "Attestation Reader",
-      "x": 492,
-      "y": 492,
-      "radius": 74,
-      "owner": 0,
+      "name": "Barrow Service Reader",
+      "x": 228,
+      "y": 324,
+      "radius": 65,
+      "owner": 1,
       "captureSeconds": 10,
+      "resourcePoints": 0
+    },
+    {
+      "id": "archive_evidence",
+      "name": "Optional Witness Ledger",
+      "x": 660,
+      "y": 660,
+      "radius": 48,
+      "owner": null,
+      "captureSeconds": 9,
       "resourcePoints": 0
     }
   ],
   "objectives": [
     {
       "id": "resolve_approach",
-      "label": "Hold the attestation reader for 120 seconds",
+      "label": "Hold the service reader for 65 seconds",
       "type": "hold_zones",
       "team": 0,
       "required": true,
       "zoneIds": [
         "survey_key"
       ],
-      "holdSeconds": 120
+      "holdSeconds": 65
+    },
+    {
+      "id": "copy_witness_ledger",
+      "label": "Optional: copy the witness ledger",
+      "type": "capture_zones",
+      "team": 0,
+      "required": false,
+      "zoneIds": [
+        "archive_evidence"
+      ]
     },
     {
       "id": "lance_survives",
@@ -91,41 +129,60 @@
   "triggers": [
     {
       "id": "second_section",
-      "when": { "type": "elapsed", "seconds": 55 },
+      "when": {
+        "type": "elapsed",
+        "seconds": 42
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Halloran: two more sealed contacts leaving the north approach. The reader needs another minute."
+          "text": "Freight gate: two sealed contacts are moving on the reader."
         },
         {
           "type": "spawn",
           "team": 1,
           "units": [
             {
-              "designId": "warden_lancer",
+              "designId": "sentinel_brawler",
               "pilotId": "anja_verrin",
-              "spawn": { "x": 852, "y": 108 },
-              "facingDegrees": 135
+              "spawn": {
+                "x": 1320,
+                "y": 300
+              },
+              "facingDegrees": 180
             },
             {
-              "designId": "sentinel_brawler",
-              "pilotId": "oksana_valev",
-              "spawn": { "x": 828, "y": 84 },
-              "facingDegrees": 135
+              "designId": "wisp_scout",
+              "pilotId": "leda_morcant",
+              "spawn": {
+                "x": 1320,
+                "y": 372
+              },
+              "facingDegrees": 180
             }
           ]
+        },
+        {
+          "type": "reveal",
+          "x": 1320,
+          "y": 336,
+          "radius": 220,
+          "seconds": 25
         }
       ]
     },
     {
       "id": "approach_resolved",
-      "when": { "type": "objective_complete", "objectiveId": "resolve_approach" },
+      "when": {
+        "type": "objective_complete",
+        "objectiveId": "resolve_approach"
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Halloran: address resolved. The root manifest is twelve kilometres east. Kestrel is already moving."
+          "text": "Both archive doors resolve. The manifest can be preserved or purged; the choice is now yours."
         }
       ]
     }
@@ -138,7 +195,9 @@
       "zoneId": "survey_key",
       "behavior": "retake",
       "units": 4,
-      "pursuitRadius": 400
+      "pursuitRadius": 560
     }
-  ]
+  ],
+  "maxPlayerUnits": 5,
+  "atmosphereId": "overcast_day"
 }
