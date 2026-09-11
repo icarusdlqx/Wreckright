@@ -5,10 +5,11 @@ import {
   CylinderGeometry,
   IcosahedronGeometry,
 } from 'three';
-import { mergePropParts as merge, type PropPart as Part } from './propGeometryParts';
+import { mergePropParts as merge } from './propGeometryParts';
 import { createLandmarkGeometry } from './landmarkGeometry';
-import type { PropTheme } from '../schema/map';
+import type { PropTheme, SceneryFamily } from '../schema/map';
 import { mix, shade } from '../render/palette';
+import { createBuildingGeometry, createYardGeometry } from './sceneryGeometry';
 
 export type PropKind =
   | 'tree'
@@ -17,6 +18,7 @@ export type PropKind =
   | 'shale'
   | 'crag'
   | 'block'
+  | 'yard'
   | 'causeway'
   | 'wreckage'
   | 'relay' | 'silos' | 'gantry' | 'spire';
@@ -129,58 +131,6 @@ function shale(): BufferGeometry {
   ]);
 }
 
-function block(theme: PropTheme): BufferGeometry {
-  const industrial = theme === 'industrial';
-  const wall = industrial ? 0xd2bc95 : theme === 'shale' ? 0xc9a780 : 0xead6ab;
-  const roof = theme === 'shale' ? 0x65716e : 0x45646b;
-  const parts: Part[] = [
-    {
-      geometry: new BoxGeometry(1, 1, 1),
-      colour: wall,
-      position: [0, 0.38, 0],
-      scale: [1, 0.76, 1],
-    },
-    {
-      geometry: new BoxGeometry(1, 1, 1),
-      colour: roof,
-      position: [0, 0.76, 0],
-      scale: [1.02, 0.075, 1.02],
-    },
-    {
-      geometry: new BoxGeometry(1, 1, 1),
-      colour: 0x31464b,
-      position: [0.08, 0.27, -0.502],
-      scale: [0.34, 0.54, 0.025],
-    },
-    {
-      geometry: new BoxGeometry(1, 1, 1),
-      colour: 0xebaa51,
-      position: [0.08, 0.58, -0.514],
-      scale: [0.52, 0.07, 0.045],
-    },
-    {
-      geometry: new BoxGeometry(1, 1, 1),
-      colour: roof,
-      position: [-0.504, 0.44, 0.04],
-      scale: [0.025, 0.16, 0.52],
-    },
-  ];
-  if (industrial) {
-    parts.push(
-      { geometry: new BoxGeometry(1, 1, 1), colour: 0x70988d,
-        position: [-0.18, 0.84, 0.08], scale: [0.55, 0.18, 0.62] },
-      { geometry: new CylinderGeometry(0.07, 0.09, 0.5, 6), colour: 0x8b6954,
-        position: [0.27, 0.95, -0.22] },
-    );
-  } else {
-    // A low hipped roof keeps the original unit footprint and overall height.
-    parts.push({ geometry: new ConeGeometry(1, 1, 4), colour: roof,
-      position: [0, 0.875, 0], rotation: [0, Math.PI / 4, 0],
-      scale: [Math.SQRT1_2, 0.25, Math.SQRT1_2] });
-  }
-  return merge(parts);
-}
-
 function causeway(): BufferGeometry {
   return merge([
     {
@@ -247,7 +197,11 @@ function wreckage(): BufferGeometry {
   ]);
 }
 
-export function createPropGeometry(kind: PropKind, theme: PropTheme): BufferGeometry {
+export function createPropGeometry(
+  kind: PropKind,
+  theme: PropTheme,
+  family?: SceneryFamily,
+): BufferGeometry {
   switch (kind) {
     case 'tree': return tree(theme);
     case 'snag': return snag(theme);
@@ -270,9 +224,13 @@ export function createPropGeometry(kind: PropKind, theme: PropTheme): BufferGeom
           scale: [0.53, 0.33, 0.53],
         },
       ]);
-    case 'block': return block(theme);
+    case 'block': return createBuildingGeometry(theme, family);
+    case 'yard':
+      if (family === undefined) throw new Error('yard dressing needs a scenery family');
+      return createYardGeometry(family);
     case 'causeway': return causeway();
     case 'wreckage': return wreckage();
-    case 'relay': case 'silos': case 'gantry': case 'spire': return createLandmarkGeometry(kind);
+    case 'relay': case 'silos': case 'gantry': case 'spire':
+      return createLandmarkGeometry(kind, family);
   }
 }

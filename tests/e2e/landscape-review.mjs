@@ -37,9 +37,10 @@ try {
     let scene = null;
     const clear = () => { if (scene) { resources.disposeObjectResources(scene); scene.clear(); scene = null; } };
     globalThis.__landscapeReview = {
-      async show(mapId, low = false) {
+      async show(mapId, low = false, sceneryFamily = undefined, tactical = false) {
         clear();
-        const map = catalog.maps.get(mapId);
+        const sourceMap = catalog.maps.get(mapId);
+        const map = sceneryFamily === undefined ? sourceMap : { ...sourceMap, sceneryFamily };
         const grid = createTerrainGrid(map, catalog.rules.terrain);
         const width = grid.width * grid.tileSize, depth = grid.height * grid.tileSize;
         const span = Math.max(width, depth);
@@ -64,20 +65,37 @@ try {
             new THREE.MeshBasicMaterial({ color: atmosphere.surroundColour(rig) }));
           floor.rotation.x = -Math.PI / 2; floor.position.set(width / 2, -3, depth / 2); scene.add(floor);
         }
-        const camera = new THREE.OrthographicCamera(-span * 1.088, span * 1.088, span * .68, -span * .68, 1, span * 8);
-        const aim = new THREE.Vector3(width / 2, 35, depth * .59);
-        camera.position.copy(aim).add(new THREE.Vector3(-.55, .94, -1).normalize().multiplyScalar(span * 3));
+        const camera = !tactical
+          ? new THREE.OrthographicCamera(-span * 1.088, span * 1.088, span * .68, -span * .68, 1, span * 8)
+          : new THREE.PerspectiveCamera(45, 1280 / 800, 1, span * 8);
+        const aim = !tactical
+          ? new THREE.Vector3(width / 2, 35, depth * .59)
+          : new THREE.Vector3(width / 2, 0, depth / 2);
+        const cameraOffset = !tactical
+          ? new THREE.Vector3(-.55, .94, -1).normalize().multiplyScalar(span * 3)
+          : new THREE.Vector3(0, Math.sin(50 * Math.PI / 180), -Math.cos(50 * Math.PI / 180))
+            .multiplyScalar(470);
+        camera.position.copy(aim).add(cameraOffset);
         camera.lookAt(aim); camera.updateMatrixWorld(); camera.updateProjectionMatrix();
         renderer.render(scene, camera);
-        return { mapId, name: map.name, low, stats: resources.rendererStats(renderer.info) };
+        return { mapId, name: map.name, low, sceneryFamily, tactical, stats: resources.rendererStats(renderer.info) };
       },
       dispose() { clear(); resources.disposeRenderer(renderer); },
     };
   }, { base, baseline });
   const records = [];
-  for (const mapId of ['ridge_pass', 'foundry_district', 'blackglass_quarry', 'cutbank_exchange', 'shale_steps', 'causeway']) {
-    const entry = await page.evaluate((id) => globalThis.__landscapeReview.show(id), mapId);
-    await page.locator('canvas').screenshot({ path: resolve(directory, `${mapId}.png`) });
+  const views = [
+    ...['ridge_pass', 'foundry_district', 'blackglass_quarry', 'cutbank_exchange', 'shale_steps', 'causeway']
+      .map((mapId) => ({ mapId, sceneryFamily: undefined, tactical: false, file: `${mapId}.png` })),
+    { mapId: 'foundry_district', sceneryFamily: undefined, tactical: true, file: 'family-baseline-industrial.png' },
+    { mapId: 'foundry_district', sceneryFamily: 'linewrought_workshop', tactical: true, file: 'family-linewrought-workshop.png' },
+    { mapId: 'foundry_district', sceneryFamily: 'aurelian_civic', tactical: true, file: 'family-aurelian-civic.png' },
+  ];
+  for (const view of views) {
+    const entry = await page.evaluate(
+      ({ mapId, sceneryFamily, tactical }) => globalThis.__landscapeReview.show(mapId, false, sceneryFamily, tactical), view,
+    );
+    await page.locator('canvas').screenshot({ path: resolve(directory, view.file) });
     records.push(entry);
     console.log(`${entry.name}: ${entry.stats.calls} draws / ${entry.stats.triangles} triangles`);
   }

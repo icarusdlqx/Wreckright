@@ -26,6 +26,7 @@ const CAPS = {
   shale: 800,
   crag: 600,
   block: 900,
+  yard: 320,
   causeway: 180,
   wreckage: 300,
   relay: 3, silos: 3, gantry: 3, spire: 3,
@@ -72,6 +73,7 @@ export class PropLayer {
     this.group.name = 'props';
     this.observedBurnt = new Uint8Array(grid.width * grid.height);
     const theme = data.propTheme ?? 'alpine';
+    const family = data.sceneryFamily;
     const pending = buildPropPlacements(grid, data, heightAt, tint);
 
     for (const kind of Object.keys(pending) as PropKind[]) {
@@ -86,7 +88,7 @@ export class PropLayer {
       }
 
       const mesh = new InstancedMesh(
-        createPropGeometry(kind, theme),
+        createPropGeometry(kind, theme, family),
         new MeshLambertMaterial({ flatShading: true, vertexColors: true }),
         placements.length,
       );
@@ -97,8 +99,8 @@ export class PropLayer {
         mesh.setColorAt(i, entry.colour);
       }
       mesh.instanceColor?.setUsage(DynamicDrawUsage);
-      mesh.castShadow = kind !== 'snag' && kind !== 'causeway';
-      mesh.receiveShadow = kind === 'block' || kind === 'wreckage';
+      mesh.castShadow = kind !== 'snag' && kind !== 'causeway' && kind !== 'yard';
+      mesh.receiveShadow = kind === 'block' || kind === 'wreckage' || kind === 'yard';
       // The base geometry's bounding sphere says nothing about where the
       // instances are, so culling by it blanks the layer at some camera angles.
       mesh.frustumCulled = false;

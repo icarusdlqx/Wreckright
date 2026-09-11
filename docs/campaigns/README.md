@@ -12,6 +12,8 @@ This directory is the approved narrative source for the campaign rebuild.
   route/ID table, optional logistics branch and missions A1-A4.
 - [AURELIAN_SCRIPT_A5_A8.md](./AURELIAN_SCRIPT_A5_A8.md) contains Aurelian
   missions A5-A8 and both endings.
+- [ENVIRONMENT_KIT.md](./ENVIRONMENT_KIT.md) defines the independent biome and
+  constructed-scenery fields used by the campaign map packs.
 
 ## Coverage
 

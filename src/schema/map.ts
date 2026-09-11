@@ -5,6 +5,10 @@ import { MapLandmarkSchema, validateMapLandmarks } from './mapLandmarks';
 export const PropThemeSchema = z.enum(['alpine', 'causeway', 'industrial', 'shale']);
 export type PropTheme = z.infer<typeof PropThemeSchema>;
 
+/** Constructed dressing layered over a place's biome. It never changes terrain rules. */
+export const SceneryFamilySchema = z.enum(['linewrought_workshop', 'aurelian_civic']);
+export type SceneryFamily = z.infer<typeof SceneryFamilySchema>;
+
 export const TerrainMapSchema = z
   .strictObject({
     id: IdSchema,
@@ -18,6 +22,8 @@ export const TerrainMapSchema = z
     /** The air and light over this ground. The default restates the old rig. */
     atmosphereId: IdSchema.default('overcast_day'),
     propTheme: PropThemeSchema.optional(),
+    /** Optional faction-authored structures and low yard fittings. */
+    sceneryFamily: SceneryFamilySchema.optional(),
     /** Public site names and presentation only; each occupies an already blocked tile. */
     landmarks: z.array(MapLandmarkSchema).max(3).optional(),
   })

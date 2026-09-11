@@ -41,6 +41,7 @@ export function buildPropPlacements(grid: TerrainGrid, data: TerrainMapData,
   tint: { colour: Color; strength: number } | null): Record<PropKind, PropPlacement[]> {
   const size = grid.tileSize;
   const theme = data.propTheme ?? 'alpine';
+  const family = data.sceneryFamily;
   const pending: Record<PropKind, PropPlacement[]> = {
     tree: [],
     snag: [],
@@ -48,6 +49,7 @@ export function buildPropPlacements(grid: TerrainGrid, data: TerrainMapData,
     shale: [],
     crag: [],
     block: [],
+    yard: [],
     causeway: [],
     wreckage: [],
     relay: [], silos: [], gantry: [], spire: [],
@@ -133,7 +135,17 @@ export function buildPropPlacements(grid: TerrainGrid, data: TerrainMapData,
           );
         }
       } else if (id === 'rough') {
-        if (theme === 'industrial' && h(5) < 0.2) {
+        if (family !== undefined && h(5) < 0.16) {
+          const width = 4.5 + h(31) * 2.5;
+          place(
+            'yard', tile,
+            (column + 0.2 + 0.6 * h(37)) * size,
+            (row + 0.2 + 0.6 * h(41)) * size,
+            width, 3.2 + h(43) * 1.8, width * (0.72 + h(47) * 0.25),
+            shade(0xffffff, 0.86 + h(53) * 0.12), h(59),
+            family === 'linewrought_workshop' ? (h(61) - 0.5) * 0.1 : 0,
+          );
+        } else if (theme === 'industrial' && h(5) < (family === undefined ? 0.2 : 0.34)) {
           const width = 5 + h(31) * 3.5;
           place(
             'wreckage', tile,
