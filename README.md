@@ -76,6 +76,18 @@ Authored data ids remain stable because they are save and simulation contracts,
 not product branding. The earlier project remains independent in its original
 repository and deployment.
 
+## Licensing
+
+Wreckright uses a split licence. The engine, interface and development tools are
+available under the [MIT licence](LICENSE). The setting, story, missions, game
+catalogue, artwork and audio use the separate [content terms](LICENSE-CONTENT.md),
+which allow personal play and noncommercial local experimentation while
+reserving commercial reuse rights to the extent held. Dependencies and bundled
+fonts retain their own terms in the [third-party notices](public/THIRD_PARTY_NOTICES.txt).
+
+Generative AI was used during development for code, writing and some artwork.
+The content notice does not claim rights that may not exist under applicable law.
+
 ## Layout
 
 ```
