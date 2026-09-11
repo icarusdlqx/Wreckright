@@ -158,7 +158,7 @@ export async function installAudioProbe(page) {
         const header = data.findIndex((_, index) => marker.every((value, offset) => data[index + offset] === value));
         const buffer = {
           numberOfChannels: header >= 0 ? data[header + 9] : 2,
-          duration: 32 * 4 * 60 / 104,
+          duration: 32 * 4 * 60 / 116,
           sampleRate: 48000,
           getChannelData: () => new Float32Array(8),
         };

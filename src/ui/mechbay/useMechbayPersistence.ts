@@ -53,8 +53,8 @@ export function useMechbayPersistence({
     };
   }), [catalog, stored]);
 
-  const save = (): boolean => {
-    const current = currentStockDesign(catalog, design);
+  const save = (candidate: Design = design): boolean => {
+    const current = currentStockDesign(catalog, candidate);
     if (commission !== undefined) {
       const result = commission.onCommit(current);
       if (!result.ok) onStatus({ tone: 'error', text: result.reason ?? 'refit refused' });

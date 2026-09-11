@@ -26,10 +26,14 @@ export function App() {
 // responsive overrides in main.tsx wins a cascade it is meant to lose.
 function AppRoute() {
   const screen = useGame((state) => state.screen);
+  const mechbayReturn = useGame((state) => state.mechbayReturn);
   const patch = useGame((state) => state.patch);
 
   if (screen === 'home') return <HomeScreen />;
-  if (screen === 'mechbay') return <LazyMechbay onExit={() => patch({ screen: 'battle' })} />;
+  if (screen === 'mechbay') return <LazyMechbay
+    onExit={() => patch({ screen: mechbayReturn })}
+    exitLabel={mechbayReturn === 'home' ? 'Back to command' : 'Back to skirmish'}
+  />;
   if (screen === 'campaign') return <CampaignScreen onExit={() => patch({ screen: 'home' })} />;
   return <Battle />;
 }

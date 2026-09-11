@@ -375,14 +375,15 @@ async function main() {
         (await page.evaluate(() => globalThis.__wreckright === undefined)),
     );
     check(
-      'Home offers learn, campaign, skirmish and the built-in wiki',
+      'Home offers learn, campaign, MechBay, skirmish and the built-in wiki',
       (await page.locator('[data-testid="home-learn"]').count()) === 1 &&
         (await page.locator('[data-testid="home-campaign"]').count()) === 1 &&
+        (await page.locator('[data-testid="home-mechbay"]').count()) === 1 &&
         (await page.locator('[data-testid="home-skirmish"]').count()) === 1 &&
         (await page.locator('[data-testid="home-wiki"]').getAttribute('href')) === '#wiki' &&
         (await page.locator('[data-testid="home-wiki"]').innerText()).includes('Wiki') &&
         (await page.locator('#home-title').innerText()) === 'WRECKRIGHT' &&
-        (await page.locator('.home-kicker').textContent()) === 'No new machines. Only new owners.' &&
+        (await page.locator('.home-premise').textContent()) === 'Your company. Your mechs. Your next move.' &&
         (await page.locator('[data-testid="home-learn"] strong').textContent()) === 'Learn Command',
     );
     await page.locator('[data-testid="home-learn"]').click();

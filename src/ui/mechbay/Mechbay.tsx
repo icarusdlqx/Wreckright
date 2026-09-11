@@ -46,6 +46,8 @@ import { useMechbayScore } from './useMechbayScore';
 import { useMechbayPersistence } from './useMechbayPersistence';
 import { useQuietBay } from './useQuietBay';
 import { DraftExitDialog, useDraftExit } from './useDraftExit';
+import { SaveConfigurationDialog } from './SaveConfigurationDialog';
+import './commandBay.css';
 
 const catalog = getCatalog();
 export interface BayCommission {
@@ -60,12 +62,14 @@ export interface BayCommission {
 }
 export function Mechbay({
   onExit,
+  exitLabel,
   commission,
   battleAudio,
   onBattleMuted,
   preparationContext,
 }: {
   onExit: () => void;
+  exitLabel?: string;
   commission?: BayCommission;
   battleAudio?: AudioDirector;
   onBattleMuted?: (muted: boolean) => void;
@@ -86,6 +90,7 @@ export function Mechbay({
   const [selectedLocation, setSelectedLocation] = useState<MechLocation | null>(null);
   const [hoveredLocation, setHoveredLocation] = useState<MechLocation | null>(null);
   const [workspace, setWorkspace] = useState<BayWorkspaceTab>(coolingPart ? 'armour' : 'loadout');
+  const [savingAs, setSavingAs] = useState(false);
   const quietBay = useQuietBay(armed);
   const bayRef = useRef<HTMLDivElement>(null);
 
@@ -216,7 +221,7 @@ export function Mechbay({
     <>
     <div
       ref={bayRef}
-      inert={replacement.request !== null || draftExit.confirming || undefined}
+      inert={replacement.request !== null || draftExit.confirming || savingAs || undefined}
       className="bay bay--workspace"
       data-testid="mechbay"
       data-workspace={workspace}
@@ -233,6 +238,7 @@ export function Mechbay({
           commissionTitle: commission.title,
           commissionCancelLabel: commission.cancelLabel,
         })}
+        {...(exitLabel === undefined ? {} : { exitLabel })}
         stored={persistence.stored}
         saveable={saveable}
         status={status}
@@ -254,6 +260,7 @@ export function Mechbay({
         }}
         onExit={draftExit.requestExit}
         onSave={draftExit.save}
+        onSaveAs={() => setSavingAs(true)}
         onExport={persistence.exportFile}
         onImport={(file) => void persistence.importFile(file)}
         onLoad={persistence.load}
@@ -376,6 +383,15 @@ export function Mechbay({
           stocked={inventory !== undefined} error={replacement.error}
           onConfirm={replacement.confirm} onCancel={replacement.close} />
       ) : null}
+      {savingAs ? <SaveConfigurationDialog catalog={catalog} design={design}
+        storedIds={persistence.stored.map((entry) => entry.id)}
+        onCancel={() => setSavingAs(false)} onSave={(named) => {
+          if (!persistence.save(named)) return false;
+          setHistory(beginDesignHistory(named));
+          draftExit.reset(named);
+          setSavingAs(false);
+          return true;
+        }} /> : null}
     </>
   );
 }

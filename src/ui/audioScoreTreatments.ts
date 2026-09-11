@@ -10,13 +10,13 @@ export interface ScoreTreatment {
   readonly level: number;
 }
 
-/** Navigation stays below the battlefield while the bay keeps a faint work rhythm. */
+/** Four arrangements share one clock, so moving between them cannot double-play. */
 export const STRATEGIC_SCORE_TREATMENTS: Readonly<
   Record<StrategicScoreSurface, ScoreTreatment>
 > = {
-  home: { intensity: 0.22, level: 0.9 },
-  campaign: { intensity: 0, level: 0.6 },
-  mechbay: { intensity: 0.3, level: 0.72 },
+  home: { intensity: 0.58, level: 0.86 },
+  campaign: { intensity: 0.06, level: 0.54 },
+  mechbay: { intensity: 0.34, level: 0.68 },
 };
 
 export function factionCultureShare(faction: Faction | null): number | null {

@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 beforeEach(() => vi.resetModules());
 afterEach(() => vi.unstubAllGlobals());
 
-function fakeDecoder(duration = 32 * 4 * 60 / 104) {
+function fakeDecoder(duration = 32 * 4 * 60 / 116) {
   const decode = vi.fn(async (_bytes: ArrayBuffer) => ({ duration } as AudioBuffer));
   return { decode, context: { decodeAudioData: decode } as unknown as AudioContext };
 }
@@ -74,7 +74,7 @@ describe('authored score asset loading', () => {
     const { loadScoreBuffers } = await import('./audioScoreAssets');
     await expect(loadScoreBuffers(fakeDecoder(20).context, new AbortController().signal)).rejects.toThrow('duration');
     const lifetime = new AbortController();
-    const context = { decodeAudioData: async () => { lifetime.abort(); return { duration: 32 * 4 * 60 / 104 }; } } as unknown as AudioContext;
+    const context = { decodeAudioData: async () => { lifetime.abort(); return { duration: 32 * 4 * 60 / 116 }; } } as unknown as AudioContext;
     await expect(loadScoreBuffers(context, lifetime.signal)).rejects.toThrow();
   });
 });

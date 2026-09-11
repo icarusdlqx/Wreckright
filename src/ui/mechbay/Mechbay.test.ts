@@ -95,7 +95,8 @@ describe('mechbay presentation', () => {
     expect(html).toContain('data-testid="shelf-search"');
     expect(html).toContain('data-testid="shelf-family"');
     expect(html).toContain('aria-label="Stock design"');
-    expect(html).toContain('Save loadout');
+    expect(html).toContain('Save changes');
+    expect(html).toContain('Save as new…');
     expect(html).toContain('weapon-card--compact');
     expect(html.match(/id="bay-shelf-inspector"/g)).toHaveLength(1);
     expect(html.match(/role="meter"/g)).toHaveLength(3);

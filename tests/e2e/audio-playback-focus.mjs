@@ -23,7 +23,7 @@ export async function runAudioPlaybackFocusChecks({ browser, url, check }) {
       music: record.gains[2]?.gain.value,
       rhythm: record.gains[6]?.gain.value,
       now: record.context.currentTime,
-      sources: record.sources.filter(source => source.node.loop && source.node.buffer?.duration > 70).map(source => ({
+      sources: record.sources.filter(source => source.node.loop && source.node.buffer?.duration > 60).map(source => ({
         duration: source.node.buffer.duration, length: source.node.buffer.length, channels: source.node.buffer.numberOfChannels,
         loopEnd: source.node.loopEnd, rate: source.node.playbackRate.value, starts: source.starts, stops: source.stops,
       })),

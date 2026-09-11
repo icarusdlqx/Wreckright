@@ -46,7 +46,7 @@ export async function checkHomeTheatre({ browser, url, shots, check }) {
     if (shots) await page.screenshot({ path: `${shots}/00-home-mobile.png`, fullPage: true });
     const phone = await page.evaluate(() => ({
       fits: document.documentElement.scrollWidth <= innerWidth,
-      routes: ['home-learn', 'home-campaign', 'home-skirmish', 'home-wiki'].map(id => {
+      routes: ['home-learn', 'home-campaign', 'home-mechbay', 'home-skirmish', 'home-wiki'].map(id => {
         const element = document.querySelector(`[data-testid="${id}"]`);
         if (element === null) return { id, usable: false };
         const box = element.getBoundingClientRect();
@@ -56,7 +56,7 @@ export async function checkHomeTheatre({ browser, url, shots, check }) {
             && element.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2)) };
       }),
     }));
-    check('a phone shows all three game routes and Wiki as unobstructed touch-sized choices',
+    check('a phone shows all four game routes and Wiki as unobstructed touch-sized choices',
       phone.fits && phone.routes.every(route => route.usable), JSON.stringify(phone));
     check('the illustrated home reports no page errors', errors.length === 0, errors.join(' | '));
   } finally {
