@@ -152,6 +152,22 @@ export class BattleEffects {
     this.readouts?.consume(world, events);
     for (const event of events) {
       this.wear.consumeSupport(world, event);
+      if (event.type === 'zone_captured' && event.team === (world.playerTeam ?? 0)) {
+        const zone = world.zones.find((candidate) => candidate.id === event.zoneId);
+        if (zone !== undefined) {
+          this.effectAt.x = zone.x;
+          this.effectAt.y = zone.y;
+          this.tracers.burst(
+            this.effectAt,
+            this.heightAt(zone.x, zone.y),
+            'hit',
+            0x8fe0c2,
+            this.lowFx ? 0.7 : 1.15,
+            'energy',
+          );
+        }
+        continue;
+      }
       if (event.type === 'mech_destroyed' || event.type === 'ammo_explosion') {
         if (!canPresentEntity(world, event.entityId)) continue;
         const location = destructiveLocation(event);

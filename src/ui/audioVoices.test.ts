@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { playerWorld } from '../../tests/support';
 import type { TerrainMapData } from '../schema/map';
 import { AudioDirector } from './audio';
-import { startAmbient } from './audioAmbient';
+import { locationSoundProfile, startAmbient } from './audioAmbient';
 import { AudioGraph, type VoiceBus, type VoiceFrame } from './audioGraph';
 import { SCORE_CLOSE_DELAY_MS } from './audioScore';
 import { flushScoreLoad } from './audioScoreGraphTestSupport';
@@ -218,6 +218,20 @@ describe('procedural audio lifetimes', () => {
     expect(context.sources).toHaveLength(3);
     expect(context.sources.every((source) => source.stops.length === 0)).toBe(true);
     handle.stop();
+    handle.stop();
+    expect(context.sources.every((source) => source.stops.length === 1)).toBe(true);
+  });
+
+  it('gives workshop and tender locations distinct bounded machine beds', () => {
+    expect(locationSoundProfile('line_workshop_belt')).toMatchObject({ family: 'workshop', voice: 'square' });
+    expect(locationSoundProfile('aurelian_landing_apron')).toMatchObject({ family: 'tender', voice: 'sine' });
+    expect(locationSoundProfile('barrow_archive')).toMatchObject({ family: 'archive' });
+    expect(locationSoundProfile('ridge_pass')).toBeNull();
+
+    const { context, master, noise } = harness();
+    const handle = startAmbient({ context: context as unknown as AudioContext, master, noise, random: () => 0.25 },
+      'ash_dusk', 'line_workshop_belt');
+    expect(context.sources).toHaveLength(5);
     handle.stop();
     expect(context.sources.every((source) => source.stops.length === 1)).toBe(true);
   });

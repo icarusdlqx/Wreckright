@@ -359,7 +359,7 @@ export class AudioDirector {
       && this.graph !== null
       && this.pendingAmbient !== null
     ) {
-      this.ambient = startAmbient(this.graph.ambientBus, this.pendingAmbient);
+      this.ambient = startAmbient(this.graph.ambientBus, this.pendingAmbient, this.terrain?.id);
     }
   }
 
