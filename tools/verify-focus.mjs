@@ -42,8 +42,16 @@ const groups = {
     ],
     browser: [{ file: 'tests/e2e/campaign-release-journey.mjs', env: { CAMPAIGN_BROWSERS: 'chromium' } }],
   },
+  performance: {
+    tests: ['src/render3d/sceneResources.test.ts', 'src/render3d/layerDisposal.test.ts',
+      'src/render3d/battleEffectsStress.test.ts', 'src/render3d/tracerStress.test.ts',
+      'src/render3d/unitPresentationLifecycle.test.ts', 'src/ui/audioStress.test.ts'],
+    browser: [{ file: 'tools/perf-probe.mjs', env: {
+      PERF_RUNS: '2', PERF_SAMPLE_MS: '1200', PERF_EXTENDED_SECONDS: '45', PERF_REDEPLOYS: '3',
+    } }],
+  },
 };
-const ports = { fitting: 5291, saves: 5292, audio: 5293, combat: 5294, campaign: 5295 };
+const ports = { fitting: 5291, saves: 5292, audio: 5293, combat: 5294, campaign: 5295, performance: 5296 };
 
 const groupName = process.argv[2];
 if (!(groupName in groups)) {
@@ -108,6 +116,7 @@ try {
       await checked(check.file, process.execPath, [check.file], {
         BASE_URL: url,
         SHOT_DIR: resolve(reportDir, check.file.split('/').at(-1).replace('.mjs', '')),
+        PERF_REPORT_DIR: resolve(reportDir, 'probe'),
         ...check.env,
       });
     }
