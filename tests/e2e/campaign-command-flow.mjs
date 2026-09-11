@@ -35,7 +35,7 @@ async function fixture(page, url, campaignId) {
     save.saveCampaign(state, { recover: true });
     localStorage.setItem('ironline.campaign.debriefed', '0');
     return { first: first.name, mechId: deployment.lance[0].mech.id,
-      next: campaignId === 'border_dispute' ? 'pass_skirmish' : 'cutbank_attestation',
+      next: campaignId === 'border_dispute' ? 'recovery_window' : 'cutbank_attestation',
       optional: campaignId === 'border_dispute' ? 'marker_survey' : 'custody_survey' };
   }, { url, campaignId });
 }
