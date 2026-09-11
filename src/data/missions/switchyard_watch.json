@@ -142,7 +142,7 @@
           "units": [
             {
               "designId": "hornet_spotter",
-              "pilotId": "kessa_vale",
+              "pilotId": "dario_senn",
               "spawn": {
                 "x": 60,
                 "y": 492
@@ -151,7 +151,7 @@
             },
             {
               "designId": "drover_carrier",
-              "pilotId": "dorn_hess",
+              "pilotId": "bram_nyen",
               "spawn": {
                 "x": 60,
                 "y": 564
@@ -188,7 +188,7 @@
           "units": [
             {
               "designId": "bulwark_assault",
-              "pilotId": "ilse_brant",
+              "pilotId": "anja_verrin",
               "spawn": {
                 "x": 1092,
                 "y": 708
@@ -197,7 +197,7 @@
             },
             {
               "designId": "prybar_courier",
-              "pilotId": "marek_sud",
+              "pilotId": "oksana_valev",
               "spawn": {
                 "x": 1092,
                 "y": 780

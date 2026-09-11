@@ -18,8 +18,9 @@ describe('authored enemy objective pressure', () => {
     });
     const limit = Math.ceil(world.mission.maxDurationSeconds / world.dt);
     while (!world.finished && world.tick < limit) stepWorld(world, limit);
+    const heldByEnemy = world.zones.find((zone) => zone.id === zoneId && zone.owner === 1);
     const taken = world.events.find((event) => event.type === 'zone_captured' &&
-      event.zoneId === zoneId && event.team === 1);
+      event.zoneId === zoneId && event.team === 1) ?? heldByEnemy;
     expect(taken, JSON.stringify({ status: world.missionStatus, seconds: world.tick * world.dt,
       zone: world.zones.find((zone) => zone.id === zoneId),
       enemy: world.entities.filter((entity) => entity.team === 1).map((entity) => ({

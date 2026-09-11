@@ -114,7 +114,7 @@ describe('Great Recall route', () => {
     ).toEqual(expect.arrayContaining(['supply_line', 'ridge_hold']));
 
     expect(mapIds(campaign, ['causeway_push', 'foundry_sweep_node', 'shale_overwatch_node'])).toEqual(
-      ['causeway', 'foundry_district', 'shale_steps'],
+      ['causeway', 'line_workshop_belt', 'shale_steps'],
     );
   });
 });

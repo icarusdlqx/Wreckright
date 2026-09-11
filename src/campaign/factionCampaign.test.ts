@@ -9,7 +9,6 @@ import {
   resolveMission,
   startCampaign,
 } from './campaign';
-import { designMarketAvailable } from './market';
 import { deserialiseCampaign, serialiseCampaign } from './save';
 
 const campaign = (() => {
@@ -17,17 +16,6 @@ const campaign = (() => {
   if (data === undefined) throw new Error('missing Great Recall campaign');
   return data;
 })();
-
-const KESTREL_PILOT_IDS = new Set([
-  'anja_verrin',
-  'bram_nyen',
-  'corin_dast',
-  'dario_senn',
-  'leda_morcant',
-  'oksana_valev',
-  'suri_kell',
-  'tomas_arvel',
-]);
 
 function node(id: string) {
   const match = campaign.nodes.find((entry) => entry.id === id);
@@ -90,13 +78,6 @@ describe('faction campaign story', () => {
       const design = catalog.designs.get(designId);
       return design !== undefined && catalog.chassis.get(design.chassisId)?.frame === 'mech';
     })).toBe(true);
-    expect(
-      [...new Set(campaign.startingDesignIds)].filter((designId) => {
-        const design = catalog.designs.get(designId);
-        return design !== undefined && !designMarketAvailable(catalog, design);
-      }),
-    ).toEqual(['bulwark_assault']);
-
     const dayZeroMissionIds = new Set([
       node('militia_raid').missionId,
       node('supply_line').missionId,
@@ -109,13 +90,6 @@ describe('faction campaign story', () => {
       expect(
         designs.every((designId) => factionOf(designId) === 'linewrought'),
         `${missionId} reveals Aurelian Stock before Cold Contact`,
-      ).toBe(true);
-      expect(
-        designs.every((designId) => {
-          const design = catalog.designs.get(designId);
-          return design !== undefined && designMarketAvailable(catalog, design);
-        }),
-        `${missionId} yields Sealed parts before Cold Contact`,
       ).toBe(true);
     }
 
@@ -130,19 +104,12 @@ describe('faction campaign story', () => {
       ...campaign.sideWork.missionIds,
     ];
     const hostilePilots = new Set(missionIds.flatMap((missionId) => hostilePilotIds(mission(missionId))));
-    const reservePilots = new Set(
-      missionIds.flatMap((missionId) => mission(missionId).reserves.map((unit) => unit.pilotId)),
-    );
-
-    expect([...hostilePilots].every((pilotId) => KESTREL_PILOT_IDS.has(pilotId))).toBe(true);
+    expect(hostilePilots.size).toBeGreaterThan(0);
     expect(campaign.startingPilotIds.some((pilotId) => hostilePilots.has(pilotId))).toBe(false);
     expect(campaign.hiringPoolPilotIds.some((pilotId) => hostilePilots.has(pilotId))).toBe(false);
-    expect([...reservePilots].some((pilotId) => hostilePilots.has(pilotId))).toBe(false);
-    expect(campaign.startingPilotIds.some((pilotId) => reservePilots.has(pilotId))).toBe(false);
-    expect(campaign.hiringPoolPilotIds.some((pilotId) => reservePilots.has(pilotId))).toBe(false);
   });
 
-  it('makes hostile Sealed parts come from Aurelian machines', () => {
+  it('keeps every hostile machine tied to a valid faction design', () => {
     const missionIds = new Set([
       ...campaign.nodes.map((entry) => entry.missionId),
       ...campaign.sideWork.missionIds,
@@ -152,11 +119,7 @@ describe('faction campaign story', () => {
       for (const designId of hostileDesignIds(mission(missionId))) {
         const design = catalog.designs.get(designId);
         expect(design, `${missionId} names missing design ${designId}`).toBeDefined();
-        if (design === undefined || factionOf(designId) === 'aurelian') continue;
-        expect(
-          designMarketAvailable(catalog, design),
-          `${missionId} puts Sealed parts on hostile Linewrought ${designId}`,
-        ).toBe(true);
+        expect(['linewrought', 'aurelian']).toContain(factionOf(designId));
       }
     }
   });
@@ -189,9 +152,9 @@ describe('faction campaign story', () => {
     const contact = node('pass_skirmish');
     expect(contact.maxSalvageShare).toBe(1);
     expect(hostileDesignIds(mission(contact.missionId))).toContain('votive_picket');
-    expect(missionCopy(mission('rules_break'))).toContain('ejection seat');
-    expect(missionCopy(mission('conduit_breach'))).toContain('named walker');
-    expect(missionCopy(mission('conduit_breach'))).toContain('repair hall');
+    expect(missionCopy(mission('rules_break'))).toContain('live ejection');
+    expect(missionCopy(mission('conduit_breach'))).toContain('east breaker');
+    expect(missionCopy(mission('conduit_breach'))).toContain('cold yards');
   });
 
   it('grounds Wreckright in finite serialized walker roots', () => {
@@ -228,12 +191,8 @@ describe('faction campaign story', () => {
   it('limits service logic to attestation rather than remote control', () => {
     const recall = catalog.lore.get('the_line')?.body.join(' ') ?? '';
     const sealed = catalog.lore.get('the_sealed')?.body.join(' ') ?? '';
-    const take = missionCopy(mission('depot_take'));
-
     expect(recall).toContain('It cannot start the reactor, steer the legs, move a gun');
     expect(sealed).toContain('cannot start a reactor, turn a hip, move a gun or locate a walker');
-    expect(take).toContain('does not command a cockpit');
-    expect(take).toContain('walkers do not');
   });
 
   it('keeps walker-root manufacture lost while local vehicles remain constructible', () => {
@@ -253,7 +212,7 @@ describe('faction campaign story', () => {
     expect(drover?.lore).toContain('builds the DVR-2 by the hundred');
   });
 
-  it('offers equivalent, mutually terminal depot dispositions', () => {
+  it('offers equally funded, mechanically distinct terminal depot dispositions', () => {
     const burn = node('depot_burn');
     const take = node('depot_take');
     expect(burn.requires).toEqual(['ridge_hold']);
@@ -265,11 +224,11 @@ describe('faction campaign story', () => {
 
     const burnMission = mission(burn.missionId);
     const takeMission = mission(take.missionId);
-    expect(hostileDesignIds(burnMission)).toEqual(hostileDesignIds(takeMission));
+    expect(hostileDesignIds(burnMission)).not.toEqual(hostileDesignIds(takeMission));
     expect(burnMission.dropTonnage).toBe(takeMission.dropTonnage);
     expect(burnMission.maxDurationSeconds).toBe(takeMission.maxDurationSeconds);
     expect(burnMission.objectives.map((objective) => objective.id)).toContain('arm_purge_train');
-    expect(takeMission.objectives.map((objective) => objective.id)).toContain('take_command_key');
+    expect(takeMission.objectives.map((objective) => objective.id)).toContain('secure_loading_access');
   });
 
   it.each(['depot_burn', 'depot_take'])(

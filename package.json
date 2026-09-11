@@ -34,6 +34,7 @@
     "notices:write": "node tools/generate-third-party-notices.mjs --write",
     "audit:content": "vite-node tools/content-consistency-audit.ts",
     "audit:economy": "vite-node tools/campaign-economy-audit.ts",
+    "audit:campaign:live": "vite-node tools/campaign-playthrough-audit.ts",
     "audit:balance:reported": "FACTION_AUDIT_SUITE=reported vite-node tools/faction-matchup-audit.ts",
     "audit:balance:duels": "FACTION_AUDIT_SUITE=duels vite-node tools/faction-matchup-audit.ts",
     "audit:balance:teams": "FACTION_AUDIT_SUITE=teams vite-node tools/faction-matchup-audit.ts"

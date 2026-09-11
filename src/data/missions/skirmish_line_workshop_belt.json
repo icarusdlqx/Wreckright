@@ -1,0 +1,112 @@
+{
+  "type": "skirmish",
+  "maxDurationSeconds": 300,
+  "startingResourcePoints": 400,
+  "objectives": [
+    {
+      "id": "wipe_them_out",
+      "label": "Destroy the opposing lance",
+      "type": "destroy_all",
+      "team": 0,
+      "required": true
+    },
+    {
+      "id": "lance_survives",
+      "label": "Keep at least one mech operational",
+      "type": "survive",
+      "team": 0,
+      "required": true
+    }
+  ],
+  "dropTonnage": 225,
+  "id": "skirmish_line_workshop_belt",
+  "name": "Skirmish — Workshop Belt",
+  "mapId": "line_workshop_belt",
+  "briefing": "Repair gantries and freight blocks break the firing lanes. Use the service streets to turn a defended position. Both sides deploy the forces chosen below. Destroy the opposing lance; there are no scripted reinforcements.",
+  "lances": [
+    {
+      "team": 0,
+      "name": "Your Lance",
+      "units": [
+        {
+          "designId": "sentinel_brawler",
+          "pilotId": "kessa_vale",
+          "spawn": {
+            "x": 516,
+            "y": 1068
+          },
+          "facingDegrees": 45
+        },
+        {
+          "designId": "bulwark_assault",
+          "pilotId": "dorn_hess",
+          "spawn": {
+            "x": 588,
+            "y": 1068
+          },
+          "facingDegrees": 45
+        },
+        {
+          "designId": "hornet_spotter",
+          "pilotId": "marek_sud",
+          "spawn": {
+            "x": 660,
+            "y": 1068
+          },
+          "facingDegrees": 45
+        },
+        {
+          "designId": "cairn_battery",
+          "pilotId": "ilse_brant",
+          "spawn": {
+            "x": 612,
+            "y": 996
+          },
+          "facingDegrees": 45
+        }
+      ]
+    },
+    {
+      "team": 1,
+      "name": "Enemy Lance",
+      "units": [
+        {
+          "designId": "sentinel_brawler",
+          "pilotId": "nadia_ostrow",
+          "spawn": {
+            "x": 948,
+            "y": 372
+          },
+          "facingDegrees": -135
+        },
+        {
+          "designId": "warden_lancer",
+          "pilotId": "cato_ferrin",
+          "spawn": {
+            "x": 948,
+            "y": 444
+          },
+          "facingDegrees": -135
+        },
+        {
+          "designId": "wisp_scout",
+          "pilotId": "juno_reyes",
+          "spawn": {
+            "x": 876,
+            "y": 540
+          },
+          "facingDegrees": -135
+        },
+        {
+          "designId": "obsequy_vigil",
+          "pilotId": "willem_torrance",
+          "spawn": {
+            "x": 780,
+            "y": 228
+          },
+          "facingDegrees": -135
+        }
+      ]
+    }
+  ]
+}

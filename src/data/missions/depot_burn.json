@@ -177,15 +177,6 @@
                 "y": 60
               },
               "facingDegrees": 90
-            },
-            {
-              "designId": "courser_patrol",
-              "pilotId": "roz_havel",
-              "spawn": {
-                "x": 732,
-                "y": 60
-              },
-              "facingDegrees": 90
             }
           ]
         },
@@ -223,7 +214,7 @@
       "team": 1,
       "zoneId": "freight_purge",
       "behavior": "retake",
-      "units": 5,
+      "units": 4,
       "pursuitRadius": 620
     }
   ]

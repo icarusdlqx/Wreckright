@@ -92,7 +92,7 @@
       "id": "winch_controls",
       "name": "Recovery Winch Controls",
       "x": 540,
-      "y": 252,
+      "y": 564,
       "radius": 48,
       "owner": null,
       "captureSeconds": 8,
@@ -117,7 +117,6 @@
       "team": 0,
       "required": true,
       "zoneIds": [
-        "recovery_ground",
         "winch_controls"
       ],
       "holdSeconds": 25

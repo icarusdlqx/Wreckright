@@ -85,12 +85,12 @@ function mechanicalMission(entry: Mission): object {
 }
 
 describe('Aurelian Recall campaign', () => {
-  it('keeps the nine-contract arc and adds an optional survey and resupply branch', () => {
+  it('keeps an eight-operation main arc and adds an optional survey and resupply branch', () => {
     expect(campaign.nodes.map((node) => [node.id, node.missionId, node.requires])).toEqual([
       ['first_warrant', 'raid_ridge', []],
       ['custody_survey', 'custody_survey', ['first_warrant']],
       ['custody_resupply', 'custody_resupply', ['custody_survey']],
-      ['cutbank_attestation', 'base_capture_ridge', ['first_warrant']],
+      ['cutbank_attestation', 'authority_custody_posts', ['first_warrant']],
       ['sarn_inventory', 'switchyard_watch', ['cutbank_attestation']],
       ['root_exchange', 'authority_root_exchange', ['sarn_inventory']],
       ['quarry_receipt', 'authority_quarry_receipt', ['root_exchange']],
@@ -107,6 +107,7 @@ describe('Aurelian Recall campaign', () => {
     const originalMissions = campaign.nodes.filter((node) => node.missionId.startsWith('authority_'))
       .map((node) => mission(node.missionId));
     expect(originalMissions.map((entry) => entry.id)).toEqual([
+      'authority_custody_posts',
       'authority_root_exchange',
       'authority_quarry_receipt',
       'authority_conduit_injunction',
@@ -114,7 +115,7 @@ describe('Aurelian Recall campaign', () => {
       'authority_continuance_export',
       'authority_local_stewardship',
     ]);
-    expect(new Set(originalMissions.map((entry) => entry.name))).toHaveLength(6);
+    expect(new Set(originalMissions.map((entry) => entry.name))).toHaveLength(7);
     for (const entry of originalMissions) {
       const playerDesigns = entry.lances
         .filter((lance) => lance.team === 0)
@@ -123,11 +124,13 @@ describe('Aurelian Recall campaign', () => {
       expect(playerDesigns.every((id) => factionOf(id) === 'aurelian')).toBe(true);
       expect(entry.objectives.filter((objective) => objective.required).length).toBeGreaterThan(1);
     }
-    expect(originalMissions.map((entry) => entry.briefing).join(' '))
-      .toMatch(/exchange.*Blackglass.*conduit.*warrant.*export.*stewardship/is);
+    const operationCopy = originalMissions.map((entry) => entry.briefing).join(' ');
+    for (const phrase of ['custody post', 'terraces', 'ledger', 'conduit', 'warrant', 'export', 'local handover']) {
+      expect(operationCopy).toMatch(new RegExp(phrase, 'i'));
+    }
   });
 
-  it('offers mechanically equal final dispositions as leaves of the same warrant', () => {
+  it('offers equally funded but mechanically distinct final dispositions', () => {
     const exportNode = campaign.nodes.find((node) => node.id === 'continuance_export');
     const stewardshipNode = campaign.nodes.find((node) => node.id === 'local_stewardship');
     expect(exportNode).toMatchObject({
@@ -149,7 +152,13 @@ describe('Aurelian Recall campaign', () => {
 
     const exportMission = mission('authority_continuance_export');
     const stewardshipMission = mission('authority_local_stewardship');
-    expect(mechanicalMission(exportMission)).toEqual(mechanicalMission(stewardshipMission));
+    expect(mechanicalMission(exportMission)).not.toEqual(mechanicalMission(stewardshipMission));
+    expect(exportMission.objectives.map((objective) => objective.type)).toEqual(
+      expect.arrayContaining(['protect_zones', 'hold_zones', 'survive']),
+    );
+    expect(stewardshipMission.objectives.map((objective) => objective.type)).toEqual(
+      expect.arrayContaining(['capture_zones', 'protect_zones', 'hold_zones', 'survive']),
+    );
   });
 
   it('fields a full sealed company against only Linewrought opposition', () => {
@@ -230,7 +239,7 @@ describe('Aurelian Recall campaign', () => {
   it('frames custody as civil attestation rather than remote control', () => {
     const briefs = campaign.nodes.map((node) => node.brief);
     expect(new Set(briefs)).toHaveLength(11);
-    expect(briefs.join(' ')).toMatch(/Recall Authority.*Linewrought.*custody/is);
+    expect(briefs.join(' ')).toMatch(/Custody Tender.*local.*civil.*custody/is);
     expect(campaign.nodes.map((node) => mission(node.missionId).briefing).join(' '))
       .not.toMatch(/Halloran|Kestrel/);
     expect(catalog.lore.get('the_custodians')).toMatchObject({

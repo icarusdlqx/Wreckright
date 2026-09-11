@@ -53,7 +53,9 @@ function largeCompany(allowance: number) {
   }));
   const content: Catalog = {
     ...catalog,
-    missions: new Map([...catalog.missions, [mission.id, { ...mission, dropTonnage: allowance }]]),
+    missions: new Map([...catalog.missions, [mission.id, {
+      ...mission, dropTonnage: allowance, maxPlayerUnits: 5,
+    }]]),
   };
   return { state, content, mission };
 }

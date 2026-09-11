@@ -53,7 +53,7 @@
       "units": [
         {
           "designId": "hornet_spotter",
-          "pilotId": "kessa_vale",
+          "pilotId": "dario_senn",
           "spawn": {
             "x": 540,
             "y": 252
@@ -62,7 +62,7 @@
         },
         {
           "designId": "prybar_courier",
-          "pilotId": "dorn_hess",
+          "pilotId": "bram_nyen",
           "spawn": {
             "x": 324,
             "y": 300
@@ -71,7 +71,7 @@
         },
         {
           "designId": "courser_patrol",
-          "pilotId": "marek_sud",
+          "pilotId": "corin_dast",
           "spawn": {
             "x": 948,
             "y": 300

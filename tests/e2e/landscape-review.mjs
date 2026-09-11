@@ -85,7 +85,11 @@ try {
   }, { base, baseline });
   const records = [];
   const views = [
-    ...['ridge_pass', 'foundry_district', 'blackglass_quarry', 'cutbank_exchange', 'shale_steps', 'causeway']
+    ...[
+      'ridge_pass', 'foundry_district', 'blackglass_quarry', 'cutbank_exchange', 'shale_steps', 'causeway',
+      'line_workshop_belt', 'line_recovery_cut', 'aurelian_landing_apron', 'aurelian_service_terraces',
+      'aurelian_civic_exchange', 'barrow_archive',
+    ]
       .map((mapId) => ({ mapId, sceneryFamily: undefined, tactical: false, file: `${mapId}.png` })),
     { mapId: 'foundry_district', sceneryFamily: undefined, tactical: true, file: 'family-baseline-industrial.png' },
     { mapId: 'foundry_district', sceneryFamily: 'linewrought_workshop', tactical: true, file: 'family-linewrought-workshop.png' },

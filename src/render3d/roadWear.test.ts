@@ -175,7 +175,7 @@ describe('procedural road wear', () => {
     ));
     const wear = buildRoadWear(data, heightAt, null);
 
-    expect(data.id).toBe('cutbank_exchange');
+    expect(data.id).toBe('barrow_archive');
     expect(wear.stats.roadTiles).toBe(roadTiles(data));
     expect(wear.stats.triangles).toBeLessThanOrEqual(wear.stats.roadTiles * 6);
     expect(wear.positions.length / 3).toBeLessThanOrEqual(wear.stats.roadTiles * 14);

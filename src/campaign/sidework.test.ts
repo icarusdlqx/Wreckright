@@ -109,7 +109,7 @@ describe('the hiring hall', () => {
   });
 
   it('counts timed waves in a defence posting', () => {
-    expect(oppositionTonnage(catalog, 'switchyard_watch')).toBe(240);
+    expect(oppositionTonnage(catalog, 'switchyard_watch')).toBe(210);
   });
 
   it('posts the two objective-led jobs without inventing a destroy requirement', () => {
@@ -129,7 +129,7 @@ describe('the hiring hall', () => {
       defence?.triggers
         .filter((trigger) => trigger.effects.some((effect) => effect.type === 'spawn'))
         .map((trigger) => trigger.when.type === 'elapsed' ? trigger.when.seconds : -1),
-    ).toEqual([30, 70, 110]);
+    ).toEqual([24, 58]);
     expect(relay?.objectives.find((objective) => objective.id === 'key_relays')).toMatchObject({
       type: 'capture_zones',
       required: true,

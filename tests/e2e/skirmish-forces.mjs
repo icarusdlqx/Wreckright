@@ -28,7 +28,7 @@ export async function runSkirmishForceChecks({ browser, url, shots, check }) {
     if (shots) await page.getByTestId('briefing-lance').screenshot({ path: `${shots}/skirmish-pilot-pairings.png` });
     await runBriefingTeamLayoutChecks({ page, shots, check });
     const maps = await page.getByTestId('briefing-map-picker').locator('option').evaluateAll((items) => items.map((item) => item.value));
-    check('skirmish offers all six terrain maps', maps.length === 6 && new Set(maps).size === 6);
+    check('skirmish offers all twelve terrain maps', maps.length === 12 && new Set(maps).size === 12);
     for (const map of maps) {
       await pick('briefing-map-picker', map);
       await page.waitForFunction((id) => globalThis.__wreckright?.world.mission.mapId === id, map);

@@ -180,16 +180,26 @@
       "owner": 0,
       "captureSeconds": 10,
       "resourcePoints": 0
+    },
+    {
+      "id": "contractor_line",
+      "name": "Contractor Withdrawal Line",
+      "x": 948,
+      "y": 444,
+      "radius": 64,
+      "owner": 1,
+      "captureSeconds": 10,
+      "resourcePoints": 0
     }
   ],
   "enemyDirectives": [
     {
-      "id": "erase_pickup",
+      "id": "cover_withdrawal",
       "team": 1,
-      "zoneId": "pilot_pickup",
-      "behavior": "retake",
+      "zoneId": "contractor_line",
+      "behavior": "defend",
       "units": 4,
-      "pursuitRadius": 500
+      "pursuitRadius": 420
     }
   ]
 }

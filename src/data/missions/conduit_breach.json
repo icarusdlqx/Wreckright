@@ -79,24 +79,6 @@
             "y": 636
           },
           "facingDegrees": -45
-        },
-        {
-          "designId": "warden_lancer",
-          "pilotId": "corin_dast",
-          "spawn": {
-            "x": 252,
-            "y": 636
-          },
-          "facingDegrees": -45
-        },
-        {
-          "designId": "wisp_scout",
-          "pilotId": "suri_kell",
-          "spawn": {
-            "x": 348,
-            "y": 636
-          },
-          "facingDegrees": -45
         }
       ]
     }
@@ -192,15 +174,6 @@
                 "y": 636
               },
               "facingDegrees": 0
-            },
-            {
-              "designId": "sentinel_brawler",
-              "pilotId": "willem_torrance",
-              "spawn": {
-                "x": 156,
-                "y": 636
-              },
-              "facingDegrees": 0
             }
           ]
         },
@@ -236,7 +209,7 @@
       "team": 1,
       "zoneId": "east_breaker",
       "behavior": "retake",
-      "units": 7,
+      "units": 4,
       "pursuitRadius": 520
     }
   ],

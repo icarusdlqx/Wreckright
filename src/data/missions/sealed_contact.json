@@ -72,15 +72,6 @@
           "facingDegrees": 135
         },
         {
-          "designId": "hornet_spotter",
-          "pilotId": "leda_morcant",
-          "spawn": {
-            "x": 876,
-            "y": 180
-          },
-          "facingDegrees": 135
-        },
-        {
           "designId": "drover_carrier",
           "pilotId": "tomas_arvel",
           "spawn": {
