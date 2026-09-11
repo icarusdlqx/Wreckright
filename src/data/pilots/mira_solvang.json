@@ -8,5 +8,45 @@
     "snap_shot",
     "marksman"
   ],
-  "bio": "Solvang holds a gun steady at a dead run, which is the one thing gunnery ratings never capture. She charges accordingly."
+  "bio": "Solvang holds a gun steady at a dead run, which is the one thing gunnery ratings never capture. She charges accordingly.",
+  "portrait": {
+    "skin": "#e1b494",
+    "hair": "#d2b891",
+    "jacket": "#465869",
+    "accent": "#df985b",
+    "style": "bun",
+    "face": "oval",
+    "detail": "freckles",
+    "expression": "calm",
+    "kit": "officer",
+    "accessory": "none",
+    "age": "mature"
+  },
+  "personality": {
+    "label": "Cool professional",
+    "description": "Treats danger as skilled work. Delivers a dry invoice joke when everyone else is shouting.",
+    "lines": {
+      "move": [
+        "A moving target costs more. Off we go.",
+        "Repositioning. This is included in the fee."
+      ],
+      "attack": [
+        "Steady hand, moving feet. Taking the shot.",
+        "You paid for this part."
+      ],
+      "guard": [
+        "Position held. I bill for waiting, too."
+      ],
+      "hold_fire": [
+        "Holding fire. Ammunition saved, fee unchanged."
+      ],
+      "investigate": [
+        "Checking the return. Due diligence."
+      ],
+      "heavy_fire": [
+        "This is becoming overtime. I need some cover.",
+        "Sustained fire on my position. Let us keep the repair bill sensible."
+      ]
+    }
+  }
 }

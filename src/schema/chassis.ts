@@ -83,6 +83,8 @@ export const ChassisSchema = z
     role: z.string().min(3).max(32),
     summary: z.string().min(1).max(160).default(''),
     lore: z.string().min(1).max(900).default(''),
+    strengths: z.array(z.string().min(1).max(100)).max(3).default([]),
+    weaknesses: z.array(z.string().min(1).max(100)).max(3).default([]),
     traits: z.array(IdSchema).default([]),
   })
   .superRefine((chassis, ctx) => {

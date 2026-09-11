@@ -1,0 +1,10 @@
+.demo-supply-panel { margin: 0 0 24px; padding: 20px 22px; border: 1px solid var(--edge); border-left: 3px solid var(--accent); background: var(--panel); }
+.demo-supply-panel header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.demo-supply-panel header span { color: var(--muted); text-transform: uppercase; letter-spacing: .14em; font-size: 10px; }
+.demo-supply-panel h3 { margin: 6px 0 0; }
+.demo-supply-panel p { max-width: 85ch; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.demo-supply-received { font-size: 11px; color: var(--accent); }
+.demo-supply-panel summary { cursor: pointer; min-height: 44px; display: list-item; align-content: center; font-size: 13px; font-weight: 600; }
+.demo-supply-panel ol { padding-left: 18px; }
+.demo-supply-panel li { display: list-item; margin: 12px 0; padding: 0 0 0 5px; border: 0; }
+.demo-supply-panel li span { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }

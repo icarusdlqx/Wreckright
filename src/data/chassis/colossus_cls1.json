@@ -95,11 +95,19 @@
     "stance": 1.02
   },
   "role": "Siege platform",
-  "summary": "A hundred tonnes of foundry pride. There are eleven of them and everyone knows where.",
+  "summary": "Two gauss rifles and a shoulder Longshot work from behind deep plate. Twin arm flamers cover the final metres; the Colossus prefers a prepared firing position.",
   "lore": "Sarn found eleven matched CLS roots and raised new hulls around them from Compact plans it only partly understands. The foundry made the plate, limbs and guns; the serialized keels are relics of the lost root lines. Nine metres a second, fifty tonnes of payload, and a turning circle that has ended more Colossus careers than enemy fire. Every one of the eleven has a name, a service history and at least one town that considers it theirs.",
   "traits": [
     "hardened_mantlet",
     "oversized_sinks",
     "unstable_capacitors"
+  ],
+  "strengths": [
+    "Deep armour and cool precision fire",
+    "Long-range battery with close heat defence"
+  ],
+  "weaknesses": [
+    "Slow to change position",
+    "Main weapons require ammunition"
   ]
 }

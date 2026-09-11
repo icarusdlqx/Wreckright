@@ -5,7 +5,8 @@ import { findEntity, isOperational, type EntityId, type MechEntity, type Vec2, t
 import type { SimEvent } from '../sim/events';
 import type { TacticalCamera, Viewport } from './camera';
 import { ContactShadowLayer } from './contactShadows';
-import { locationWorldAnchor } from './locationAnchors';
+import { unitLocationAnchor, unitVentAnchor } from './unitServiceAnchors';
+import { locationContactAnchor } from './locationContactAnchor';
 import { advanceWeaponRecoil, triggerWeaponRecoil } from './weaponModels';
 import { advanceHullRecoil, triggerHullRecoil } from './machineCulture';
 import { advanceStartupSequence } from './startupLights';
@@ -20,17 +21,12 @@ import { setMachineMotionLowFx } from './machineMotion';
 import { DetachedPartPool } from './detachedPartPool';
 import { canPresentEntity } from './visibilityPresentation';
 import { fallbackFallAxis, impactFallAxis, modelDamageSignature,
-  sealedTargetOffset, writeInterpolatedPose } from './unitVisualState';
+  sealedTargetOffset, writeInterpolatedPose, type VisualPose } from './unitVisualState';
 import { createEntityView, disposeEntityView, type EntityView } from './unitViewFactory';
 
 export type { EntityView } from './unitViewFactory';
 
-export interface Interpolated {
-  x: number;
-  y: number;
-  facing: number;
-  torso: number;
-}
+export type Interpolated = VisualPose;
 
 interface MotionSample {
   prev: Interpolated;
@@ -252,12 +248,19 @@ export class UnitViews {
   locationOf(id: EntityId, location: (typeof LOCATIONS)[number], out: Vector3): boolean {
     const view = this.views.get(id);
     if (view === undefined || !this.canLocate(id)) return false;
-    if (locationWorldAnchor(view.anchors, location, out)) return true;
-    const top = view.model.root.position.y + view.model.height;
-    const base = Math.min(top, Math.max(view.model.root.position.y,
-      this.heightAt(view.model.root.position.x, view.model.root.position.z)));
-    out.set(view.model.root.position.x, (base + top) * 0.5, view.model.root.position.z);
+    unitLocationAnchor(view, location, out, this.heightAt);
     return true;
+  }
+
+  contactOf(id: EntityId, location: (typeof LOCATIONS)[number], bearing: number, out: Vector3): boolean {
+    const view = this.views.get(id);
+    return view !== undefined && this.canLocate(id) && locationContactAnchor(view.anchors, location, bearing, out);
+  }
+
+  /** Heat cues share the same current-frame visibility boundary as damage anchors. */
+  ventOf(id: EntityId, out: Vector3, index = 0): boolean {
+    const view = this.views.get(id);
+    return view !== undefined && this.canLocate(id) && unitVentAnchor(view, index, out);
   }
 
   /** Chooses the physical copy that fired when a design carries duplicate weapon ids. */
@@ -283,9 +286,7 @@ export class UnitViews {
       rig.muzzle.getWorldPosition(muzzle);
       if (breech !== undefined) rig.breech.getWorldPosition(breech);
       triggerWeaponRecoil(rig);
-      if (view.model.faction === 'linewrought') {
-        if (!this.reducedMotion) triggerHullRecoil(view.model.hullRecoil, view.model.culture, rig.travel);
-      }
+      if (!this.reducedMotion) triggerHullRecoil(view.model.hullRecoil, view.model.culture, rig.travel);
       this.mountCycles.set(key, (wanted + 1) % count);
       return true;
     }

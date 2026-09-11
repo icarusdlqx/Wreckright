@@ -1,0 +1,195 @@
+{
+  "id": "custody_resupply",
+  "name": "Recovery — Under Civil Seal",
+  "type": "defend",
+  "mapId": "aurelian_landing_apron",
+  "briefing": "Protect the tender loading stand, secure cargo control and hold both for a 30-second transfer. Bring up to three machines and 135 tonnes. The seal cabinet is optional; surviving claimants do not block the transfer.",
+  "maxDurationSeconds": 240,
+  "startingResourcePoints": 350,
+  "dropTonnage": 135,
+  "maxPlayerUnits": 3,
+  "lances": [
+    {
+      "team": 0,
+      "name": "Aurelian Custody Detail",
+      "units": [
+        {
+          "designId": "votive_picket",
+          "pilotId": "petra_lindqvist",
+          "spawn": {
+            "x": 540,
+            "y": 996
+          },
+          "facingDegrees": -90
+        },
+        {
+          "designId": "sentinel_brawler",
+          "pilotId": "silas_okonkwo",
+          "spawn": {
+            "x": 588,
+            "y": 996
+          },
+          "facingDegrees": -90
+        },
+        {
+          "designId": "falchion_duellist",
+          "pilotId": "teodor_krysa",
+          "spawn": {
+            "x": 636,
+            "y": 996
+          },
+          "facingDegrees": -90
+        }
+      ]
+    },
+    {
+      "team": 1,
+      "name": "Tender Claimants",
+      "units": [
+        {
+          "designId": "hornet_spotter",
+          "pilotId": "kessa_vale",
+          "spawn": {
+            "x": 540,
+            "y": 612
+          },
+          "facingDegrees": 90
+        },
+        {
+          "designId": "prybar_courier",
+          "pilotId": "dorn_hess",
+          "spawn": {
+            "x": 900,
+            "y": 612
+          },
+          "facingDegrees": 135
+        }
+      ]
+    }
+  ],
+  "zones": [
+    {
+      "id": "loading_stand",
+      "name": "Tender Loading Stand",
+      "x": 588,
+      "y": 996,
+      "radius": 76,
+      "owner": 0,
+      "captureSeconds": 12,
+      "resourcePoints": 0
+    },
+    {
+      "id": "seal_cabinet",
+      "name": "Optional Seal Cabinet",
+      "x": 900,
+      "y": 780,
+      "radius": 44,
+      "owner": null,
+      "captureSeconds": 8,
+      "resourcePoints": 150
+    },
+    {
+      "id": "transfer_relay",
+      "name": "Cargo Transfer Control",
+      "x": 588,
+      "y": 708,
+      "radius": 48,
+      "owner": null,
+      "captureSeconds": 8,
+      "resourcePoints": 0
+    }
+  ],
+  "objectives": [
+    {
+      "id": "keep_loading_stand",
+      "label": "Protect the tender loading stand",
+      "type": "protect_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": [
+        "loading_stand"
+      ]
+    },
+    {
+      "id": "complete_civil_transfer",
+      "label": "Hold stand and cargo control for 30 seconds",
+      "type": "hold_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": [
+        "loading_stand",
+        "transfer_relay"
+      ],
+      "holdSeconds": 30
+    },
+    {
+      "id": "recover_sealed_stock",
+      "label": "Optional: secure the seal cabinet",
+      "type": "capture_zones",
+      "team": 0,
+      "required": false,
+      "zoneIds": [
+        "seal_cabinet"
+      ]
+    },
+    {
+      "id": "custodian_survives",
+      "label": "Keep a custody machine operational",
+      "type": "survive",
+      "team": 0,
+      "required": true
+    }
+  ],
+  "enemyDirectives": [
+    {
+      "id": "loading_claim",
+      "team": 1,
+      "zoneId": "loading_stand",
+      "behavior": "retake",
+      "units": 1,
+      "pursuitRadius": 390
+    },
+    {
+      "id": "cabinet_claim",
+      "team": 1,
+      "zoneId": "seal_cabinet",
+      "behavior": "defend",
+      "units": 1,
+      "pursuitRadius": 190
+    }
+  ],
+  "triggers": [
+    {
+      "id": "civil_terms",
+      "when": {
+        "type": "elapsed",
+        "seconds": 2
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Tender: cargo control closes the transfer. Keep the loading stand occupied; the seal cabinet is optional.",
+          "speakerPilotId": "petra_lindqvist"
+        }
+      ]
+    },
+    {
+      "id": "transfer_closing",
+      "when": {
+        "type": "zone_captured",
+        "zoneId": "transfer_relay",
+        "team": 0
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Cargo control accepted. Thirty seconds on both positions completes the transfer.",
+          "speakerPilotId": "teodor_krysa"
+        }
+      ]
+    }
+  ],
+  "atmosphereId": "hard_noon"
+}

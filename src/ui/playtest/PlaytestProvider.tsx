@@ -16,6 +16,7 @@ import {
 } from './journal';
 import { PlaytestConsentDialog } from './PlaytestConsentDialog';
 import type { FirstRunEventInput } from './schema';
+import { captureReproductionContext } from './reproductionContext';
 
 export interface PlaytestContextValue {
   snapshot: PlaytestSnapshot;
@@ -54,6 +55,7 @@ export function PlaytestProvider({
       openFeedback: () => {
         setConsentOpen(false);
         journal.record({ name: 'feedback_opened' });
+        journal.captureContext(captureReproductionContext());
         setFeedbackOpen(true);
       },
       requestConsent: () => setConsentOpen(true),

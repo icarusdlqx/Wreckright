@@ -64,8 +64,9 @@ export function startFreshCampaign(
   campaignId: string,
   makeSeed: CampaignSeedFactory = createCampaignSeed,
   persist: (state: CampaignState) => void = saveCampaign,
+  difficulty = catalog.rules.difficulty.default,
 ): CampaignState {
-  const state = startCampaign(catalog, campaignId, makeSeed());
+  const state = startCampaign(catalog, campaignId, makeSeed(), difficulty);
   persist(state);
   return state;
 }

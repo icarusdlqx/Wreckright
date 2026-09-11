@@ -101,5 +101,13 @@
   "traits": [
     "hardened_mantlet",
     "sensor_mast"
+  ],
+  "strengths": [
+    "Protected gun mount",
+    "Extended sensor coverage"
+  ],
+  "weaknesses": [
+    "Cannot move",
+    "Must fight from its deployment position"
   ]
 }

@@ -1,0 +1,16 @@
+{
+  "id": "rivet_rvt1",
+  "designId": "rivet_escort",
+  "provenance": "Sarn's first Rivet conversion was charged to a freight guarantee. The customer wanted an escort that could finish a shift beside a damaged hauler.",
+  "serviceHistory": [
+    "The gun cradle and launcher assembly hang unevenly from the inherited root. Sarn compensated with plate and kept the measurements beside the collar record. Later shops preserve those notes because a machine that balances on its feet need not balance when somebody lifts it by the shoulders.",
+    "Rivets spend much of their working life waiting: for a stalled carrier, an inspected load or a clerk who will not release a gate. That makes their crews unusually familiar with the difference between a delay and an ambush. Freight offices value the machine's ability to stay beside something that cannot leave; pilots value the armour around the cab."
+  ],
+  "fieldNotes": "A raised cab inside a shoulder cage identifies the Rivet. Its conventional gun, racks and defensive equipment suit an escort that may have to answer threats from several directions. It has no jump escape. Pick ground with a withdrawal route before committing it to protect a stopped vehicle.",
+  "related": [
+    { "kind": "story", "id": "the_employers" },
+    { "kind": "story", "id": "the_welded" },
+    { "kind": "mech", "id": "trestle_trs1" },
+    { "kind": "mech", "id": "sentinel_snl2" }
+  ]
+}

@@ -67,7 +67,9 @@ export function playLanding(bus: VoiceBus, placement: VoicePlacement, weight: nu
   const frame = bus.begin(placement);
   if (frame === null) return;
   const mass = Math.max(0.3, Math.min(1.2, weight));
-  thump(frame, frame.now, 0.18, 70 + 40 * (1 - mass), 30, 0.7);
+  thump(frame, frame.now, 0.18 + mass * 0.1, 70 + 40 * (1 - mass), 30, 0.45 + mass * 0.2);
+  body(frame, frame.now, 0.13, 1_400, 180, 0.18 + mass * 0.1, 0.7);
+  noiseSweep(frame, frame.now + 0.025, 0.22, 1_600, 260, 0.15, 'bandpass', 0.6);
 }
 
 /** Three field transitions that must remain recognisable without the picture. */
@@ -108,8 +110,10 @@ export function playCollapse(
   const at = frame.now + delay;
   const mass = Math.max(0.35, Math.min(1.15, tonnage / 90));
   crack(frame, at, 0.2 + mass * 0.16, 850);
-  body(frame, at, 0.34, 1300, 120, 0.3 + mass * 0.28, 1.1);
+  body(frame, at, 0.34 + mass * 0.12, 1300, 120, 0.3 + mass * 0.22, 0.8);
   thump(frame, at, 0.42, 72 - mass * 18, 24, 0.5 + mass * 0.35);
+  oscillator(frame, at, 0.21 + mass * 0.15, 330 - mass * 70, 82, 0.095, 'triangle');
+  noiseSweep(frame, at, 0.4 + mass * 0.16, 2_400, 170, 0.18, 'bandpass', 0.8);
 }
 
 export function playFootfall(
@@ -124,12 +128,14 @@ export function playFootfall(
   const mass = Math.max(0.3, Math.min(1.2, tonnage / 90));
   if (faction === 'linewrought') {
     const transfer = frame.now + 0.018 + frame.random() * 0.026;
-    thump(frame, frame.now, 0.18, 82 - mass * 20, 28, 0.42 + mass * 0.2);
+    thump(frame, frame.now, 0.16 + mass * 0.09, 100 - mass * 30, 28, 0.38 + mass * 0.2);
     noiseSweep(frame, transfer, 0.16, 1_100, 180, 0.2, 'bandpass', 0.6);
     crack(frame, transfer + 0.025, 0.11 + mass * 0.05, 1_050);
+    oscillator(frame, transfer, 0.12, 280 - mass * 50, 105, 0.045, 'triangle');
   } else {
-    thump(frame, frame.now, 0.13, 70 - mass * 16, 32, 0.3 + mass * 0.14);
+    thump(frame, frame.now, 0.12 + mass * 0.07, 88 - mass * 24, 32, 0.32 + mass * 0.16);
     oscillator(frame, frame.now, 0.09, 210, 125, 0.045, 'sine');
+    noiseSweep(frame, frame.now, 0.12, 720, 190, 0.09, 'bandpass', 0.7);
   }
 
   switch (surface) {
@@ -233,5 +239,7 @@ export function playOrder(bus: VoiceBus): void {
 
 export function playSelect(bus: VoiceBus): void {
   const frame = bus.begin({ level: 0.07, distance: null });
-  if (frame !== null) blip(frame, frame.now, 620, 0.04, 0.09);
+  if (frame === null) return;
+  noiseSweep(frame, frame.now, 0.025, 1_800, 680, 0.075, 'bandpass', 0.7);
+  blip(frame, frame.now, 620, 0.04, 0.09);
 }

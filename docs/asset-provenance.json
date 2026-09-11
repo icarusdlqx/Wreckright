@@ -1,6 +1,9 @@
 {
   "version": 1,
-  "scope": ["public", "src"],
+  "scope": [
+    "public",
+    "src"
+  ],
   "assets": [
     {
       "path": "public/icons/apple-touch-icon.png",
@@ -22,6 +25,200 @@
       "introducedBy": "94dde01e3bf4a71c684fd8f58d072d9531d7f20e",
       "originEvidence": "Repository commit describes a game-specific app icon baked to PNG; no external source or license is recorded.",
       "clearance": "owner-attestation-required"
+    },
+    {
+      "path": "src/ui/assets/fonts/BarlowCondensed-SemiBold.ttf",
+      "sha256": "7b619d14bc2327509a9ef32b0890f709626f7ecc9ff61191c2a4314c5499d2d9",
+      "originEvidence": "Unmodified font from the official Google Fonts repository; retrieved 2026-09-05 and verified against the retained source inventory.",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/barlowcondensed/BarlowCondensed-SemiBold.ttf",
+      "license": "OFL-1.1",
+      "licenseFile": "src/ui/assets/fonts/BarlowCondensed-OFL.txt",
+      "name": "Barlow Condensed",
+      "clearance": "licensed-open-font"
+    },
+    {
+      "path": "src/ui/assets/fonts/BarlowCondensed-Bold.ttf",
+      "sha256": "e476562ec9c1e16cf16475895b511f08c804f438cc9a9f80a44ea50a0eeb5b65",
+      "originEvidence": "Unmodified font from the official Google Fonts repository; retrieved 2026-09-05 and verified against the retained source inventory.",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/barlowcondensed/BarlowCondensed-Bold.ttf",
+      "license": "OFL-1.1",
+      "licenseFile": "src/ui/assets/fonts/BarlowCondensed-OFL.txt",
+      "name": "Barlow Condensed",
+      "clearance": "licensed-open-font"
+    },
+    {
+      "path": "src/ui/assets/fonts/DMSans-Variable.ttf",
+      "sha256": "8cd08d97e89c24d0aa92edd2f0f4c8ee6195eee9b7c9f154865a58b02f0c1c0d",
+      "originEvidence": "Unmodified font from the official Google Fonts repository; retrieved 2026-09-05 and verified against the retained source inventory.",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/dmsans/DMSans%5Bopsz%2Cwght%5D.ttf",
+      "license": "OFL-1.1",
+      "licenseFile": "src/ui/assets/fonts/DMSans-OFL.txt",
+      "name": "DM Sans",
+      "clearance": "licensed-open-font"
+    },
+    {
+      "path": "src/assets/machines/bulwark_bwk3.webp",
+      "sha256": "94211a184d0369309990a8ce73237a00b57e20a4fe59bcce6cefbbf71278539f",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/cairn_crn3.webp",
+      "sha256": "4f234e204e383eb4823a6d6b60f4eee94800ccc42dfce4644b3ed98fdebc6e33",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/colossus_cls1.webp",
+      "sha256": "70a5e736eef77342c0aa1a92c245f9ca7dd126e9fb9b2be5226d8d73dbe1e9d2",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/courser_crs1.webp",
+      "sha256": "6245c3217e91b2b04e005c90aef5d5de044602aea87b4e0973598bf7afd580b0",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/drover_dvr2.webp",
+      "sha256": "52a52fc70d7be241b5c0686d9cc74fe6205a4a45f92037667d744cd493213a11",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/falchion_fal2.webp",
+      "sha256": "44fcb8cbceefb030b865590812ed5d26868db9c0e074670f28618e0c7f975250",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/halberd_hlb4.webp",
+      "sha256": "95ba812ad02e24d82cf8d0822da8b9f2f85b802dc5d28f7b51b82fe94dd405d3",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/hornet_hnt2.webp",
+      "sha256": "ff9aa4c9706a984ea9bf9ca69bce29a51d1065a027f36589dd6d4da5694a406f",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/obsequy_obq3.webp",
+      "sha256": "2d007f4d7a8b64087a31102917c68fd619379a117eff0fdc2cbd3eef056cf0c0",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/pallvault_plv1.webp",
+      "sha256": "3ffc55f56344376564fca95c33e20212a0b5d7a277b82efda89e420256e010d0",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/prybar_pry1.webp",
+      "sha256": "bd71c7ed8010dde6dac5c48a5a6288d049732c2419f29e72b440cf488d292ce3",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/rampart_rmp4.webp",
+      "sha256": "0a28dbab3649aeacaf7d2e9a7f516885ea46bf4fcdd4451f3c38ed1b8c5e3084",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/redoubt_rdt1.webp",
+      "sha256": "17dbd51528f358dd9f2ff675674c7e4bb4c20b324112f97b61d838188bdb9ab0",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/rivet_rvt1.webp",
+      "sha256": "4dbbdbc5954348352857dd75112faf472ab817918ab207c291c574fc6334f082",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/sentinel_snl2.webp",
+      "sha256": "29b589b331530509879808865555bbcb86c12a7795021ddd4bd9ce7939e9da50",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/trestle_trs1.webp",
+      "sha256": "09b6dbe2af0dfc5b7794373e6c3a87e6374bd04f8de7b6f88c05888b3a2f733f",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/votive_vtv2.webp",
+      "sha256": "d1c4dcbf7886edffbac9fad6ac558287a81448015ff6aadc698ef688af4a4207",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/warden_wrd5.webp",
+      "sha256": "6acf08c88ebc7ea57c93ceebe564b76f24a70d83a9fce9bf8a62fc64c49a7019",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/machines/wisp_wsp1.webp",
+      "sha256": "3264ce56497558850af846c7ad0d02f5b98fd40c11605d667031e7f5aa184812",
+      "introducedBy": "5a9995bd5414b568d0a2c8d2acf3c2e1d43d0bb6",
+      "originEvidence": "Rendered locally from the repository battlefield models and authored standard designs using tools/render-machine-portraits.mjs. No external image or model input. Regenerated at 640 x 720 and visually inspected on 2026-09-11 with original Linewrought and Aurelian field-plate treatments. Actual standard weapon IDs, locations and per-chassis bounds are retained in src/assets/machines/provenance.json.",
+      "clearance": "rendered-from-repository-source"
+    },
+    {
+      "path": "src/assets/art/tessell-crossing-menu.webp",
+      "sha256": "2664fd482f95cd1ff08f27f046b63ad80b364c63bf9bb024bd4a3da843adac08",
+      "introducedBy": "9f5bb01f54859d5bbffb73738e381efa3264cd3b",
+      "originEvidence": "Generated for Wreckright on 2026-09-06 with the built-in image generation tool from an original text prompt, with no image inputs. Full prompt and generation record: docs/art/TESSELL_CROSSING.md. The retained source master was converted to WebP locally with cwebp.",
+      "clearance": "generated-original-art-with-source-record"
+    },
+    {
+      "path": "src/assets/audio/carry-the-dawn-core.ogg",
+      "sha256": "77db06d11a3160c1b824b94fb703c75db58b41163f358d6cd24189e72fd0ecd7",
+      "introducedBy": "37e0b043c0e1a5155bf4e80e715e8eb47401ae5c",
+      "name": "Carry the Dawn - core",
+      "originEvidence": "Original Wreckright music composed and synthesized locally from the retained note, arrangement and instrument source in tools/audio/. No reference song, external samples, soundfonts or recordings. Source and reproduction record: docs/audio/CARRY_THE_DAWN.md.",
+      "clearance": "synthesized-original-score-with-source-record"
+    },
+    {
+      "path": "src/assets/audio/carry-the-dawn-ironwork.ogg",
+      "sha256": "22071a4f84f1c808e0dad73c340ad70ab1f1b4e9221f9f94790a472933681a68",
+      "introducedBy": "37e0b043c0e1a5155bf4e80e715e8eb47401ae5c",
+      "name": "Carry the Dawn - ironwork",
+      "originEvidence": "Original Wreckright music composed and synthesized locally from the retained note, arrangement and instrument source in tools/audio/. No reference song, external samples, soundfonts or recordings. Source and reproduction record: docs/audio/CARRY_THE_DAWN.md.",
+      "clearance": "synthesized-original-score-with-source-record"
+    },
+    {
+      "path": "src/assets/audio/carry-the-dawn-monolith.ogg",
+      "sha256": "10e9ef55f66c0ecd57fb5de699d6753564856fa1892ccd114486136b6ebd1eb8",
+      "introducedBy": "37e0b043c0e1a5155bf4e80e715e8eb47401ae5c",
+      "name": "Carry the Dawn - monolith",
+      "originEvidence": "Original Wreckright music composed and synthesized locally from the retained note, arrangement and instrument source in tools/audio/. No reference song, external samples, soundfonts or recordings. Source and reproduction record: docs/audio/CARRY_THE_DAWN.md.",
+      "clearance": "synthesized-original-score-with-source-record"
     }
   ]
 }

@@ -1,3 +1,4 @@
+import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import {
   verifyTouchDockControls,
   verifyTouchNavigation,
@@ -9,7 +10,7 @@ import { runMobileMechbayJourney } from './mobile-mechbay.mjs';
 const PORTRAIT = { width: 390, height: 844 };
 const LANDSCAPE = { width: 844, height: 390 };
 const TABLET = { width: 1024, height: 768 };
-const COMPACT_QUERY = '(max-width: 640px), (pointer: coarse) and (max-width: 1100px)';
+const COMPACT_QUERY = '(max-width: 900px), (pointer: coarse) and (max-width: 1100px)';
 
 async function mobilePage(browser, url, viewport) {
   const context = await browser.newContext({
@@ -234,7 +235,7 @@ async function runOrientation({ browser, url, shots, check, viewport, label, sho
     }
 
     await verifyTouchNavigation({ page, check, prefix });
-    if (label === 'portrait') await verifyTouchOrders({ page, check, prefix });
+    if (label === 'portrait') await verifyTouchOrders({ page, check, prefix, shots });
     await page.screenshot({ path: `${shots}/12-mobile-${shotLabel}-battle.png` });
 
     await openBattleMenu(page);
@@ -243,9 +244,10 @@ async function runOrientation({ browser, url, shots, check, viewport, label, sho
     await openBattleMenu(page);
     await page.locator('[data-testid="open-campaign"]').tap();
     await page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(page);
 
     const campaign = await overflowOf(page, '[data-testid="campaign"]');
-    check(`${prefix} campaign is one column`, await oneColumn(page, '[data-testid="campaign"]'));
+    check(`${prefix} campaign operations are one column`, await oneColumn(page, '.company-operations'));
     check(
       `${prefix} campaign has no horizontal overflow`,
       campaign.scrollWidth <= campaign.clientWidth + 1,

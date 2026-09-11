@@ -1,0 +1,26 @@
+[
+  {
+    "file": "carry-the-dawn-core.wav",
+    "seconds": 73.84615625,
+    "peak": 0.368865966796875,
+    "rms": 0.07458854522724857,
+    "loop_jump": 0.002899169921875,
+    "normal_delta_p99": 0.03460693359375
+  },
+  {
+    "file": "carry-the-dawn-ironwork.wav",
+    "seconds": 73.84615625,
+    "peak": 0.359832763671875,
+    "rms": 0.047026907500744175,
+    "loop_jump": 0.000396728515625,
+    "normal_delta_p99": 0.041412353515625
+  },
+  {
+    "file": "carry-the-dawn-monolith.wav",
+    "seconds": 73.84615625,
+    "peak": 0.230987548828125,
+    "rms": 0.034643784070342555,
+    "loop_jump": 0.005096435546875,
+    "normal_delta_p99": 0.03399658203125
+  }
+]

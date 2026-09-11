@@ -7,6 +7,7 @@ import {
 import type { BlueprintPart } from '../render/blueprint';
 import { armourShell, chamferedBox, hullSlab, taperedLimb } from './panels';
 import type { MechGeometryQuality } from './renderQuality';
+import { addArmourCoordinates } from './armourFinish';
 
 const SHADOW_CASTER_MIN_RADIUS = 2.4;
 
@@ -21,6 +22,10 @@ export function geometryForBlueprintPart(
   scale: number,
   quality: MechGeometryQuality = 'tactical',
 ): BufferGeometry {
+  return addArmourCoordinates(buildPartGeometry(part, scale, quality), part);
+}
+
+function buildPartGeometry(part: BlueprintPart, scale: number, quality: MechGeometryQuality): BufferGeometry {
   const [width, height, depth] = part.size;
   // Profiles are authored only where an outline changes the machine's read.
   if (part.profile !== undefined && part.transverse !== undefined) {
@@ -38,11 +43,11 @@ export function geometryForBlueprintPart(
     );
   }
   if (part.shape === 'cylinder') {
-    const segments = quality === 'hero' ? 20 : 12;
+    const segments = quality === 'hero' ? 28 : 16;
     return new CylinderGeometry(width * scale / 2, width * scale / 2, height * scale, segments);
   }
   if (part.shape === 'sphere') {
-    const segments = quality === 'hero' ? [24, 18] as const : [16, 12] as const;
+    const segments = quality === 'hero' ? [28, 20] as const : [20, 14] as const;
     return new SphereGeometry(width * scale / 2, ...segments);
   }
   if (part.shape === 'limb') {

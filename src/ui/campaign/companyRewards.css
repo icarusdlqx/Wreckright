@@ -1,0 +1,6 @@
+.contract-rewards { padding: 12px; margin: 12px 0; background: #e5ecdd; border: 1px solid #a9bca4; border-radius: 4px; color: #193744; }
+.contract-rewards h4 { margin: 0 0 6px; color: #28594f; }
+.contract-rewards > p, .contract-rewards small, .contract-rewards li p { font-size: 11px; color: #52665e; line-height: 1.5; }
+.contract-rewards ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.contract-rewards li { display: grid; gap: 5px; padding: 8px 0; border-top: 1px solid #c6cec1; }
+.contract-rewards li span { font-size: 12px; line-height: 1.45; }

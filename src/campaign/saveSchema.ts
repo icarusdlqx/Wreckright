@@ -44,6 +44,7 @@ const PilotRecordSchema = z.strictObject({
   // Saves written before the register carried biographies still load.
   bio: z.string().default(''),
   injuredUntilDay: z.number().int(),
+  recoveryMissions: z.number().int().nonnegative().default(0),
   dead: z.boolean(),
   mechId: z.string().nullable(),
 });
@@ -115,6 +116,15 @@ const MissionOutcomeSchema = z.strictObject({
   // A missing ledger means the old debrief never recorded the field rolls.
   salvageCandidates: z.array(SalvageCandidateSchema).default([]),
   salvageProvenance: z.array(SalvageProvenanceSchema).default([]),
+  campaignRewards: z.array(z.strictObject({
+    id: z.string().min(1), label: z.string().min(1).max(100), items: z.array(StoreItemSchema),
+    hulls: z.array(z.strictObject({ mechId: z.string().min(1), designId: IdSchema })),
+    freeRepairDays: z.number().int().nonnegative().max(7),
+    freeRepairDaysOffered: z.number().int().nonnegative().max(7).optional(),
+    supplierDiscountThroughDay: z.number().int().nonnegative().nullable(),
+    afterword: z.string().max(500),
+  })).max(8).optional(),
+  objectiveReports: z.array(z.strictObject({ id: IdSchema, label: z.string(), required: z.boolean(), status: z.string() })).optional(),
   pilotCasualties: z.array(z.string()),
   mechsLost: z.array(z.string()),
   // Saves written before debriefs were recorded load with none.
@@ -124,11 +134,15 @@ const MissionOutcomeSchema = z.strictObject({
         pilotId: z.string().min(1),
         name: z.string().min(1),
         mech: z.string(),
+        mechId: z.string().min(1).optional(),
+        chassisId: IdSchema.optional(),
         kills: z.number().nonnegative(),
         damage: z.number().nonnegative(),
         xp: z.number(),
         // Older debriefs did not snapshot the pilot's bank after a drop.
         xpBanked: z.number().nonnegative().nullable().default(null),
+        sharedXp: z.number().int().nonnegative().optional(),
+        serviceNotes: z.array(z.string().max(600)).max(6).optional(),
         promotions: z.array(z.string()),
         fate: z.enum(['returned', 'injured', 'killed']),
       }),
@@ -170,6 +184,11 @@ const CampaignEventEffectsSchema = z.strictObject({
 
 export const CampaignStateSchema = z.strictObject({
   campaignId: IdSchema,
+  // Saves created before route versioning use the preserved first route.
+  campaignContentRevision: z.number().int().positive().default(1),
+  // Older campaigns used the normal simulation tier; freeze that rule on load.
+  difficulty: z.enum(['green', 'regular', 'veteran', 'elite']).default('regular'),
+  difficultyConfigured: z.boolean().default(true),
   seed: z.string(),
   rng: RngStateSchema,
   day: z.number().int().nonnegative(),
@@ -179,6 +198,16 @@ export const CampaignStateSchema = z.strictObject({
   // Saves written before the commander could hold anyone back load with
   // nobody benched, which is what they meant.
   benched: z.array(z.string()).default([]),
+  deploymentSelection: z.array(z.string().min(1)).max(12).nullable().default(null),
+  deploymentSeats: z.array(z.strictObject({
+    mechId: z.string().min(1).nullable(), pilotId: z.string().min(1).nullable(),
+  })).max(12).nullable().default(null),
+  lancePresets: z.array(z.strictObject({
+    name: z.string().trim().min(1).max(40),
+    seats: z.array(z.strictObject({ pilotId: z.string().min(1), mechId: z.string().nullable() })).max(12),
+  })).max(6).default([]),
+  claimedRewardIds: z.array(z.string().min(1)).default([]),
+  sharedXpClaims: z.array(z.strictObject({ key: z.string().min(1), xp: z.number().int().nonnegative() })).default([]),
   store: z.array(StoreItemSchema),
   completedNodes: z.array(IdSchema),
   failedNodes: z.array(IdSchema),

@@ -14,8 +14,14 @@ import type {
 } from '../../campaign/types';
 import { stripSerialDesignation } from '../designLabel';
 import { useDialogFocus } from '../useDialogFocus';
+import { DebriefCrew } from './DebriefCrew';
 import { salvageItemFacts, salvageSummary } from './salvageFacts';
 import './salvage.css';
+import { RewardReceipt } from './CompanyRewards';
+import { DebriefActions } from './DebriefActions';
+import type { CampaignNavigationTarget } from './campaignNavigation';
+import { nextCampaignNode } from './campaignFlow';
+import './campaignFlow.css';
 
 const DEBRIEFED_KEY = 'ironline.campaign.debriefed';
 
@@ -105,11 +111,13 @@ export function Debrief({
   outcome,
   onClose,
   onChooseSalvage,
+  onAction,
 }: {
   catalog: Catalog;
   state: CampaignState;
   outcome: MissionOutcome;
   onClose: () => void;
+  onAction?: (target: CampaignNavigationTarget) => void;
   /** Swaps what came home for a different pick out of the same offer. */
   onChooseSalvage?: (picks: StoreItem[]) => StoreItem[] | void;
 }) {
@@ -118,6 +126,7 @@ export function Debrief({
     document.querySelector<HTMLElement>('[data-testid="camp-manual-toggle"]'),
   );
   const mission = catalog.missions.get(outcome.missionId);
+  const nextMission = nextCampaignNode(catalog, state);
   const campaign = catalog.campaigns.get(state.campaignId);
   const employer =
     campaign === undefined
@@ -185,6 +194,9 @@ export function Debrief({
           )}
         </header>
 
+        <DebriefCrew catalog={catalog} state={state} outcome={outcome}
+          {...(onAction === undefined ? {} : { onAction })} />
+
         {candidates.length === 0 && offered.length === 0 ? null : (
           <details className="debrief-salvage-report" data-testid="debrief-salvage-report">
             <summary tabIndex={0} data-testid="debrief-adjust-picks">
@@ -245,7 +257,10 @@ export function Debrief({
                       outcome.salvagedItems.find(
                         (held) => held.kind === item.kind && held.itemId === item.itemId,
                       )?.count ?? 0;
-                    const facts = salvageItemFacts(catalog, state, item, takenCount);
+                    const delivered = (outcome.campaignRewards ?? []).flatMap((reward) => reward.items)
+                      .filter((grant) => grant.kind === item.kind && grant.itemId === item.itemId)
+                      .reduce((total, grant) => total + grant.count, 0);
+                    const facts = salvageItemFacts(catalog, state, item, takenCount + delivered);
                     const sources = provenance.filter(
                       (source) => source.kind === item.kind && source.itemId === item.itemId,
                     );
@@ -285,65 +300,7 @@ export function Debrief({
           </details>
         )}
 
-        {outcome.pilotReports.length === 0 ? (
-          <p className="empty">No crew records for this drop.</p>
-        ) : (
-          <ul className="manifest-list">
-            {outcome.pilotReports.map((report) => (
-              <li
-                key={report.pilotId}
-                className={`manifest-row${report.fate === 'killed' ? ' unfit' : ''}`}
-                data-testid={`debrief-${report.pilotId}`}
-              >
-                <div className="manifest-pilot">
-                  <span className="pilot-name">{report.name}</span>
-                  <small className="manifest-status">
-                    {stripSerialDesignation(report.mech)}
-                  </small>
-                </div>
-
-                <dl className="manifest-skills">
-                  <div>
-                    <dt>Fought</dt>
-                    <dd>
-                      {report.kills} kill{report.kills === 1 ? '' : 's'} · {report.damage} damage
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Earned</dt>
-                    <dd>
-                      +{report.xp} XP
-                      {report.xpBanked === null ? '' : ` · ${report.xpBanked} banked`}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Training</dt>
-                    <dd>
-                      {report.promotions.length > 0
-                        ? report.promotions.join(', ')
-                        : report.fate === 'killed'
-                          ? 'record closed'
-                          : 'choose in barracks'}
-                    </dd>
-                  </div>
-                </dl>
-
-                <div className="manifest-mech">
-                  <span
-                    className={`debrief-fate ${report.fate}`}
-                    data-testid={`debrief-fate-${report.pilotId}`}
-                  >
-                    {report.fate === 'killed'
-                      ? 'Killed in action'
-                      : report.fate === 'injured'
-                        ? 'Wounded'
-                        : 'Returned'}
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
+        <RewardReceipt catalog={catalog} rewards={outcome.campaignRewards ?? []} />
 
         {outcome.mechsLost.length === 0 ? null : (
           <p className="debrief-losses">
@@ -351,9 +308,20 @@ export function Debrief({
           </p>
         )}
 
+        {onAction === undefined || state.finished ? null : <DebriefActions catalog={catalog} state={state}
+          outcome={{ ...outcome, salvagedItems: receiptItems }} onAction={onAction} />}
+
+        {onAction === undefined || nextMission === null ? null : <section className="debrief-continue" data-testid="debrief-continue">
+          <div><strong>Next mission · {nextMission.name}</strong><p>Review the contract, then prepare the crew and machines together. No calendar advance is needed.</p></div>
+        </section>}
+
         <footer className="manifest-actions">
+          {onAction === undefined || nextMission === null ? null : <button type="button" data-testid="debrief-next-mission"
+            onClick={() => onAction({ area: 'operations', nodeId: nextMission.id })}>
+            {nextMission.ending ? 'Review ending choices' : 'Review next mission'} →
+          </button>}
           <button type="button" onClick={onClose} data-testid="debrief-close">
-            Back to base
+            Stay at company
           </button>
         </footer>
       </section>

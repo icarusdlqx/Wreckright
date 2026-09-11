@@ -2,13 +2,13 @@ import { readFileSync } from 'node:fs';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { catalog } from '../../../tests/support';
+import { catalog, legacySentinelDesign } from '../../../tests/support';
 import type { MechLocation } from '../../schema/common';
 import { evaluateDrop } from './mechbayEdits';
 import { StoreShelf } from './StoreShelf';
 
 function requireDesign() {
-  const found = catalog.designs.get('sentinel_brawler');
+  const found = legacySentinelDesign;
   if (found === undefined) throw new Error('missing Sentinel design');
   return found;
 }
@@ -56,6 +56,33 @@ function cardMarkup(html: string, weaponId: string): string {
 }
 
 describe('compact mechbay catalog', () => {
+  it('labels fitted zero-spare items truthfully in both the shelf and inspector', () => {
+    const html = render({
+      inventory: { weapon: new Map([['medium_laser', 3]]), equipment: new Map([['case', 1]]) },
+      inspected: { kind: 'weapon', id: 'medium_laser' },
+    });
+    const row = cardMarkup(html, 'medium_laser');
+    expect(row).toContain('>Installed<');
+    expect(row).toContain('0 spare');
+    expect(row).not.toContain("Doesn&#x27;t fit");
+    expect(html).toContain('fits, replacements &amp; installed');
+    expect(html).toMatch(/data-testid="dossier-fit"[^>]*>[\s\S]*?<strong>Installed<\/strong>/);
+    expect(html).not.toContain('This part has no energy weapon mounts.');
+    const gear = render({ shelf: 'equipment', inventory: { weapon: new Map(), equipment: new Map([['case', 1]]) } });
+    expect(gear).toContain('stock-equipment-case');
+    expect(gear).toContain('Installed · 0 spare');
+  });
+
+  it('distinguishes inspecting an installed weapon from fitting a second copy', () => {
+    const mounted = render({ inspected: { kind: 'weapon', id: 'ac5', sourceIndex: 0 } });
+    expect(mounted).toContain('Mounted in right arm. Use the tile to move or remove it.');
+    expect(mounted).toMatch(/data-testid="dossier-fit"[^>]*>[\s\S]*?<strong>Installed<\/strong>/);
+    const shelf = render({ inspected: { kind: 'weapon', id: 'ac5' } });
+    expect(shelf).not.toContain('Mounted in right arm.');
+    const stale = render({ inspected: { kind: 'weapon', id: 'ac5', sourceIndex: 99 } });
+    expect(stale).not.toContain('Mounted in');
+  });
+
   it('renders searchable Weapons, Ammo, and Gear tabs with one inspector', () => {
     const html = render();
     expect(html).toContain('data-testid="shelf-weapons"');
@@ -105,7 +132,7 @@ describe('compact mechbay catalog', () => {
   it('retains the fits-only discovery path and truthful ammo and gear inspectors', () => {
     const fitOnly = render({ selectedLocation: 'right_torso' });
     expect(fitOnly).not.toContain('data-testid="stock-weapon-gauss_rifle"');
-    expect(fitOnly).toContain("Include Doesn&#x27;t fit");
+    expect(fitOnly).toContain("Include unavailable");
 
     const ammo = render({ shelf: 'ammo' });
     expect(ammo).toContain('data-inspected-kind="ammo"');
@@ -114,7 +141,7 @@ describe('compact mechbay catalog', () => {
     const gear = render({ shelf: 'equipment' });
     expect(gear).toContain('data-inspected-kind="equipment"');
     expect(gear).toContain('data-testid="shelf-show-all"');
-    expect(gear).toContain("Include Doesn&#x27;t fit");
+    expect(gear).toContain("Include unavailable");
     expect(gear).not.toMatch(/sensor range factor|incoming accuracy factor|ammo blast containment/);
   });
 
@@ -129,7 +156,7 @@ describe('compact mechbay catalog', () => {
     expect(css).toContain('@media (max-width: 420px)');
     expect(css).toMatch(/@media \(max-width: 420px\)[\s\S]*grid-template-columns: minmax\(0, 1fr\)/);
     expect(css).toContain('min-height: 44px;');
-    expect(css).toMatch(/\.bay-catalog > \.bay-catalog-inspector\s*{[^}]*order: 2;/s);
+    expect(css).toMatch(/\.bay-catalog > \.bay-inspector-shell\s*{[^}]*order: 2;/s);
     expect(css).toContain('max-height: min(42dvh, 300px);');
     expect(css).toContain('overflow-wrap: anywhere;');
   });

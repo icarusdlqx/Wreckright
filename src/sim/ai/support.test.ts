@@ -329,8 +329,13 @@ describe('other support doctrine', () => {
     runSupportDoctrine(first, CALLER_TEAM, difficultyTier(first, 'elite'));
     runSupportDoctrine(second, CALLER_TEAM, difficultyTier(second, 'elite'));
 
-    expect(first.support.pending[0]?.call).toBe('sensor_probe');
-    expect(second.support.pending[0]).toEqual(first.support.pending[0]);
+    expect(calls(first)).toHaveLength(1);
+    expect(calls(first)[0]?.call).toBe('sensor_probe');
+    expect(calls(second)).toEqual(calls(first));
+    expect(first.reveals).toHaveLength(1);
+    expect(second.reveals).toEqual(first.reveals);
+    expect(first.support.pending).toEqual([]);
+    expect(second.support.pending).toEqual([]);
   });
 
   it('repairs a safe damaged heavy behind its line and refuses one under threat', () => {

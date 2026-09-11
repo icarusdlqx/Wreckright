@@ -1,6 +1,89 @@
 {
   "id": "aurelian_recall",
   "name": "The Great Recall: Custodians",
+  "contentRevision": 2,
+  "legacyRoutes": [
+    {
+      "revision": 1,
+      "victoryNodeId": "continuance_export",
+      "alternateVictoryNodeIds": [
+        "local_stewardship"
+      ],
+      "nodes": [
+        {
+          "id": "first_warrant",
+          "requires": []
+        },
+        {
+          "id": "custody_survey",
+          "requires": [
+            "first_warrant"
+          ]
+        },
+        {
+          "id": "custody_resupply",
+          "requires": [
+            "custody_survey"
+          ]
+        },
+        {
+          "id": "cutbank_attestation",
+          "requires": [
+            "first_warrant"
+          ]
+        },
+        {
+          "id": "sarn_inventory",
+          "requires": [
+            "cutbank_attestation"
+          ]
+        },
+        {
+          "id": "root_exchange",
+          "requires": [
+            "sarn_inventory"
+          ]
+        },
+        {
+          "id": "quarry_receipt",
+          "requires": [
+            "root_exchange"
+          ]
+        },
+        {
+          "id": "conduit_injunction",
+          "requires": [
+            "quarry_receipt"
+          ]
+        },
+        {
+          "id": "barrow_warrant",
+          "requires": [
+            "conduit_injunction"
+          ]
+        },
+        {
+          "id": "continuance_export",
+          "requires": [
+            "barrow_warrant"
+          ]
+        },
+        {
+          "id": "local_stewardship",
+          "requires": [
+            "barrow_warrant"
+          ]
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "faction": "aurelian",
+    "title": "Aurelian Stock",
+    "premise": "An Aurelian detachment sent to reclaim inherited machines from Tessell. Your crews trust their superior technology. Each warrant brings them closer to the people their orders would dispossess.",
+    "strength": "Advanced energy weapons, precise fire and well-serviced machines. Capture and hold the evidence that moves the campaign forward.",
+    "tradeoff": "Heat and expensive repairs punish careless attacks. Local yards cannot sell replacement Aurelian weapons; optional tender recovery earns scarce supplies."
+  },
   "startingCbills": 1600000,
   "startingDay": 0,
   "startingDesignIds": [
@@ -41,7 +124,7 @@
       "name": "First Warrant",
       "missionId": "raid_ridge",
       "employerId": "continuance_tender",
-      "brief": "The Recall Authority has attested three Linewrought roots moving through the ridge pass under foundry marks. Break the militia screen and hold the warrant ground long enough for the custody readers to record the machines. The Tender pays for compliance, not wreckage.",
+      "brief": "Clear the surveyed lane across the Continuance landing apron so the Custody Tender can advance. The local cordon has a rebuilt walker and vehicle escorts. Use superior reach and coordinated fire; side ravines break the obvious firing line. Repairs stay on the company account.",
       "requires": [],
       "basePayout": 650000,
       "maxSalvageShare": 0.1,
@@ -52,11 +135,90 @@
       }
     },
     {
+      "id": "custody_survey",
+      "name": "The Unbroken Chain",
+      "missionId": "custody_survey",
+      "employerId": "continuance_tender",
+      "brief": "The first warrant leaves two civil service posts unrecorded. Heavy transport cannot land on their terrace: take one machine up to 50 tonnes. A Votive can read the western route without engaging the road guard. This optional survey locates a service tender while the main warrant route remains open.",
+      "requires": [
+        "first_warrant"
+      ],
+      "basePayout": 350000,
+      "maxSalvageShare": 0.1,
+      "deadlineDays": 26,
+      "position": {
+        "x": 0.08,
+        "y": 0.57
+      },
+      "rewards": [
+        {
+          "id": "dispatch_probe",
+          "label": "Dispatch ledger: Deep Scanner",
+          "objectiveId": "copy_dispatch_ledger",
+          "items": [
+            {
+              "kind": "equipment",
+              "itemId": "active_probe",
+              "count": 1
+            }
+          ],
+          "afterword": "The Tender releases a Deep Scanner from survey stock against the copied dispatch ledger. This is supplied equipment, not a recovered hostile component."
+        }
+      ]
+    },
+    {
+      "id": "custody_resupply",
+      "name": "Under Civil Seal",
+      "missionId": "custody_resupply",
+      "employerId": "continuance_tender",
+      "brief": "The survey locates a stranded tender on the landing supply perimeter. Protect its loading stand, secure cargo control and hold both through the transfer with up to 135 tonnes and three machines. The optional seal cabinet releases specialist stock.",
+      "requires": [
+        "custody_survey"
+      ],
+      "basePayout": 750000,
+      "maxSalvageShare": 0.1,
+      "deadlineDays": 30,
+      "position": {
+        "x": 0.14,
+        "y": 0.31
+      },
+      "rewards": [
+        {
+          "id": "tender_optics",
+          "label": "Tender stock: two Focused Medium Lasers",
+          "items": [
+            {
+              "kind": "weapon",
+              "itemId": "er_medium_laser",
+              "count": 2
+            }
+          ],
+          "afterword": "The closed transfer releases two crated Focused Medium Lasers to the company. Their custody papers permit fitting; they do not erase repair costs."
+        },
+        {
+          "id": "sealed_burst_stock",
+          "label": "Seal cabinet: burst optics and one workshop day credit",
+          "objectiveId": "recover_sealed_stock",
+          "items": [
+            {
+              "kind": "weapon",
+              "itemId": "medium_pulse_laser",
+              "count": 2
+            }
+          ],
+          "effects": {
+            "freeRepairDays": 1
+          },
+          "afterword": "The cabinet carries two Medium Burst Lasers and banks one workshop day credit for a later repair or rebuild booking. Parts, labour and payroll remain payable. The burst optics trade reach for close-range accuracy."
+        }
+      ]
+    },
+    {
       "id": "cutbank_attestation",
       "name": "Custody Posts",
-      "missionId": "base_capture_ridge",
+      "missionId": "authority_custody_posts",
       "employerId": "continuance_tender",
-      "brief": "Cutbank's two custody posts carry contradictory root rolls written during the Foundry Winter. Take both intact and hold while the Authority resolves them against the Compact archive. The local garrison is fielding rebuilds; every sealed repair remains your own account.",
+      "brief": "Cutbank's two custody posts disagree with the old archive. Take both intact and hold them while the Authority copies their records. The local garrison has called in workshop rebuilds. Keep your machines together; the detachment pays for every repair.",
       "requires": [
         "first_warrant"
       ],
@@ -66,14 +228,28 @@
       "position": {
         "x": 0.29,
         "y": 0.48
-      }
+      },
+      "rewards": [
+        {
+          "id": "tender_burst",
+          "label": "Custody allocation: Large Burst Laser",
+          "items": [
+            {
+              "kind": "weapon",
+              "itemId": "large_pulse_laser",
+              "count": 1
+            }
+          ],
+          "afterword": "The Tender authorises a heavy burst emitter after the posts are secured. It trades the focused optics' reach for more reliable close-range fire. Cooling remains the limiting factor."
+        }
+      ]
     },
     {
       "id": "sarn_inventory",
       "name": "Sarn Inventory",
       "missionId": "switchyard_watch",
       "employerId": "continuance_tender",
-      "brief": "Sarn Foundry has opened three gates against the attestation node and called every serviceable rebuild in the district. Keep the registry under Tender control until its root list is sealed. Salvage has no standing in the warrant; custody and a solvent company do.",
+      "brief": "Sarn has called its district's working mechs to defend the root registry. Hold the registry under Tender control until the inventory is copied. Your orders value the record above salvage. Preserve enough of the detachment to carry it onward.",
       "requires": [
         "cutbank_attestation"
       ],
@@ -83,14 +259,28 @@
       "position": {
         "x": 0.46,
         "y": 0.72
-      }
+      },
+      "rewards": [
+        {
+          "id": "archive_arc",
+          "label": "Archive allocation: Extended Arc Projector",
+          "items": [
+            {
+              "kind": "weapon",
+              "itemId": "er_ppc",
+              "count": 1
+            }
+          ],
+          "afterword": "The completed inventory qualifies the company for a long-range arc projector. Its reach is an advantage; firing it beside your existing emitters can overwhelm the reactor cooling."
+        }
+      ]
     },
     {
       "id": "root_exchange",
       "name": "Root Exchange",
       "missionId": "authority_root_exchange",
       "employerId": "continuance_tender",
-      "brief": "The Sarn inventory exposed a relay chain trading service-reader records between foundries. Key the four readers and hold them while the Authority follows each borrowed serial back to its root. Destroying the patrol proves nothing; the copied route is the warrant.",
+      "brief": "Take a two-machine verification detail between the lower, middle and crown readers on the service terraces. Key them along the route; patrols guard their assigned platforms and may be bypassed. Completion does not require destroying them.",
       "requires": [
         "sarn_inventory"
       ],
@@ -107,7 +297,7 @@
       "name": "Quarry Receipt",
       "missionId": "authority_quarry_receipt",
       "employerId": "continuance_tender",
-      "brief": "Blackglass Quarry is cutting counterfeit serial plates from condemned castings and matching them to the exchanged records. Seize the weigh ledger, lift manifest and serial punch, then preserve them for civil proof. The Tender cannot attest fragments.",
+      "brief": "Blackglass cut matching plates for the borrowed records. Secure the essential weigh ledger and preserve it through the copy. The exposed lift manifest and serial punch are optional evidence that also release escort equipment. Local flankers know the quarry shortcuts.",
       "requires": [
         "root_exchange"
       ],
@@ -117,14 +307,28 @@
       "position": {
         "x": 0.77,
         "y": 0.69
-      }
+      },
+      "rewards": [
+        {
+          "id": "ceramic_smelter",
+          "label": "Evidence escort: Smelter Laser",
+          "items": [
+            {
+              "kind": "weapon",
+              "itemId": "heavy_large_laser",
+              "count": 1
+            }
+          ],
+          "afterword": "Dispatch releases a heavy industrial emitter to the evidence escort. It hits hard at close range and generates exceptional heat. Fit and group it with care."
+        }
+      ]
     },
     {
       "id": "conduit_injunction",
       "name": "Conduit Injunction",
       "missionId": "authority_conduit_injunction",
       "employerId": "continuance_tender",
-      "brief": "The quarry receipts lead to a live rebuild conduit under a disputed service injunction. Hold its breaker while the custody clerks attest the line and sever the false roots from the foundry grid. Repairs after contact remain charged to the company.",
+      "brief": "Secure the main isolator and hold it while clerks verify the live conduit serving the disputed yards. A side bypass is optional and records whether the workshop block keeps power. Expect one counterattack after verification begins.",
       "requires": [
         "quarry_receipt"
       ],
@@ -141,7 +345,7 @@
       "name": "Barrow Warrant",
       "missionId": "authority_barrow_warrant",
       "employerId": "continuance_tender",
-      "brief": "Barrow Yard holds the master warrant, the counterfeit ledger and the local compact that kept the rebuild line alive. Secure the archive intact while the final attestation is made. What the Tender does with that proof will decide the Recall here.",
+      "brief": "Secure Barrow’s archive forecourt and protect the record room through the contractor counterattack. Keep the archive intact. The warrant supports export; the maintenance compact supports local stewardship. The commander must choose which cost to own.",
       "requires": [
         "conduit_injunction"
       ],
@@ -158,7 +362,7 @@
       "name": "Export Under Seal",
       "missionId": "authority_continuance_export",
       "employerId": "continuance_tender",
-      "brief": "The Barrow archive supports the Continuance reading: every copied root remains Compact property under an unclosed custody chain. Take the disposition stand and hold it while the Tender seals the register for export. The reader will attest each machine, but the company must clear the nullity guard without destroying the proof it came to carry home.",
+      "brief": "Final operation: export. Hold Barrow’s freight corridor and keep the loading stand operational until the register seals. Contractor attacks arrive through announced freight and cooling approaches. The roots leave Tessell under a lawful chain of custody.",
       "requires": [
         "barrow_warrant"
       ],
@@ -168,6 +372,13 @@
       "position": {
         "x": 0.25,
         "y": 0.08
+      },
+      "ending": {
+        "title": "Export Under Seal",
+        "body": [
+          "The final register travels under the Tender's Continuance seal. The Authority can trace every disputed root through the old custody chain. On paper the Recall is complete; on the ground, foundry crews watch working machines become entries in an export order.",
+          "Your company has carried out the warrant it accepted. The surviving Custodians return with a closed record, repaired seals and an account of what compliance cost. The archive preserves the answer; the people left beside the cold gantries must live with it."
+        ]
       }
     },
     {
@@ -175,7 +386,7 @@
       "name": "Countersign Stewardship",
       "missionId": "authority_local_stewardship",
       "employerId": "continuance_tender",
-      "brief": "Barrow's compact also supports a lawful local reading: a century of recorded service can be countersigned as stewardship rather than counterfeit possession. Take the disposition stand and hold it while the Tender records that countersignature. The reader can prove continuity, not ownership; clear the guard and leave the working roots under local custody.",
+      "brief": "Final operation: local stewardship. Secure Barrow’s public desk and service reader, then protect the local handover while the Tender countersigns it. Seizure contractors oppose the recorded disposition. The roots remain on Tessell under named obligations.",
       "requires": [
         "barrow_warrant"
       ],
@@ -185,7 +396,86 @@
       "position": {
         "x": 0.78,
         "y": 0.08
+      },
+      "ending": {
+        "title": "Countersigned Here",
+        "body": [
+          "The Tender countersigns a century of local service as stewardship. The archive keeps the roots and their history intact, while the named machines remain under the foundries that maintained them. The Recall ends here with a lawful local reading.",
+          "Stewardship is an obligation, not an erased debt. The workshops must keep their records, crews must honour wreckright, and your company leaves its own seal beside the countersignature. The surviving Custodians carry home proof that continuity can be defended without export."
+        ]
       }
     }
-  ]
+  ],
+  "demoSupplies": {
+    "id": "fitting_crate_v1",
+    "label": "Demo fitting crate",
+    "description": "Twelve weapon types are supplied for this demo, including a few from the other faction. Try different builds early. Advanced weapons still arrive through contract rewards and battlefield salvage. The workshop automatically fits a first ammunition bin when needed; add more in the mechbay.",
+    "items": [
+      {
+        "kind": "weapon",
+        "itemId": "small_laser",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "medium_laser",
+        "count": 2
+      },
+      {
+        "kind": "weapon",
+        "itemId": "large_laser",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "small_pulse_laser",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "medium_pulse_laser",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "er_medium_laser",
+        "count": 2
+      },
+      {
+        "kind": "weapon",
+        "itemId": "er_large_laser",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "plasma_rifle",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "ac5",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "lrm10",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "srm2",
+        "count": 2
+      },
+      {
+        "kind": "weapon",
+        "itemId": "machine_gun",
+        "count": 1
+      },
+      {
+        "kind": "equipment",
+        "itemId": "case",
+        "count": 2
+      }
+    ]
+  }
 }

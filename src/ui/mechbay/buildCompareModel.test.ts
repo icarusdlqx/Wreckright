@@ -68,8 +68,9 @@ describe('build comparison metrics', () => {
     expect(comparison.after.speed).toBeCloseTo(9, 8);
     expect(comparison.before.armour).toBe(700);
     expect(comparison.after.armour).toBe(700);
-    expect(comparison.before.heatMargin).toBeCloseTo(0.8, 8);
-    expect(comparison.after.heatMargin).toBeCloseTo(-0.95, 8);
+    // Both fits retain the hull's oversized exchangers and unstable capacitors.
+    expect(comparison.before.heatMargin).toBeCloseTo(1.48796, 8);
+    expect(comparison.after.heatMargin).toBeCloseTo(-0.26204, 8);
     expect(comparison.before.alphaDamage).toBeCloseTo(70.5, 8);
     expect(comparison.after.alphaDamage).toBeCloseTo(94.5, 8);
     expect(comparison.before.dps.short).toBeCloseTo(20.125, 8);
@@ -90,8 +91,8 @@ describe('build comparison metrics', () => {
       direction: 'neutral',
     });
     expect(metrics.get('heat_margin')).toMatchObject({
-      beforeText: '+0.8',
-      afterText: '-1.0',
+      beforeText: '+1.5',
+      afterText: '-0.3',
       direction: 'bad',
     });
     expect(metrics.get('alpha_damage')).toMatchObject({

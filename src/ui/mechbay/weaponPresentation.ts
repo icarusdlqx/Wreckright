@@ -138,7 +138,9 @@ export function weaponOperatingLine(weapon: Weapon): string {
     return 'Needs no ammunition; sustained fire is limited by heat.';
   }
   if (weapon.type === 'missile') {
-    return 'Travelling cluster with a finite magazine; line of sight is still required.';
+    return weapon.tags.includes('indirect_fire')
+      ? "Arcing missiles can use a teammate's sight or a live sensor track to fire over cover; finite shared ammunition."
+      : 'Direct-fire missiles need a clear line of sight from this mech; finite shared ammunition.';
   }
   return 'Cooler sustained fire with a finite magazine and a vulnerable ammunition bin.';
 }

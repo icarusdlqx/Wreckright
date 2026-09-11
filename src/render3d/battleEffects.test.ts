@@ -330,4 +330,23 @@ describe('battle camera feedback', () => {
     expect(call === undefined ? null : [call[0].x, call[0].y, call[1]]).toEqual([17, 29, 17]);
     smoke.mockRestore();
   });
+
+  it('marks only a player-captured objective at its authored location', () => {
+    const burst = vi.spyOn(TracerLayer.prototype, 'burst').mockImplementation(() => undefined);
+    const world = testWorld('zone-capture-cue');
+    world.zones.push({ id: 'yard_switch', name: 'Yard switch', x: 175, y: 225, radius: 40,
+      owner: null, contender: null, progress: 0, contested: false, heldSeconds: {},
+      captureSeconds: 5, resourcePoints: 0 });
+    const feedback = new BattleEffects(new Scene(), new Color(0x1a2024), new TacticalCamera(false), () => 6,
+      () => null, () => false);
+    feedback.consume(world, [{ type: 'zone_captured', tick: 4, zoneId: 'yard_switch', team: world.playerTeam ?? 0,
+      previousOwner: null, resourcePoints: 0 }]);
+    expect(burst).toHaveBeenCalledWith(expect.objectContaining({ x: 175, y: 225 }), 6, 'hit', 0x8fe0c2,
+      1.15, 'energy');
+    burst.mockClear();
+    feedback.consume(world, [{ type: 'zone_captured', tick: 5, zoneId: 'yard_switch', team: 7,
+      previousOwner: null, resourcePoints: 0 }]);
+    expect(burst).not.toHaveBeenCalled();
+    burst.mockRestore();
+  });
 });

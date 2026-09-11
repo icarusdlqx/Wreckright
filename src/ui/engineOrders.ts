@@ -1,7 +1,7 @@
 import type { MechLocation } from '../schema/common';
 import { useAbility } from '../sim/abilities';
 import { restoreIntent } from '../sim/governor';
-import { isSightedBy } from '../sim/sensors';
+import { isSightedBy, updateTeamVisions } from '../sim/sensors';
 import {
   isHoldingFire,
   issueAlphaStrike,
@@ -28,6 +28,8 @@ import { authoredDesignName } from './designLabel';
 import { formationDestinations } from './formation';
 import { prepareInvestigation } from './investigationOrder';
 import { useGame } from './store';
+import { pilotOrder } from './fieldRadio';
+import { acknowledgeCommand } from './commandReceiptState';
 
 export interface EngineOrderContext {
   readonly world: World;
@@ -59,7 +61,7 @@ export function moveSelection(
       issueMove(context.world, entity, destinations.get(entity.id) ?? to, pace, options)
     ) moved += 1;
   }
-  if (moved > 0) context.audio.order();
+  if (moved > 0) context.audio.order(pilotOrder(context.world, entities[0] ?? null, 'move'));
   // An order that silently does nothing reads as a broken control — and an
   // order given with nothing selected was the commonest way to see one.
   else if (entities.length > 0) useGame.getState().pushLog('No route to that point.');
@@ -97,9 +99,10 @@ export function engageContactSelection(
     useGame.getState().pushLog(
       entities.length === 0 ? 'No mech selected to give that order to.' : 'No route to that point.',
     );
+    acknowledgeCommand(entities.length === 0 ? 'Select a friendly mech first.' : 'No route to that contact.', 'attention');
     return;
   }
-  context.audio.order();
+  context.audio.order(pilotOrder(context.world, entities[0] ?? null, 'investigate'));
   const firing = ordered === 0
     ? ''
     : `${ordered} mech${ordered === 1 ? '' : 's'} firing indirectly on sensor contact`;
@@ -107,6 +110,7 @@ export function engageContactSelection(
     ? ''
     : `${investigating} mech${investigating === 1 ? '' : 's'} investigating sensor contact`;
   useGame.getState().pushLog(`${[firing, moving].filter(Boolean).join('; ')}.`);
+  acknowledgeCommand(ordered > 0 ? `Sensor target confirmed · ${ordered} firing${investigating > 0 ? `, ${investigating} investigating` : ''}` : `Investigating sensor contact · ${investigating} mech${investigating === 1 ? '' : 's'}`);
 }
 
 export function jumpSelection(context: EngineOrderContext, to: Vec2): void {
@@ -140,14 +144,21 @@ export function attackSelection(
   // to tell apart from a control that is simply broken.
   const target = findEntity(context.world, targetId);
   const push = useGame.getState().pushLog;
-  if (eligible === 0) push('No mech selected to give that order to.');
-  else if (ordered === 0) push('Optical contact is required before that target can be engaged.');
+  if (eligible === 0) {
+    push('No mech selected to give that order to.');
+    acknowledgeCommand('Select a friendly mech first.', 'attention');
+  } else if (ordered === 0) {
+    push('Optical contact is required before that target can be engaged.');
+    acknowledgeCommand('Target unavailable · optical contact required.', 'attention');
+  }
   else if (target !== null) {
-    context.audio.order();
+    const speaker = findEntity(context.world, context.selectedEntities()[0] ?? null);
+    context.audio.order(pilotOrder(context.world, speaker, 'attack'));
     const label = isSightedBy(context.world.vision, target)
       ? authoredDesignName(context.world.catalog, { id: target.designId, name: target.name })
       : 'sensor contact';
     push(`${ordered} mech${ordered === 1 ? '' : 's'} targeting ${label}.`);
+    acknowledgeCommand(`Priority target: ${label} · ${ordered} mech${ordered === 1 ? '' : 's'}`);
   }
 }
 
@@ -159,6 +170,7 @@ export function targetNearestSelection(
   const anchor = findEntity(context.world, ids[0] ?? null);
   if (anchor === null) {
     useGame.getState().pushLog('No mech selected to give that order to.');
+    acknowledgeCommand('Select a friendly mech first.', 'attention');
     return;
   }
 
@@ -175,6 +187,7 @@ export function targetNearestSelection(
 
   if (best === null) {
     useGame.getState().pushLog('Nothing hostile in optical sight.');
+    acknowledgeCommand('Nothing hostile in optical sight.', 'attention');
     return;
   }
   attack(best.id);
@@ -189,14 +202,22 @@ export function setSelectionPosture(context: EngineOrderContext, posture: Postur
 
   const already = mechs.every((entity) => entity.posture === posture);
   for (const entity of mechs) setPosture(entity, already ? 'free' : posture);
+  if (!already) context.audio.order(pilotOrder(context.world, mechs[0] ?? null, 'guard'));
+  useGame.getState().pushLog(already ? 'Guard released; target approach is available.' : 'Guarding this ground. Routes cancelled; priority targets and weapons retained.');
 }
 
 export function stopSelection(context: EngineOrderContext): void {
+  let stopped = 0;
   for (const id of context.selectedEntities()) {
     const entity = findEntity(context.world, id);
     if (entity === null || entity.autopilot) continue;
     issueStop(entity);
     entity.orders.attack = null;
+    stopped += 1;
+  }
+  if (stopped > 0) {
+    context.audio.order();
+    useGame.getState().pushLog(`Stopped ${stopped} mech${stopped === 1 ? '' : 's'}. Routes and priority targets cleared; weapons remain active.`);
   }
 }
 
@@ -206,6 +227,8 @@ export function toggleSelectionHoldFire(context: EngineOrderContext): void {
     if (entity === null || entity.autopilot) continue;
     setHoldFire(entity, !isHoldingFire(entity));
   }
+  const speaker = findEntity(context.world, context.selectedEntities()[0] ?? null);
+  if (speaker !== null && isHoldingFire(speaker)) context.audio.order(pilotOrder(context.world, speaker, 'hold_fire'));
 }
 
 export function toggleSelectionHeatSafety(context: EngineOrderContext): void {
@@ -222,6 +245,7 @@ export function toggleSelectionHeatSafety(context: EngineOrderContext): void {
 export function useSelectionAbilities(context: EngineOrderContext): void {
   let used = 0;
   let asked = 0;
+  let sensorsChanged = false;
   for (const id of context.selectedEntities()) {
     const entity = findEntity(context.world, id);
     if (entity === null || entity.autopilot) continue;
@@ -229,8 +253,11 @@ export function useSelectionAbilities(context: EngineOrderContext): void {
     if (!useAbility(context.world, entity)) continue;
     used += 1;
     const ability = context.world.rules.abilities.entries[entity.ability.id];
+    if ((ability?.sensorRangeFactor ?? 1) !== 1) sensorsChanged = true;
     useGame.getState().pushLog(`${entity.pilot.name}: ${ability?.label ?? entity.ability.id}.`);
   }
+  // Abilities take effect while paused; refresh their derived contacts without advancing the field.
+  if (sensorsChanged) updateTeamVisions(context.world);
   if (used > 0) context.audio.order();
   else if (asked > 0) useGame.getState().pushLog('Nothing ready to call on yet.');
   else useGame.getState().pushLog('No mech selected to give that order to.');

@@ -23,4 +23,14 @@ describe('mech preview host', () => {
     expect(html).toContain('data-testid="mech-preview"');
     expect(html).not.toContain('canvas');
   });
+
+  it('accepts close framing for the full-size inspection view without changing server output', () => {
+    const design = catalog.designs.get('sentinel_brawler')!;
+    const chassis = catalog.chassis.get('sentinel_snl2')!;
+    const html = renderToStaticMarkup(createElement(MechPreview, {
+      catalog, chassis, design, fitToMachine: true,
+    }));
+    expect(html).toContain('data-testid="mech-preview"');
+    expect(html).not.toContain('canvas');
+  });
 });

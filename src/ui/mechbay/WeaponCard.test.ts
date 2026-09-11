@@ -22,6 +22,22 @@ function render(id: string, extra: Partial<Parameters<typeof WeaponCard>[0]> = {
 }
 
 describe('weapon card', () => {
+  it('separates an installed zero-spare copy from physical incompatibility', () => {
+    const html = render('flamer', { stock: 0, installed: true, unavailableReason: 'This part has no energy weapon mounts.' });
+    expect(html).toContain('>Installed<');
+    expect(html).toContain('0 spare');
+    expect(html).toContain('draggable="false"');
+    expect(html).not.toContain('no energy weapon mounts');
+    expect(html).not.toContain("Doesn&#x27;t fit");
+  });
+
+  it('allows picking a replacement-only gun without offering an empty-slot auto fit', () => {
+    const html = render('er_medium_laser', { replacementOnly: true, fitLabel: 'Replace', onAutoFit: () => undefined });
+    expect(html).toContain('>Replace<');
+    expect(html).toContain('draggable="true"');
+    expect(html).not.toContain('weapon-card__autofit');
+  });
+
   it('is a native keyboard-operable button with drag payload support', () => {
     const html = render('ac5', { selected: true });
     expect(html).toContain('<button type="button" class="weapon-card__pick"');
@@ -47,20 +63,20 @@ describe('weapon card', () => {
     expect(foreign).toContain('data-faction="aurelian"');
     expect(foreign).toContain('faction-aurelian');
     expect(foreign).toContain('Aurelian Stock');
-    expect(foreign).toContain('Foreign pattern — origin only');
-    expect(foreign).toContain('Culture is informational; mount, slots, tonnage, and stock decide fit.');
+    expect(foreign).toContain('Mixed refit');
+    expect(foreign).toContain('Both origins can be mixed. Mount type, size, boxes, weight and stock decide fit; cooling and ammunition decide how it fights.');
 
     const domestic = render('large_laser', { chassisFaction: 'aurelian' });
-    expect(domestic).not.toContain('Foreign pattern');
+    expect(domestic).not.toContain('Mixed refit');
   });
 
   it('shows fit state and keeps expanded operating prose out of every row', () => {
     const html = render('lrm10');
     expect(html).toContain('data-fit="true"');
     expect(html).toContain('>Fit<');
-    expect(html).toContain('Ready to place.');
+    expect(html).toContain('Drag to a matching part, or pick and place.');
     expect(html).not.toContain('1 ton of ammo lasts');
-    expect(html).not.toContain('line of sight is still required');
+    expect(html).not.toContain('a live sensor track to fire over cover');
   });
 
   it('keeps unavailable cards inspectable but prevents activation and dragging', () => {
@@ -73,6 +89,6 @@ describe('weapon card', () => {
     expect(html).toContain('data-fit="false"');
     expect(html).toContain("Doesn&#x27;t fit");
     expect(html).toContain('Needs a heavy ballistic mount.');
-    expect(html).toContain('×2');
+    expect(html).toContain('2 spare');
   });
 });

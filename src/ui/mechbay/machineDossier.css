@@ -1,0 +1,19 @@
+.machine-portrait { display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 3px; }
+.machine-dossier { margin: 12px 0; padding: 12px; border: 1px solid #c6cabd; border-radius: 5px; background: #f5f2e8; color: #253f45; }
+.machine-dossier-intro { display: flex; align-items: center; gap: 12px; }
+.machine-dossier-intro .machine-portrait { width: 76px; height: 86px; flex: 0 0 76px; border: 1px solid #bfcbbe; }
+.machine-dossier-intro p { margin: 0; font-size: 12px; line-height: 1.55; }
+.machine-dossier-tradeoffs { display: grid; gap: 8px; margin: 12px 0 0; }
+.machine-dossier-tradeoffs div { border-left: 3px solid #37766b; padding-left: 9px; }
+.machine-dossier-tradeoffs div + div { border-left-color: #b86b40; }
+.machine-dossier-tradeoffs dt { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: #40665f; }
+.machine-dossier-tradeoffs div + div dt { color: #935133; }
+.machine-dossier-tradeoffs dd { margin: 3px 0 0; font-size: 12px; line-height: 1.5; }
+.machine-dossier .machine-dossier-caveat { margin: 10px 0 0; color: #65736e; font-size: 10px; line-height: 1.5; }
+.selected-machine-showcase .machine-dossier { margin: 0 16px 14px; }
+.camp .exp-machine-portrait { padding: 0; }
+.dossier-integration { margin: 10px 0; padding: 9px; border-left: 3px solid #569184; background: #e5ebe0; color: #304c46; font-size: 11px; line-height: 1.5; }
+.dossier-integration p { margin: 0 0 6px; }
+.dossier-integration summary { cursor: pointer; padding: 6px 0; font-weight: 700; }
+.dossier-integration summary:focus-visible { outline: 2px solid #b65e36; outline-offset: 3px; }
+@media (max-width: 640px) { .machine-dossier-intro .machine-portrait { width: 66px; height: 74px; flex-basis: 66px; } }

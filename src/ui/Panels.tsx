@@ -166,6 +166,7 @@ export function WeaponGroups({
                           : weapon.rounds}
                     </span>
                     {(() => {
+                      if (weapon.cooling === true) return <span className="weapon-hit blocked" title="Heat safety is spacing this weapon’s shots; it resumes automatically.">cooling</span>;
                       if (preview === undefined) return null;
                       const priced = previewByIndex.get(weapon.index);
                       if (priced === undefined || weapon.destroyed) return null;
@@ -194,62 +195,7 @@ export function WeaponGroups({
   );
 }
 
-export function LanceBar({
-  units,
-  selection,
-  onSelect,
-}: {
-  units: readonly UnitSnapshot[];
-  selection: readonly number[];
-  onSelect: (id: number) => void;
-}) {
-  return (
-    <div className="lance" data-testid="lance-bar">
-      {units.map((unit) => {
-        const total = Object.values(unit.locations).reduce(
-          (sum, location) => sum + location.armour + location.rearArmour + location.internal,
-          0,
-        );
-        const max = Object.values(unit.locations).reduce(
-          (sum, location) =>
-            sum + location.armourMax + location.rearArmourMax + location.internalMax,
-          0,
-        );
-        const health = max === 0 ? 0 : total / max;
-
-        return (
-          <button
-            key={unit.id}
-            type="button"
-            className={`lance-card ${selection.includes(unit.id) ? 'selected' : ''} ${unit.alive ? '' : 'dead'}`}
-            onClick={() => onSelect(unit.id)}
-            aria-pressed={selection.includes(unit.id)}
-            data-testid={`lance-card-${unit.id}`}
-          >
-            <span className="lance-name">{unit.pilotName}</span>
-            <span className="lance-chassis" title={unit.identity}>{unit.identity}</span>
-            <span className="lance-health">
-              <span style={{ width: `${health * 100}%` }} />
-            </span>
-            <span className="lance-status">
-              {unit.alive
-                ? unit.downRemaining > 0
-                  ? 'DOWN'
-                  : unit.shutdownRemaining > 0
-                    ? 'SHUTDOWN'
-                    : unit.staggered
-                      ? 'STAGGERED'
-                      : unit.holdingFire
-                        ? 'HOLDING'
-                        : unit.motion.toUpperCase()
-                : (unit.killMethod ?? 'LOST').toUpperCase()}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
+export { LanceBar } from './LanceBar';
 
 export function EventLog({ lines }: { lines: readonly string[] }) {
   return (

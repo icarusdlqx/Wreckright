@@ -1,0 +1,360 @@
+{
+  "sampleRate": 44100,
+  "channels": 2,
+  "seconds": 45.90000000000003,
+  "noiseSeed": 305419896,
+  "stats": [
+    {
+      "name": "linewrought-tracer",
+      "at": 0.2,
+      "seconds": 1.3,
+      "peak": 0.09310223162174225,
+      "rms": 0.009101996467012673,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.6871318299595867,
+      "brightness": 0.04148428833259243
+    },
+    {
+      "name": "aurelian-tracer",
+      "at": 1.5,
+      "seconds": 1.3,
+      "peak": 0.11807049065828323,
+      "rms": 0.009253008130249823,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.6542994672704869,
+      "brightness": 0.04485315443326655
+    },
+    {
+      "name": "linewrought-missile",
+      "at": 2.8,
+      "seconds": 1.3,
+      "peak": 0.07575167715549469,
+      "rms": 0.006054662069947462,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.5674549686728004,
+      "brightness": 0.03243768143466181
+    },
+    {
+      "name": "aurelian-missile",
+      "at": 4.1,
+      "seconds": 1.3,
+      "peak": 0.08731082081794739,
+      "rms": 0.005730454728908599,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.6129983374680902,
+      "brightness": 0.01645120605533366
+    },
+    {
+      "name": "linewrought-slug",
+      "at": 5.3999999999999995,
+      "seconds": 1.3,
+      "peak": 0.09056361764669418,
+      "rms": 0.007484405207266591,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.7597380651490903,
+      "brightness": 0.04401362179679359
+    },
+    {
+      "name": "aurelian-slug",
+      "at": 6.699999999999999,
+      "seconds": 1.3,
+      "peak": 0.09896798431873322,
+      "rms": 0.007482202069813846,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.7222699731049828,
+      "brightness": 0.03632790164811078
+    },
+    {
+      "name": "linewrought-beam",
+      "at": 7.999999999999999,
+      "seconds": 1.3,
+      "peak": 0.05000494047999382,
+      "rms": 0.00520244580705642,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.09323515989914931,
+      "brightness": 0.06085065723306859
+    },
+    {
+      "name": "aurelian-beam",
+      "at": 9.299999999999999,
+      "seconds": 1.3,
+      "peak": 0.041992586106061935,
+      "rms": 0.00513607354279094,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.08996794310972207,
+      "brightness": 0.06675820558044758
+    },
+    {
+      "name": "linewrought-pulse",
+      "at": 10.6,
+      "seconds": 1.3,
+      "peak": 0.05762353166937828,
+      "rms": 0.002922528417062487,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.028175152693018832,
+      "brightness": 0.13516597709231468
+    },
+    {
+      "name": "aurelian-pulse",
+      "at": 11.9,
+      "seconds": 1.3,
+      "peak": 0.05690491199493408,
+      "rms": 0.002983542582847171,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.016822645602877495,
+      "brightness": 0.19842525061487026
+    },
+    {
+      "name": "linewrought-bolt",
+      "at": 13.200000000000001,
+      "seconds": 1.3,
+      "peak": 0.08942707628011703,
+      "rms": 0.004493002458617445,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.32345237842734903,
+      "brightness": 0.26417925515526314
+    },
+    {
+      "name": "aurelian-bolt",
+      "at": 14.500000000000002,
+      "seconds": 1.3,
+      "peak": 0.08899734914302826,
+      "rms": 0.004586159162316671,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.32844418388342705,
+      "brightness": 0.2359515906252735
+    },
+    {
+      "name": "linewrought-flame",
+      "at": 15.800000000000002,
+      "seconds": 1.3,
+      "peak": 0.04886167496442795,
+      "rms": 0.0026347777199515776,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.19027284502018701,
+      "brightness": 0.207370982777046
+    },
+    {
+      "name": "aurelian-flame",
+      "at": 17.1,
+      "seconds": 1.3,
+      "peak": 0.0559527762234211,
+      "rms": 0.0029251431145904893,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.1670846871484139,
+      "brightness": 0.2034410708666734
+    },
+    {
+      "name": "linewrought-step-road",
+      "at": 18.400000000000002,
+      "seconds": 0.8,
+      "peak": 0.23446568846702576,
+      "rms": 0.019205371319331803,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.8404417895168077,
+      "brightness": 0.010729148295490164
+    },
+    {
+      "name": "linewrought-step-rough",
+      "at": 19.200000000000003,
+      "seconds": 0.8,
+      "peak": 0.18148866295814514,
+      "rms": 0.019388510879045,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.8824542187407689,
+      "brightness": 0.004462785233406386
+    },
+    {
+      "name": "linewrought-step-water",
+      "at": 20.000000000000004,
+      "seconds": 0.8,
+      "peak": 0.1992391049861908,
+      "rms": 0.019244994522835533,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.8284304005897116,
+      "brightness": 0.009728052916899401
+    },
+    {
+      "name": "aurelian-step-road",
+      "at": 20.800000000000004,
+      "seconds": 0.8,
+      "peak": 0.21363866329193115,
+      "rms": 0.013595295241043687,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.8420496593893639,
+      "brightness": 0.011956404362459446
+    },
+    {
+      "name": "aurelian-step-rough",
+      "at": 21.600000000000005,
+      "seconds": 0.8,
+      "peak": 0.16651690006256104,
+      "rms": 0.014757932420987831,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.8643336234397736,
+      "brightness": 0.0031785219011240926
+    },
+    {
+      "name": "aurelian-step-water",
+      "at": 22.400000000000006,
+      "seconds": 0.8,
+      "peak": 0.17963846027851105,
+      "rms": 0.015062609247338748,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.7677378232159706,
+      "brightness": 0.00747408052077431
+    },
+    {
+      "name": "part-loss",
+      "at": 23.200000000000006,
+      "seconds": 1,
+      "peak": 0.20215582847595215,
+      "rms": 0.019186760842989238,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.7180345134947412,
+      "brightness": 0.03229345059616792
+    },
+    {
+      "name": "ammunition-rupture",
+      "at": 24.200000000000006,
+      "seconds": 1.3,
+      "peak": 0.37677180767059326,
+      "rms": 0.020338824391842678,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.5529313478625191,
+      "brightness": 0.0861044133313674
+    },
+    {
+      "name": "terminal-and-ground-impact",
+      "at": 25.500000000000007,
+      "seconds": 2.4,
+      "peak": 0.4060938060283661,
+      "rms": 0.041511607080289455,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.8475586720133681,
+      "brightness": 0.007837860177858686
+    },
+    {
+      "name": "saturated-volley",
+      "at": 27.900000000000006,
+      "seconds": 2.6,
+      "peak": 0.7869079113006592,
+      "rms": 0.07194658533042406,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.6243920910317521,
+      "brightness": 0.009616277823467788
+    },
+    {
+      "name": "saturated-tracer",
+      "at": 30.500000000000007,
+      "seconds": 2.2,
+      "peak": 0.9077998399734497,
+      "rms": 0.0869277580195874,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.6571120073813778,
+      "brightness": 0.009900363378220565
+    },
+    {
+      "name": "saturated-missile",
+      "at": 32.70000000000001,
+      "seconds": 2.2,
+      "peak": 0.6885866522789001,
+      "rms": 0.07438983982897093,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.6454196540832463,
+      "brightness": 0.007207165201932114
+    },
+    {
+      "name": "saturated-slug",
+      "at": 34.90000000000001,
+      "seconds": 2.2,
+      "peak": 0.9431061744689941,
+      "rms": 0.07846633933415163,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.6562169715682274,
+      "brightness": 0.008174233596415208
+    },
+    {
+      "name": "saturated-beam",
+      "at": 37.100000000000016,
+      "seconds": 2.2,
+      "peak": 0.8021538257598877,
+      "rms": 0.07651225447304766,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.593171312114294,
+      "brightness": 0.013269883244352508
+    },
+    {
+      "name": "saturated-pulse",
+      "at": 39.30000000000002,
+      "seconds": 2.2,
+      "peak": 0.8393293023109436,
+      "rms": 0.07427077512006322,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.6310859852083416,
+      "brightness": 0.012690043160779929
+    },
+    {
+      "name": "saturated-bolt",
+      "at": 41.50000000000002,
+      "seconds": 2.2,
+      "peak": 0.9494310617446899,
+      "rms": 0.0749015932049864,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.6414835545086233,
+      "brightness": 0.010859829602259737
+    },
+    {
+      "name": "saturated-flame",
+      "at": 43.700000000000024,
+      "seconds": 2.2,
+      "peak": 0.6827136278152466,
+      "rms": 0.07358109969069702,
+      "clipped": 0,
+      "nonfinite": 0,
+      "bassShare": 0.6600444288039856,
+      "brightness": 0.008914242015315495
+    }
+  ],
+  "music": {
+    "peak": 0.38481779079943945,
+    "peakAt": 55.456643990929706,
+    "share": 0.5,
+    "gains": [
+      0.8,
+      0.45820519420888284,
+      0.45820519420888284
+    ],
+    "channel": 0
+  }
+}

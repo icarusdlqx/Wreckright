@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { SupportPalette } from './SupportPalette';
+import { SupportPalette, supportAvailability } from './SupportPalette';
 import type { SupportOption } from './supportOptions';
 
 const OPTIONS: readonly SupportOption[] = [
@@ -9,6 +9,7 @@ const OPTIONS: readonly SupportOption[] = [
     id: 'sensor_probe',
     label: 'Sensor Probe',
     cost: 200,
+    delaySeconds: 0,
     effect: 'Detect and classify coarse contacts within 260m for 30s with no delay; does not reveal terrain or grant optical line of sight or targeting.',
     placement: 'Click or tap the centre of the sweep.',
   },
@@ -16,6 +17,7 @@ const OPTIONS: readonly SupportOption[] = [
     id: 'air_strike',
     label: 'Air Strike',
     cost: 700,
+    delaySeconds: 4,
     effect: 'Seven impacts across a lane after 4s.',
     placement: 'Drag the lane on desktop.',
   },
@@ -23,6 +25,7 @@ const OPTIONS: readonly SupportOption[] = [
     id: 'repair_truck',
     label: 'Repair Truck',
     cost: 500,
+    delaySeconds: 5,
     effect: 'Restore armour around a temporary field rig.',
     placement: 'Click or tap where damaged mechs can gather.',
   },
@@ -32,6 +35,7 @@ function markup(
   embedded = false,
   active: SupportOption['id'] | null = null,
   notice: string | null = null,
+  paused = false,
 ): string {
   return renderToStaticMarkup(
     createElement(SupportPalette, {
@@ -41,6 +45,7 @@ function markup(
       notice,
       reservesLeft: 0,
       embedded,
+      paused,
       onPick: () => undefined,
     }),
   );
@@ -61,6 +66,13 @@ describe('compact support palette', () => {
     expect(html).toContain('300 RP short.');
     const air = html.match(/<button[^>]+data-testid="support-air_strike"[^>]*>/u)?.[0];
     expect(air).toContain('aria-disabled="true"');
+  });
+
+  it('reserves every description but exposes only the selected one to assistive technology', () => {
+    const html = markup(true, 'air_strike');
+    expect((html.match(/class="support-detail-reserve" aria-hidden="true"/g) ?? []).length).toBe(OPTIONS.length);
+    expect((html.match(/class="support-detail" aria-live="polite"/g) ?? []).length).toBe(1);
+    expect(html).toContain('data-testid="support-details"');
   });
 
   it('surfaces a rejected placement next to the still-armed call', () => {
@@ -86,5 +98,27 @@ describe('compact support palette', () => {
     expect(html).toContain('class="support open embedded"');
     expect(html).not.toContain('hidden=""');
     expect(html).toContain('data-testid="resource-points"');
+  });
+
+  it('keeps targeting and cancellation visible after a desktop call is armed', () => {
+    const html = markup(false, 'air_strike', null, true);
+    expect(html).toContain('data-testid="support-targeting"');
+    expect(html).toContain('Air Strike: choose a target');
+    expect(html).toContain('Place now, then resume to dispatch.');
+    expect(html).toContain('data-testid="support-cancel"');
+  });
+
+  it('explains immediate probe activation and charges only a valid placed target', () => {
+    const html = markup(true, 'sensor_probe', null, true);
+    expect(html).toContain('Activates when placed, including while paused.');
+    expect(html).toContain('RP is spent only after a valid target is placed.');
+  });
+
+  it('lets an armed call be cancelled even when its balance or reserve has changed', () => {
+    expect(supportAvailability(OPTIONS[1]!, 0, 0, 'air_strike').disabled).toBe(false);
+    const reserve: SupportOption = { ...OPTIONS[1]!, id: 'reinforcement' };
+    expect(supportAvailability(reserve, 0, 0, 'reinforcement').disabled).toBe(false);
+    expect(supportAvailability(reserve, 1000, 0, null)).toEqual({ disabled: true, status: 'No mission reserve remains.' });
+    expect(supportAvailability(OPTIONS[1]!, 400, 0, null)).toEqual({ disabled: true, status: '300 RP short.' });
   });
 });

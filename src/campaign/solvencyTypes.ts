@@ -9,6 +9,7 @@ export type RecoveryAction =
   | 'call_up'
   | 'reassign'
   | 'finance'
+  | 'stand_down'
   | 'retire';
 
 export type RecoveryBlock = 'none' | 'no_pilot' | 'no_mech' | 'insufficient_funds';

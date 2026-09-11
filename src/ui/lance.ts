@@ -24,12 +24,15 @@ export interface SkirmishBerth {
   empty?: boolean;
 }
 
+export type SkirmishFaction = Faction | 'mixed';
+export interface SkirmishSelection { lance: SkirmishBerth[]; faction: SkirmishFaction }
+
 const STORAGE_PREFIX = 'ironline.lance.';
 
 /** The lance the mission itself fields, as the starting point. */
-export function defaultLance(catalog: Catalog, missionId: string): SkirmishBerth[] {
+export function defaultLance(catalog: Catalog, missionId: string, team = 0): SkirmishBerth[] {
   const mission = catalog.missions.get(missionId);
-  const lance = mission?.lances.find((entry) => entry.team === 0);
+  const lance = mission?.lances.find((entry) => entry.team === team);
   return (lance?.units ?? []).map((unit) => ({
     designId: unit.designId,
     pilotId: unit.pilotId,
@@ -37,14 +40,19 @@ export function defaultLance(catalog: Catalog, missionId: string): SkirmishBerth
 }
 
 /** The stored lance for a mission, falling back to the authored one. */
-export function loadLance(catalog: Catalog, missionId: string): SkirmishBerth[] {
-  const fallback = defaultLance(catalog, missionId);
-  const raw = globalThis.localStorage?.getItem(`${STORAGE_PREFIX}${missionId}`);
-  if (raw === null || raw === undefined) return fallback;
+export function loadLance(catalog: Catalog, missionId: string, team = 0): SkirmishBerth[] {
+  return loadLanceSelection(catalog, missionId, team).lance;
+}
 
+/** Legacy rosters infer a starting choice; an explicit choice survives composition changes. */
+export function loadLanceSelection(catalog: Catalog, missionId: string, team = 0): SkirmishSelection {
+  const authored = defaultLance(catalog, missionId, team);
+  const fallback = { lance: authored, faction: lanceFaction(catalog, authored) ?? 'mixed' };
   try {
-    const parsed = JSON.parse(raw) as SkirmishBerth[];
-    if (!Array.isArray(parsed) || parsed.length !== fallback.length) return fallback;
+    const raw = globalThis.localStorage?.getItem(`${STORAGE_PREFIX}${team === 0 ? '' : 'enemy.'}${missionId}`);
+    if (raw === null || raw === undefined) return fallback;
+    const parsed = JSON.parse(raw) as (SkirmishBerth & { factionChoice?: unknown })[];
+    if (!Array.isArray(parsed) || parsed.length !== authored.length || parsed.length === 0) return fallback;
 
     const berths: SkirmishBerth[] = [];
     for (const entry of parsed) {
@@ -61,20 +69,29 @@ export function loadLance(catalog: Catalog, missionId: string): SkirmishBerth[] 
       // An inline design is player data from an older session: validate it the
       // way a save file is validated, and fall back rather than crash the boot.
       const design = DesignSchema.safeParse(migrateDesignWeaponIds(entry.design));
-      if (!design.success) return fallback;
+      if (!design.success || !catalog.chassis.has(design.data.chassisId)) return fallback;
       berths.push({ designId: null, design: design.data, pilotId: entry.pilotId });
     }
-    return berths;
+    const choice = parsed[0]?.factionChoice;
+    return { lance: berths, faction: choice === 'linewrought' || choice === 'aurelian' || choice === 'mixed'
+      ? choice : lanceFaction(catalog, berths) ?? 'mixed' };
   } catch {
     return fallback;
   }
 }
 
-export function storeLance(missionId: string, lance: SkirmishBerth[]): void {
+export function storeLance(missionId: string, lance: SkirmishBerth[], team = 0, faction?: SkirmishFaction): boolean {
   try {
-    globalThis.localStorage?.setItem(`${STORAGE_PREFIX}${missionId}`, JSON.stringify(lance));
+    const storage = globalThis.localStorage;
+    if (storage === undefined) return false;
+    // Keep the legacy array readable while saving the choice and roster in one
+    // atomic write. Loading strips this metadata before it reaches the engine.
+    const stored = faction === undefined ? lance : lance.map((berth, index) =>
+      index === 0 ? { ...berth, factionChoice: faction } : berth);
+    storage.setItem(`${STORAGE_PREFIX}${team === 0 ? '' : 'enemy.'}${missionId}`, JSON.stringify(stored));
+    return true;
   } catch {
-    // Private browsing: the loadout lasts for the session only.
+    return false;
   }
 }
 
@@ -106,7 +123,7 @@ export function lanceEntries(
     if (berth.empty === true) continue;
     const design = berthDesign(catalog, berth);
     const pilot = catalog.pilots.get(berth.pilotId);
-    if (design === null || pilot === undefined) return null;
+    if (design === null || pilot === undefined || !catalog.chassis.has(design.chassisId)) return null;
     entries.push({ design, pilot });
   }
   return entries.length === 0 ? null : entries;
@@ -140,8 +157,14 @@ export function lanceFaction(
 export function factionLance(
   catalog: Catalog,
   missionId: string,
-  faction: Faction,
+  faction: Faction | 'mixed',
+  team = 0,
 ): SkirmishBerth[] {
+  if (faction === 'mixed') {
+    const linewrought = factionLance(catalog, missionId, 'linewrought', team);
+    const aurelian = factionLance(catalog, missionId, 'aurelian', team);
+    return linewrought.map((berth, index) => index % 2 === 0 ? berth : aurelian[index] ?? berth);
+  }
   const byClass = new Map<string, Design[]>();
   for (const design of [...catalog.designs.values()].sort((a, b) => a.id.localeCompare(b.id))) {
     const chassis = catalog.chassis.get(design.chassisId);
@@ -150,6 +173,11 @@ export function factionLance(
     bucket.push(design);
     byClass.set(chassis.class, bucket);
   }
+  // Start with the lighter hull of each class so a faction preset remains a
+  // useful deployment, rather than immediately exceeding a map's allowance.
+  for (const pool of byClass.values()) pool.sort((left, right) =>
+    (catalog.chassis.get(left.chassisId)?.tonnage ?? 0) - (catalog.chassis.get(right.chassisId)?.tonnage ?? 0)
+      || left.id.localeCompare(right.id));
   const order: readonly string[] = ['light', 'medium', 'heavy', 'assault'];
   const nearest = (wanted: string): Design[] => {
     const exact = byClass.get(wanted);
@@ -167,7 +195,7 @@ export function factionLance(
   };
 
   const cursor = new Map<string, number>();
-  return defaultLance(catalog, missionId).map((berth) => {
+  return defaultLance(catalog, missionId, team).map((berth) => {
     const current = berthDesign(catalog, berth);
     const wanted = current === null
       ? 'medium'

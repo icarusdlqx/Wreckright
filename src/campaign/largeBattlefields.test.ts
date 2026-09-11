@@ -6,6 +6,11 @@ import { deserialiseCampaign, serialiseCampaign } from './save';
 
 const CAMPAIGN_ID = 'border_dispute';
 const LEAF_IDS = ['cutbank_register', 'blackglass_receipt'] as const;
+const RECOVERY_REQUIRES = {
+  marker_survey: ['militia_raid'],
+  recovery_window: ['militia_raid'],
+  workshop_defence: ['recovery_window'],
+} as const;
 const LEGACY_COMPANY_PILOTS = [
   'kessa_vale',
   'dorn_hess',
@@ -162,7 +167,7 @@ describe('large battlefield mission contracts', () => {
       reserves: [],
     });
     expect(data.briefing).toBe(
-      'Sarn’s service plate shows Kestrel moved a bone-white wreck through Blackglass under a number assigned to slag. Take the west brake, lift table and east brake, then hold all three for thirty seconds while the root attestation copies. The rim has the sightlines; the floor has the controls.',
+      'Sarn’s service plate shows Kestrel moved a bone-white wreck through Blackglass under a number assigned to slag. Take the west brake, lift table and east brake, then hold all three for thirty seconds while the root attestation copies. The rim has the sightlines; the floor has the controls. Local lift guards have Aurelian support, with a single heavy machine held in reserve.',
     );
     expect(data.lances.map((lance) => lance.name)).toEqual([
       'Sarn Receipt Lance',
@@ -175,7 +180,7 @@ describe('large battlefield mission contracts', () => {
       'cairn_battery/ilse_brant@156,1188/-45',
     ]);
     expect(unitLedger(data, 1)).toEqual([
-      'sentinel_brawler/anja_verrin@708,636/135',
+      'rivet_escort/anja_verrin@708,636/135',
       'falchion_duellist/suri_kell@1092,516/135',
       'warden_lancer/corin_dast@1164,156/135',
     ]);
@@ -234,12 +239,6 @@ describe('large battlefield mission contracts', () => {
               spawn: { x: 1260, y: 84 },
               facingDegrees: 135,
             }),
-            expect.objectContaining({
-              designId: 'votive_picket',
-              pilotId: 'oksana_valev',
-              spawn: { x: 1188, y: 84 },
-              facingDegrees: 135,
-            }),
           ],
         }),
         expect.objectContaining({ type: 'reveal', x: 1224, y: 84, radius: 220, seconds: 24 }),
@@ -249,7 +248,7 @@ describe('large battlefield mission contracts', () => {
 });
 
 describe('large battlefield campaign compatibility', () => {
-  it('adds only two optional leaves without rewriting the existing graph', () => {
+  it('keeps large-map leaves while preserving the original route as revision one', () => {
     expect(campaign.victoryNodeId).toBe('depot_burn');
     expect(campaign.alternateVictoryNodeIds).toEqual(['depot_take']);
     expect(campaign.sideWork).toEqual({
@@ -270,17 +269,19 @@ describe('large battlefield campaign compatibility', () => {
         'ostrow_holdings',
       ],
     });
-    expect(
-      Object.fromEntries(
-        campaign.nodes
-          .filter((node) => node.id in LEGACY_REQUIRES)
-          .map((node) => [node.id, node.requires]),
-      ),
-    ).toEqual(LEGACY_REQUIRES);
+    const legacy = campaign.legacyRoutes.find((route) => route.revision === 1)!;
+    expect(Object.fromEntries(legacy.nodes.filter((node) => node.id in LEGACY_REQUIRES)
+      .map((node) => [node.id, node.requires]))).toEqual(LEGACY_REQUIRES);
+    expect(campaign.nodes.find((node) => node.id === 'pass_skirmish')?.requires)
+      .toEqual(['workshop_defence']);
     expect(campaign.nodes.slice(-2).map((node) => node.id)).toEqual(LEAF_IDS);
-    expect(campaign.nodes.slice(0, -2).map((node) => node.id)).toEqual(
+    expect(campaign.nodes.slice(0, -2).filter((node) => !(node.id in RECOVERY_REQUIRES)).map((node) => node.id)).toEqual(
       Object.keys(LEGACY_REQUIRES),
     );
+    expect(Object.fromEntries(campaign.nodes.filter((node) => node.id in RECOVERY_REQUIRES)
+      .map((node) => [node.id, node.requires]))).toEqual(RECOVERY_REQUIRES);
+    expect(campaign.nodes).toHaveLength(Object.keys(LEGACY_REQUIRES).length +
+      Object.keys(RECOVERY_REQUIRES).length + LEAF_IDS.length);
     expect(campaign.nodes.slice(-2)).toMatchObject([
       {
         id: 'cutbank_register',

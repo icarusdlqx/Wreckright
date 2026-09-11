@@ -1,0 +1,20 @@
+{
+  "id": "the_sealed",
+  "category": "factions",
+  "sourceLoreId": "the_sealed",
+  "related": [
+    {
+      "kind": "story",
+      "id": "the_shared_mounts"
+    },
+    {
+      "kind": "story",
+      "id": "the_refit"
+    },
+    {
+      "kind": "story",
+      "id": "the_custodians"
+    }
+  ],
+  "faction": "aurelian"
+}

@@ -8,5 +8,46 @@
     "spotter",
     "evasive"
   ],
-  "bio": "Scout by preference and by temperament. Lindqvist has never fired first at anything and has never been fired at twice."
+  "bio": "Scout by preference and by temperament. Lindqvist has never fired first at anything and has never been fired at twice.",
+  "portrait": {
+    "skin": "#e2b797",
+    "hair": "#51392f",
+    "jacket": "#3e645d",
+    "accent": "#e6b075",
+    "style": "bun",
+    "face": "angular",
+    "detail": "earpiece",
+    "expression": "calm",
+    "kit": "harness",
+    "accessory": "none",
+    "age": "mature"
+  },
+  "personality": {
+    "label": "Cool observer",
+    "description": "Prefers a clear view to a grand entrance. Wry, measured and difficult to rattle.",
+    "lines": {
+      "move": [
+        "Quiet feet. Better angle.",
+        "Moving. No need to announce the visit."
+      ],
+      "attack": [
+        "I have seen enough. Taking the shot.",
+        "They have my attention now."
+      ],
+      "guard": [
+        "A good view from here. I will keep it."
+      ],
+      "hold_fire": [
+        "Guns quiet. Eyes open."
+      ],
+      "investigate": [
+        "One look, then we decide.",
+        "I will see what the return is hiding."
+      ],
+      "heavy_fire": [
+        "They have noticed me. I would like a change of scenery.",
+        "Too much fire on this position. Cover my next move."
+      ]
+    }
+  }
 }

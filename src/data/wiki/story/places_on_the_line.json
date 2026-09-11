@@ -1,0 +1,58 @@
+{
+  "id": "places_on_the_line",
+  "category": "places",
+  "title": "Places of the Recall",
+  "summary": "Workshop belts, service terraces and Barrow’s archive make the Recall a dispute over lived-in places as well as records.",
+  "sections": [
+    {
+      "heading": "Sarn Workshop Belt",
+      "body": [
+        "Warm gantry lights, drainage lanes and patched service streets mark the yards that continued Tessell’s machines. Marker Eleven stands at the north end of the belt. The same district later bears the scars of a broken recovery code, so returning commanders can read what changed."
+      ]
+    },
+    {
+      "heading": "Western Recovery Cut",
+      "body": [
+        "A dismantling basin follows shallow channels west of Sarn. Scrap screens hide the lower winch approach while the road gives heavier machines a direct line to the recovery cradle. Its machinery was built to bring crews and roots home, not to hold an army."
+      ]
+    },
+    {
+      "heading": "Continuance Landing Apron",
+      "body": [
+        "Numbered hardstands, pale cargo blocks and a disciplined deployment lane surround the Custody Tender. Lateral ravines break the formal line of fire. The clean installation is temporary expedition infrastructure on Tessell, supplied from finite holds."
+      ]
+    },
+    {
+      "heading": "Service Terraces",
+      "body": [
+        "Relay equipment climbs above the valley on three connected platforms. The main ramps expose a detachment to long sightlines; an eastern switchback and lower maintenance track provide slower, screened movement. Readers here trace records but do not command machines."
+      ]
+    },
+    {
+      "heading": "Sarn Civic Exchange",
+      "body": [
+        "The formal avenue meets workshop access streets, gardens and two surviving custody posts. Aurelian occupation adds measured barriers and clean signals to infrastructure that residents still use. The conflicting post records lead directly back to working people at Sarn."
+      ]
+    },
+    {
+      "heading": "Barrow Archive",
+      "body": [
+        "Barrow keeps the master warrant beside a local maintenance compact. Its public forecourt, cooling plant, freight court and separate roads remain the same place whichever company reaches it. The documents support export or recorded local stewardship; the ground makes either decision something a company must defend."
+      ]
+    }
+  ],
+  "related": [
+    {
+      "kind": "story",
+      "id": "tessell"
+    },
+    {
+      "kind": "story",
+      "id": "the_employers"
+    },
+    {
+      "kind": "story",
+      "id": "the_code"
+    }
+  ]
+}

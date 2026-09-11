@@ -1,0 +1,190 @@
+[
+  {
+    "phase": "before",
+    "idle": {
+      "frame": 1,
+      "calls": 11,
+      "triangles": 52720,
+      "points": 0,
+      "lines": 0
+    },
+    "retired": {
+      "frame": 242,
+      "calls": 11,
+      "triangles": 52720,
+      "points": 0,
+      "lines": 0
+    },
+    "meanMs": 0.04520547988752252,
+    "p95Ms": 0.10000002384185791,
+    "peakDrawCalls": 11,
+    "peakTriangles": 52720,
+    "pool": {
+      "capacity": 448,
+      "active": 0,
+      "families": {
+        "beam": {
+          "capacity": 20,
+          "active": 0,
+          "physicalCapacity": 20,
+          "dropped": 0,
+          "evicted": 0
+        },
+        "pulse": {
+          "capacity": 12,
+          "active": 0,
+          "physicalCapacity": 60,
+          "dropped": 0,
+          "evicted": 0
+        },
+        "bolt": {
+          "capacity": 12,
+          "active": 0,
+          "physicalCapacity": 108,
+          "dropped": 0,
+          "evicted": 0
+        },
+        "flame": {
+          "capacity": 12,
+          "active": 0,
+          "physicalCapacity": 96,
+          "dropped": 0,
+          "evicted": 0
+        },
+        "shell": {
+          "capacity": 64,
+          "active": 0,
+          "physicalCapacity": 64,
+          "dropped": 0,
+          "evicted": 0
+        },
+        "slug": {
+          "capacity": 48,
+          "active": 0,
+          "physicalCapacity": 48,
+          "dropped": 0,
+          "evicted": 0
+        },
+        "missile": {
+          "capacity": 128,
+          "active": 0,
+          "physicalCapacity": 128,
+          "dropped": 0,
+          "evicted": 0
+        },
+        "burst": {
+          "capacity": 128,
+          "active": 0,
+          "physicalCapacity": 1792,
+          "dropped": 0,
+          "evicted": 0
+        },
+        "smoke": {
+          "capacity": 24,
+          "active": 0,
+          "physicalCapacity": 24,
+          "dropped": 0,
+          "evicted": 0
+        }
+      }
+    },
+    "disposed": {
+      "geometries": 0,
+      "textures": 0
+    }
+  },
+  {
+    "phase": "after",
+    "idle": {
+      "frame": 1,
+      "calls": 0,
+      "triangles": 0,
+      "points": 0,
+      "lines": 0
+    },
+    "retired": {
+      "frame": 242,
+      "calls": 0,
+      "triangles": 0,
+      "points": 0,
+      "lines": 0
+    },
+    "meanMs": 0.07625570906896025,
+    "p95Ms": 0.20000004768371582,
+    "peakDrawCalls": 19,
+    "peakTriangles": 117864,
+    "pool": {
+      "capacity": 448,
+      "active": 0,
+      "families": {
+        "beam": {
+          "capacity": 20,
+          "active": 0,
+          "physicalCapacity": 40,
+          "dropped": 0,
+          "evicted": 0
+        },
+        "pulse": {
+          "capacity": 12,
+          "active": 0,
+          "physicalCapacity": 120,
+          "dropped": 0,
+          "evicted": 0
+        },
+        "bolt": {
+          "capacity": 12,
+          "active": 0,
+          "physicalCapacity": 216,
+          "dropped": 0,
+          "evicted": 0
+        },
+        "flame": {
+          "capacity": 12,
+          "active": 0,
+          "physicalCapacity": 192,
+          "dropped": 0,
+          "evicted": 0
+        },
+        "shell": {
+          "capacity": 64,
+          "active": 0,
+          "physicalCapacity": 192,
+          "dropped": 0,
+          "evicted": 0
+        },
+        "slug": {
+          "capacity": 48,
+          "active": 0,
+          "physicalCapacity": 144,
+          "dropped": 0,
+          "evicted": 0
+        },
+        "missile": {
+          "capacity": 128,
+          "active": 0,
+          "physicalCapacity": 1024,
+          "dropped": 0,
+          "evicted": 0
+        },
+        "burst": {
+          "capacity": 128,
+          "active": 0,
+          "physicalCapacity": 2560,
+          "dropped": 0,
+          "evicted": 0
+        },
+        "smoke": {
+          "capacity": 24,
+          "active": 0,
+          "physicalCapacity": 24,
+          "dropped": 0,
+          "evicted": 0
+        }
+      }
+    },
+    "disposed": {
+      "geometries": 0,
+      "textures": 0
+    }
+  }
+]

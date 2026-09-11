@@ -25,7 +25,7 @@ describe('chassis silhouette armour state', () => {
     expect(empty).toBe(plain);
     expect(plain).toContain('role="img"');
     expect(plain).toContain('aria-label="Sentinel outline"');
-    expect(plain.match(/class="sil-mount"/g)).toHaveLength(4);
+    expect(plain.match(/class="sil-mount"/g)).toHaveLength(3);
     expect(plain).not.toContain('data-armour-state');
     expect(plain).not.toMatch(/tabindex|<button/);
   });

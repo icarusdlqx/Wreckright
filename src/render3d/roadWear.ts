@@ -5,6 +5,8 @@ import { shade, TERRAIN_COLOURS } from '../render/palette';
 const ROAD_LIFT = 0.12;
 const EDGE_LIFT = 0.14;
 const CRACK_LIFT = 0.18;
+// Road paint has its own pigment so changing the asphalt keeps lane marks legible.
+const ROAD_PAINT = 0xe8d7ad;
 const MAX_EDGE_PATCHES_PER_TILE = 2;
 
 type Point = readonly [x: number, z: number];
@@ -177,7 +179,7 @@ function addCentreMark(
       point(-halfLength, halfWidth),
     ],
     ROAD_LIFT,
-    shade(TERRAIN_COLOURS.road ?? 0x59513f, 1.16 + hash(column, row, 113) * 0.08),
+    shade(ROAD_PAINT, 0.9 + hash(column, row, 113) * 0.08),
     heightAt,
     tint,
   );

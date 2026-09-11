@@ -1,0 +1,4 @@
+.crew-stand-down { margin: 12px 0; padding: 14px; border: 1px solid var(--warn); border-radius: 8px; background: var(--panel); }
+.crew-stand-down p { margin: 0 0 10px; color: var(--text); font-size: 12px; line-height: 1.55; }
+.crew-stand-down button { min-height: 44px; padding: 8px 12px; border: 1px solid var(--warn); border-radius: 6px; color: var(--text); background: transparent; font: inherit; }
+.crew-stand-down button:hover { background: color-mix(in srgb, var(--warn) 15%, transparent); }

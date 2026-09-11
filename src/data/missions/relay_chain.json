@@ -234,5 +234,31 @@
       ]
     }
   ],
-  "dropTonnage": 165
+  "dropTonnage": 165,
+  "enemyDirectives": [
+    {
+      "id": "north_relay_guard",
+      "team": 1,
+      "zoneId": "north_relay",
+      "behavior": "defend",
+      "units": 1,
+      "pursuitRadius": 250
+    },
+    {
+      "id": "west_relay_patrol",
+      "team": 1,
+      "zoneId": "west_relay",
+      "behavior": "intercept",
+      "units": 1,
+      "pursuitRadius": 260
+    },
+    {
+      "id": "south_relay_relief",
+      "team": 1,
+      "zoneId": "south_relay",
+      "behavior": "retake",
+      "units": 3,
+      "pursuitRadius": 320
+    }
+  ]
 }

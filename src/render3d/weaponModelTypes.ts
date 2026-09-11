@@ -6,6 +6,7 @@ import type { MechGeometryQuality } from './renderQuality';
 
 export interface MountArt {
   weaponId: string;
+  destroyed?: boolean;
   location: MechLocation;
   type: WeaponType;
   tonnage: number;
@@ -68,6 +69,7 @@ export interface WeaponRig {
   slide: Group;
   muzzle: Object3D;
   breech: Object3D;
+  powered: boolean;
   kick: number;
   travel: number;
   cycle: number;
@@ -76,6 +78,8 @@ export interface WeaponRig {
   feedKind: 'stroke' | 'spin';
   feedRestX: number;
   feedRestTurn: number;
+  feedTurn: number;
+  powerMaterials: readonly { material: MeshStandardMaterial; intensity: number }[];
   feedTravel: number;
   aperture: Object3D | null;
   apertureRestScale: number;

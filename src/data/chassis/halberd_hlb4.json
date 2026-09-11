@@ -95,10 +95,18 @@
     "stance": 1.0
   },
   "role": "Heavy striker",
-  "summary": "A sealed fast heavy with two external shoulders and no accessible machinery between them.",
-  "lore": "The HLB frames stood in the depot without weapons. Their shoulders end in smooth powered faces that still accept a load and still refuse every tool on Tessell. Sarn builds a cradle around each face and hangs local racks from the cradle; those are the bolts and feed chutes crews can see. Beneath them the hull remains closed. A Halberd walks at the speed of a medium and sheds heat through surfaces nobody can remove. When one of those surfaces fails, the whole shoulder goes cold.",
+  "summary": "Paired arm arc projectors and large lasers strike behind reinforced plate. Compound cooling and a fast stride favour coordinated pushes over lone duels.",
+  "lore": "Early recovered Halberds reached Sarn without their weapons. Local shoulder racks kept them in service until certified emitters became available. The current service fit restores paired arm arc projectors and large lasers, compound cooling and heavier plate without changing the inherited root or its fast gait. The empty shoulder interfaces still accept local missiles. Three Halberds advancing together can choose the range and concentrate their first volley; one caught alone against a mixed battery has fewer answers.",
   "traits": [
     "long_stride",
     "oversized_sinks"
+  ],
+  "strengths": [
+    "Long-reaching paired arc and laser batteries",
+    "Fast heavy with compound cooling and no bins"
+  ],
+  "weaknesses": [
+    "Losing an arm removes two primary weapons",
+    "A close mixed battery can win the lone duel"
   ]
 }

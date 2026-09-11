@@ -6,6 +6,7 @@ import { marketListings, marketPeriod, saleValueOf, valueOf } from './market';
 import { planFit } from './refit';
 import { completeRepair, estimateRepair, projectedRepairWindow } from './repair';
 import { availableHires, hireCost } from './roster';
+import { needsCrewStandDown } from './crewRecovery';
 import type {
   RecoveryBlock,
   RecoveryPlan,
@@ -120,7 +121,7 @@ function fundedPlan(catalog: Catalog, state: CampaignState): {
   plan: RecoveryPlan | null;
   block: RecoveryBlock;
 } {
-  const living = state.pilots.some((pilot) => !pilot.dead);
+  const living = state.pilots.some((pilot) => !pilot.dead && (pilot.recoveryMissions ?? 0) === 0);
   const hire = living ? null : availableHires(catalog, state)[0] ?? null;
   if (!living && hire === null) return { plan: null, block: 'no_pilot' };
 
@@ -220,7 +221,7 @@ function futureYardRecovery(catalog: Catalog, state: CampaignState): number | nu
   const projected = projectedStateOnDay(catalog, state, day);
   const price = minimumYardPrice(catalog, projected);
   if (price === null) return null;
-  const living = projected.pilots.some((pilot) => !pilot.dead);
+  const living = projected.pilots.some((pilot) => !pilot.dead && (pilot.recoveryMissions ?? 0) === 0);
   const hire = living ? null : availableHires(catalog, projected)[0] ?? null;
   if (!living && hire === null) return null;
   const pilotCost = hire === null ? 0 : hireCost(catalog, hire);
@@ -271,8 +272,11 @@ export function assessSolvency(catalog: Catalog, state: CampaignState): Solvency
   if (deployableLance(state).length > 0) {
     return { state: 'fieldable', action: 'none', block: 'none', recoverOnDay: null, plan: null };
   }
+  if (needsCrewStandDown(catalog, state)) {
+    return { state: 'temporary', action: 'stand_down', block: 'none', recoverOnDay: null, plan: null };
+  }
 
-  const living = state.pilots.filter((pilot) => !pilot.dead);
+  const living = state.pilots.filter((pilot) => !pilot.dead && (pilot.recoveryMissions ?? 0) === 0);
   const returning = state.mechs.filter(
     (mech) => mech.status !== 'hulk' && mech.design.mounts.length > 0,
   );

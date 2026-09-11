@@ -1,0 +1,7 @@
+RUN  v4.1.10 /Users/davelangy/Documents/ChatGPT/wreckright/wreckright-ironwork-monolith
+
+
+ Test Files  8 passed (8)
+      Tests  50 passed (50)
+   Start at  06:08:23
+   Duration  2.00s (transform 1.28s, setup 0ms, import 2.65s, tests 156ms, environment 0ms)

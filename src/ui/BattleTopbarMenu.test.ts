@@ -41,6 +41,7 @@ describe('battle topbar disclosure', () => {
     expect(markup.indexOf('data-testid="pause-button"')).toBeLessThan(menuIndex);
     expect(markup.indexOf('data-testid="speed-4"')).toBeLessThan(menuIndex);
     expect(markup.indexOf('data-testid="mute-button"')).toBeGreaterThan(menuIndex);
+    expect(markup.indexOf('data-testid="audio-settings"')).toBeGreaterThan(menuIndex);
     expect(markup.indexOf('data-testid="fx-toggle"')).toBeGreaterThan(menuIndex);
     expect(markup.indexOf('data-testid="open-mechbay"')).toBeGreaterThan(menuIndex);
     expect(markup.indexOf('data-testid="open-campaign"')).toBeGreaterThan(menuIndex);
@@ -65,6 +66,7 @@ describe('battle topbar disclosure', () => {
 
     expect(markup).toContain('aria-label="Open battle menu"');
     expect(markup.indexOf('data-testid="mute-button"')).toBeGreaterThan(menuIndex);
+    expect(markup.indexOf('data-testid="audio-settings"')).toBeGreaterThan(menuIndex);
     expect(markup.indexOf('data-testid="feedback-link"')).toBeGreaterThan(menuIndex);
   });
 

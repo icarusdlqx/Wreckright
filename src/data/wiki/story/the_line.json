@@ -1,0 +1,10 @@
+{
+  "id": "the_line",
+  "category": "history",
+  "sourceLoreId": "the_line",
+  "related": [
+    { "kind": "story", "id": "tessell" },
+    { "kind": "story", "id": "the_foundry_winter" },
+    { "kind": "story", "id": "the_employers" }
+  ]
+}

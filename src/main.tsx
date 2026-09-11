@@ -11,7 +11,14 @@ import './ui/formationPicker.css';
 import './ui/cameraControls.css';
 import './ui/supportPalette.css';
 import './ui/sidebarDetails.css';
+import './ui/expeditionTheme.css';
+import './ui/expeditionBriefing.css';
+import './ui/expeditionBattle.css';
+import './ui/expeditionMechbay.css';
+import './ui/expeditionWorkbench.css';
+import './ui/expeditionCampaignOverlays.css';
 import './ui/resilience.css';
+import './ui/battleWorkspace.css';
 
 const host = document.getElementById('root');
 if (host === null) throw new Error('missing #root');

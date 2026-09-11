@@ -1,0 +1,112 @@
+{
+  "type": "skirmish",
+  "maxDurationSeconds": 300,
+  "startingResourcePoints": 400,
+  "objectives": [
+    {
+      "id": "wipe_them_out",
+      "label": "Destroy the opposing lance",
+      "type": "destroy_all",
+      "team": 0,
+      "required": true
+    },
+    {
+      "id": "lance_survives",
+      "label": "Keep at least one mech operational",
+      "type": "survive",
+      "team": 0,
+      "required": true
+    }
+  ],
+  "dropTonnage": 225,
+  "id": "skirmish_aurelian_service_terraces",
+  "name": "Skirmish — Service Terraces",
+  "mapId": "aurelian_service_terraces",
+  "briefing": "Three stacked service roads reward disciplined movement between elevations and punish an isolated machine. Both sides deploy the forces chosen below. Destroy the opposing lance; there are no scripted reinforcements.",
+  "lances": [
+    {
+      "team": 0,
+      "name": "Your Lance",
+      "units": [
+        {
+          "designId": "sentinel_brawler",
+          "pilotId": "kessa_vale",
+          "spawn": {
+            "x": 540,
+            "y": 1092
+          },
+          "facingDegrees": 45
+        },
+        {
+          "designId": "bulwark_assault",
+          "pilotId": "dorn_hess",
+          "spawn": {
+            "x": 612,
+            "y": 1092
+          },
+          "facingDegrees": 45
+        },
+        {
+          "designId": "hornet_spotter",
+          "pilotId": "marek_sud",
+          "spawn": {
+            "x": 684,
+            "y": 1092
+          },
+          "facingDegrees": 45
+        },
+        {
+          "designId": "cairn_battery",
+          "pilotId": "ilse_brant",
+          "spawn": {
+            "x": 756,
+            "y": 1092
+          },
+          "facingDegrees": 45
+        }
+      ]
+    },
+    {
+      "team": 1,
+      "name": "Enemy Lance",
+      "units": [
+        {
+          "designId": "sentinel_brawler",
+          "pilotId": "nadia_ostrow",
+          "spawn": {
+            "x": 540,
+            "y": 228
+          },
+          "facingDegrees": -135
+        },
+        {
+          "designId": "warden_lancer",
+          "pilotId": "cato_ferrin",
+          "spawn": {
+            "x": 876,
+            "y": 228
+          },
+          "facingDegrees": -135
+        },
+        {
+          "designId": "wisp_scout",
+          "pilotId": "juno_reyes",
+          "spawn": {
+            "x": 540,
+            "y": 564
+          },
+          "facingDegrees": -135
+        },
+        {
+          "designId": "obsequy_vigil",
+          "pilotId": "willem_torrance",
+          "spawn": {
+            "x": 876,
+            "y": 564
+          },
+          "facingDegrees": -135
+        }
+      ]
+    }
+  ]
+}

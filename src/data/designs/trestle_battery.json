@@ -1,0 +1,66 @@
+{
+  "id": "trestle_battery",
+  "name": "Trestle",
+  "chassisId": "trestle_trs1",
+  "armour": {
+    "head": 14,
+    "centre_torso": 62,
+    "left_torso": 48,
+    "right_torso": 48,
+    "left_arm": 26,
+    "right_arm": 26,
+    "left_leg": 48,
+    "right_leg": 48
+  },
+  "heatSinkId": "heat_sink",
+  "heatSinks": 10,
+  "mounts": [
+    {
+      "weaponId": "ac5",
+      "location": "left_arm"
+    },
+    {
+      "weaponId": "lrm10",
+      "location": "left_torso"
+    },
+    {
+      "weaponId": "lrm10",
+      "location": "right_torso"
+    }
+  ],
+  "ammo": [
+    {
+      "weaponId": "ac5",
+      "location": "centre_torso",
+      "tons": 2
+    },
+    {
+      "weaponId": "lrm10",
+      "location": "left_torso",
+      "tons": 3
+    },
+    {
+      "weaponId": "lrm10",
+      "location": "right_torso",
+      "tons": 3
+    }
+  ],
+  "equipment": [
+    {
+      "equipmentId": "case",
+      "location": "left_torso"
+    },
+    {
+      "equipmentId": "case",
+      "location": "right_torso"
+    },
+    {
+      "equipmentId": "case",
+      "location": "centre_torso"
+    },
+    {
+      "equipmentId": "ams",
+      "location": "centre_torso"
+    }
+  ]
+}

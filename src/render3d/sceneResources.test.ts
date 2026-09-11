@@ -31,7 +31,7 @@ describe('renderer configuration and telemetry', () => {
 
     configureRenderer(renderer, false, 2);
 
-    expect(setPixelRatio).toHaveBeenCalledWith(1.5);
+    expect(setPixelRatio).toHaveBeenCalledWith(2);
     expect(renderer.shadowMap).toMatchObject({ enabled: true, type: PCFShadowMap });
     expect(renderer.outputColorSpace).toBe(SRGBColorSpace);
     expect(renderer.toneMapping).toBe(ACESFilmicToneMapping);

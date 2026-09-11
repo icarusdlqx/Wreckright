@@ -3,7 +3,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { catalog } from '../../../tests/support';
+import { catalog, legacySentinelDesign } from '../../../tests/support';
 import type { Design } from '../../schema/design';
 import { computeHeatProfile } from '../../sim/loadout';
 import { CoolingBank, type CoolingBankProps } from './CoolingBank';
@@ -16,7 +16,7 @@ import {
 } from './coolingBankModel';
 
 function fixture(): { design: Design; props: Omit<CoolingBankProps, 'onIntent'> } {
-  const source = catalog.designs.get('sentinel_brawler');
+  const source = legacySentinelDesign;
   if (source === undefined) throw new Error('missing Sentinel design');
   const design = structuredClone(source);
   design.heatSinks += 3;

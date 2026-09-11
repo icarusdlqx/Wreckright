@@ -80,7 +80,7 @@ describe('route marker pooling', () => {
       + colours.getY(queuedVertex)
       + colours.getZ(queuedVertex);
     expect(queuedBrightness / activeBrightness).toBeCloseTo(0.38);
-    expect((lines.material as LineBasicMaterial).opacity).toBe(0.9);
+    expect((lines.material as LineBasicMaterial).opacity).toBe(0.58);
     expect((lines.material as LineBasicMaterial).depthTest).toBe(false);
     expect(lines.renderOrder).toBe(10);
     expect(lines.userData).toMatchObject({ activeIntensity: 1, queuedIntensity: 0.38 });
@@ -88,7 +88,7 @@ describe('route marker pooling', () => {
     const marks = pool.group.getObjectByName('route-marks') as InstancedMesh;
     expect(marks.count).toBe(pool.stats.chevrons + pool.stats.wedges);
     expect(marks.instanceColor).not.toBeNull();
-    expect((marks.material as MeshBasicMaterial).opacity).toBe(0.92);
+    expect((marks.material as MeshBasicMaterial).opacity).toBe(0.64);
     expect((marks.material as MeshBasicMaterial).map).toBeNull();
     expect((marks.material as MeshBasicMaterial).depthTest).toBe(false);
     expect(marks.renderOrder).toBe(11);
@@ -108,22 +108,22 @@ describe('route marker pooling', () => {
     const geometryIdentity = marks.geometry;
     const materialIdentity = marks.material;
     const animated = new Matrix4();
-    marks.getMatrixAt(pool.stats.wedges, animated);
+    marks.getMatrixAt(1, animated);
     const firstPhase = pool.stats.phase;
 
     draw(pool, route, 0.2, false);
     const advanced = new Matrix4();
-    marks.getMatrixAt(pool.stats.wedges, advanced);
+    marks.getMatrixAt(1, advanced);
     expect(pool.stats.phase).toBeGreaterThan(firstPhase);
     expect(advanced.elements).not.toEqual(animated.elements);
 
     draw(pool, route, 0.25, true);
     const frozenPhase = pool.stats.phase;
     const frozen = new Matrix4();
-    marks.getMatrixAt(pool.stats.wedges, frozen);
+    marks.getMatrixAt(1, frozen);
     draw(pool, route, 0.25, true);
     const stillFrozen = new Matrix4();
-    marks.getMatrixAt(pool.stats.wedges, stillFrozen);
+    marks.getMatrixAt(1, stillFrozen);
     expect(pool.stats.phase).toBe(frozenPhase);
     expect(stillFrozen.elements).toEqual(frozen.elements);
     expect(pool.stats.chevrons).toBeGreaterThan(0);

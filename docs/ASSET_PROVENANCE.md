@@ -24,11 +24,60 @@ clearance the repository cannot prove.
 
 ## Generated presentation
 
-No external meshes, textures, fonts, music, or sound recordings are checked
-in. Battlefield geometry and visual effects are assembled at runtime from the
-project's TypeScript, JSON, and CSS. Sound is synthesized at runtime with the
-Web Audio API. This describes the repository inventory; it is not a claim
+The nineteen chassis portraits in `src/assets/machines/` are local WebP renders
+of the same authored models and standard designs used in battle. Their source
+is retained in the repository; `tools/render-machine-portraits.mjs` produces
+them with one disposable headless renderer. `provenance.json` in that directory
+records the design IDs and model bounds. The asset register records each image's
+exact bytes and introducing commit. No external image or mesh input was used.
+Machine field plates are rendered at 640 × 720 from the actual repository
+battlefield models and standard equipment. The renderer adds original,
+code-authored Graphic Expedition framing: irregular survey contours for
+Linewrought and measured arcs for Aurelian Stock. No outside image input is
+used. The smaller dimensions declared by the interface provide a sharp 2×
+source at ordinary display sizes.
+
+Pilot portraits remain editable, authored SVG geometry in `PilotPortrait.tsx`
+with individual appearance data in the pilot JSON files. Their field marks are
+derived from the pilot's strongest skill and do not add an opaque media asset.
+
+The main menu's Tessell crossing is original generated artwork from a text-only
+prompt, with no source-image inputs. Its [generation record](art/TESSELL_CROSSING.md)
+retains the prompt and PNG master; the runtime WebP is a locally compressed
+rendition. The register records its introducing commit and exact shipped bytes
+as `generated-original-art-with-source-record`. This inventory entry records
+provenance without assigning the artwork a software licence.
+
+The three `carry-the-dawn-*.ogg` files are synchronized layers of the original
+Wreckright theme. Their note, arrangement and instrument synthesis source is
+retained in `tools/audio/`; the [music record](audio/CARRY_THE_DAWN.md) describes
+the composition and reproduction. They were rendered locally without any
+external recordings, samples, soundfonts or reference songs. Exact shipped
+hashes and the introducing commit are retained in the asset register.
+
+No external meshes, textures, music, or sound recordings are checked in.
+Battlefield geometry and visual effects are assembled at runtime from the
+project's TypeScript, JSON, and CSS. Sound effects are synthesized at runtime
+with the Web Audio API, while the original music uses the bundled recordings
+described above. This describes the repository inventory; it is not a claim
 about authorship of every source contribution.
+
+## Bundled typefaces
+
+The Graphic Expedition presentation bundles DM Sans (variable) and Barlow
+Condensed (Semibold and Bold). These are unmodified font files from the
+official `google/fonts` repository, retrieved on 2026-09-05. DM Sans's upstream
+`DMSans[opsz,wght].ttf` has the local filename `DMSans-Variable.ttf`; its font
+data is unchanged. Exact source URLs and SHA-256 hashes are retained in the
+asset register. The fonts and their original SIL Open Font License 1.1 texts
+are stored together under `src/ui/assets/fonts/`.
+
+The fonts retain their own OFL terms. Their license texts are also included by
+`npm run notices:write`, so ordinary web builds and the standalone HTML carry
+the same notices. CSS imports the local files and Vite inlines them into the
+standalone build; no runtime font service or external font request is used.
+The fonts' recorded license does not resolve the separate app-icon provenance
+question above or grant rights in the game's other material.
 
 ## Commercial-release gate
 

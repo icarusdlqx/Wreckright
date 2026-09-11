@@ -10,12 +10,14 @@ export function pilotAtDifficulty(
   team: number,
   playerTeam: number | null,
   skillDelta: number | undefined,
+  playerSkillDelta?: number,
 ): Pilot {
-  if (team === playerTeam || skillDelta === undefined || skillDelta === 0) return pilot;
+  const delta = team === playerTeam ? playerSkillDelta : skillDelta;
+  if (delta === undefined || delta === 0) return pilot;
   return {
     ...pilot,
-    gunnery: clampSkill(pilot.gunnery + skillDelta),
-    piloting: clampSkill(pilot.piloting + skillDelta),
-    sensors: clampSkill(pilot.sensors + skillDelta),
+    gunnery: clampSkill(pilot.gunnery + delta),
+    piloting: clampSkill(pilot.piloting + delta),
+    sensors: clampSkill(pilot.sensors + delta),
   };
 }

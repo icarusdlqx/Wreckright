@@ -61,7 +61,7 @@ export class TacticalCamera {
 
   /** The ground point the camera is looking at. */
   target: Vec2 = { x: 0, y: 0 };
-  distance = 470;
+  distance = 400;
   /** Bearing the camera looks from. Fixed: looking down the map from the south. */
   readonly azimuth = -Math.PI / 2;
   /** Tilt above the horizon. High enough to read the ground, low enough for depth. */

@@ -7,16 +7,7 @@ import { BattleResults } from './BattleResults';
 import { BattleTopbar } from './BattleTopbar';
 import { Briefing } from './Briefing';
 import { briefingLanceFor } from './briefingLance';
-import { createEngine, type Engine } from './engine';
-import {
-  defaultLance,
-  factionLance,
-  lanceEntries,
-  lanceFaction,
-  loadLance,
-  storeLance,
-  type SkirmishBerth,
-} from './lance';
+import type { Engine } from './engine';
 import { ObjectiveList } from './ObjectiveList';
 import { createBattleOutfitBay, OutfitBayDialog } from './OutfitBayDialog';
 import { BriefingSetup } from './BattleSetup';
@@ -26,9 +17,14 @@ import { useGame } from './store';
 import { buildSupportOptions } from './supportOptions';
 import { BattleCoach } from './BattleCoach';
 import { TrainingCoach, useTrainingPresentation } from './TrainingCoach';
+import { showTrainingGate } from './trainingCamera';
 import { skipTraining, TRAINING_MISSION_ID } from './trainingProgress';
-import { battleStartsPaused, trainingShowsFullHud } from './trainingPresentation';
+import { trainingShowsFullHud } from './trainingPresentation';
 import { useBattleSetup } from './useBattleSetup';
+import { useBattleEngine } from './useBattleEngine';
+import { useSkirmishForces } from './useSkirmishForces';
+import { EnemyForceSetup } from './EnemyForceSetup';
+import { SkirmishStorageNotice } from './SkirmishStorageNotice';
 import { checkBattleCode, createNewBattleCode, resultWithBattleCode } from './battleCode';
 import { useStrategicScoreControls } from './StrategicScoreProvider';
 import './trainingPresentation.css';
@@ -48,13 +44,14 @@ export function Battle(props: BattleProps = {}) {
   const [muted, setMuted] = useState(false);
   const [lowFx, setLowFx] = useState(false);
   const missionId = useGame((game) => game.skirmishMissionId);
-  const difficulty = useGame((game) => game.difficulty);
+  const skirmishDifficulty = useGame((game) => game.difficulty);
+  const [campaignDifficulty] = useState(() => state.campaignPending ? loadCampaign().state?.difficulty : null);
+  const difficulty = campaignDifficulty ?? skirmishDifficulty;
   const [battleCodeDraft, setBattleCodeDraft] = useState(state.battleCode);
   const battleCodeCheck = checkBattleCode(battleCodeDraft);
 
   useEffect(() => setBattleCodeDraft(state.battleCode), [state.battleCode]);
 
-  const [lanceEdits, setLanceEdits] = useState<Record<string, SkirmishBerth[]>>({});
   const catalog = getCatalog();
   const missions = useMemo(
     () =>
@@ -66,22 +63,15 @@ export function Battle(props: BattleProps = {}) {
     [catalog],
   );
   const difficulties = useMemo(() => difficultyChoices(catalog.rules.difficulty), [catalog]);
-  const lance = useMemo(
-    () =>
-      missionId === TRAINING_MISSION_ID
-        ? defaultLance(catalog, missionId)
-        : lanceEdits[missionId] ?? loadLance(catalog, missionId),
-    [lanceEdits, catalog, missionId],
-  );
-  const setLance = (next: SkirmishBerth[]): void => {
-    if (missionId === TRAINING_MISSION_ID) return;
-    setLanceEdits((edits) => ({ ...edits, [missionId]: next }));
-    storeLance(missionId, next);
-  };
-  const lanceKey = useMemo(() => JSON.stringify(lance), [lance]);
+  const forces = useSkirmishForces(catalog, missionId);
+  const lance = forces.friendly;
+  const setLance = forces.setFriendly;
+  const lanceKey = forces.friendlyKey;
+  const enemyLanceKey = state.campaignPending || missionId === TRAINING_MISSION_ID ? undefined : forces.enemyKey;
+  const playerDifficulty = state.campaignPending || missionId === TRAINING_MISSION_ID ? undefined : forces.playerDifficulty;
   const draftSetup = useMemo<BattleSetupKey>(
-    () => ({ missionId, difficulty, lanceKey, battleCode: state.battleCode }),
-    [missionId, difficulty, lanceKey, state.battleCode],
+    () => ({ missionId, difficulty, lanceKey, enemyLanceKey, playerDifficulty, battleCode: state.battleCode }),
+    [missionId, difficulty, lanceKey, enemyLanceKey, playerDifficulty, state.battleCode],
   );
   const setup = useBattleSetup({
     draft: draftSetup,
@@ -90,11 +80,11 @@ export function Battle(props: BattleProps = {}) {
     campaignPending: state.campaignPending,
     patch: state.patch,
   });
-  const [outfitting, setOutfitting] = useState<number | null>(null);
+  const [outfitting, setOutfitting] = useState<{ index: number; side: 'player' | 'enemy' } | null>(null);
   const closeOutfitBay = useCallback(() => setOutfitting(null), []);
-  const openOutfitBay = (index: number): void => {
+  const openOutfitBay = (index: number, side: 'player' | 'enemy' = 'player'): void => {
     engineRef.current?.audio.unlock();
-    setOutfitting(index);
+    setOutfitting({ index, side });
   };
   const activeTraining = !state.campaignPending && missionId === TRAINING_MISSION_ID;
   const training = useTrainingPresentation({
@@ -108,76 +98,8 @@ export function Battle(props: BattleProps = {}) {
     },
   });
 
-  useEffect(() => {
-    const host = hostRef.current;
-    if (host === null) return;
-
-    const deployOnReady = setup.nextStart.current === 'deploy';
-    setup.nextStart.current = 'briefing';
-    let options: Record<string, unknown> = {
-      missionId: setup.engine.missionId,
-      difficulty: setup.engine.difficulty,
-      seed: setup.engine.battleCode,
-    };
-    const entries = lanceEntries(
-      getCatalog(),
-      JSON.parse(setup.engine.lanceKey) as SkirmishBerth[],
-    );
-    if (entries !== null && entries.length > 0) options = { ...options, playerLance: entries };
-    if (useGame.getState().campaignPending) {
-      const saved = loadCampaign().state;
-      if (saved !== null) {
-        try {
-          const deployment = prepareDeployment(getCatalog(), saved);
-          options = {
-            missionId: deployment.missionId,
-            seed: deployment.seed,
-            playerTeam: deployment.playerTeam,
-            playerLance: deployment.entries,
-            difficulty: setup.engine.difficulty,
-          };
-        } catch (error: unknown) {
-          // Nothing fit to field. Say so and go back rather than tearing down
-          // the React tree with an uncaught throw from an effect.
-          useGame.getState().patch({
-            campaignPending: false,
-            screen: 'campaign',
-            error: error instanceof Error ? error.message : String(error),
-          });
-          return;
-        }
-      }
-    }
-    battleSeedRef.current = String(options.seed ?? setup.engine.battleCode);
-
-    let cancelled = false;
-    createEngine(host, options)
-      .then((engine) => {
-        if (cancelled) {
-          engine.destroy();
-          return;
-        }
-        engineRef.current = engine;
-        setMuted(engine.audio.muted);
-        setLowFx(engine.renderer.lowFx);
-        if (deployOnReady) {
-          engine.renderer.camera.beginDropIn();
-          useGame.getState().patch({
-            briefingSeen: true,
-            paused: battleStartsPaused(useGame.getState().campaignPending, setup.engine.missionId),
-          });
-        }
-      })
-      .catch((error: unknown) => {
-        useGame.getState().patch({ error: error instanceof Error ? error.message : String(error) });
-      });
-
-    return () => {
-      cancelled = true;
-      engineRef.current?.destroy();
-      engineRef.current = null;
-    };
-  }, [setup.engine.missionId, setup.engine.difficulty, setup.engine.lanceKey, setup.engine.battleCode, setup.revision]);
+  useBattleEngine({ setup: setup.engine, revision: setup.revision, nextStart: setup.nextStart,
+    hostRef, engineRef, battleSeedRef, onMuted: setMuted, onLowFx: setLowFx });
 
   const restartBattle = (): void => {
     setup.restart();
@@ -230,8 +152,13 @@ export function Battle(props: BattleProps = {}) {
 
   const briefingLance = state.campaignPending || activeTraining
     ? null
-    : briefingLanceFor(catalog, missionId, lance, setLance, openOutfitBay);
-  const outfitBay = createBattleOutfitBay(catalog, lance, outfitting, setLance, closeOutfitBay);
+    : briefingLanceFor(catalog, missionId, lance, setLance, openOutfitBay, playerDifficulty, forces.friendlyFaction);
+  const outfittingEnemy = outfitting?.side === 'enemy';
+  const outfitBay = createBattleOutfitBay(catalog, outfittingEnemy ? forces.enemy : lance,
+    outfitting?.index ?? null, outfittingEnemy ? forces.setEnemy : setLance, closeOutfitBay, outfitting?.side,
+    outfittingEnemy ? forces.enemyFaction : forces.friendlyFaction);
+  const skirmishIssue = state.campaignPending || activeTraining ? null : forces.issue;
+  const deployIssue = skirmishIssue ?? (battleCodeCheck.ok ? null : battleCodeCheck.reason);
   const outfitAudio = engineRef.current?.audio ?? null;
 
   const supportOptions = useMemo(
@@ -285,6 +212,9 @@ export function Battle(props: BattleProps = {}) {
           objectives={state.objectives}
           resourcePoints={state.resourcePoints}
           setup={
+            <>
+            {state.campaignPending || activeTraining ? null : <SkirmishStorageNotice
+              rosters={forces.unsavedRosters} revision={forces.saveFailureRevision} />}
             <BriefingSetup
               missionId={setup.engine.missionId}
               difficultyId={setup.engine.difficulty}
@@ -292,19 +222,27 @@ export function Battle(props: BattleProps = {}) {
               missions={missions}
               difficulties={difficulties}
               campaignMissionName={state.campaignPending ? state.missionName : null}
-              lanceFactionId={activeTraining ? null : lanceFaction(catalog, lance)}
-              onLanceFaction={(faction) => setLance(factionLance(catalog, missionId, faction))}
+              lanceFactionId={activeTraining ? null : forces.friendlyFaction}
+              onLanceFaction={(faction) => forces.setFaction('player', faction)}
+              maps={forces.maps} mapId={forces.mapId}
+              playerDifficulty={forces.playerDifficulty} onPlayerDifficulty={forces.setPlayerDifficulty}
+              separateEnemySetup={!activeTraining}
               onMission={selectMission}
               onDifficulty={setup.selectDifficulty}
               onBattleCode={setBattleCodeDraft}
             />
+            </>
           }
           {...(briefingLance === null ? {} : { lance: briefingLance })}
+          opposition={state.campaignPending || activeTraining ? null : <EnemyForceSetup catalog={catalog}
+            missionId={missionId} lance={forces.enemy} faction={forces.enemyFaction} difficultyId={difficulty} difficulties={difficulties}
+            onDifficulty={setup.selectDifficulty} onLance={forces.setEnemy}
+            onFaction={(faction) => forces.setFaction('enemy', faction)} onCustomise={(index) => openOutfitBay(index, 'enemy')} />}
           {...(activeTraining ? { training: { onSkip: training.skip } } : {})}
-          deployDisabled={!state.campaignPending && !activeTraining && !battleCodeCheck.ok}
-          deployReason={state.campaignPending || activeTraining ? null : battleCodeCheck.reason}
+          deployDisabled={!state.campaignPending && !activeTraining && deployIssue !== null}
+          deployReason={state.campaignPending || activeTraining ? null : deployIssue}
           onDeploy={() => {
-            if (!state.campaignPending && !activeTraining && !battleCodeCheck.ok) return;
+            if (!state.campaignPending && !activeTraining && deployIssue !== null) return;
             if (activeTraining) record({ name: 'training_deployed' });
             const battleCode = state.campaignPending || activeTraining
               ? setup.engine.battleCode
@@ -331,7 +269,8 @@ export function Battle(props: BattleProps = {}) {
       ) : null}
       {state.briefingSeen && !state.campaignPending ? (
         activeTraining ? (
-          <TrainingCoach active step={training.step} onStep={training.onStep} />
+          <TrainingCoach active step={training.step} onStep={training.onStep}
+            onShowGate={() => showTrainingGate(engineRef.current)} />
         ) : (
           <BattleCoach missionId={missionId} />
         )

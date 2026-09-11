@@ -11,7 +11,57 @@ playable in Safari on a phone as well as on a desktop. See
 [`docs/HOSTING.md`](docs/HOSTING.md) for the build settings and how to deploy
 without pushing.
 
+## Graphic Expedition interface
+
+The presentation uses paper campaign/refit screens, dark teal battle controls,
+colourful faction finishes and illustrated terrain. Company management is split
+into **Operations**, **Workshop**, **Crew** and **Stores & yard**. Workshop opens
+individual refits directly; the manifest records explicit Aboard/Reserve choices,
+mission tonnage, five normal berths and named lance presets. Legacy save keys
+remain compatible.
+
+See [the presentation review](docs/GRAPHIC_EXPEDITION_REVIEW.md) for the full
+system audit, preservation decisions, validation record and remaining priorities.
+After `npm run build:single`, `node tests/e2e/standalone-smoke.mjs` checks the actual
+offline file through home, workshop, refit and deployment. It uses Playwright's
+Chromium or the executable supplied by `CHROMIUM_PATH`.
+
+## Ironwork & Monolith
+
+The [Ironwork & Monolith rebuild](docs/IRONWORK_MONOLITH.md) adds sixteen distinct
+walker designs, actual-terrain mission surveys, a selected-machine Workshop,
+authored battlefield surroundings, physical motion/effects and shared audio
+settings. Its review fixtures run in background browsers with disposable profiles.
+
+The original theme [Carry the Dawn](docs/audio/CARRY_THE_DAWN.md) links menu,
+campaign and combat with synchronized Ironwork and Monolith arrangements.
+**Settings → Sound** offers separate Music and Sound effects switches, saved
+volume trims and master mute. The [audio review](docs/review/audio-upgrade.md)
+includes the soundtrack, before/after combat previews and validation record.
+
+The [command and campaign refinement](docs/COMMAND_REFINEMENT.md) adds loadout-aware
+Attack approaches, objective duties, five optional missions, guaranteed contract
+rewards, shared objective XP, campaign endings, a planning map and previewed weapon
+replacement. The [first-time playtest pack](docs/PLAYTEST_PACK.md) provides a
+repeatable way to check the opening with new players.
+
+The [Tessell field archive](docs/LORE_WIKI.md) adds searchable world history,
+sixteen illustrated machine dossiers, shareable article links and optional
+opening-route guidance for both campaigns. Campaign discoveries stay hidden
+unless earned or explicitly revealed, and the archive works in the offline build.
+
+The [sensor and support fixes](docs/SENSOR_SUPPORT_FIXES.md) make paused sweeps
+and probes respond immediately, explain queued support timing, and show aircraft
+and repair teams arriving, working and departing.
+
+The [illustrated main menu](docs/MAIN_MENU.md) puts learning, campaign, skirmish
+and **Wiki · Story & mechs** over original Tessell artwork. The archive opens
+inside the game, with no battle or 3D renderer started in the background.
+For review links that stay available after a coding session, build once and run
+`npm run preview:local`; see [local preview controls](docs/LOCAL_PREVIEW.md).
+
 ## Repository identity
+
 
 The product, source repository (`icarusdlqx/Wreckright`), Worker
 (`wreckright.ligand-ave.workers.dev`), diagnostic hook, downloads, and release
@@ -25,6 +75,18 @@ existing saves and rollback safety.
 Authored data ids remain stable because they are save and simulation contracts,
 not product branding. The earlier project remains independent in its original
 repository and deployment.
+
+## Licensing
+
+Wreckright uses a split licence. The engine, interface and development tools are
+available under the [MIT licence](LICENSE). The setting, story, missions, game
+catalogue, artwork and audio use the separate [content terms](LICENSE-CONTENT.md),
+which allow personal play and noncommercial local experimentation while
+reserving commercial reuse rights to the extent held. Dependencies and bundled
+fonts retain their own terms in the [third-party notices](public/THIRD_PARTY_NOTICES.txt).
+
+Generative AI was used during development for code, writing and some artwork.
+The content notice does not claim rights that may not exist under applicable law.
 
 ## Layout
 
@@ -49,6 +111,10 @@ npm test        # Vitest: determinism, schemas, architecture boundaries
 npm run lint    # ESLint, including the /sim purity rules
 npm run typecheck
 npm run dev     # Vite dev server
+npm run build
+npm run preview:local  # persistent local release on 5219 and 5220 (macOS)
+npm run preview:status
+npm run preview:stop
 
 # Headless balance harness
 npm run sim -- --iterations=100 --seed=1337
@@ -113,7 +179,7 @@ Iteration *i* runs on seed `<seed>:<i>`, so any single battle can be replayed on
   returned to repossess every surviving walker root. An independent company
   fights through the Great Recall while deciding who owns the finite machines
   that kept this world alive. The setting is in `src/data/lore`, readable in-game
-  under Field Manual.
+  under Field Manual and the Tessell field archive.
 - Phase 7 — Polish: in progress.
 
 ### Phase 6 acceptance
@@ -144,8 +210,9 @@ Skirmishes are outfitted at the briefing: each berth has a design picker
 **Customise** button that opens the bay on that machine. The lance must fit
 the mission's drop tonnage, and the loadout is remembered per mission.
 
-A campaign contract is fought with what you decide to take. Signing one and
-pressing **Deploy** opens the dropship manifest rather than launching:
+A campaign contract is fought with what you decide to take. A pristine first
+company can **Sign → Launch the drop**, with **Review machines first** available
+for adjustments. Otherwise **Prepare drop** opens the hangar, then the manifest:
 
 - **The profile** — how many berths the dropship has, how many tonnes it will
   carry, and what the contract is. The lance is limited by weight as well as by

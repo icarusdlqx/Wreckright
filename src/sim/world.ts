@@ -49,6 +49,10 @@ export interface WorldOptions {
   playerTeam?: number;
   /** Replaces the mission's own player lance with campaign mechs and pilots. */
   playerLance?: LanceEntry[];
+  /** Skirmish only: replaces each authored opposing starting lance. */
+  enemyLance?: LanceEntry[];
+  /** Optional player crew experience; absent preserves campaign pilot skills. */
+  playerDifficulty?: string;
   /** How the player's own lance is driven when nobody is at the controls. */
   playerController?: ControllerId;
   /** Which side each opposing lance is driven by, and how well. */
@@ -76,11 +80,13 @@ export function createWorld(catalog: Catalog, options: WorldOptions): World {
   const tier = catalog.rules.difficulty.tiers[
     options.difficulty ?? catalog.rules.difficulty.default
   ];
+  const playerTier = options.playerDifficulty === undefined
+    ? undefined : catalog.rules.difficulty.tiers[options.playerDifficulty];
   const entities: MechEntity[] = [];
   let nextId = 1;
 
   for (const lance of mission.lances) {
-    const override = lance.team === playerTeam ? options.playerLance : undefined;
+    const override = lance.team === playerTeam ? options.playerLance : options.enemyLance;
     // The drop is sized by tonnage, not by how many berths the mission author
     // happened to draw: a lance bigger than the authored one fans its extra
     // machines out beside the authored spawn points.
@@ -109,7 +115,7 @@ export function createWorld(catalog: Catalog, options: WorldOptions): World {
       const deployedPilot =
         authoredPilot === undefined
           ? undefined
-          : pilotAtDifficulty(authoredPilot, lance.team, playerTeam, tier?.skillDelta);
+          : pilotAtDifficulty(authoredPilot, lance.team, playerTeam, tier?.skillDelta, playerTier?.skillDelta);
       entities.push(
         createMech(catalog, catalog.rules, {
           id: nextId,
@@ -129,6 +135,9 @@ export function createWorld(catalog: Catalog, options: WorldOptions): World {
     });
   }
 
+  if (options.enemyLance !== undefined && options.enemyLance.length === 0) {
+    throw new Error('an enemy lance must contain at least one mech');
+  }
   if (options.playerLance !== undefined && options.playerLance.length === 0) {
     throw new Error('a player lance must contain at least one mech');
   }
@@ -175,6 +184,7 @@ export function createWorld(catalog: Catalog, options: WorldOptions): World {
     missionStatus: 'active',
     missionReason: null,
     difficulty: options.difficulty ?? catalog.rules.difficulty.default,
+    ...(options.playerDifficulty === undefined ? {} : { playerDifficulty: options.playerDifficulty }),
 
     finished: false,
     winner: null,

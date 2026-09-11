@@ -1,3 +1,6 @@
+// Four authored surface fittings plus two physical rear heat vents per walker.
+const SURFACE_MESHES = 6;
+
 function watchPage(page) {
   const errors = [];
   page.on('pageerror', (error) => errors.push(`pageerror: ${String(error)}`));
@@ -194,6 +197,14 @@ async function inspectCultureFixture(page, ids) {
         visiblePower,
       };
     });
+    const resources = { nodes: [], geometries: new Set(), materials: new Set() };
+    renderer.scene.traverse((node) => {
+      resources.nodes.push(node.uuid);
+      if (node.geometry !== undefined) resources.geometries.add(node.geometry.uuid);
+      const materials = node.material === undefined ? []
+        : Array.isArray(node.material) ? node.material : [node.material];
+      for (const material of materials) resources.materials.add(material.uuid);
+    });
     return {
       units,
       paused: useGame.getState().paused,
@@ -201,6 +212,11 @@ async function inspectCultureFixture(page, ids) {
       lowFx: renderer.lowFx,
       distance: renderer.camera.distance,
       stats: renderer.renderStats,
+      resources: {
+        nodes: resources.nodes.sort(),
+        geometries: [...resources.geometries].sort(),
+        materials: [...resources.materials].sort(),
+      },
       viewport: { ...renderer.viewport },
       teamTints: [...new Set(
         world.entities
@@ -271,7 +287,7 @@ export async function runCultureSilhouetteChecks({ browser, url, shots, check })
     check(
       'all four close tactical models expose their exact surface budget and no hero meshes',
       near.units.every((unit) => !unit.missing && unit.detail === 'surface' &&
-        unit.surface === 4 && unit.visibleSurface === 4 && unit.hero === 0),
+        unit.surface === SURFACE_MESHES && unit.visibleSurface === SURFACE_MESHES && unit.hero === 0),
       JSON.stringify(near.units),
     );
     check(
@@ -293,6 +309,13 @@ export async function runCultureSilhouetteChecks({ browser, url, shots, check })
     );
 
     await setQuality(page, 470, false);
+    const normal = await inspectCultureFixture(page, fixture.ids);
+    check(
+      'normal tactical zoom retains the authored surface cues',
+      normal.units.every((unit) => unit.detail === 'surface' && unit.visibleSurface === SURFACE_MESHES),
+      JSON.stringify(normal.units),
+    );
+    await setQuality(page, 610, false);
     const far = await inspectCultureFixture(page, fixture.ids);
     check(
       'far tactical view removes every optional surface mesh',
@@ -309,11 +332,27 @@ export async function runCultureSilhouetteChecks({ browser, url, shots, check })
     await setQuality(page, 255, false);
     const restored = await inspectCultureFixture(page, fixture.ids);
     check(
-      'detail cycling restores all cues without growing render resources',
-      restored.units.every((unit) => unit.detail === 'surface' && unit.visibleSurface === 4) &&
-        restored.stats.geometries === near.stats.geometries &&
+      'detail cycling restores all cues without creating scene resources',
+      restored.units.every((unit) => unit.detail === 'surface' && unit.visibleSurface === SURFACE_MESHES) &&
+        JSON.stringify(restored.resources) === JSON.stringify(near.resources) &&
+        restored.stats.calls === near.stats.calls &&
+        restored.stats.triangles === near.stats.triangles &&
         restored.stats.textures === near.stats.textures,
       JSON.stringify({ near: near.stats, restored: restored.stats }),
+    );
+    // Wider views first upload the existing offscreen water surface. GPU
+    // residency is stable after that warm-up; construction must be stable even
+    // during the first cycle, which the scene identity assertion above checks.
+    for (const [distance, lowFx] of [[470, false], [610, false], [255, true], [255, false]]) {
+      await setQuality(page, distance, lowFx);
+      await settle(page);
+    }
+    const repeated = await inspectCultureFixture(page, fixture.ids);
+    check(
+      'warmed detail cycling keeps the same resident geometry and draw budget',
+      JSON.stringify(repeated.resources) === JSON.stringify(restored.resources) &&
+        JSON.stringify(repeated.stats) === JSON.stringify(restored.stats),
+      JSON.stringify({ warmed: restored.stats, repeated: repeated.stats }),
     );
     await page.addStyleTag({ content: '.app > :not(.viewport) { visibility: hidden !important; }' });
     await settle(page);
@@ -341,7 +380,7 @@ export async function runCultureSilhouetteChecks({ browser, url, shots, check })
     check(
       'landscape touch proof keeps all four same-team culture silhouettes readable',
       compactFixture.distance === 299 && compact.teamTints.length === 1 &&
-        compact.units.every((unit) => unit.detail === 'surface' && unit.visibleSurface === 4) &&
+        compact.units.every((unit) => unit.detail === 'surface' && unit.visibleSurface === SURFACE_MESHES) &&
         bodiesFit(compact.units, compact.viewport) && bodiesDoNotOverlap(compact.units),
       JSON.stringify({ fixture: compactFixture, units: compact.units }),
     );

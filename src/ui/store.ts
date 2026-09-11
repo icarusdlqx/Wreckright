@@ -29,6 +29,8 @@ export interface ZoneView {
 }
 
 export interface WeaponSnapshot {
+  /** A temporary heat-safety pause, independent of the player group switch. */
+  cooling?: boolean;
   index: number;
   name: string;
   modeId: string | null;
@@ -93,6 +95,11 @@ export interface UnitSnapshot {
   identity: string;
   name: string;
   pilotName: string;
+  /** Authored pilot identity survives a customised campaign loadout. */
+  pilotId: string;
+  chassisId: string;
+  pilotState: { dead: boolean; ejected: boolean; wounds: number };
+  withdrawn: boolean;
   /** What the pilot brings, so their skills are visible where the mech is. */
   pilotSkills: { gunnery: number; piloting: number; sensors: number };
   pilotTraits: string[];

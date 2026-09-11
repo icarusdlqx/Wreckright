@@ -95,9 +95,17 @@
     "stance": 0.96
   },
   "role": "Long-range assault",
-  "summary": "A sealed long-range assault frame. Three projectors, a deep sensor set and no ammunition to count.",
-  "lore": "The Karst ledger lists sixteen OBQ frames under PERIMETER, although only nine bays were opened and one was empty. An Obsequy carries three projector channels and enough coolant to fire them in sequence all day. It has no ammunition doors and no service seams. When one loses an emitter, the remaining pair work normally; when it loses cooling, the whole machine becomes a ninety-tonne room nobody can enter.",
+  "summary": "Three arc projectors span both arms and the centre torso. A sensor mast and deep scanner find the firing line before the slow advance begins.",
+  "lore": "The Karst ledger places Obsequy frames under PERIMETER, although the opened bays never accounted for the whole register. The tall armour forms and separate projector channels suit a machine assigned to watch an approach. Restored sensors and replacement emitters keep that inherited duty useful. Its standard fit needs no ammunition, but cooling service and rare components still tie it to a workshop. Sustained fire can exhaust even a well-maintained Obsequy's cooling margin.",
   "traits": [
     "sensor_mast"
+  ],
+  "strengths": [
+    "Distributed long-range arc weapons",
+    "Deep armour, cooling and long sensor reach"
+  ],
+  "weaknesses": [
+    "Short-range pressure reduces its advantage",
+    "No jump escape from a poor firing position"
   ]
 }

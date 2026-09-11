@@ -2,63 +2,84 @@
   "id": "authority_barrow_warrant",
   "name": "Warrant — Barrow Archive",
   "type": "assault",
-  "mapId": "foundry_district",
-  "briefing": "The conduit attestations converge on Barrow Reach's central archive. Its warrant names every restored root in the district, but the dispositive clause is sealed behind the reader. Take the archive, clear its Linewrought guard, and open the warrant. What follows will determine whether the roots leave Sarn or remain under local custody.",
-  "maxDurationSeconds": 540,
+  "mapId": "barrow_archive",
+  "briefing": "Secure Barrow’s archive forecourt and protect the record room through the contractor counterattack. Keep the archive intact; the warrant and maintenance compact support different lawful dispositions.",
+  "maxDurationSeconds": 420,
   "startingResourcePoints": 750,
-  "dropTonnage": 205,
+  "dropTonnage": 240,
   "lances": [
     {
       "team": 0,
-      "name": "Continuance Warrant Detail",
+      "name": "Aurelian Custody Detail",
       "units": [
         {
           "designId": "votive_picket",
           "pilotId": "petra_lindqvist",
-          "spawn": { "x": 36, "y": 36 },
-          "facingDegrees": 45
+          "spawn": {
+            "x": 1092,
+            "y": 1212
+          },
+          "facingDegrees": -135
         },
         {
           "designId": "sentinel_brawler",
           "pilotId": "silas_okonkwo",
-          "spawn": { "x": 108, "y": 36 },
-          "facingDegrees": 45
+          "spawn": {
+            "x": 1116,
+            "y": 1212
+          },
+          "facingDegrees": -135
         },
         {
           "designId": "falchion_duellist",
           "pilotId": "teodor_krysa",
-          "spawn": { "x": 180, "y": 36 },
-          "facingDegrees": 45
+          "spawn": {
+            "x": 1140,
+            "y": 1212
+          },
+          "facingDegrees": -135
         },
         {
           "designId": "halberd_prime",
           "pilotId": "arne_gedde",
-          "spawn": { "x": 252, "y": 36 },
-          "facingDegrees": 45
+          "spawn": {
+            "x": 1092,
+            "y": 1140
+          },
+          "facingDegrees": -135
         }
       ]
     },
     {
       "team": 1,
-      "name": "Barrow Archive Guard",
+      "name": "Armed Seizure Contractors",
       "units": [
         {
           "designId": "bulwark_assault",
           "pilotId": "kessa_vale",
-          "spawn": { "x": 636, "y": 636 },
-          "facingDegrees": -135
-        },
-        {
-          "designId": "hornet_spotter",
-          "pilotId": "marek_sud",
-          "spawn": { "x": 780, "y": 660 },
-          "facingDegrees": -135
+          "spawn": {
+            "x": 228,
+            "y": 324
+          },
+          "facingDegrees": 45
         },
         {
           "designId": "courser_patrol",
           "pilotId": "dorn_hess",
-          "spawn": { "x": 852, "y": 636 },
-          "facingDegrees": -135
+          "spawn": {
+            "x": 300,
+            "y": 324
+          },
+          "facingDegrees": 45
+        },
+        {
+          "designId": "hornet_spotter",
+          "pilotId": "marek_sud",
+          "spawn": {
+            "x": 228,
+            "y": 396
+          },
+          "facingDegrees": 45
         }
       ]
     }
@@ -66,32 +87,58 @@
   "reserves": [],
   "zones": [
     {
-      "id": "barrow_archive",
-      "name": "Barrow Warrant Archive",
-      "x": 492,
-      "y": 492,
-      "radius": 82,
+      "id": "archive_forecourt",
+      "name": "Archive Forecourt",
+      "x": 660,
+      "y": 660,
+      "radius": 72,
       "owner": 1,
-      "captureSeconds": 15,
-      "resourcePoints": 150
+      "captureSeconds": 11,
+      "resourcePoints": 0
+    },
+    {
+      "id": "record_room",
+      "name": "Barrow Record Room",
+      "x": 444,
+      "y": 444,
+      "radius": 64,
+      "owner": 0,
+      "captureSeconds": 10,
+      "resourcePoints": 0
     }
   ],
   "objectives": [
     {
-      "id": "open_warrant_archive",
-      "label": "Seize and open the central warrant archive",
+      "id": "secure_forecourt",
+      "label": "Secure the archive forecourt",
       "type": "capture_zones",
       "team": 0,
       "required": true,
-      "zoneIds": ["barrow_archive"],
-      "resourcePoints": 250
+      "zoneIds": [
+        "archive_forecourt"
+      ]
     },
     {
-      "id": "clear_archive_guard",
-      "label": "Clear the Linewrought archive guard",
-      "type": "destroy_all",
+      "id": "protect_record_room",
+      "label": "Protect the Barrow record room",
+      "type": "protect_zones",
       "team": 0,
-      "required": true
+      "required": true,
+      "zoneIds": [
+        "record_room"
+      ]
+    },
+    {
+      "id": "hold_archive",
+      "label": "Hold Barrow through the counterattack",
+      "type": "hold_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": [
+        "archive_forecourt",
+        "record_room"
+      ],
+      "holdSeconds": 62
     },
     {
       "id": "lance_survives",
@@ -104,30 +151,32 @@
   "triggers": [
     {
       "id": "archive_sighted",
-      "when": { "type": "elapsed", "seconds": 5 },
+      "when": {
+        "type": "elapsed",
+        "seconds": 5
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Tender clerk: the archive reader is in the central crossing. Secure it intact; the dispositive clause exists only on that register."
-        },
-        {
-          "type": "reveal",
-          "x": 492,
-          "y": 492,
-          "radius": 260,
-          "seconds": 28
+          "text": "Tender: secure the forecourt and keep the record room intact. Both legal readings are inside.",
+          "speakerPilotId": "petra_lindqvist"
         }
       ]
     },
     {
-      "id": "south_road_relief",
-      "when": { "type": "elapsed", "seconds": 0 },
+      "id": "contractor_relief",
+      "when": {
+        "type": "zone_captured",
+        "zoneId": "archive_forecourt",
+        "team": 0
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "The archive alarm beat the drop. South-road relief is crossing the district; it belongs in the field account before the warrant can close."
+          "text": "Contractor markings at the north freight gate. No Tender channel; they want the archive before disposition.",
+          "speakerPilotId": "teodor_krysa"
         },
         {
           "type": "spawn",
@@ -136,41 +185,66 @@
             {
               "designId": "redoubt_emplacement",
               "pilotId": "mira_solvang",
-              "spawn": { "x": 852, "y": 876 },
-              "facingDegrees": -135
+              "spawn": {
+                "x": 660,
+                "y": 60
+              },
+              "facingDegrees": 90
+            },
+            {
+              "designId": "drover_carrier",
+              "pilotId": "roz_havel",
+              "spawn": {
+                "x": 732,
+                "y": 60
+              },
+              "facingDegrees": 90
             }
           ]
         },
         {
           "type": "reveal",
-          "x": 816,
-          "y": 876,
-          "radius": 220,
+          "x": 696,
+          "y": 60,
+          "radius": 240,
           "seconds": 28
         }
       ]
     },
     {
       "id": "warrant_opened",
-      "when": { "type": "objective_complete", "objectiveId": "open_warrant_archive" },
+      "when": {
+        "type": "objective_complete",
+        "objectiveId": "hold_archive"
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "The warrant is split: export under Continuance custody, or countersign Sarn's local stewardship. The Tender wants the clause resolved in the field."
+          "text": "Barrow is secure. Export and countersigned stewardship are both lawful; command must choose which cost to own.",
+          "speakerPilotId": "silas_okonkwo"
         }
       ]
+    }
+  ],
+  "maxPlayerUnits": 5,
+  "atmosphereId": "ash_dusk",
+  "enemyDirectives": [
+    {
+      "id": "forecourt_retake",
+      "team": 1,
+      "zoneId": "archive_forecourt",
+      "behavior": "retake",
+      "units": 5,
+      "pursuitRadius": 650
     },
     {
-      "id": "field_account_clear",
-      "when": { "type": "objective_complete", "objectiveId": "clear_archive_guard" },
-      "once": true,
-      "effects": [
-        {
-          "type": "message",
-          "text": "The archive guard is down. The warrant remains open on two lawful readings; the next order will decide which one survives."
-        }
-      ]
+      "id": "record_attack",
+      "team": 1,
+      "zoneId": "record_room",
+      "behavior": "intercept",
+      "units": 2,
+      "pursuitRadius": 420
     }
   ]
 }

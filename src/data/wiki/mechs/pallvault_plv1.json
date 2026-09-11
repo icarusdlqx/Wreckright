@@ -1,0 +1,28 @@
+{
+  "id": "pallvault_plv1",
+  "designId": "pallvault_procession",
+  "provenance": "Pallvaults were stored standing directly on their depot floors. Compact manuals assumed a service dock capable of exchanging the complete upper assembly; Tessellan recovery crews had to devise slower methods.",
+  "serviceHistory": [
+    "The broad side housings and deep central keel make the machine look like something intended to remain in place. Its movement surprises crews who judge it by that impression. Aurelian service doctrine uses the class to close a firing opportunity quickly, deliver a concentrated exchange and move before the next one becomes necessary.",
+    "Recovered Pallvaults drew Sarn's heaviest service teams into work the original manuals assigned to a depot installation. Jigs, measurements and patient disassembly made repairs possible, though never cheap. Custodian companies that dismiss local tools still have to decide whether to wait for a certified dock or pay the people who know how to do the job here."
+  ],
+  "fieldNotes": "The current standard combines paired large and medium burst lasers in its arms with a central Plasma Rifle. Complete armour and Compound cooling make it a formidable assault skirmisher, while plasma pressures the opposing reactor. A slightly smaller engine pays for the protection: it remains mobile for its weight, but repeated volleys still build heat. Arm losses strip away the burst batteries, and specialist replacements remain expensive.",
+  "related": [
+    {
+      "kind": "story",
+      "id": "the_sealed"
+    },
+    {
+      "kind": "story",
+      "id": "the_shared_mounts"
+    },
+    {
+      "kind": "story",
+      "id": "the_employers"
+    },
+    {
+      "kind": "mech",
+      "id": "obsequy_obq3"
+    }
+  ]
+}

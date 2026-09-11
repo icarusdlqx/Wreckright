@@ -49,7 +49,7 @@ describe('employer campaign UI', () => {
 
   it('keeps the ledger disclosure reachable on a narrow touch screen', () => {
     const css = readFileSync(new URL('./employers.css', import.meta.url), 'utf8');
-    expect(css).toMatch(/@media[^{]+max-width:\s*640px/);
+    expect(css).toMatch(/@media[^{]+max-width:\s*900px/);
     expect(css).toMatch(/pointer:\s*coarse/);
     expect(css).toMatch(/\.employer-ledger summary\s*\{[^}]*min-height:\s*44px/s);
   });

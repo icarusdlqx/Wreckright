@@ -63,9 +63,16 @@ describe('campaign screen persistence', () => {
 
     expect(onEmpty).toHaveBeenCalledOnce();
     expect(session.persistence).toMatchObject({ mode: 'memory-only', issue: 'invalid-save' });
+    expect(session.state.difficultyConfigured).toBe(true);
     expect(committed.state.cbills).toBe(session.state.cbills - 250);
     expect(committed.persistence.ok).toBe(false);
     expect(store.get('ironline.campaign')).toBe(damaged);
+  });
+
+  it('keeps a missing-save company at setup until difficulty is chosen', () => {
+    const session = openCampaignSession(catalog, 'border_dispute', vi.fn());
+    expect(session.state.difficultyConfigured).toBe(false);
+    expect(loadCampaign().state?.difficultyConfigured).toBe(false);
   });
 
   it('reopens the latest restored report instead of trusting another run count', () => {

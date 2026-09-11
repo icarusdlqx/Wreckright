@@ -41,4 +41,11 @@ describe('render quality', () => {
     expect(battlefieldDetailForDistance(100, true, 'surface')).toBe('structure');
     expect(battlefieldDetailForDistance(Number.NaN, false, 'surface')).toBe('structure');
   });
+
+  it('shows surface cues at the normal camera distance without enabling hero detail', () => {
+    const detail = battlefieldDetailForDistance(470, false);
+    expect(detail).toBe('surface');
+    expect(includesDetail(detail, 'hero')).toBe(false);
+    expect(battlefieldDetailForDistance(470, true, detail)).toBe('structure');
+  });
 });

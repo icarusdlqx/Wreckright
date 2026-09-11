@@ -1,3 +1,4 @@
+import { readoutFrameSeconds } from './damageReadoutPolicy';
 import { describe, expect, it } from 'vitest';
 import {
   READOUT_PRIORITY,
@@ -76,5 +77,15 @@ describe('damage readout policy', () => {
     expect(readoutLife(READOUT_PRIORITY.miss)).toBeLessThan(
       readoutLife(READOUT_PRIORITY.terminal),
     );
+  });
+});
+
+
+describe('readout clock', () => {
+  it('keeps the same wall-time lifetime at 1× and 4×, and freezes when paused', () => {
+    expect(readoutFrameSeconds(0.2, 0.2)).toBe(0.2);
+    expect(readoutFrameSeconds(0.2, 0.8)).toBe(0.2);
+    expect(readoutFrameSeconds(0.2, 0)).toBe(0);
+    expect(readoutFrameSeconds(Number.NaN, 0.8)).toBe(0);
   });
 });

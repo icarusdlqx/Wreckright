@@ -6,6 +6,17 @@ import { snapshotUnit } from './snapshot';
 import { TacticalReadout } from './TacticalReadout';
 
 describe('TacticalReadout', () => {
+  it('explains partial weapon spacing while the group remains enabled', () => {
+    const world = playerWorld('readout-partial-spacing');
+    world.tick = 1;
+    const mech = world.entities.find((entity) => entity.team === 0)!;
+    mech.weapons[0]!.governorBlocked = true;
+    const unit = snapshotUnit(world, mech);
+    expect(unit.reactor.shedGroups).toEqual([]);
+    const html = renderToStaticMarkup(createElement(TacticalReadout, { unit }));
+    expect(html).toContain('SPACING 1 WEAPON');
+  });
+
   it('puts the selected pilot and reactor decisions into the panel', () => {
     const world = playerWorld('readout-panel');
     const mech = world.entities.find((entity) => entity.team === 0);
@@ -36,6 +47,9 @@ describe('TacticalReadout', () => {
     expect(html).toContain(`${Math.round(unit.sightRange)}m current`);
     expect(html).toContain(`${Math.round(unit.sensorRange)}m current reach`);
     expect(html).toContain('Current weather is included');
+    expect(html).toContain('Sensors work automatically');
+    expect(html).toContain('without a separate activation');
+    expect(html).toContain('small signatures and concealment shorten detection');
     expect(html).toContain('Sensor returns do not provide line of sight');
 
     const hostile = renderToStaticMarkup(createElement(TacticalReadout, { unit }));

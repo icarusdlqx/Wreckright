@@ -25,6 +25,11 @@ export function weaponEventColour(weapon: Weapon | undefined): number {
 }
 
 export function missCueAngle(event: Extract<SimEvent, { type: 'projectile_miss' }>): number {
+  return targetCueBearing(event);
+}
+
+/** Impact variation may use target-side facts, never an unseen firing position. */
+export function targetCueBearing(event: TargetCueEvent): number {
   return targetCueHash(event) / 0xffffffff * Math.PI * 2;
 }
 

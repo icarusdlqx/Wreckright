@@ -1,13 +1,13 @@
-// Ground tones for Tessell: dry upland grass, exposed shale, deep conifer,
-// cold meltwater. Distinct enough to read at a glance without going lurid.
+// Illustrated uplands: meadow greens, warm exposed stone and turquoise water.
+// The same terrain keys colour the battlefield and its navigation map.
 export const TERRAIN_COLOURS: Record<string, number> = {
-  open: 0x3c4a33,
-  rough: 0x5c5340,
-  forest: 0x1f3a24,
-  water: 0x1d3f5c,
-  road: 0x59513f,
-  building: 0x5f5a53,
-  impassable: 0x24262a,
+  open: 0x879c68,
+  rough: 0xc69a6c,
+  forest: 0x486f58,
+  water: 0x328b91,
+  road: 0x465557,
+  building: 0xbca987,
+  impassable: 0x967a67,
 };
 
 // Hue identifies a team in colour; value keeps the same marks distinct in fog

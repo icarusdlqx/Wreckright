@@ -3,17 +3,14 @@ import { lineSignatureDetails } from './details-line';
 import type { BlueprintPart, Bones } from './types';
 
 export const LINE_SIGNATURE_IDS = [
-  'hornet_hnt2',
+  'hornet_hnt2', 'prybar_pry1', 'rivet_rvt1', 'trestle_trs1',
+  'cairn_crn3', 'bulwark_bwk3', 'rampart_rmp4', 'colossus_cls1',
   'drover_dvr2',
-  'bulwark_bwk3',
-  'colossus_cls1',
 ] as const;
 
 export const AURELIAN_SIGNATURE_IDS = [
-  'votive_vtv2',
-  'sentinel_snl2',
-  'halberd_hlb4',
-  'pallvault_plv1',
+  'wisp_wsp1', 'votive_vtv2', 'sentinel_snl2', 'falchion_fal2',
+  'warden_wrd5', 'halberd_hlb4', 'obsequy_obq3', 'pallvault_plv1',
 ] as const;
 
 export const SIGNATURE_CHASSIS_IDS = [

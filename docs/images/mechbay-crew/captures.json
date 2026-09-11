@@ -1,0 +1,52 @@
+[
+  {
+    "file": "bay-before.png",
+    "source": "reports/ironwork-hosted-final/workshop-refit.png",
+    "sha256": "9d54a05fa11d5dcda930c26cb758fb82f2038bc4cab325829db76a15d6d12085"
+  },
+  {
+    "file": "crew-before.png",
+    "source": "reports/ironwork-e2e-verified/08-crew.png",
+    "sha256": "d090d1212df39e33bcdddab1e9f4bf1e111c5c4cd621397721cab9454e281808"
+  },
+  {
+    "file": "bay-after.png",
+    "source": "reports/mechbay-crew/crew-refit-desktop.png",
+    "sha256": "58cf1268f67ba8a98ce21bb2f51994aac0f4d58cf244847bb9b3f1f54508bb2d"
+  },
+  {
+    "file": "bay-fit.png",
+    "source": "reports/mechbay-crew/crew-fit-targets.png",
+    "sha256": "bd904516e3d1cf33fb551fbcfa38319f24d9ec55555f838b65eb7a23abdf5efd"
+  },
+  {
+    "file": "crew-after.png",
+    "source": "reports/mechbay-crew/crew-roster-desktop.png",
+    "sha256": "836d3d0a5d1b9e31c6e76ce453842fe8ee31798b4a8d371213d180c915c3032e"
+  },
+  {
+    "file": "crew-mobile.png",
+    "source": "reports/mechbay-crew/crew-roster-mobile.png",
+    "sha256": "64fadd3892aca3e67ee42bcbe844fc00e1b62fce25b0e0409306b51788a6b113"
+  },
+  {
+    "file": "campaign-setup.png",
+    "source": "reports/mechbay-crew/crew-campaign-setup.png",
+    "sha256": "cc3c466fe16bbebeab8602d01595c4ef40ef6b1ba2851d9d6dfde063422705bb"
+  },
+  {
+    "file": "bay-mobile.png",
+    "source": "reports/mechbay-crew/crew-mobile-snapped.png",
+    "sha256": "a9baf2eb454763f0d19e5f9187d6f16750f587a2b7ae81989d072cc6103e1cb7"
+  },
+  {
+    "file": "machine-profile.png",
+    "source": "reports/mechbay-crew/crew-machine-profile.png",
+    "sha256": "30676d41c97153945e68d4e467cd0edee6a2dc717dc1469963a3fa2f5fdfffbc"
+  },
+  {
+    "file": "campaign-landscape.png",
+    "source": "reports/mechbay-crew/crew-campaign-landscape.png",
+    "sha256": "9fd5b8bd3604367e17ad8d6b9ec77d0aee865d48f9a787b1e67340d0ecc7a42b"
+  }
+]

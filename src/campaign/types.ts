@@ -35,6 +35,8 @@ export interface PilotRecord {
   /** Who they are, carried over from the register so the barracks can say. */
   bio: string;
   injuredUntilDay: number;
+  /** A wound benches the pilot for subsequent resolved campaign missions. */
+  recoveryMissions?: number;
   dead: boolean;
   /** Instance id of the mech this pilot is assigned to, if any. */
   mechId: string | null;
@@ -111,14 +113,31 @@ export interface PilotReport {
   pilotId: string;
   name: string;
   mech: string;
+  /** Optional presentation identity; old reports retain their authored mech name. */
+  mechId?: string;
+  chassisId?: string;
   kills: number;
   damage: number;
   xp: number;
   /** Unspent total after this award; old reports did not record it. */
   xpBanked: number | null;
+  /** Mission and objective bonus included in this deployment’s total XP. */
+  sharedXp?: number;
+  serviceNotes?: string[];
   /** Skills raised by old automatic debriefs, retained for their saved reports. */
   promotions: string[];
   fate: 'returned' | 'injured' | 'killed';
+}
+
+export interface CampaignRewardReceipt {
+  id: string;
+  label: string;
+  items: StoreItem[];
+  hulls: { mechId: string; designId: string }[];
+  freeRepairDays: number;
+  freeRepairDaysOffered?: number;
+  supplierDiscountThroughDay: number | null;
+  afterword: string;
 }
 
 export interface MissionOutcome {
@@ -150,6 +169,9 @@ export interface MissionOutcome {
    * earned by taking a contract.
    */
   pilotReports: PilotReport[];
+  /** Authored contract grants are separate from the random salvage claim. */
+  campaignRewards?: CampaignRewardReceipt[];
+  objectiveReports?: { id: string; label: string; required: boolean; status: string }[];
 }
 
 export interface EmployerOutcomeSummary {
@@ -164,8 +186,17 @@ export interface CampaignHistoryArchive {
   employers: Record<string, EmployerOutcomeSummary>;
 }
 
+export interface DeploymentSeat {
+  mechId: string | null;
+  pilotId: string | null;
+}
+
 export interface CampaignState {
   campaignId: string;
+  /** Authored route revision, independent from the save-file schema version. */
+  campaignContentRevision: number;
+  difficulty: string;
+  difficultyConfigured: boolean;
   seed: string;
   rng: RngState;
   day: number;
@@ -178,6 +209,14 @@ export interface CampaignState {
    * not whatever order the roster happens to be in.
    */
   benched: string[];
+  /** Null preserves the legacy automatic roster order until the commander chooses. */
+  deploymentSelection: string[] | null;
+  /** Explicit cockpits preserve an empty seat instead of silently finding a replacement. */
+  deploymentSeats?: DeploymentSeat[] | null;
+  lancePresets: { name: string; seats: { pilotId: string; mechId: string | null }[] }[];
+  claimedRewardIds: string[];
+  /** Persist beyond archived field reports so retries cannot repeat objective XP. */
+  sharedXpClaims: { key: string; xp: number }[];
   store: StoreItem[];
   completedNodes: string[];
   failedNodes: string[];
@@ -214,7 +253,7 @@ export function isMechAvailable(state: CampaignState, mech: MechRecord): boolean
 }
 
 export function isPilotAvailable(state: CampaignState, pilot: PilotRecord): boolean {
-  return !pilot.dead && pilot.injuredUntilDay <= state.day;
+  return !pilot.dead && (pilot.recoveryMissions ?? 0) === 0 && pilot.injuredUntilDay <= state.day;
 }
 
 export function storeCount(state: CampaignState, kind: StoreKind, itemId: string): number {

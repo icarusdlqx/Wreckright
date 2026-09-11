@@ -3,6 +3,7 @@ import type { Deployment } from '../schema/mission';
 import { applyDamage } from './damage';
 import { emit } from './events';
 import { bearing, distance } from './math';
+import { updateTeamVisions } from './sensors';
 import { addStabilityImpulse, impulseOf } from './stability';
 import { resolveAirStrike, resolveArtillery, supportHitTable } from './supportImpacts';
 import { spawnUnits } from './triggers';
@@ -47,6 +48,8 @@ export interface RepairTruck {
   radius: number;
   armourPerSecond: number;
   expiresTick: number;
+  /** Actual plate restored since arrival, for the service team's field report. */
+  repairedArmour?: number;
 }
 
 export interface Minefield {
@@ -68,6 +71,8 @@ export interface Reveal {
   y: number;
   radius: number;
   expiresTick: number;
+  /** Probe acquisitions remain live for this sweep, including after leaving its circle. */
+  trackedIds?: number[];
 }
 
 export interface SupportState {
@@ -97,6 +102,10 @@ export function callSupport(
   heading = 0,
 ): CallResult {
   if (world.finished) return { ok: false, reason: 'the mission is over' };
+  if (!Number.isFinite(target.x) || !Number.isFinite(target.y)) {
+    return { ok: false, reason: 'choose a point on the map' };
+  }
+  if (!Number.isFinite(heading)) return { ok: false, reason: 'choose a valid approach direction' };
 
   const config = world.rules.support[call];
   const balance = world.resources.get(team) ?? 0;
@@ -109,18 +118,25 @@ export function callSupport(
     return { ok: false, reason: 'that point is off the map' };
   }
 
-  if (call === 'reinforcement' && world.reserves.length === 0) {
-    return { ok: false, reason: 'the dropship has no reserves left' };
+  if ((call === 'repair_truck' || call === 'reinforcement') && !world.terrain.passable(tile.column, tile.row)) {
+    return { ok: false, reason: 'choose clear ground for the support team' };
+  }
+
+  if (call === 'reinforcement') {
+    const inbound = world.support.pending.filter((pending) => pending.call === 'reinforcement').length;
+    if (world.reserves.length <= inbound) {
+      return { ok: false, reason: 'the dropship has no unassigned reserves left' };
+    }
   }
 
   world.resources.set(team, balance - config.cost);
-  world.support.pending.push({
+  const pending: PendingCall = {
     call,
     team,
     target: { x: target.x, y: target.y },
     heading,
     resolveTick: world.tick + Math.round(config.delaySeconds / world.dt),
-  });
+  };
 
   emit(world.events, {
     type: 'support_called',
@@ -131,6 +147,15 @@ export function callSupport(
     y: target.y,
     cost: config.cost,
   });
+
+  // A zero-delay sweep is a command result, so a paused commander can use its
+  // contacts without advancing movement, fire, cooldowns or the mission clock.
+  if (call === 'sensor_probe' && pending.resolveTick === world.tick) {
+    resolvePending(world, pending);
+    updateTeamVisions(world);
+  } else {
+    world.support.pending.push(pending);
+  }
 
   return { ok: true, reason: null };
 }
@@ -164,6 +189,7 @@ function resolvePending(world: World, pending: PendingCall): void {
       world.reveals.push({
         team: pending.team,
         kind: 'sensor',
+        trackedIds: [],
         x: pending.target.x,
         y: pending.target.y,
         radius: config.sensor_probe.radius,
@@ -186,6 +212,7 @@ function resolvePending(world: World, pending: PendingCall): void {
         radius: config.repair_truck.radius,
         armourPerSecond: config.repair_truck.armourPerSecond,
         expiresTick: world.tick + Math.round(config.repair_truck.durationSeconds / world.dt),
+        repairedArmour: 0,
       });
       break;
 
@@ -221,7 +248,7 @@ function repairWithin(world: World, truck: RepairTruck): void {
   for (const entity of world.entities) {
     if (entity.team !== truck.team || !isOperational(entity)) continue;
     if (distance(entity.pos, truck.pos) > truck.radius) continue;
-    topUpArmour(entity, truck.armourPerSecond * world.dt);
+    truck.repairedArmour = (truck.repairedArmour ?? 0) + topUpArmour(entity, truck.armourPerSecond * world.dt);
   }
 }
 
@@ -297,13 +324,14 @@ export function updateSupport(world: World): void {
   }
   world.support.pending = stillPending;
 
-  for (const truck of world.support.trucks) repairWithin(world, truck);
   world.support.trucks = world.support.trucks.filter((truck) => truck.expiresTick > world.tick);
+  for (const truck of world.support.trucks) repairWithin(world, truck);
 
-  detonateMines(world);
   world.support.minefields = world.support.minefields.filter(
     (field) => field.expiresTick > world.tick && field.mines > 0,
   );
+  detonateMines(world);
+  world.support.minefields = world.support.minefields.filter((field) => field.mines > 0);
 
   world.reveals = world.reveals.filter((reveal) => reveal.expiresTick > world.tick);
 }

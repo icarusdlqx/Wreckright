@@ -19,6 +19,8 @@ describe('battle setup lifecycle', () => {
     missionId: 'skirmish_ridge',
     difficulty: 'green',
     lanceKey: 'fielded-lance',
+    enemyLanceKey: 'fielded-enemy',
+    playerDifficulty: 'elite',
     battleCode: 'held-field',
   };
 

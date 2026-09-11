@@ -1,3 +1,6 @@
+import { importLegacySentinel, comparisonMetrics, addedWeaponComparison } from './mechbay-legacy-fixture.mjs';
+import { discardRefitIfPrompted } from './mechbay-exit.mjs';
+import { clickFittingAction } from './fitting-actions.mjs';
 import { openDesktopBattleMenu } from './input-safety.mjs';
 import {
   dragStockToLocation,
@@ -99,7 +102,11 @@ async function verifySavedLoadoutJourney({ page, check }) {
   );
 
   await page.locator('[data-testid="bay-exit"]').click();
+  await discardRefitIfPrompted(page);
   await page.waitForSelector('[data-testid="briefing"]');
+  // This Workshop fixture may return to an Aurelian scenario. Deliberately
+  // allow both hull cultures before selecting its saved Linewrought scout.
+  await page.getByTestId('briefing-faction-picker').selectOption('mixed');
   const berth = page.locator('[data-testid="berth-design-0"]');
   check(
     'the briefing exposes the saved loadout through the existing picker',
@@ -141,6 +148,7 @@ async function verifySavedLoadoutJourney({ page, check }) {
       (await page.locator('[data-testid="design-picker"]').count()) === 0,
   );
   await page.locator('[data-testid="bay-exit"]').click();
+  await discardRefitIfPrompted(page);
   await page.waitForSelector('[data-testid="briefing"]');
 }
 
@@ -163,7 +171,7 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
     .allInnerTexts();
   check(
     'the desktop stock picker carries complete machine identity without serial designations',
-    stockIdentity === 'Sentinel — 45t Medium · Line brawler · Aurelian Stock' &&
+    stockIdentity === 'Sentinel — 45t Medium · Plasma brawler · Aurelian Stock' &&
       stockOptions.every((label) => !/\b[A-Z]{3}-\d+\b/.test(label)) &&
       stockOptions.every((label) => label.includes(' — ') && label.split(' · ').length === 3),
     stockOptions.join(' | '),
@@ -180,6 +188,9 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
   );
   await verifyArmourPaperDoll({ page, check, shots });
   await selectWorkspace(page, 'loadout');
+
+  await importLegacySentinel(page);
+  const startingComparison = await comparisonMetrics(page);
 
   const firstWeaponRow = page.locator('[data-testid^="stock-weapon-"]').first();
   await firstWeaponRow.focus();
@@ -252,16 +263,10 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
   check('keyboard pick-to-hardpoint mounts the weapon', afterFit < startingFree, `${startingFree}t → ${afterFit}t`);
   await verifyFirstFitExplainers({ page, check });
   await selectWorkspace(page, 'review');
-  const fittedComparison = await comparisonDirections(page);
+  const fittedComparison = await comparisonMetrics(page);
   check(
     'Review exposes the fitted weapon trade across heat, alpha, and all range bands',
-    fittedComparison.speed === 'neutral' &&
-      fittedComparison.armour === 'neutral' &&
-      fittedComparison.heat_margin === 'bad' &&
-      fittedComparison.alpha_damage === 'good' &&
-      fittedComparison.dps_short === 'good' &&
-      fittedComparison.dps_medium === 'good' &&
-      fittedComparison.dps_long === 'good',
+    addedWeaponComparison(startingComparison, fittedComparison),
     JSON.stringify(fittedComparison),
   );
   await page.screenshot({ path: `${shots}/05-mechbay-build-compare.png` });
@@ -295,7 +300,7 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
       await renderedTextIncludes(inspector, 'Medium Laser') &&
       (await page.locator('[data-testid="bay-location-right_torso"] [data-testid^="remove-weapon-"]').count()) === 1,
   );
-  await page.locator('[data-testid="bay-location-right_torso"] [data-testid^="remove-weapon-"]').click();
+  await clickFittingAction(page.locator('[data-testid="bay-location-right_torso"] [data-testid^="remove-weapon-"]'));
   check(
     'the explicit Remove control restores the legal build and stable location focus',
     !(await page.locator('[data-testid="bay-save"]').isDisabled()) &&
@@ -305,11 +310,11 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
   );
   check('free tonnage returns to its starting value', (await freeTonnage(page)) === startingFree);
   await selectWorkspace(page, 'review');
-  const restoredComparison = await comparisonDirections(page);
+  const restoredComparison = await comparisonMetrics(page);
   check(
-    'removing the edit restores all stock comparison metrics to neutral',
+    'removing the edit restores all seven saved-refit comparison metrics exactly',
     Object.keys(restoredComparison).length === 7 &&
-      Object.values(restoredComparison).every((direction) => direction === 'neutral'),
+      JSON.stringify(restoredComparison) === JSON.stringify(startingComparison),
     JSON.stringify(restoredComparison),
   );
   await selectWorkspace(page, 'loadout');
@@ -325,7 +330,7 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
       draggedTargeting.sameLiveRegionCount && (await freeTonnage(page)) < startingFree,
     JSON.stringify(draggedTargeting),
   );
-  await page.locator('[data-testid="bay-location-right_torso"] [data-testid^="remove-weapon-"]').click();
+  await clickFittingAction(page.locator('[data-testid="bay-location-right_torso"] [data-testid^="remove-weapon-"]'));
   check('dragged weapon can be removed cleanly', (await freeTonnage(page)) === startingFree);
   await page.locator('[data-testid="bay-undo"]').click();
   check('Undo restores the last removed fitting', (await freeTonnage(page)) < startingFree);
@@ -366,8 +371,43 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
   );
 }
 
+/** Exhausted-stock behavior needs depleted stores, independently of the demo's generous grant. */
 export async function runCampaignRefitMechbayJourney({ page, check }) {
-  await page.locator('[data-testid^="manifest-refit-"]').first().click();
+  const original = await page.evaluate(() => localStorage.getItem('ironline.campaign'));
+  const fixture = JSON.parse(original);
+  fixture.state.store = [];
+  const context = await page.context().browser().newContext({
+    viewport: page.viewportSize() ?? { width: 1440, height: 900 }, reducedMotion: 'reduce',
+  });
+  const depleted = await context.newPage();
+  try {
+    await depleted.addInitScript(save => localStorage.setItem('ironline.campaign', save), JSON.stringify(fixture));
+    await depleted.goto(page.url());
+    await depleted.getByTestId('home-campaign').click();
+    await depleted.getByTestId('camp-review-machines').click();
+    await depleted.getByTestId('hangar-continue').click();
+    await depleted.getByTestId('lance-manifest').waitFor();
+    check('depleted-store refit fixture has no spare inventory', await depleted.evaluate(() =>
+      JSON.parse(localStorage.getItem('ironline.campaign')).state.store.length === 0));
+    await verifyDepletedCompanyRefit({ page: depleted, check });
+  } finally { await context.close(); }
+  check('depleted-stock checks leave the main campaign and its demo equipment unchanged',
+    await page.evaluate(() => localStorage.getItem('ironline.campaign')) === original
+    && await page.getByTestId('lance-manifest').isVisible());
+}
+
+async function verifyDepletedCompanyRefit({ page, check }) {
+  // This journey inspects the Gadfly's authored Flamer/SRM inventory, even
+  // after the commander moves its card to a different deployment position.
+  const pilotId = await page.evaluate(() => {
+    const state = JSON.parse(localStorage.getItem('ironline.campaign')).state;
+    return state.pilots.find(pilot => state.mechs.some(mech => mech.id === pilot.mechId
+      && mech.design.id === 'hornet_spotter'))?.id;
+  });
+  if (!pilotId) throw new Error('The campaign refit fixture has no assigned Gadfly');
+  const seat = await page.evaluate(id => JSON.parse(localStorage.getItem('ironline.campaign')).state.deploymentSeats.findIndex(slot => slot.pilotId === id), pilotId);
+  await page.getByTestId(`prep-seat-${seat}`).click();
+  await page.locator(`[data-testid="manifest-refit-${pilotId}"]`).click();
   await page.waitForSelector('[data-testid="refit-bay"]');
   check(
     'the refit bay opens on the company mech in Loadout',
@@ -378,17 +418,23 @@ export async function runCampaignRefitMechbayJourney({ page, check }) {
     .locator('.bay-side [data-testid^="stock-weapon-"]')
     .evaluateAll((entries) => entries.map((entry) => entry.getAttribute('data-testid') ?? ''));
   check(
-    'the campaign shelf holds the selected welded mech\'s own weapons',
+    'a depleted campaign shelf holds only the selected mech\'s installed weapons',
     shelvedWeapons.length === 2 &&
       shelvedWeapons.includes('stock-weapon-flamer') &&
       shelvedWeapons.includes('stock-weapon-srm2') &&
       !shelvedWeapons.includes('stock-weapon-medium_laser'),
     shelvedWeapons.join(', '),
   );
+  // A newly opened bay can appear under the refit button's former pointer
+  // position. Clear hover and focus before testing its resting armour labels.
+  await page.mouse.move(0, 0);
+  await page.locator('[data-testid="stock-weapon-flamer"]').focus();
+  const restingLocations = await quietLocationState(page);
   check(
     'every resting campaign location exposes a quiet accessible rack summary',
     (await page.locator('[data-testid^="free-slots-"]').count()) === 8 &&
-      (await quietLocationState(page)).quiet === 8,
+      restingLocations.count === 8 && restingLocations.quiet === 8,
+    JSON.stringify(restingLocations),
   );
 
   const flamerRow = page.locator('[data-testid="stock-weapon-flamer"]');

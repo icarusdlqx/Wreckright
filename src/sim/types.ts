@@ -75,6 +75,8 @@ export const WEAPON_GROUPS = 4;
 export type Stance = 'close' | 'hold' | 'back_off' | 'withdraw';
 
 export interface AiState {
+  /** Authored duty survives distance changes without reshuffling the defenders each tick. */
+  directiveId?: string;
   withdrawing: boolean;
   coolingDown: boolean;
   focusTargetId: EntityId | null;
@@ -95,6 +97,10 @@ export interface WeaponMount {
   /** Duration of the shot currently cycling, even if its next mode differs. */
   cycleDuration: number;
   destroyed: boolean;
+  /** Transient reactor scheduling; the pilot's weapon-group intent is unchanged. */
+  governorBlocked?: boolean;
+  /** Waiting ready mounts take their turn before recently admitted mounts. */
+  governorWaitTicks?: number;
 }
 
 export interface AmmoBin {
@@ -330,6 +336,7 @@ export interface World {
   missionStatus: 'active' | 'success' | 'failure';
   missionReason: string | null;
   difficulty: string;
+  playerDifficulty?: string;
 
   finished: boolean;
   winner: number | null;

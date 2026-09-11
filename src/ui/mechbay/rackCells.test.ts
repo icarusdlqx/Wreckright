@@ -1,13 +1,13 @@
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { catalog } from '../../../tests/support';
+import { catalog, legacySentinelDesign } from '../../../tests/support';
 import { computeLoadout } from '../../sim/loadout';
 import type { MechLocation } from '../../schema/common';
 import { LocationCard, type DropPayload } from './LocationCard';
 
 function render(location: MechLocation, armed: DropPayload | null = null, compatible = false): string {
-  const design = catalog.designs.get('sentinel_brawler');
+  const design = legacySentinelDesign;
   const chassis = catalog.chassis.get('sentinel_snl2');
   if (design === undefined || chassis === undefined) throw new Error('missing Sentinel fixture');
   return renderToStaticMarkup(createElement(LocationCard, {

@@ -1,3 +1,4 @@
+import { discardRefitIfPrompted } from './mechbay-exit.mjs';
 export async function checkBriefingInputSafety({
   page,
   check,
@@ -126,6 +127,7 @@ export async function checkBriefingInputSafety({
   await page.waitForSelector('[data-testid="mechbay"]');
   check('1280px briefing leaves Mechbay navigation clickable', true);
   await page.locator('[data-testid="bay-exit"]').click();
+  await discardRefitIfPrompted(page);
   await page.waitForSelector('[data-testid="briefing"]');
   await page.setViewportSize({ width: 1440, height: 900 });
 

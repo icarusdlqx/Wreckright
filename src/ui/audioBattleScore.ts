@@ -11,6 +11,8 @@ import {
 import { battleCultureShare } from './audioScoreVoicing';
 import { STRATEGIC_SCORE_TREATMENTS } from './audioScoreTreatments';
 
+// Deployment adds an immediate marching pulse, before the first enemy contact.
+const DEPLOYED_INTENSITY_FLOOR = 0.48;
 const RETARGET_RETRY_MS = Math.ceil(SCORE_RETARGET_INTERVAL_SECONDS * 1_000) + 1;
 
 /** Keeps the battle arc live while a briefing bay temporarily owns its voice. */
@@ -21,6 +23,7 @@ export class BattleScoreDirector {
   private battleState: ScoreState = { intensity: 0, aurelianShare: 0, level: 1 };
   private mechbayShare: number | null = null;
   private mechbayActive = false;
+  private ended = false;
 
   get overridden(): boolean {
     return this.mechbayActive;
@@ -29,7 +32,7 @@ export class BattleScoreDirector {
   unlock(graph: AudioGraph): void {
     if (this.handle !== null) return;
     const state = this.currentState();
-    this.handle = startBattleScore(graph, state.aurelianShare, state.level);
+    this.handle = startBattleScore(graph.musicBus, state.aurelianShare, state.level);
     this.handle.setState(state);
   }
 
@@ -40,9 +43,12 @@ export class BattleScoreDirector {
 
   observe(world: World, events: readonly SimEvent[], playbackSpeed: number): void {
     this.prime(world);
+    if (events.some(event => event.type === 'battle_ended' || event.type === 'mission_ended')) this.ended = true;
     if (this.handle === null) return;
     this.battleState = {
-      intensity: this.intensity.advance(world, events),
+      intensity: Math.max(this.intensity.advance(world, events),
+        world.tick > 0 && !this.ended
+          ? DEPLOYED_INTENSITY_FLOOR : 0),
       aurelianShare: this.battleState.aurelianShare,
       level: 1,
     };
@@ -74,6 +80,7 @@ export class BattleScoreDirector {
     this.battleState = { intensity: 0, aurelianShare: 0, level: 1 };
     this.mechbayShare = null;
     this.mechbayActive = false;
+    this.ended = false;
   }
 
   private currentState(): ScoreState {

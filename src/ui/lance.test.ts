@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { catalog } from '../../tests/support';
+import { catalog, legacySentinelDesign } from '../../tests/support';
 import type { Design } from '../schema/design';
 import { computeLoadout } from '../sim/loadout';
 import { defaultLance, loadLance, storeLance, type SkirmishBerth } from './lance';
@@ -27,7 +27,7 @@ describe('stored skirmish lance migration', () => {
     const missionId = 'training_ground';
     const lance = defaultLance(catalog, missionId);
     const first = lance[0];
-    const stock = catalog.designs.get('sentinel_brawler');
+    const stock = legacySentinelDesign;
     if (first === undefined || stock === undefined) throw new Error('missing lance fixture');
 
     const legacy = structuredClone(stock) as Design;

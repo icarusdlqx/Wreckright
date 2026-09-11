@@ -20,9 +20,11 @@ Node.js line.
 For an audit of the build toolchain as well, run npm directly without
 `--omit=dev` and retain that separate SBOM with the release records.
 
-The exact production dependency license texts are checked in at
+The exact production dependency and bundled-font license texts are checked in at
 `public/THIRD_PARTY_NOTICES.txt`, which also makes them part of ordinary web
 builds. `npm run build:single` embeds the same text in the self-contained HTML.
+Font entries come from `docs/asset-provenance.json`; they are outside npm's
+dependency graph and therefore do not appear in the npm SBOM.
 Regenerate and verify the notice inventory with:
 
 ```sh

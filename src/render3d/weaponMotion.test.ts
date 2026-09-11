@@ -1,4 +1,4 @@
-import { Group, Object3D } from 'three';
+import { BoxGeometry, Group, Mesh, MeshStandardMaterial, Object3D } from 'three';
 import { describe, expect, it } from 'vitest';
 import type { Faction } from '../schema/faction';
 import { advanceWeaponRecoil, triggerWeaponRecoil } from './weaponModels';
@@ -101,7 +101,7 @@ describe('weapon motion', () => {
     expect(weapon.cycle).toBeLessThan(1);
   });
 
-  it('cycles a prebuilt barrel bank around its firing axis', () => {
+  it('spins a barrel bank forwards through repeated shots without snapping backwards', () => {
     const weapon = rig();
     weapon.feedKind = 'spin';
     weapon.feedTravel = Math.PI * 2;
@@ -110,8 +110,49 @@ describe('weapon motion', () => {
     if (feed === null) return;
 
     triggerWeaponRecoil(weapon);
-    expect(feed.rotation.x).toBeCloseTo(Math.PI * 2);
+    expect(feed.rotation.x).toBe(0);
+    advanceWeaponRecoil(weapon, 1 / 60);
+    advanceWeaponRecoil(weapon, 1 / 60);
+    const first = feed.rotation.x;
+    expect(first).toBeGreaterThan(0);
+    triggerWeaponRecoil(weapon);
+    expect(feed.rotation.x).toBe(first);
     for (let frame = 0; frame < 240; frame += 1) advanceWeaponRecoil(weapon, 1 / 60);
-    expect(feed.rotation.x).toBeCloseTo(weapon.feedRestTurn);
+    expect(feed.rotation.x).toBeGreaterThan(first);
+    const settled = feed.rotation.x;
+    advanceWeaponRecoil(weapon, 1);
+    expect(feed.rotation.x).toBe(settled);
   });
+  it('energises prebuilt emitter materials on fire and returns to their original idle glow', () => {
+    const root = new Group();
+    const material = new MeshStandardMaterial({ emissive: 0x44ccff, emissiveIntensity: 0.7 });
+    const geometry = new BoxGeometry(1, 1, 1);
+    root.add(new Mesh(geometry, material), new Mesh(geometry, material));
+    const weapon = createWeaponRig('beam', 'aurelian',
+      { style: 'beam', colour: '#44ccff', width: 1, arc: 0 }, root, new Object3D(), new Object3D(), 0,
+      { breechX: 0, muzzleX: 1 });
+    expect(weapon.powerMaterials).toHaveLength(1);
+    triggerWeaponRecoil(weapon);
+    expect(material.emissiveIntensity).toBeCloseTo(0.7 * 2.8);
+    for (let frame = 0; frame < 240; frame += 1) advanceWeaponRecoil(weapon, 1 / 60);
+    expect(material.emissiveIntensity).toBe(0.7);
+    geometry.dispose(); material.dispose();
+  });
+
+  it('keeps disabled emitter cores dark through future presentation frames', () => {
+    const root = new Group();
+    const material = new MeshStandardMaterial({ emissive: 0x44ccff, emissiveIntensity: 0.7 });
+    const geometry = new BoxGeometry(1, 1, 1);
+    root.add(new Mesh(geometry, material));
+    const weapon = createWeaponRig('beam', 'aurelian',
+      { style: 'beam', colour: '#44ccff', width: 1, arc: 0 }, root, new Object3D(), new Object3D(), 0,
+      { breechX: 0, muzzleX: 1 }, false);
+    expect(material.emissiveIntensity).toBe(0);
+    expect(material.color.r).toBeCloseTo(0.12);
+    triggerWeaponRecoil(weapon);
+    advanceWeaponRecoil(weapon, 1);
+    expect(material.emissiveIntensity).toBe(0);
+    geometry.dispose(); material.dispose();
+  });
+
 });

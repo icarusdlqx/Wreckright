@@ -1,0 +1,16 @@
+{
+  "id": "hornet_hnt2",
+  "designId": "hornet_spotter",
+  "provenance": "Halloran commissioned the Gadfly rebuild after losing Vespers it could not readily replace. Recovered Compact roots received Sarn plate and practical spotting equipment.",
+  "serviceHistory": [
+    "The compromise became common because it suited work that was already being done: checking cuts before a convoy entered them, finding a firing position for a battery and keeping an eye on the next ridge. The open lifting frame above the cab is as characteristic as the patched plate beneath it.",
+    "Gadfly crews are usually known to the workshops along their route. A fitter who recognises the driver's family is more likely to keep a late shift for a damaged leg. Halloran calls this local support. The driver calls it owing somebody another favour. Neither arrangement appears on an Aurelian service certificate."
+  ],
+  "fieldNotes": "The standard fit helps a scout mark trouble and leave it to the heavier machines. Jump equipment opens escape routes, but light armour still makes a prolonged exchange expensive. A captured emitter can replace local armament where the mount accepts it; the company then inherits its cooling and supply problem.",
+  "related": [
+    { "kind": "story", "id": "the_employers" },
+    { "kind": "story", "id": "the_shared_mounts" },
+    { "kind": "mech", "id": "wisp_wsp1" },
+    { "kind": "mech", "id": "cairn_crn3" }
+  ]
+}

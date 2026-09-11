@@ -4,7 +4,7 @@
     'catalog-head'
     'catalog-results'
     'catalog-inspector';
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(160px, 1fr) auto;
 }
 
 .bay-catalog > .bay-shelf-head {
@@ -15,7 +15,7 @@
   grid-area: catalog-results;
 }
 
-.bay-catalog > .bay-catalog-inspector {
+.bay-catalog > .bay-inspector-shell {
   grid-area: catalog-inspector;
 }
 
@@ -201,7 +201,7 @@
 }
 
 .bay-catalog-inspector {
-  max-height: min(38vh, 340px);
+  max-height: min(28vh, 250px);
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -252,6 +252,14 @@
   color: var(--warn);
 }
 
+.weapon-card.is-stock-empty .weapon-card__fit,
+.weapon-card.is-stock-empty .weapon-card__fit strong,
+.dossier-fit.is-stock-empty,
+.dossier-fit.is-stock-empty strong {
+  color: #4b6266;
+}
+.dossier-fit.is-stock-empty { background: #e9eeea; border-color: #a7b8ae; }
+
 .bay-catalog-inspector .weapon-card__meters {
   margin-bottom: 8px;
 }
@@ -287,7 +295,7 @@
   }
 }
 
-@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+@media (max-width: 900px), (pointer: coarse) and (max-width: 1100px) {
   .bay-side.bay-catalog {
     display: flex;
     flex-direction: column;
@@ -297,7 +305,7 @@
     order: 1;
   }
 
-  .bay-catalog > .bay-catalog-inspector {
+  .bay-catalog > .bay-inspector-shell {
     order: 2;
   }
 
@@ -364,7 +372,7 @@
   background: rgba(140, 224, 255, 0.12);
 }
 
-@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+@media (max-width: 900px), (pointer: coarse) and (max-width: 1100px) {
   .bay-stock__autofit {
     min-height: var(--tap-size, 44px);
     font-size: 11px;
@@ -390,9 +398,19 @@
   background: rgba(140, 224, 255, 0.12);
 }
 
-@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+@media (max-width: 900px), (pointer: coarse) and (max-width: 1100px) {
   .weapon-card__autofit {
     min-height: var(--tap-size, 44px);
     font-size: 11px;
   }
+}
+
+.bay-inspector-shell { min-height: 0; overflow: hidden; border-top: 1px solid var(--edge); }
+.bay-inspector-shell > summary { padding: 7px 4px; font-size: 10px; cursor: pointer; color: var(--accent); }
+.bay-catalog > .bay-stocks { min-height: 160px; }
+@media (min-width: 1181px) and (max-height: 800px) {
+  .bay-inspector-shell .bay-catalog-inspector { max-height: 115px; min-height: 0; }
+  .bay-catalog .bay-shelf-head { gap: 5px; padding-block: 5px; }
+  .bay.bay--workspace .weapon-card__pick { gap: 3px; }
+  .bay-catalog .weapon-card--compact { padding-block: 4px; }
 }

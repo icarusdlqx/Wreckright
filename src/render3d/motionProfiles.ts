@@ -23,6 +23,8 @@ export interface MotionProfile {
   lean: number;
   tuck: number;
   response: number;
+  settleSeconds: number;
+  braceScale: number;
 }
 
 export interface StrideTerrain {
@@ -30,7 +32,7 @@ export interface StrideTerrain {
   swing: number;
 }
 
-type BaseProfile = Omit<MotionProfile, 'form'>;
+type BaseProfile = Omit<MotionProfile, 'form' | 'settleSeconds' | 'braceScale'>;
 
 const OPEN_SWING = 0.42;
 export const OPEN_STRIDE_TERRAIN: Readonly<StrideTerrain> = {
@@ -133,6 +135,8 @@ export function motionProfileFor(
     lean: base.lean * (0.9 + weight * 0.28),
     tuck: base.tuck * (1 - weight * 0.1),
     response: base.response * (1 - weight * 0.24),
+    settleSeconds: 0.18 + weight * 0.3,
+    braceScale: 0.75 + weight * 0.6,
   };
 }
 

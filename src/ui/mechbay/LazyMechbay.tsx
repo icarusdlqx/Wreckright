@@ -1,6 +1,7 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect, useRef, type ReactNode } from 'react';
 import type { AudioDirector } from '../audio';
 import type { BayCommission } from './Mechbay';
+import './mechbayLoading.css';
 
 /**
  * The mechbay behind one deferred chunk.
@@ -18,22 +19,41 @@ interface Props {
   commission?: BayCommission;
   battleAudio?: AudioDirector;
   onBattleMuted?: (muted: boolean) => void;
+  preparationContext?: ReactNode;
 }
 
-export function LazyMechbay({ onExit, commission, battleAudio, onBattleMuted }: Props) {
+/** Only the unresolved bay owns this handler; loaded drafts keep their own exit guard. */
+function MechbayLoading({ onCancel }: { onCancel: () => void }) {
+  const root = useRef<HTMLDivElement>(null);
+  const cancel = useRef(onCancel);
+  cancel.current = onCancel;
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key !== 'Escape' || event.defaultPrevented || root.current?.closest('[inert]') !== null) return;
+      event.preventDefault();
+      event.stopPropagation();
+      cancel.current();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+  return <div ref={root} className="route-loading bay-loading" data-testid="route-loading">
+    <span role="status">Opening the bay…</span>
+    <button type="button" data-testid="bay-loading-cancel" onClick={onCancel}>Cancel</button>
+  </div>;
+}
+
+export function LazyMechbay({ onExit, commission, battleAudio, onBattleMuted, preparationContext }: Props) {
   return (
     <Suspense
-      fallback={
-        <div className="route-loading" role="status" data-testid="route-loading">
-          Opening the bay…
-        </div>
-      }
+      fallback={<MechbayLoading onCancel={commission?.onCancel ?? onExit} />}
     >
       <Mechbay
         onExit={onExit}
         {...(commission === undefined ? {} : { commission })}
         {...(battleAudio === undefined ? {} : { battleAudio })}
         {...(onBattleMuted === undefined ? {} : { onBattleMuted })}
+        {...(preparationContext === undefined ? {} : { preparationContext })}
       />
     </Suspense>
   );

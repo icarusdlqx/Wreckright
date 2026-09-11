@@ -47,13 +47,13 @@ function localEndpoint(
 }
 
 describe('linewrought machine motion', () => {
-  it('adds one four-instance structural batch only to a welded walker', () => {
+  it('adds one eight-instance telescoping structural batch only to a welded walker', () => {
     const welded = modelFor('hornet_hnt2');
     const sealed = modelFor('sentinel_snl2');
     try {
       const pistons = welded.machineMotion.pistons;
       expect(pistons).toBeInstanceOf(InstancedMesh);
-      expect(pistons?.count).toBe(4);
+      expect(pistons?.count).toBe(8);
       expect(welded.machineMotion.links).toHaveLength(4);
       expect(pistons?.parent).toBe(welded.root);
       expect(pistons?.castShadow).toBe(false);
@@ -73,12 +73,27 @@ describe('linewrought machine motion', () => {
         chassis.hardpoints,
         chassis.id,
       );
+      const serviceMeshes = new Set([
+        ...welded.services.jets.map((outlet) => outlet.parent),
+        ...welded.services.vents.map((outlet) => outlet.parent),
+      ]);
+      expect(welded.services.jets).toHaveLength(2);
+      expect(welded.services.vents).toHaveLength(2);
+      expect(serviceMeshes.size).toBe(4);
+      expect(sealed.services.jets).toHaveLength(0);
+      expect(sealed.services.vents).toHaveLength(2);
       let blueprintMeshes = 0;
+      let hardwareMeshes = 0;
+      const mechanismBatches: InstancedMesh[] = [];
       welded.root.traverse((node) => {
+        if (node instanceof InstancedMesh) mechanismBatches.push(node);
         if (node instanceof Mesh && typeof node.userData.blueprintDetail === 'string') {
-          blueprintMeshes += 1;
+          if (serviceMeshes.has(node)) hardwareMeshes += 1;
+          else blueprintMeshes += 1;
         }
       });
+      expect(mechanismBatches).toEqual([pistons]);
+      expect(hardwareMeshes).toBe(4);
       expect(blueprintMeshes).toBe(
         plan.parts.filter((part) => part.detail !== 'hero').length,
       );
@@ -114,6 +129,23 @@ describe('linewrought machine motion', () => {
     }
   });
 
+  it('keeps actuator sleeves a fixed length as the exposed shaft changes stroke', () => {
+    const model = modelFor('hornet_hnt2');
+    try {
+      const rig = model.machineMotion;
+      const sleeveBefore = instanceMatrix(rig, rig.links.length);
+      const length = new Vector3().setFromMatrixScale(sleeveBefore).y;
+      model.legs[0]!.knee.rotation.z = -0.6;
+      poseMachineMotion(rig);
+      const sleeveAfter = instanceMatrix(rig, rig.links.length);
+      expect(new Vector3().setFromMatrixScale(sleeveAfter).y).toBeCloseTo(length, 5);
+      expect(sleeveAfter.elements).not.toEqual(sleeveBefore.elements);
+      const shaft = instanceMatrix(rig);
+      expect(new Vector3().setFromMatrixScale(sleeveAfter).x)
+        .toBeGreaterThan(new Vector3().setFromMatrixScale(shaft).x);
+    } finally { disposeModel(model.root); }
+  });
+
   it('removes every actuator span from a destroyed leg while keeping the support rig', () => {
     const model = modelFor('hornet_hnt2', new Set(['left_leg']));
     try {
@@ -121,7 +153,7 @@ describe('linewrought machine motion', () => {
       expect(lost).toBeDefined();
       expect(lost?.destroyed).toBe(true);
       expect(model.machineMotion.links).toHaveLength(2);
-      expect(model.machineMotion.pistons?.count).toBe(2);
+      expect(model.machineMotion.pistons?.count).toBe(4);
       expect(model.machineMotion.links.some((link) =>
         link.from === lost?.hip || link.from === lost?.knee || link.to === lost?.ankle,
       )).toBe(false);

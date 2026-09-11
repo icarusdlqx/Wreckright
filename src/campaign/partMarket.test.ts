@@ -110,13 +110,14 @@ describe('the parts counter', () => {
 
   it('refuses a crate the company cannot pay for', () => {
     const state = freshState();
+    const storeBefore = structuredClone(state.store);
     state.cbills = 0;
     const listing = partMarketListings(catalog, state)[0];
     if (listing === undefined) return;
 
     const result = buyPart(catalog, state, listing.id);
     expect(result.ok).toBe(false);
-    expect(state.store).toHaveLength(0);
+    expect(state.store).toEqual(storeBefore);
   });
 
   it('restocks and forgets old purchases when the week rolls over', () => {

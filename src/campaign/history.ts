@@ -27,17 +27,19 @@ function repairArchiveCount(state: CampaignState): void {
   );
 }
 
-/** Old field reports last for one board period; the newest waits until another replaces it. */
+/** Authored contracts remain in the journal; renewable work is bounded to its board period. */
 export function pruneCampaignHistory(catalog: Catalog, state: CampaignState): void {
   repairArchiveCount(state);
   if (state.history.length < 2) return;
 
   const period = offerPeriod(catalog, state.day);
   const latest = state.history.at(-1);
+  const authored = new Set(catalog.campaigns.get(state.campaignId)?.nodes.map((node) => node.id));
+  const lastAuthored = new Map(state.history.filter((outcome) => authored.has(outcome.nodeId)).map((outcome) => [outcome.nodeId, outcome]));
   const retained: MissionOutcome[] = [];
 
   for (const outcome of state.history) {
-    if (outcome === latest || offerPeriod(catalog, outcome.day) === period) {
+    if (lastAuthored.get(outcome.nodeId) === outcome || outcome === latest || offerPeriod(catalog, outcome.day) === period) {
       retained.push(outcome);
     } else {
       archiveOutcome(state, outcome);

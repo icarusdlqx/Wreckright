@@ -1,9 +1,9 @@
 import { AudioGraph } from './audioGraph';
-import { readAudioMuted, writeAudioMuted } from './audioPreference';
+import { readAudioMuted, subscribeAudioPreferences, writeAudioMuted } from './audioPreference';
 import {
   SCORE_CLOSE_DELAY_MS,
   SCORE_RETARGET_INTERVAL_SECONDS,
-  createProceduralScore,
+  createAuthoredScore,
   type ScoreHandle,
   type ScoreState,
 } from './audioScoreGraph';
@@ -29,32 +29,27 @@ const RETARGET_RETRY_MS = Math.ceil(SCORE_RETARGET_INTERVAL_SECONDS * 1_000) + 1
 /** One bounded score graph for a contiguous visit to the strategic screens. */
 export class StrategicScoreDirector {
   private readonly leases = new Map<symbol, LeaseState>();
-  private readonly listeners = new Set<() => void>();
   private graph: AudioGraph | null = null;
   private score: ScoreHandle | null = null;
   private retry: ReturnType<typeof setTimeout> | null = null;
   private nextOrder = 0;
   private lastShare = NEUTRAL_CULTURE_SHARE;
-  private mutedState = readAudioMuted();
   private destroyed = false;
+  private closeGeneration = 0;
 
   get muted(): boolean {
-    return this.mutedState;
+    return readAudioMuted();
   }
 
   get active(): boolean {
     return this.leases.size > 0;
   }
 
-  subscribe = (listener: () => void): (() => void) => {
-    this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
-  };
+  subscribe = subscribeAudioPreferences;
 
   /** Called inside the route-changing gesture, before the lazy screen mounts. */
   prepare(): void {
     if (this.destroyed) return;
-    this.syncMuted();
     this.ensureGraph();
     this.graph?.resume();
   }
@@ -67,6 +62,7 @@ export class StrategicScoreDirector {
   }
 
   acquire(surface: StrategicScoreSurface, aurelianShare: number | null): StrategicScoreLease {
+    this.closeGeneration += 1;
     const key = Symbol(surface);
     const state: LeaseState = {
       surface,
@@ -87,37 +83,41 @@ export class StrategicScoreDirector {
         if (released) return;
         released = true;
         this.leases.delete(key);
-        if (this.leases.size === 0) this.closeGraph();
-        else this.apply();
+        if (this.leases.size === 0) {
+          const generation = ++this.closeGeneration;
+          // React releases the old route before acquiring the next one. Keep
+          // its gesture-unlocked graph through that same-turn handoff.
+          queueMicrotask(() => {
+            if (generation === this.closeGeneration && this.leases.size === 0) this.closeGraph();
+          });
+        } else this.apply();
       },
     };
   }
 
   toggleMuted(): boolean {
-    this.mutedState = !this.mutedState;
-    writeAudioMuted(this.mutedState);
-    this.graph?.setMuted(this.mutedState);
-    this.emit();
-    return this.mutedState;
+    const muted = !this.muted;
+    writeAudioMuted(muted);
+    return muted;
   }
 
   destroy(): void {
     if (this.destroyed) return;
     this.destroyed = true;
+    this.closeGeneration += 1;
     this.leases.clear();
     this.closeGraph();
-    this.listeners.clear();
   }
 
   private ensureGraph(): void {
     if (this.graph !== null) return;
-    const graph = AudioGraph.create(this.mutedState);
+    const graph = AudioGraph.create(this.muted);
     if (graph === null) return;
     this.graph = graph;
     const chosen = this.chosenLease();
     const share = chosen?.aurelianShare ?? this.lastShare;
     const initialLevel = chosen === null ? 0 : STRATEGIC_SCORE_TREATMENTS[chosen.surface].level;
-    this.score = createProceduralScore(graph, share, initialLevel);
+    this.score = createAuthoredScore(graph.musicBus, share, initialLevel);
     this.apply();
   }
 
@@ -167,17 +167,6 @@ export class StrategicScoreDirector {
     this.lastShare = NEUTRAL_CULTURE_SHARE;
   }
 
-  private syncMuted(): void {
-    const stored = readAudioMuted();
-    if (stored === this.mutedState) return;
-    this.mutedState = stored;
-    this.graph?.setMuted(stored);
-    this.emit();
-  }
-
-  private emit(): void {
-    for (const listener of this.listeners) listener();
-  }
 }
 
 function priority(surface: StrategicScoreSurface): number {

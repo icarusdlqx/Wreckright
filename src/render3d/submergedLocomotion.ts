@@ -25,11 +25,10 @@ export function placeMachineRoot(
   }
   const submergence = state.submergence;
   const contact = entity.jump === null && submergence === 0 ? state.contact.body : 0;
-  const kick = model.hullRecoil.kick;
   model.root.position.set(
-    at.x - Math.cos(at.facing) * kick,
+    at.x,
     state.ground + lift + contact + submergence,
-    at.y - Math.sin(at.facing) * kick,
+    at.y,
   );
   return submergence;
 }

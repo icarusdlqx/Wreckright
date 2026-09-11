@@ -8,5 +8,45 @@
     "hard_to_kill",
     "veteran"
   ],
-  "bio": "Krysa was in the Barrow Reach column and does not discuss it. He is the last man anyone would bet against coming home."
+  "bio": "Krysa was in the Barrow Reach column and does not discuss it. He is the last man anyone would bet against coming home.",
+  "portrait": {
+    "skin": "#cc9f7f",
+    "hair": "#aaa9a3",
+    "jacket": "#40505b",
+    "accent": "#8fd4c0",
+    "style": "shaved",
+    "face": "long",
+    "detail": "beard",
+    "expression": "stern",
+    "kit": "scarf",
+    "accessory": "none",
+    "age": "veteran"
+  },
+  "personality": {
+    "label": "Laconic survivor",
+    "description": "Saves words and checks escape routes. His rare reassurance carries more weight than a speech.",
+    "lines": {
+      "move": [
+        "Moving. Exit marked.",
+        "Seen the route. Going."
+      ],
+      "attack": [
+        "Taking it down.",
+        "Clear shot. Firing."
+      ],
+      "guard": [
+        "Here. Holding."
+      ],
+      "hold_fire": [
+        "Guns safe."
+      ],
+      "investigate": [
+        "I will check. Stay ready."
+      ],
+      "heavy_fire": [
+        "Too much fire. Need cover.",
+        "Armour thinning. Give me a way out."
+      ]
+    }
+  }
 }

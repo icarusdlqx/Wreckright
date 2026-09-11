@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { getCatalog } from '../schema/load';
-import { PilotStats, type RateablePilot } from './PilotStats';
+import type { Pilot } from '../schema/pilot';
+import { BriefingTeam } from './BriefingTeam';
 import type { ObjectiveView } from './store';
 
 export interface BriefingBerth {
@@ -9,7 +9,8 @@ export interface BriefingBerth {
   customLabel: string | null;
   pilotId: string;
   tonnage: number;
-  pilot: RateablePilot | null;
+  pilot: Pilot | null;
+  machine: { chassisId: string; name: string; identity: string; role: string; weaponCount: number } | null;
 }
 
 export interface BriefingLance {
@@ -30,6 +31,7 @@ interface BriefingProps {
   objectives: readonly ObjectiveView[];
   resourcePoints: number;
   setup?: ReactNode;
+  opposition?: ReactNode;
   /** Contracts prepare their lance elsewhere, so no editor is passed here. */
   lance?: BriefingLance;
   deployDisabled?: boolean;
@@ -44,6 +46,7 @@ export function Briefing({
   objectives,
   resourcePoints,
   setup,
+  opposition,
   lance,
   deployDisabled = false,
   deployReason = null,
@@ -55,8 +58,6 @@ export function Briefing({
   const reason = over
     ? 'The lance is over the drop tonnage — lighten it first.'
     : deployReason ?? undefined;
-  const taken = (pilotId: string): number =>
-    lance === undefined ? 0 : lance.berths.filter((berth) => berth.pilotId === pilotId).length;
 
   return (
     <div className="briefing" data-testid="briefing">
@@ -92,64 +93,12 @@ export function Briefing({
               {lance.total}/{lance.allowance}t
             </span>
           </h4>
-          {lance.berths.map((berth) => (
-            <div className="briefing-berth" key={berth.index}>
-              <select
-                value={berth.designValue}
-                onChange={(event) => lance.onDesign(berth.index, event.target.value)}
-                data-testid={`berth-design-${berth.index}`}
-                aria-label={`Mech for berth ${berth.index + 1}`}
-              >
-                {berth.customLabel === null ? null : (
-                  <option value="custom">{berth.customLabel} (edited loadout)</option>
-                )}
-                <option value="empty">— empty berth —</option>
-                {lance.designs.map((design) => (
-                  <option key={design.value} value={design.value}>
-                    {design.label}
-                  </option>
-                ))}
-                {lance.saved.length === 0 ? null : (
-                  <optgroup label="Saved loadouts">
-                    {lance.saved.map((entry) => (
-                      <option key={entry.value} value={entry.value}>
-                        {entry.label}
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-              </select>
-              <select
-                value={berth.pilotId}
-                onChange={(event) => lance.onPilot(berth.index, event.target.value)}
-                data-testid={`berth-pilot-${berth.index}`}
-                aria-label={`Pilot for berth ${berth.index + 1}`}
-              >
-                {lance.pilots.map((pilot) => (
-                  <option
-                    key={pilot.id}
-                    value={pilot.id}
-                    disabled={pilot.id !== berth.pilotId && taken(pilot.id) > 0}
-                  >
-                    {pilot.name}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                onClick={() => lance.onCustomise(berth.index)}
-                title="Open the bay on this machine"
-                data-testid={`berth-customise-${berth.index}`}
-              >
-                Refit loadout
-              </button>
-              {berth.pilot === null ? null : (
-                <PilotStats catalog={getCatalog()} pilot={berth.pilot} compact />
-              )}
-            </div>
-          ))}
+          <BriefingTeam lance={lance} />
         </div>
       )}
+
+      {training === undefined ? opposition : null}
+      {blocked && reason !== undefined ? <p className="setup-invalid briefing-blocked" role="status" data-testid="briefing-blocked-reason">{reason}</p> : null}
 
       <footer
         className={`briefing-actions${training === undefined ? '' : ' training-actions'}`}

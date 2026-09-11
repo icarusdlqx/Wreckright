@@ -337,11 +337,22 @@ export async function runTerrainWearChecks({ browser, url, shots, check }) {
     );
 
     const lowBudget = await recordedLowFxBudget(page);
+    // Measure residency after the reconstructed machines and full-quality scenery
+    // have rendered. Eight additional fixed effect batches remain resident;
+    // the nine idle shot pools now submit no draws or hidden-instance triangles.
     check(
-      'low-FX Causeway retains its exact pre-wear draw and triangle budget',
-      lowBudget.calls === 19 && lowBudget.triangles === 51_956 &&
-        lowBudget.geometries === 212 && lowBudget.textures === 3,
+      'low-FX Causeway retains its draw budget with bounded resident surface geometry',
+      lowBudget.calls === 10 && lowBudget.triangles === 25_860 &&
+        lowBudget.geometries === 258 && lowBudget.textures === 3,
       JSON.stringify(lowBudget),
+    );
+    await page.evaluate(() => globalThis.__wreckright.engine.renderer.setLowFx(false));
+    await settle(page);
+    const repeatedLowBudget = await recordedLowFxBudget(page);
+    check(
+      'rendered full and low-FX cycling preserves the resident terrain budget',
+      JSON.stringify(repeatedLowBudget) === JSON.stringify(lowBudget),
+      JSON.stringify({ first: lowBudget, repeated: repeatedLowBudget }),
     );
     await page.evaluate(() => globalThis.__wreckright.engine.renderer.setLowFx(false));
     await canvasShot(page, `${shots}/18-terrain-wear.png`);

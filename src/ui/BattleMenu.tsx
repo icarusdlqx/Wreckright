@@ -3,6 +3,7 @@ import { SetupToolbar } from './BattleSetup';
 import { usePlaytest } from './playtest';
 import { useGame } from './store';
 import { useStrategicScoreControls } from './StrategicScoreProvider';
+import { AudioSettings, useAudioPreferences } from './AudioSettings';
 
 interface BattleMenuProps extends BattleTopbarProps {
   fullHud: boolean;
@@ -14,6 +15,7 @@ export function BattleMenu({ fullHud, variant, ...props }: BattleMenuProps) {
   const state = useGame();
   const { openFeedback } = usePlaytest();
   const score = useStrategicScoreControls();
+  const { muted } = useAudioPreferences();
   const mobile = variant === 'mobile';
   const lockedTitle = state.campaignPending
     ? 'The lance is in the field — resolve the contract first.'
@@ -46,12 +48,13 @@ export function BattleMenu({ fullHud, variant, ...props }: BattleMenuProps) {
           <button
             type="button"
             className="pause"
-            onClick={() => props.onMuted(props.engine?.audio.toggleMuted() ?? false)}
-            title={props.muted ? 'Sound is off' : 'Sound is on'}
+            onClick={() => props.onMuted(props.engine?.audio.toggleMuted() ?? score.toggleMuted())}
+            title={muted ? 'Release master mute; keep your music and effects choices.' : 'Silence music and sound effects.'}
             data-testid="mute-button"
           >
-            {props.muted ? 'Sound off' : 'Sound on'}
+            {muted ? 'Unmute all' : 'Mute all'}
           </button>
+          <AudioSettings compact onPrepare={() => props.engine?.audio.unlock()} onDisplayChange={props.onLowFx} />
           <button
             type="button"
             className={`pause ${props.lowFx ? 'active' : ''}`}
@@ -124,11 +127,10 @@ export function BattleMenu({ fullHud, variant, ...props }: BattleMenuProps) {
             </button>
             <section className="battle-menu-help" aria-label="Battle controls">
               <strong>Controls</strong>
-              <p>
-                Space pauses · , and . change speed · right-click moves · Shift queues · click a
-                hostile to attack
-              </p>
-              <p>Drag selects · arrows pan · wheel zooms · Centre recentres · P shows performance</p>
+              {mobile ? <><p>Tap a lance card, choose an order, then tap its destination. Queue adds another waypoint.</p>
+                <p>Drag empty ground to pan · pinch to zoom · Pause gives you time to plan.</p></> : <>
+                <p>Space pauses · , and . change speed · right-click moves · Shift queues · click a hostile to attack</p>
+                <p>Drag selects · arrows pan · wheel zooms · Centre recentres · P shows performance</p></>}
             </section>
           </>
         ) : null}

@@ -108,8 +108,9 @@ function sourceCount(modeId: 'cluster' | 'slug' | undefined): number {
 
 describe('fire-mode audio', () => {
   it('voices the event mode projectile count through the audio director', () => {
-    expect(sourceCount('cluster')).toBe(15);
-    expect(sourceCount('slug')).toBe(3);
-    expect(sourceCount(undefined)).toBe(15);
+    // Five three-layer reports and one shared two-source breech return; slug has one report.
+    expect(sourceCount('cluster')).toBe(17);
+    expect(sourceCount('slug')).toBe(5);
+    expect(sourceCount(undefined)).toBe(17);
   });
 });

@@ -7,5 +7,45 @@
   "traits": [
     "evasive"
   ],
-  "bio": "Came off Ridgeward haulage, where the trick was never being where the road wanted you. She has not stopped doing it."
+  "bio": "Came off Ridgeward haulage, where the trick was never being where the road wanted you. She has not stopped doing it.",
+  "portrait": {
+    "skin": "#edc3a0",
+    "hair": "#a75337",
+    "jacket": "#475b65",
+    "accent": "#dfb367",
+    "style": "braid",
+    "face": "heart",
+    "detail": "earpiece",
+    "expression": "grin",
+    "kit": "flight_vest",
+    "accessory": "bandana",
+    "age": "young"
+  },
+  "personality": {
+    "label": "Restless road-runner",
+    "description": "Trusts movement more than armour. Sharp-tongued when anyone asks her to sit still.",
+    "lines": {
+      "move": [
+        "Already looking for the next turn.",
+        "Road wants me there? I will take the other line."
+      ],
+      "attack": [
+        "Passing through. Leaving a few holes.",
+        "Keep them turning. I have the angle."
+      ],
+      "guard": [
+        "Stopped. Briefly, I hope."
+      ],
+      "hold_fire": [
+        "Quiet guns, moving feet. Works for me."
+      ],
+      "investigate": [
+        "I will take the long way round and have a look."
+      ],
+      "heavy_fire": [
+        "Too much landing on me. I need room to move.",
+        "They have my line. A new route would be lovely."
+      ]
+    }
+  }
 }

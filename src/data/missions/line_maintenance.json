@@ -2,61 +2,82 @@
   "id": "line_maintenance",
   "name": "Recovery — First Notice",
   "type": "skirmish",
-  "mapId": "ridge_pass",
-  "briefing": "The General Reversion Order names every walker in the company bay. Kestrel locked the Marker Eleven registry under an early compliance contract and posted three machines outside it. Clear the guard so Halloran can copy the root rolls before the Recall Authority seals them.",
-  "maxDurationSeconds": 300,
+  "mapId": "line_workshop_belt",
+  "briefing": "Break Kestrel’s cordon, then secure Marker Eleven long enough for Halloran to copy the root rolls. The central freight road is covered; the west drainage lane and east workshop street reach their flanks. Keep at least one machine working.",
+  "maxDurationSeconds": 330,
   "startingResourcePoints": 400,
   "lances": [
     {
       "team": 0,
-      "name": "Halloran Recovery Lance",
+      "name": "Linewrought Company",
       "units": [
         {
           "designId": "hornet_spotter",
           "pilotId": "kessa_vale",
-          "spawn": { "x": 108, "y": 852 },
-          "facingDegrees": -45
+          "spawn": {
+            "x": 516,
+            "y": 1068
+          },
+          "facingDegrees": -90
         },
         {
           "designId": "bulwark_assault",
           "pilotId": "dorn_hess",
-          "spawn": { "x": 156, "y": 876 },
-          "facingDegrees": -45
+          "spawn": {
+            "x": 588,
+            "y": 1068
+          },
+          "facingDegrees": -90
         },
         {
           "designId": "hornet_spotter",
           "pilotId": "marek_sud",
-          "spawn": { "x": 204, "y": 828 },
-          "facingDegrees": -45
+          "spawn": {
+            "x": 660,
+            "y": 1068
+          },
+          "facingDegrees": -90
         },
         {
           "designId": "cairn_battery",
           "pilotId": "ilse_brant",
-          "spawn": { "x": 132, "y": 780 },
-          "facingDegrees": -45
+          "spawn": {
+            "x": 612,
+            "y": 996
+          },
+          "facingDegrees": -90
         }
       ]
     },
     {
       "team": 1,
-      "name": "Kestrel Registry Guard",
+      "name": "Kestrel Compliance Cordon",
       "units": [
         {
           "designId": "courser_patrol",
           "pilotId": "leda_morcant",
-          "spawn": { "x": 852, "y": 108 },
-          "facingDegrees": 135
+          "spawn": {
+            "x": 324,
+            "y": 132
+          },
+          "facingDegrees": 90
         },
         {
           "designId": "hornet_spotter",
           "pilotId": "corin_dast",
-          "spawn": { "x": 804, "y": 132 },
+          "spawn": {
+            "x": 780,
+            "y": 228
+          },
           "facingDegrees": 135
         },
         {
           "designId": "drover_carrier",
           "pilotId": "tomas_arvel",
-          "spawn": { "x": 876, "y": 180 },
+          "spawn": {
+            "x": 948,
+            "y": 252
+          },
           "facingDegrees": 135
         }
       ]
@@ -64,11 +85,22 @@
   ],
   "objectives": [
     {
-      "id": "clear_right_of_way",
-      "label": "Clear Kestrel from the root registry",
+      "id": "break_cordon",
+      "label": "Break the compliance cordon",
       "type": "destroy_all",
       "team": 0,
       "required": true
+    },
+    {
+      "id": "copy_title_rolls",
+      "label": "Secure Marker Eleven",
+      "type": "capture_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": [
+        "marker_eleven"
+      ],
+      "resourcePoints": 150
     },
     {
       "id": "lance_survives",
@@ -80,16 +112,66 @@
   ],
   "triggers": [
     {
-      "id": "maintenance_order",
-      "when": { "type": "elapsed", "seconds": 3 },
+      "id": "west_lane",
+      "when": {
+        "type": "elapsed",
+        "seconds": 3
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Halloran: the title books stay intact. Wreckright settles machines in the field; this contract is for the record of who brought them there."
+          "text": "Halloran: the freight road is covered. The west drain and east workshop street both reach Marker Eleven.",
+          "speakerPilotId": "marek_sud"
+        },
+        {
+          "type": "reveal",
+          "x": 372,
+          "y": 252,
+          "radius": 260,
+          "seconds": 30
+        }
+      ]
+    },
+    {
+      "id": "registry_open",
+      "when": {
+        "type": "zone_captured",
+        "zoneId": "marker_eleven",
+        "team": 0
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Marker Eleven is copying. These rolls name workshops and people, not just serials.",
+          "speakerPilotId": "kessa_vale"
         }
       ]
     }
   ],
-  "dropTonnage": 205
+  "dropTonnage": 205,
+  "maxPlayerUnits": 4,
+  "zones": [
+    {
+      "id": "marker_eleven",
+      "name": "Marker Eleven Registry",
+      "x": 372,
+      "y": 252,
+      "radius": 66,
+      "owner": 1,
+      "captureSeconds": 12,
+      "resourcePoints": 100
+    }
+  ],
+  "enemyDirectives": [
+    {
+      "id": "registry_cordon",
+      "team": 1,
+      "zoneId": "marker_eleven",
+      "behavior": "defend",
+      "units": 3,
+      "pursuitRadius": 360
+    }
+  ]
 }

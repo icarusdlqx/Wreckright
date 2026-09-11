@@ -5,7 +5,7 @@
   "class": "assault",
   "tonnage": 100,
   "baseCost": 29500000,
-  "engineRating": 390,
+  "engineRating": 375,
   "internalHeatSinks": 20,
   "jumpCapable": false,
   "hardpoints": {
@@ -94,8 +94,16 @@
     "legLength": 0.94,
     "stance": 1.12
   },
-  "role": "Sealed juggernaut",
-  "summary": "A fast assault skirmisher behind a seamless shell. Four cycling emitters track well inside two hundred metres, then heat and distance take their price.",
-  "lore": "The PLV stands just under the depot roof and was stored without a cradle, feet set directly in the floor. Its two paired emitter banks are sealed into the upper shell; there are no access plates and no alignment marks. Compact manuals describe a five-minute exchange of the complete upper hull. Tessell has no crane that can do it. An intact Pallvault crosses a firing lane before heavier machines have turned. A damaged one is a source of parts for the next.",
-  "traits": []
+  "role": "Assault skirmisher",
+  "summary": "Paired burst-emitter arms close behind full assault plate. A central plasma rifle pressures enemy reactors while compound cooling supports repeated salvos.",
+  "lore": "A Pallvault carries its command enclosure below a broad armoured crown. Restoration crews reduced the engine package slightly to restore full assault plate and a central plasma rifle alongside the paired burst-emitter arms. Compound exchangers support the resulting battery without ammunition bins. It remains unusually mobile for its weight, but the procession still needs room to turn. The Continuance calls the armour ceremonial. The crews who return with it missing know what it costs.",
+  "traits": [],
+  "strengths": [
+    "Heavy armour and accurate burst batteries",
+    "Central plasma remains after an arm is lost"
+  ],
+  "weaknesses": [
+    "Full battery works best at medium and close range",
+    "Expensive repairs and replacement emitters"
+  ]
 }

@@ -26,6 +26,10 @@ export function buildMissileWeapon(context: WeaponBuildContext): WeaponBuildPart
   );
   const bore = Math.min(height / rows, width / columns) * (family === 'missile-heavy' ? 0.38 : 0.29);
   const pitch = family === 'missile-loft' ? -0.11 : 0;
+  housing.geometry.computeBoundingBox();
+  const housingFront = housing.geometry.boundingBox?.max.x ?? depth * 0.5;
+  // Keep existing mouths unless the bevel would bury their complete front disc.
+  const tubeX = Math.max(depth * 0.54, housingFront - 0.035 * context.scale);
   const tubes = cylinderInstances(
     'missile-tubes',
     count,
@@ -37,7 +41,7 @@ export function buildMissileWeapon(context: WeaponBuildContext): WeaponBuildPart
       const row = Math.floor(index / columns);
       const column = index % columns;
       return {
-        x: depth * 0.54,
+        x: tubeX,
         y: rows === 1 ? 0 : (row / (rows - 1) - 0.5) * height * 0.7,
         z: columns === 1 ? 0 : (column / (columns - 1) - 0.5) * width * 0.7,
         pitch,
@@ -49,7 +53,7 @@ export function buildMissileWeapon(context: WeaponBuildContext): WeaponBuildPart
   context.root.add(aperture);
   return {
     breechX: -depth * 0.56,
-    muzzleX: Math.max(depth * 0.64, depth * 0.54 + 0.045 * context.scale),
+    muzzleX: Math.max(depth * 0.64, tubeX + 0.045 * context.scale),
     aperture,
     apertureTravel: family === 'missile-seeker' ? 0.16 : 0.38,
   };

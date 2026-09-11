@@ -12,10 +12,11 @@ import {
   prepareDeployment,
   runMission,
   startCampaign,
+  type MissionRun,
 } from './campaign';
 import { applyRefit, fitFromStore, refitInventory, stripToStore } from './refit';
 import { estimateRepair, startRepair } from './repair';
-import { availableXp, raiseSkill, skillCost, SKILLS } from './roster';
+import { availableXp, raiseSkill, skillCost, SKILLS, traitFactor } from './roster';
 import { startFreshCampaign } from './freshness';
 import { deserialiseCampaign, serialiseCampaign } from './save';
 import { sideContracts } from './sidework';
@@ -28,7 +29,7 @@ function start(seed: string): CampaignState {
 }
 
 /** Accepts the most salvage-heavy terms available on a node and fights it. */
-function fightNode(state: CampaignState, nodeId: string): void {
+function fightNode(state: CampaignState, nodeId: string): MissionRun {
   const node = availableNodes(catalog, state).find((entry) => entry.id === nodeId);
   if (node === undefined) throw new Error(`node ${nodeId} is not available`);
 
@@ -38,7 +39,7 @@ function fightNode(state: CampaignState, nodeId: string): void {
 
   const accepted = acceptContract(catalog, state, nodeId, salvageHeavy.id);
   expect(accepted.ok, accepted.reason ?? '').toBe(true);
-  runMission(catalog, state);
+  return runMission(catalog, state);
 }
 
 /** Waits out the infirmary until somebody can climb into a cockpit again. */
@@ -69,6 +70,8 @@ let state: CampaignState;
 
 beforeEach(() => {
   state = start('refit');
+  // Inventory transactions below explicitly supply the stock they exercise.
+  state.store = [];
 });
 
 describe('campaign freshness', () => {
@@ -319,11 +322,34 @@ describe('deployment', () => {
 
 describe('pilot progression', () => {
   it('banks a real drop award, accepts one chosen skill, and saves it', () => {
-    fightNode(state, 'militia_raid');
+    const initialXp = new Map(state.pilots.map((pilot) => [pilot.id, availableXp(pilot)]));
+    const fieldXp = new Map<string, number>();
+    function fightAndCheckAward(nodeId: string): void {
+      const before = new Map(state.pilots.map((pilot) => [pilot.id, structuredClone(pilot)]));
+      const { battle, outcome } = fightNode(state, nodeId);
+      const rules = catalog.rules.economy.xp;
+      const objectives = catalog.missions.get(battle.missionId)!.objectives;
+      const completed = objectives.filter((objective) => objective.team === 0 &&
+        battle.objectives.some((entry) => entry.id === objective.id && entry.status === 'complete'));
+      const shared = (outcome.won ? rules.sharedMissionWin : 0) + Math.min(rules.sharedObjectiveCap,
+        completed.reduce((sum, objective) => sum + (objective.required ? rules.perRequiredObjective : rules.perOptionalObjective), 0));
+      for (const report of outcome.pilotReports) {
+        const pilot = before.get(report.pilotId)!;
+        const unit = battle.units.find((entry) => entry.team === 0 && entry.pilotId === pilot.templateId)!;
+        const combat = Math.round((unit.damageDealt * rules.perDamageDealt + unit.shotsHit * rules.perHit +
+          unit.kills * rules.perKill + (unit.alive || unit.withdrew ? rules.missionSurvival : 0) +
+          (outcome.won ? rules.missionWin : 0)) * traitFactor(catalog, pilot, 'xpFactor'));
+        expect(report.sharedXp).toBe(shared);
+        expect(report.xp).toBe(combat + shared);
+        expect(report.xpBanked).toBe(availableXp(pilot) + combat + shared);
+        fieldXp.set(pilot.id, (fieldXp.get(pilot.id) ?? 0) + report.xp);
+      }
+    }
+    fightAndCheckAward('militia_raid');
     expect(state.history[0]?.won).toBe(true);
     repairAll(state);
     waitForCrew(state);
-    fightNode(state, 'supply_line');
+    fightAndCheckAward('supply_line');
 
     expect(state.pilots.every((pilot) => pilot.spentXp === 0)).toBe(true);
     const trainee = state.pilots.find(
@@ -337,18 +363,21 @@ describe('pilot progression', () => {
     ).toBeDefined();
     if (trainee === undefined) return;
 
-    const report = [...state.history]
-      .reverse()
-      .flatMap((outcome) => outcome.pilotReports)
-      .find((entry) => entry.pilotId === trainee.id);
-    expect(report?.xpBanked).toBe(availableXp(trainee));
+    // Reports close before the return-day story. A later rumour award belongs
+    // in the bank, but must not rewrite the pilot's completed field report.
+    const restXp = state.log.filter((entry) => entry.text.startsWith('Rest day — ') &&
+      entry.text.includes(`${trainee.name} gains `))
+      .reduce((sum, entry) => sum + Number(entry.text.match(/gains (\d+) XP\.$/)?.[1] ?? 0), 0);
+    expect(availableXp(trainee)).toBe((initialXp.get(trainee.id) ?? 0) + (fieldXp.get(trainee.id) ?? 0) + restXp);
     const chosen = SKILLS.find(
       (skill) => availableXp(trainee) >= skillCost(catalog, trainee[skill]),
     );
     if (chosen === undefined) throw new Error('the trainable pilot has no affordable skill');
     const before = trainee[chosen];
+    const bankBeforeTraining = availableXp(trainee);
 
     expect(raiseSkill(catalog, trainee, chosen).ok).toBe(true);
+    expect(availableXp(trainee)).toBe(bankBeforeTraining - skillCost(catalog, before));
     const restored = deserialiseCampaign(serialiseCampaign(state)).state;
     expect(restored?.pilots.find((pilot) => pilot.id === trainee.id)?.[chosen]).toBe(before + 1);
   });

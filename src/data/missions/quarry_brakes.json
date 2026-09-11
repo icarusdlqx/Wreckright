@@ -3,7 +3,7 @@
   "name": "Recovery — Blackglass Quarry",
   "type": "base_capture",
   "mapId": "blackglass_quarry",
-  "briefing": "Sarn’s service plate shows Kestrel moved a bone-white wreck through Blackglass under a number assigned to slag. Take the west brake, lift table and east brake, then hold all three for thirty seconds while the root attestation copies. The rim has the sightlines; the floor has the controls.",
+  "briefing": "Sarn’s service plate shows Kestrel moved a bone-white wreck through Blackglass under a number assigned to slag. Take the west brake, lift table and east brake, then hold all three for thirty seconds while the root attestation copies. The rim has the sightlines; the floor has the controls. Local lift guards have Aurelian support, with a single heavy machine held in reserve.",
   "maxDurationSeconds": 600,
   "startingResourcePoints": 700,
   "dropTonnage": 240,
@@ -43,7 +43,7 @@
       "name": "Kestrel Lift Section",
       "units": [
         {
-          "designId": "sentinel_brawler",
+          "designId": "rivet_escort",
           "pilotId": "anja_verrin",
           "spawn": { "x": 708, "y": 636 },
           "facingDegrees": 135
@@ -150,7 +150,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Kestrel relief on the north-east rim. Hold the brake cabinets while the root attestation copies."
+          "text": "Kestrel heavy relief on the north-east rim. Hold the brake cabinets while the root attestation copies."
         },
         {
           "type": "spawn",
@@ -160,12 +160,6 @@
               "designId": "halberd_prime",
               "pilotId": "tomas_arvel",
               "spawn": { "x": 1260, "y": 84 },
-              "facingDegrees": 135
-            },
-            {
-              "designId": "votive_picket",
-              "pilotId": "oksana_valev",
-              "spawn": { "x": 1188, "y": 84 },
               "facingDegrees": 135
             }
           ]
@@ -189,6 +183,32 @@
           "text": "Attestation copied. Sarn has the root record; finish the field account."
         }
       ]
+    }
+  ],
+  "enemyDirectives": [
+    {
+      "id": "west_brake_guard",
+      "team": 1,
+      "zoneId": "west_brake",
+      "behavior": "defend",
+      "units": 1,
+      "pursuitRadius": 260
+    },
+    {
+      "id": "lift_intercept",
+      "team": 1,
+      "zoneId": "lift_table",
+      "behavior": "intercept",
+      "units": 2,
+      "pursuitRadius": 300
+    },
+    {
+      "id": "east_brake_relief",
+      "team": 1,
+      "zoneId": "east_brake",
+      "behavior": "retake",
+      "units": 3,
+      "pursuitRadius": 340
     }
   ]
 }

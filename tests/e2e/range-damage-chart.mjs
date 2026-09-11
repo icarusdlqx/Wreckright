@@ -49,11 +49,13 @@ async function openFixture(browser, url, viewport) {
   await page.locator('[data-testid="home-skirmish"]').click();
   await page.waitForSelector('[data-testid="briefing"]');
   await page.waitForFunction(() => globalThis.__wreckright?.useGame.getState().ready === true);
+  await page.getByTestId('briefing-faction-picker').selectOption('linewrought');
   const berth = page.locator('[data-testid="berth-design-0"]');
   await berth.selectOption('saved:e2e_range_cairn');
   await page.waitForFunction(
     () => document.querySelector('[data-testid="berth-design-0"]')?.value === 'custom',
   );
+  await page.waitForFunction(() => globalThis.__wreckright?.world.entities.some(entity => entity.designId === 'e2e_range_cairn'));
   await page.locator('[data-testid="berth-customise-0"]').click();
   await page.waitForSelector('[data-testid="outfit-bay"]');
   const inspect = page.getByRole('button', { name: 'Inspect Longshot 10', exact: true });
@@ -73,6 +75,12 @@ export async function runRangeDamageChartChecks({ browser, url, shots, check }) 
     const run = await openFixture(browser, url, viewport);
     try {
       const prefix = `${viewport.label} range chart`;
+      check(`${prefix} uses a legal Linewrought mech fixture`, await run.page.getByTestId('bay-save').isEnabled() && await run.page.evaluate(() => {
+        const world = globalThis.__wreckright.world;
+        const mech = world.entities.find(entity => entity.designId === 'e2e_range_cairn');
+        const chassis = world.catalog.chassis.get(mech?.chassisId);
+        return chassis?.frame === 'mech' && chassis.faction === 'linewrought';
+      }));
       const inspected = run.chart.locator('svg[data-chart="inspected"]');
       const loadout = run.chart.locator('svg[data-chart="loadout"]');
       const descriptions = await run.chart.locator('desc').allTextContents();

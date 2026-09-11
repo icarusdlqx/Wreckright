@@ -7,5 +7,45 @@
   "traits": [
     "spotter"
   ],
-  "bio": "Ran a relay mast for eleven years and can tell a lance from a convoy by the shape of the return alone."
+  "bio": "Ran a relay mast for eleven years and can tell a lance from a convoy by the shape of the return alone.",
+  "portrait": {
+    "skin": "#c4976f",
+    "hair": "#807365",
+    "jacket": "#3f635b",
+    "accent": "#efb56b",
+    "style": "crop",
+    "face": "long",
+    "detail": "earpiece",
+    "expression": "calm",
+    "kit": "flight_vest",
+    "accessory": "headset",
+    "age": "veteran"
+  },
+  "personality": {
+    "label": "Patient listener",
+    "description": "Hears patterns in static. Unhurried and reassuring, with a relay operator\u2019s dislike of chatter.",
+    "lines": {
+      "move": [
+        "Reading you clearly. Moving.",
+        "Route received. Keeping the channel open."
+      ],
+      "attack": [
+        "Signal steady. Engaging.",
+        "Target confirmed. Short transmission."
+      ],
+      "guard": [
+        "Listening from here. I will call what matters."
+      ],
+      "hold_fire": [
+        "Weapons quiet. Easier to listen."
+      ],
+      "investigate": [
+        "There is a pattern in that return. Going to check."
+      ],
+      "heavy_fire": [
+        "Heavy impacts on my hull. Requesting cover.",
+        "Signal is fine. Armour is not. I need relief."
+      ]
+    }
+  }
 }

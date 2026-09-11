@@ -2,96 +2,131 @@
   "id": "depot_burn",
   "name": "Manifest — Burn",
   "type": "assault",
-  "mapId": "foundry_district",
-  "briefing": "Halloran's fee ends at the depot doors. Take the purge station, clear Kestrel's guard, and arm the thermal bank under the archive floor. When it fires, the sealed stock and master root manifest burn together. The evidence goes; so does certified service.",
+  "mapId": "barrow_archive",
+  "briefing": "Purge the manifest. Take the public and freight purge controls, then hold the freight bank while deletion runs. Commitment brings a stronger response. The purge also destroys local maintenance history.",
   "maxDurationSeconds": 480,
   "startingResourcePoints": 800,
   "lances": [
     {
       "team": 0,
-      "name": "Depot Entry Lance",
+      "name": "Linewrought Company",
       "units": [
         {
           "designId": "hornet_spotter",
           "pilotId": "kessa_vale",
-          "spawn": { "x": 36, "y": 36 },
-          "facingDegrees": 45
+          "spawn": {
+            "x": 204,
+            "y": 1212
+          },
+          "facingDegrees": -45
         },
         {
           "designId": "bulwark_assault",
           "pilotId": "dorn_hess",
-          "spawn": { "x": 108, "y": 36 },
-          "facingDegrees": 45
+          "spawn": {
+            "x": 228,
+            "y": 1212
+          },
+          "facingDegrees": -45
         },
         {
           "designId": "hornet_spotter",
           "pilotId": "marek_sud",
-          "spawn": { "x": 180, "y": 36 },
-          "facingDegrees": 45
+          "spawn": {
+            "x": 252,
+            "y": 1212
+          },
+          "facingDegrees": -45
         },
         {
           "designId": "cairn_battery",
           "pilotId": "ilse_brant",
-          "spawn": { "x": 252, "y": 36 },
-          "facingDegrees": 45
+          "spawn": {
+            "x": 228,
+            "y": 1140
+          },
+          "facingDegrees": -45
         }
       ]
     },
     {
       "team": 1,
-      "name": "Kestrel Depot Guard",
+      "name": "Archive Purge Guard",
       "units": [
         {
-          "designId": "votive_picket",
-          "pilotId": "anja_verrin",
-          "spawn": { "x": 636, "y": 636 },
-          "facingDegrees": -135
-        },
-        {
           "designId": "sentinel_brawler",
-          "pilotId": "corin_dast",
-          "spawn": { "x": 708, "y": 636 },
-          "facingDegrees": -135
+          "pilotId": "anja_verrin",
+          "spawn": {
+            "x": 1116,
+            "y": 300
+          },
+          "facingDegrees": 135
         },
         {
-          "designId": "wisp_scout",
+          "designId": "falchion_duellist",
+          "pilotId": "corin_dast",
+          "spawn": {
+            "x": 1044,
+            "y": 300
+          },
+          "facingDegrees": 135
+        },
+        {
+          "designId": "votive_picket",
           "pilotId": "leda_morcant",
-          "spawn": { "x": 852, "y": 636 },
-          "facingDegrees": -135
+          "spawn": {
+            "x": 1188,
+            "y": 372
+          },
+          "facingDegrees": 135
         }
       ]
     }
   ],
   "zones": [
     {
-      "id": "purge_station",
-      "name": "Archive Purge Bank",
-      "x": 492,
-      "y": 492,
-      "radius": 76,
+      "id": "public_purge",
+      "name": "Public Purge Control",
+      "x": 444,
+      "y": 732,
+      "radius": 58,
       "owner": 1,
       "captureSeconds": 10,
-      "resourcePoints": 250
+      "resourcePoints": 0
+    },
+    {
+      "id": "freight_purge",
+      "name": "Freight Purge Bank",
+      "x": 876,
+      "y": 444,
+      "radius": 58,
+      "owner": 1,
+      "captureSeconds": 10,
+      "resourcePoints": 0
     }
   ],
   "objectives": [
     {
       "id": "arm_purge_train",
-      "label": "Take the archive purge bank",
+      "label": "Arm both separated purge controls",
       "type": "capture_zones",
       "team": 0,
       "required": true,
       "zoneIds": [
-        "purge_station"
-      ],
-      "resourcePoints": 200
+        "public_purge",
+        "freight_purge"
+      ]
     },
     {
-      "id": "clear_depot_guard",
-      "label": "Destroy the Kestrel depot guard",
-      "type": "destroy_all",
+      "id": "run_archive_purge",
+      "label": "Hold the freight bank until deletion completes",
+      "type": "hold_zones",
       "team": 0,
-      "required": true
+      "required": true,
+      "zoneIds": [
+        "freight_purge"
+      ],
+      "holdSeconds": 42
     },
     {
       "id": "lance_survives",
@@ -104,45 +139,83 @@
   "triggers": [
     {
       "id": "vault_opens",
-      "when": { "type": "elapsed", "seconds": 2 },
+      "when": {
+        "type": "elapsed",
+        "seconds": 3
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Vault door moving. One hundred-tonne sealed contact coming out of storage."
+          "text": "Two purge controls. Arm both; the freight bank must remain held while deletion runs.",
+          "speakerPilotId": "ilse_brant"
+        }
+      ]
+    },
+    {
+      "id": "purge_response",
+      "when": {
+        "type": "objective_complete",
+        "objectiveId": "arm_purge_train"
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Purge committed. Heavy contractor response from the north freight gate.",
+          "speakerPilotId": "dorn_hess"
         },
         {
           "type": "spawn",
           "team": 1,
           "units": [
             {
-              "designId": "pallvault_procession",
-              "pilotId": "tomas_arvel",
-              "spawn": { "x": 780, "y": 660 },
-              "facingDegrees": -135
+              "designId": "halberd_prime",
+              "pilotId": "mira_solvang",
+              "spawn": {
+                "x": 660,
+                "y": 60
+              },
+              "facingDegrees": 90
             }
           ]
         },
         {
           "type": "reveal",
-          "x": 780,
-          "y": 660,
-          "radius": 180,
-          "seconds": 24
+          "x": 696,
+          "y": 60,
+          "radius": 250,
+          "seconds": 30
         }
       ]
     },
     {
-      "id": "purge_armed",
-      "when": { "type": "zone_captured", "zoneId": "purge_station", "team": 0 },
+      "id": "purge_complete",
+      "when": {
+        "type": "objective_complete",
+        "objectiveId": "run_archive_purge"
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Purge bank armed. Clear the guard and the root manifest burns with the storage floor."
+          "text": "The manifest and the maintenance history tied to it are gone. Barrow’s record room is dark.",
+          "speakerPilotId": "kessa_vale"
         }
       ]
     }
   ],
-  "dropTonnage": 255
+  "dropTonnage": 255,
+  "maxPlayerUnits": 5,
+  "atmosphereId": "ash_dusk",
+  "enemyDirectives": [
+    {
+      "id": "purge_counterattack",
+      "team": 1,
+      "zoneId": "freight_purge",
+      "behavior": "retake",
+      "units": 4,
+      "pursuitRadius": 620
+    }
+  ]
 }

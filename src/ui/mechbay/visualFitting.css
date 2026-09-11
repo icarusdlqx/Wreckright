@@ -1,0 +1,236 @@
+.bay.bay--workspace .slot-boxes {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  min-width: 0;
+  padding: 2px 0;
+  overflow: visible;
+}
+
+.bay.bay--workspace .slot-boxes .rack-cell {
+  box-sizing: border-box;
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: .82;
+}
+
+.bay.bay--workspace .slot-block.empty .rack-cell,
+.bay.bay--workspace .fitting-box-key__free .rack-cell {
+  border-style: dashed;
+  background: transparent;
+  opacity: .68;
+}
+
+.bay.bay--workspace .slot-block.empty .rack-cell--incoming {
+  border-style: solid;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 23%, transparent);
+  opacity: 1;
+}
+
+.bay.bay--workspace .weapon-card__pick {
+  grid-template-areas: 'identity' 'footprint' 'stats' 'fit';
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  cursor: grab;
+}
+
+.bay.bay--workspace .weapon-card__pick[aria-disabled='true'] { cursor: default; }
+.bay.bay--workspace .weapon-card__pick:active { cursor: grabbing; }
+
+.weapon-card__footprint {
+  grid-area: footprint;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  color: var(--text);
+  font-size: 10px;
+}
+
+.weapon-card__boxes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--weapon-faction, var(--accent));
+}
+
+.weapon-card__boxes strong { flex: none; font-size: 11px; }
+
+.bay.bay--workspace .weapon-card__fit {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 0 0;
+  border: 0;
+  border-top: 1px solid var(--edge);
+}
+
+.bay.bay--workspace .weapon-card__fit strong { flex: none; font-size: 10px; }
+.bay.bay--workspace .weapon-card__fit > span { font-size: 10px; }
+
+.bay.bay--workspace .bay-hardpoints {
+  gap: 4px;
+  margin: 0 0 3px;
+  align-items: center;
+}
+
+.bay.bay--workspace .bay-hardpoints .pip {
+  padding: 2px 4px;
+  border: 1px solid var(--edge);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.bay.bay--workspace .bay-hardpoints .pip.energy { color: #275d57; }
+.bay.bay--workspace .bay-hardpoints .pip.ballistic { color: #655127; }
+.bay.bay--workspace .bay-hardpoints .pip.missile { color: #81422e; }
+.bay.bay--workspace .bay-hardpoints .pip.over { color: var(--danger); }
+.bay-mounts-none { color: var(--muted); font-size: 10px; }
+
+.bay.bay--workspace .location-overview .slot-block.empty {
+  padding: 7px;
+  border-style: dashed;
+  gap: 4px;
+}
+
+.bay.bay--workspace .bay-location .rack-free-count {
+  display: block;
+  font-size: 10px;
+}
+
+.bay.bay--workspace .bay-location.compatible .slot-block.empty {
+  background: color-mix(in srgb, var(--accent) 6%, var(--panel));
+  border-color: var(--accent);
+}
+
+.bay.bay--workspace .bay-location.compatible.hovered {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.rack-drop-preview {
+  color: var(--accent);
+  font-size: 10px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.fitting-box-key {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 12px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.fitting-box-key > span { display: inline-flex; align-items: center; gap: 5px; }
+
+.fitting-mass-warning {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--warn);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  .bay.bay--workspace .slot-boxes .rack-cell { width: 16px; height: 16px; flex-basis: 16px; }
+  .bay.bay--workspace .bay-location .rack-free-count,
+  .weapon-card__footprint, .rack-drop-preview { font-size: 11px; }
+  .bay.bay--workspace .weapon-card__pick { min-height: 44px; }
+}
+
+@media (forced-colors: active) {
+  .bay.bay--workspace .slot-boxes .rack-cell { forced-color-adjust: none; color: CanvasText; }
+  .bay.bay--workspace .slot-block.empty .rack-cell--incoming { color: Highlight; }
+  .bay.bay--workspace .bay-hardpoints .pip { color: CanvasText; }
+}
+
+/* Identical box units connect the store footprint to the automatically packed rack. */
+.bay.bay--workspace .slot-boxes,
+.bay.bay--workspace .rack-capacity {
+  --box-size: 15px;
+  display: grid;
+  grid-template-columns: repeat(var(--box-columns), var(--box-size));
+  grid-auto-rows: var(--box-size);
+  gap: 3px;
+  width: max-content;
+  max-width: 100%;
+  flex: none;
+  align-self: center;
+  overflow: visible;
+}
+.bay.bay--workspace .rack-capacity .rack-cell {
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: var(--box-size);
+  height: var(--box-size);
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  font: 700 8px/1 var(--font-mono);
+  font-style: normal;
+}
+.bay.bay--workspace .slot-block.empty .rack-capacity .rack-capacity__used { color: #fcfaf1; border-style: solid; background: #39776c; opacity: 1; }
+.bay.bay--workspace .slot-block.empty .rack-capacity .rack-capacity__used.tone-ballistic { background: #98743d; }
+.bay.bay--workspace .slot-block.empty .rack-capacity .rack-capacity__used.tone-missile { background: #a45840; }
+.bay.bay--workspace .slot-block.empty .rack-capacity .rack-capacity__used.tone-ammo { background: #716243; }
+.bay.bay--workspace .slot-block.empty .rack-capacity .rack-capacity__used.tone-gear { background: #597889; }
+.bay.bay--workspace .rack-capacity__free { border-style: dashed !important; background: transparent; color: #6b857c; }
+.bay.bay--workspace .rack-capacity .rack-cell--incoming { border-style: solid !important; background: #b8e4bd; color: #245f46; box-shadow: inset 0 0 0 1px #245f46; }
+.bay.bay--workspace .bay-location .slot-block.empty {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 9px;
+  min-height: 52px;
+}
+/* Reserve the preview line so a rack cannot grow away from the pointer on pickup. */
+.bay-location .slot-block.empty .rack-drop-space { grid-column: 1 / -1; }
+.bay.bay--workspace .bay-location .rack-free-count { height: auto; white-space: normal; }
+.bay.bay--workspace .slot-block:has(.slot-block__move) { grid-template-columns: minmax(0, 1fr) 44px 44px; }
+.bay.bay--workspace .slot-block__inspect {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+}
+.bay.bay--workspace .slot-block__inspect[draggable='true'] { cursor: grab; }
+.bay.bay--workspace .slot-block__inspect[draggable='true']:active { cursor: grabbing; }
+.bay.bay--workspace .slot-block__inspect .fitted-part__identity { display: grid; gap: 3px; white-space: normal; }
+.fitted-part__identity strong { font-weight: 600; }
+.fitted-part__identity > span { font-size: 9px; color: var(--muted); }
+.bay.bay--workspace .slot-block__move,
+.bay.bay--workspace .slot-block__remove { min-height: 44px; min-width: 44px; padding: 4px; font-size: 9px; }
+.bay.bay--workspace .slot-block__move { border: 0; border-left: 1px solid var(--edge); background: transparent; color: var(--accent); }
+.bay.bay--workspace .weapon-card__pick { grid-template-areas: 'identity' 'footprint' 'ammo' 'stats' 'fit'; }
+.weapon-card__ammunition { grid-area: ammo; display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 7px; font-size: 10px; line-height: 1.35; color: var(--muted); }
+.weapon-card__ammunition strong { color: #6c542c; font-size: 10px; }
+.weapon-card__ammunition.is-energy strong { color: #2e7060; }
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  .bay.bay--workspace .slot-boxes, .bay.bay--workspace .rack-capacity { --box-size: 16px; }
+  .bay.bay--workspace .slot-block__inspect { min-height: 56px; }
+  .fitted-part__identity > span, .weapon-card__ammunition { font-size: 11px; }
+}
+@media (forced-colors: active) {
+  .bay.bay--workspace .slot-block.empty .rack-capacity .rack-capacity__used { color: Canvas; background: CanvasText; forced-color-adjust: none; }
+  .bay.bay--workspace .rack-capacity__free { color: CanvasText; }
+  .bay.bay--workspace .rack-capacity .rack-cell--incoming { color: HighlightText; background: Highlight; }
+}
+
+.stock-box-footprint { display: flex; align-items: center; gap: 7px; font-size: 10px; color: var(--accent); }
+
+@media (max-width: 520px) {
+  /* Full names and two 44px actions need one rack per row on a phone. */
+  .bay.bay--workspace .location-overview { grid-template-columns: minmax(0, 1fr); }
+  .bay.bay--workspace .location-overview > .bay-location { min-height: 0; }
+}

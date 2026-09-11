@@ -1,0 +1,27 @@
+.field-radio { position: absolute; z-index: 8; top: 94px; left: 50%; transform: translateX(-50%); width: min(390px, calc(100vw - 32px)); box-sizing: border-box; display: flex; gap: 10px; padding: 12px; border: 1px solid #88ad9e; border-left: 4px solid #7ea797; border-radius: 5px; background: #14343bee; box-shadow: 0 8px 24px #102a3040; color: #edf3df; pointer-events: none; }
+.field-radio .pilot-portrait { flex: 0 0 48px; width: 48px; height: 60px; }
+.field-radio__mark { font: 36px var(--font-display); color: #92c4b3; }
+.field-radio > div { flex: 1; min-width: 0; }
+.field-radio__channel { display: block; color: #91beae; font: 9px var(--font-mono); text-transform: uppercase; letter-spacing: .08em; }
+.field-radio strong { display: block; margin: 3px 0; font: 600 17px var(--font-display); }
+.field-radio p { margin: 0; font: 12px/1.45 var(--font-body); }
+.field-radio button { pointer-events: auto; align-self: start; color: #dce9d7; background: transparent; border: 0; min-width: 28px; min-height: 28px; cursor: pointer; }
+.field-radio--urgent { border-color: #e2a266; }
+.field-radio--urgent .field-radio__channel { color: #e9b57d; }
+@media (max-width: 760px), (max-width: 1100px) and (pointer: coarse) { .field-radio { top: 102px; width: min(350px, calc(100vw - 24px)); padding: 9px; } .field-radio button { min-width: 44px; min-height: 44px; } }
+@media (forced-colors: active) { .field-radio { border: 1px solid CanvasText; color: CanvasText; background: Canvas; } }
+.command-intent { margin: 10px 0; padding: 9px 10px; border-left: 3px solid #80b9a5; background: #80b9a511; }
+.command-intent strong { font-size: 12px; color: #dae9d8; }
+.command-intent p { margin: 4px 0 0; color: #aac6bd; font-size: 10px; line-height: 1.45; }
+.command-intent--warn { border-color: #dca466; background: #dca46612; }
+.field-hint { padding: 10px; border: 1px solid #708e70; background: #65836520; margin: 8px 0; }
+.field-hint strong { font-size: 11px; color: #dce8cd; }
+.field-hint p { font-size: 10px; line-height: 1.5; color: #b4c9b5; }
+.field-hint button { min-height: 32px; background: transparent; border: 1px solid #789b86; color: #dfebd8; cursor: pointer; }
+.order-guide { width: 100%; padding-top: 8px; color: #d4e2d3; font-size: 11px; }
+.order-guide summary { cursor: pointer; min-height: 32px; }
+.order-guide dl { max-height: 280px; overflow: auto; margin: 0; }
+.order-guide dl > div { border-top: 1px solid #ffffff20; padding: 8px 0; }
+.order-guide dt { font-weight: 700; }
+.order-guide dd { margin: 3px 0 0; line-height: 1.5; }
+.active-order-help { flex-basis: 100%; margin: 4px 0 0; color: #b9d1c3; font-size: 10px; line-height: 1.4; }

@@ -1,14 +1,16 @@
 {
   "id": "the_sealed",
-  "title": "The Sealed",
+  "title": "Aurelian Stock",
   "order": 6,
   "unlockNodeId": "pass_skirmish",
-  "summary": "Aurelian Stock is what a serialized root looks like before a century of local hands changes it.",
+  "knownByCampaigns": ["aurelian_recall"],
+  "summary": "Factory-fresh armour over inherited roots, advanced emitters and crews taught that a workshop rebuild is beneath them.",
   "body": [
-    "The Aurelian Compact did not build field machines for Tessell. It built them for a workforce expected to leave. Their reactors were sealed, their weapons drew from capacitors, and their shells carried no access panels because maintenance belonged inside a depot, not beside a road.",
-    "When the charter lapsed, the Compact shipped what it could and closed the rest behind coded doors. The doors stayed shut for nearly a century. Machines found outside them were opened with torches, rebuilt in walker yards and made Linewrought. Machines found inside still carry the factory seals. They are Aurelian Stock: the sealed, or coldstock when nobody from Sarn is listening.",
-    "They have no ammunition to exhaust and more armour than their weight should carry. Their heat stores deep, then arrives all at once. A pilot can fire through the warning marks and discover that a machine which never seemed hot has stopped answering.",
+    "Aurelian Stock is the Continuance service standard: fitted armour, calibrated actuators, modern optics and advanced emitters. Some walkers have just left an overhaul dock; others came out of Compact depots with their preservation paint intact. Both can look new. Their serialized roots are inherited. The service works can renew a machine around its root, but cannot manufacture another one.",
+    "Aurelian crews are taught that precise maintenance proves fitness to possess a walker. They call a mismatched plate evidence and a welded feed housing a liability. Their contempt for Linewrought often survives the first battle and rarely survives the first recovery by a Tessellan tow crew. Not every Aurelian believes the doctrine; enough do to make it dangerous.",
+    "Their usual advantage is concentrated technology: compact lasers, refined tracking and particle weapons that deliver useful firepower without ammunition bins. That advantage costs heat and rare replacements. The rack still has physical limits, a burst emitter can be less efficient than a simple laser, and a sustained missile battery can outgun an overheated premium machine.",
+    "A Sentinel with a workshop autocannon or a Halberd carrying missile racks is a mixed service refit. Shared root standards permit it. The gun retains its full performance, but occupies a suitable mount and needs bins, ammunition weight and a supply line. Custodians who publicly dismiss Linewrought guns have been known to fit them after their second empty parts shipment.",
     "The Recall Authority brought service readers that can attest a root serial and open a certified dock. A reader cannot start a reactor, turn a hip, move a gun or locate a walker that has not been presented to it. There was no dormant command waiting inside the cockpit for the Continuance to speak.",
-    "Nobody on Tessell can make a sealed capacitor or open a reactor case and close it alive. Damage that takes days on a welded machine takes weeks on coldstock, if it can be repaired at all. There is no market for the parts. The only spare for one Aurelian machine is another Aurelian machine."
+    "Tessell's yards can patch an Aurelian hull and carry out paid service, but the work costs more and takes longer. They cannot manufacture replacement Aurelian weapons and equipment, and the local Yard does not sell them. Recover those components from the field or strip them from another owned machine. Specific contract supply transfers can also release existing stocks; a warrant by itself promises none. A captured laser is a prize because it is useful, not because it becomes easy to replace."
   ]
 }

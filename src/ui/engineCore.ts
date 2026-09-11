@@ -11,6 +11,8 @@ import {
 } from '../sim/types';
 import { toResult, type BattleResult } from '../sim/world';
 import { AudioDirector } from './audio';
+import { endFieldRadio } from './fieldRadio';
+import { clearCommandReceipt } from './commandReceiptState';
 import {
   alphaStrikeSelection,
   attackSelection,
@@ -145,6 +147,8 @@ export class Engine {
   }
 
   destroy(): void {
+    endFieldRadio(this.world);
+    clearCommandReceipt();
     this.running = false;
     this.audio.destroy();
     this.detachInput?.();
@@ -193,6 +197,8 @@ export class Engine {
       this.selectionSet = new Set(state.selection);
     }
     const drawStart = performance.now();
+    // Foot contacts are emitted during draw, including after camera movement between sim ticks.
+    this.audio.setListener(this.renderer.camera.target, this.renderer.camera.azimuth, this.renderer.camera.distance);
     this.renderer.draw(
       this.world,
       alpha,
@@ -361,6 +367,7 @@ export class Engine {
   useAbilities(): void {
     this.hudDirty = true;
     useSelectionAbilities(this);
+    this.presentation.presentEvents();
   }
 
   alphaStrike(): void {
@@ -392,6 +399,7 @@ export class Engine {
     const team = this.world.playerTeam ?? 0;
     const result = callSupport(this.world, team, call, target, this.headingFor(target, runTo));
     if (!result.ok && result.reason !== null) useGame.getState().pushLog(result.reason);
+    if (result.ok) this.presentation.presentEvents();
     return result;
   }
 

@@ -169,6 +169,8 @@ export const SalvageRulesSchema = z.strictObject({
 
 export const EconomyRulesSchema = z.strictObject({
   id: z.literal('economy'),
+  deployment: z.strictObject({ normalUnitLimit: z.number().int().positive().max(12) }),
+  campaignRewards: z.strictObject({ repairDayBankLimit: z.number().int().positive().max(7) }),
   negotiation: z.strictObject({
     payoutFloorFactor: z.number().positive().max(1),
     payoutCeilingFactor: z.number().min(1).max(4),
@@ -200,6 +202,7 @@ export const EconomyRulesSchema = z.strictObject({
     salaryPerDay: z.number().nonnegative(),
     injuryDaysBase: z.number().int().nonnegative(),
     injuryDaysPerWound: z.number().int().nonnegative(),
+    recoveryMissions: z.number().int().positive().max(3),
     injuryChanceOnMechLoss: Probability,
     deathChanceOnMechLoss: Probability,
   }),
@@ -209,6 +212,10 @@ export const EconomyRulesSchema = z.strictObject({
     perKill: z.number().nonnegative(),
     missionSurvival: z.number().nonnegative(),
     missionWin: z.number().nonnegative(),
+    sharedMissionWin: z.number().int().nonnegative(),
+    perRequiredObjective: z.number().int().nonnegative(),
+    perOptionalObjective: z.number().int().nonnegative(),
+    sharedObjectiveCap: z.number().int().nonnegative(),
     skillCostBase: z.number().positive(),
     skillCostGrowth: z.number().min(1).max(5),
   }),

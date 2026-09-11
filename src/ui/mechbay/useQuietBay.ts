@@ -4,23 +4,9 @@ import {
   completeMechbayFitTraining,
   readMechbayFitComplete,
 } from '../trainingProgress';
-import type { DropPayload } from './LocationCard';
+import { parsedDrop, type DropPayload } from './dropPayload';
 
 export type SnapPhase = 0 | 1 | 2;
-
-function parsedDrop(raw: string): DropPayload | null {
-  if (raw === '') return null;
-  try {
-    const value = JSON.parse(raw) as Partial<DropPayload>;
-    if (
-      typeof value.id === 'string'
-      && (value.kind === 'weapon' || value.kind === 'equipment' || value.kind === 'ammo')
-    ) return value as DropPayload;
-  } catch {
-    // Native drags without the game's payload should leave the bay quiet.
-  }
-  return null;
-}
 
 export function useQuietBay(armed: DropPayload | null) {
   const [dragged, setDragged] = useState<DropPayload | null>(null);
@@ -44,7 +30,7 @@ export function useQuietBay(armed: DropPayload | null) {
   };
 
   return {
-    targeting: armed ?? dragged,
+    targeting: dragged ?? armed,
     cultureExpanded,
     guideExpanded,
     snapLocation,

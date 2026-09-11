@@ -12,7 +12,9 @@ const EXPECTED = {
     propTheme: 'industrial',
     tiles: { '.': 1749, '=': 623, r: 203, b: 361, w: 200 },
     elevation: { 0: 2921, 1: 215 },
-    props: { 'props-block': 361, 'props-wreckage': 36 },
+    props: { 'props-block': 359, 'props-wreckage': 36, 'props-relay': 1, 'props-gantry': 1 },
+    ordinaryBatchBudget: 2,
+    instanceBudget: 397,
   },
   blackglass_quarry: {
     name: 'Blackglass Quarry',
@@ -24,9 +26,13 @@ const EXPECTED = {
       'props-tree': 125,
       'props-snag': 55,
       'props-shale': 240,
-      'props-crag': 130,
-      'props-block': 80,
+      'props-crag': 128,
+      'props-block': 79,
+      'props-gantry': 1,
+      'props-spire': 1,
     },
+    ordinaryBatchBudget: 5,
+    instanceBudget: 630,
   },
 } as const;
 
@@ -104,7 +110,7 @@ describe('large battlefields', () => {
     expect(connectivity.passable).toBeGreaterThan(0);
   });
 
-  it.each(Object.entries(EXPECTED))('keeps %s scenery inside its fixed prop batches', (id, expected) => {
+  it.each(Object.entries(EXPECTED))('keeps %s scenery inside its fixed ordinary and landmark budgets', (id, expected) => {
     const map = mapData(id);
     const grid = createTerrainGrid(map, catalog.rules.terrain);
     const layer = new PropLayer(grid, map, () => 0);
@@ -117,6 +123,12 @@ describe('large battlefields', () => {
         ]),
       );
       expect(counts).toEqual(expected.props);
+      // Authored landmarks replace existing scenery: at most two new instanced
+      // draws, with no growth in the original map's total prop instance count.
+      expect(map.landmarks).toHaveLength(2);
+      expect(layer.group.children.every((child) => child instanceof InstancedMesh)).toBe(true);
+      expect(layer.group.children.length).toBeLessThanOrEqual(expected.ordinaryBatchBudget + 2);
+      expect(Object.values(counts).reduce((total, count) => total + count, 0)).toBeLessThanOrEqual(expected.instanceBudget);
     } finally {
       layer.dispose();
     }

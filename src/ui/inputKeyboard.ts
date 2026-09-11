@@ -80,6 +80,11 @@ export function attachBattleKeyboard(
       case 'KeyH':
         engine.toggleHoldFire();
         return;
+      case 'KeyS':
+        engine.orderStop();
+        state.setOrderMode(null);
+        state.patch({ queueOrders: false });
+        return;
       case 'KeyG':
         engine.setPosture('hold_position');
         return;

@@ -8,5 +8,45 @@
     "green",
     "quick_study"
   ],
-  "bio": "Kell signed after one live-fire circuit and asked for another. The instructors disagreed about whether that was courage."
+  "bio": "Kell signed after one live-fire circuit and asked for another. The instructors disagreed about whether that was courage.",
+  "portrait": {
+    "skin": "#8e5d44",
+    "hair": "#212329",
+    "jacket": "#405b69",
+    "accent": "#75bfb8",
+    "style": "locs",
+    "face": "heart",
+    "detail": "earpiece",
+    "expression": "grin",
+    "kit": "harness",
+    "accessory": "bandana",
+    "age": "young"
+  },
+  "personality": {
+    "label": "Fearless spark",
+    "description": "Greets danger with infectious enthusiasm. Still learning that bravery includes backing away.",
+    "lines": {
+      "move": [
+        "New ground! On it.",
+        "Keep up. Actually, I will keep up. Moving."
+      ],
+      "attack": [
+        "There! I have them!",
+        "Another live-fire circuit. Let us go."
+      ],
+      "guard": [
+        "Holding. I can be patient. Watch."
+      ],
+      "hold_fire": [
+        "All right, all right. Fingers off."
+      ],
+      "investigate": [
+        "I will find out! Carefully. Heard you."
+      ],
+      "heavy_fire": [
+        "Okay, that is a lot of fire! Need help!",
+        "Still standing, but this would be a good time for cover."
+      ]
+    }
+  }
 }

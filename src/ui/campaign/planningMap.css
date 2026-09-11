@@ -1,0 +1,24 @@
+.survey-views { display: flex; gap: 6px; padding: 0 20px 14px; }
+.survey-views button { min-height: 36px; padding: 7px 14px; color: var(--exp-ink); background: transparent; border: 1px solid var(--exp-line); border-radius: 4px; cursor: pointer; }
+.survey-views button[aria-pressed="true"] { color: #fffced; background: #285f59; border-color: #285f59; }
+.planning-map { display: grid; grid-template-columns: minmax(0, 1fr) minmax(175px, .4fr); background: #e6e8d6; border-block: 1px solid #c5cebb; }
+.planning-map__field { position: relative; min-width: 0; padding: 14px 18px 30px; background: #dde2c9; }
+.planning-map__field svg { display: block; width: 100%; max-height: 450px; }
+.planning-map__orientation { position: absolute; bottom: 10px; left: 20px; font: 10px var(--font-mono); color: #3e6051; }
+.planning-map__key { padding: 12px 16px; background: #f4f1e5; border-left: 1px solid #c5cebb; font-size: 12px; }
+.planning-map__key p { line-height: 1.5; margin: 8px 0 16px; }
+.planning-map__key strong { display: block; color: #21594f; }
+.planning-map__key p > span { display: block; font-size: 11px; margin-top: 5px; }
+.planning-map__key ol { padding-left: 22px; margin: 0 0 20px; }
+.planning-map__key li { padding: 7px 0; color: #6f3e2a; font-weight: 600; }
+.planning-map__key small { display: block; font-weight: 400; color: var(--exp-muted); }
+.planning-map__terrain { display: flex; flex-wrap: wrap; gap: 8px 12px; font-size: 10px; }
+.planning-map__landmarks { list-style: none; padding: 0; margin: 0 0 15px; font-size: 11px; }
+.planning-map__landmarks li { color: #415b57; padding: 3px 0; font-weight: 400; }
+.planning-map__landmarks b { display: inline-block; min-width: 17px; text-align: center; color: #fffbe9; background: #415b57; margin-right: 5px; }
+.planning-map__terrain span { display: inline-flex; gap: 5px; align-items: center; }
+.planning-map__terrain i { width: 10px; height: 10px; border: 1px solid #627563; }
+.planning-map__note, .planning-map__unknown { color: var(--exp-muted); font-size: 11px; }
+.mission-survey [hidden] { display: none; }
+@media (max-width: 760px) { .planning-map { grid-template-columns: 1fr; } .planning-map__key { border-left: 0; border-top: 1px solid #c5cebb; } .planning-map__key ol { display: flex; gap: 12px 30px; flex-wrap: wrap; } .survey-views button { min-height: 44px; } }
+@media (forced-colors: active) { .planning-map__key, .planning-map { color: CanvasText; background: Canvas; } }

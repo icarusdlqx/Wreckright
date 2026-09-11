@@ -31,6 +31,14 @@
     "approachExposureWeight": 1.1,
     "stationWeight": 0.012
   },
+  "playerApproach": {
+    "rangeSampleStep": 20,
+    "rangeTolerance": 12,
+    "incomingDamageWeight": 1
+  },
+  "directives": {
+    "stationRadiusFraction": 0.75
+  },
   "heat": {
     "holdFireFraction": 0.78,
     "resumeFraction": 0.55,

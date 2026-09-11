@@ -205,6 +205,31 @@ describe('the local playtest journal', () => {
     expect(exported).not.toMatch(/battleCode|campaignSeed|userAgent|referrer|https?:\/\//u);
   });
 
+  it('exports a readable reproduction report with optional bounded game context', () => {
+    const journal = createPlaytestJournal({ storage: () => fakeStorage().storage });
+    journal.enable();
+    expect(journal.updateSurvey({
+      expected: 'Weapon should snap into the arm.',
+      observed: 'The card returned to stores.',
+      reproductionSteps: 'Open the bay, drag the autocannon, release over the right arm.',
+    })).toBe(true);
+    expect(journal.captureContext({
+      build: '0.1.0', mode: 'mechbay', mission: 'First Notice', faction: 'Linewrought',
+      difficulty: 'regular', day: 2, companyFunds: 2_810_400,
+      lance: [{ mech: 'Rivet', pilot: 'Kessa Vale', loadout: ['right_arm: Field Autocannon (20 rounds)'] }],
+    })).toBe(true);
+    const readable = journal.serialiseReadable();
+    expect(readable).toContain('## Bug report');
+    expect(readable).toContain('Weapon should snap into the arm.');
+    expect(readable).toContain('Kessa Vale — Rivet');
+    expect(readable).toContain('Field Autocannon (20 rounds)');
+
+    journal.updateSurvey({ includeContext: false });
+    const structured = JSON.parse(journal.serialiseExport() ?? '{}');
+    expect(structured.report.context).toBeNull();
+    expect(journal.serialiseReadable()).toContain('Build: context not included');
+  });
+
   it('clears only its own key and reports failed deletion honestly', () => {
     const store = fakeStorage();
     store.values.set('ironline.campaign', 'kept');

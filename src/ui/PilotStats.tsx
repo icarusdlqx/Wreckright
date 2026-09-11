@@ -1,10 +1,10 @@
 import type { Catalog } from '../schema/load';
 import { sensorRangeFor, sightRangeFor } from '../sim/sensors';
+import './pilotReadout.css';
 
 /**
  * Enough of a pilot to rate them. Both the campaign's roster records and the
- * catalogue's authored pilots satisfy this, which is what lets the briefing and
- * the dropship manifest show the same five bars.
+ * catalogue's authored pilots satisfy this, so every screen uses the same scale.
  */
 export interface RateablePilot {
   gunnery: number;
@@ -15,14 +15,13 @@ export interface RateablePilot {
 
 export interface PilotStat {
   label: string;
-  /** Out of ten, because a five-point scale reads as a rounding error in a bar. */
+  /** The actual trainable skill level, out of five. */
   score: number;
   /** What the number actually buys, in the units the player sees on the field. */
   effect: string;
 }
 
 const MAX_SKILL = 5;
-const SCALE = 10;
 
 /** The product of a pilot's specialities on one factor. */
 function traitProduct(
@@ -38,24 +37,7 @@ function traitProduct(
   return factor;
 }
 
-/**
- * Turns a multiplier around 1 into a ten-point rating, 5 being unremarkable.
- *
- * `lowerIsBetter` is not decoration: survivalFactor multiplies the chance of
- * dying, so the toughest pilot in the company carries the smallest number, and
- * rating it straight showed the one with Hard to Kill as the most fragile.
- */
-function rateFactor(factor: number, spread: number, lowerIsBetter = false): number {
-  const merit = lowerIsBetter ? 1 - (factor - 1) : factor;
-  const rating = SCALE / 2 + ((merit - 1) / spread) * (SCALE / 2);
-  return Math.max(1, Math.min(SCALE, Math.round(rating)));
-}
-
-/**
- * The five numbers that decide what a pilot is worth in a mech. The three
- * skills are what the campaign trains; the last two are what their specialities
- * add, which is the difference between two people with the same gunnery rating.
- */
+/** Only the three purchased skills belong on the skill scale. */
 export function pilotStats(catalog: Catalog, pilot: RateablePilot): PilotStat[] {
   const combat = catalog.rules.combat;
   const base = combat.gunneryBase[pilot.gunnery - 1] ?? combat.gunneryBase[0] ?? 0.5;
@@ -69,58 +51,65 @@ export function pilotStats(catalog: Catalog, pilot: RateablePilot): PilotStat[] 
   return [
     {
       label: 'Gunnery',
-      score: Math.round((pilot.gunnery / MAX_SKILL) * SCALE),
+      score: pilot.gunnery,
       effect: `${Math.round(base * accuracy * 100)}% base hit chance`,
     },
     {
       label: 'Piloting',
-      score: Math.round((pilot.piloting / MAX_SKILL) * SCALE),
-      effect: `${Math.round(footing * 100)}% of a shove lands, ${Math.round(shutdown * 100)}% shutdown risk`,
+      score: pilot.piloting,
+      effect: `${Math.round(footing * 100)}% stability damage taken; ${Math.round(shutdown * 100)}% of base shutdown risk`,
     },
     {
       label: 'Sensors',
-      score: Math.round((pilot.sensors / MAX_SKILL) * SCALE),
+      score: pilot.sensors,
       effect: `${Math.round(sensorRangeFor(catalog.rules.sensors, pilot.sensors))}m sensor reach; ${Math.round(sightRangeFor(catalog.rules.sensors, pilot.sensors))}m base optics`,
-    },
-    {
-      label: 'Killer',
-      score: rateFactor(traitProduct(catalog, pilot, 'criticalChanceFactor'), 0.5),
-      effect: 'how often their fire finds something behind the plate',
-    },
-    {
-      label: 'Nerve',
-      score: rateFactor(traitProduct(catalog, pilot, 'survivalFactor'), 0.5, true),
-      effect: 'their odds of walking away from a wreck',
     },
   ];
 }
 
-/**
- * Five bars and five numbers. A pilot the player cannot rate at a glance is a
- * name, and choosing between names is not a decision.
- */
+/** These are trait modifiers, not extra skills or a morale meter. */
+export function pilotSpecialityEffects(catalog: Catalog, pilot: RateablePilot): string[] {
+  const effects: string[] = [];
+  for (const [key, label] of [
+    ['criticalChanceFactor', 'critical-hit chance'],
+    ['survivalFactor', 'fatality risk after mech loss'],
+  ] as const) {
+    const factor = traitProduct(catalog, pilot, key);
+    if (factor !== 1) effects.push(`${factor > 1 ? '+' : '−'}${Math.round(Math.abs(factor - 1) * 100)}% ${label}`);
+  }
+  return effects;
+}
+
 export function PilotStats({
   catalog,
   pilot,
   compact = false,
+  showEffects = true,
 }: {
   catalog: Catalog;
   pilot: RateablePilot;
   compact?: boolean;
+  showEffects?: boolean;
 }) {
   const stats = pilotStats(catalog, pilot);
+  const effects = pilotSpecialityEffects(catalog, pilot);
 
   return (
-    <ul className={`pilot-stats ${compact ? 'compact' : ''}`} data-testid="pilot-stats">
+    <div className={`pilot-readout${compact ? ' is-compact' : ''}`}>
+    <ul className={`pilot-stats native-skills ${compact ? 'compact' : ''}`} data-testid="pilot-stats" aria-label="Pilot skills out of five">
       {stats.map((stat) => (
-        <li key={stat.label} title={`${stat.label} ${stat.score}/10 — ${stat.effect}`}>
+        <li key={stat.label} title={`${stat.label} ${stat.score}/${MAX_SKILL} — ${stat.effect}`}>
           <span className="stat-label">{stat.label}</span>
-          <span className="stat-bar">
-            <span style={{ width: `${(stat.score / SCALE) * 100}%` }} />
+          <span className="stat-pips" aria-hidden="true">
+            {Array.from({ length: MAX_SKILL }, (_, index) => <i key={index} data-filled={index < stat.score} />)}
           </span>
-          <span className="stat-score">{stat.score}</span>
+          <span className="stat-score">{stat.score}/{MAX_SKILL}</span>
         </li>
       ))}
     </ul>
+    {effects.length === 0 || compact || !showEffects ? null : <ul className="pilot-derived-effects" aria-label="Speciality effects">
+      {effects.map((effect) => <li key={effect}>{effect}</li>)}
+    </ul>}
+    </div>
   );
 }

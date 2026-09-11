@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { catalog } from '../../../tests/support';
+import { catalog, legacySentinelDesign } from '../../../tests/support';
 import type { Design } from '../../schema/design';
 import { DesignSchema } from '../../schema/design';
 import {
@@ -106,7 +106,7 @@ describe('saving to storage', () => {
   });
 
   it('allows a legal build to save when its only issue is advisory', () => {
-    const design = setName(stock('sentinel_brawler'), "Sentinel 'Unshielded Bin'");
+    const design = setName(structuredClone(legacySentinelDesign), "Sentinel 'Unshielded Bin'");
     const containment = design.equipment.find((fit) => fit.equipmentId === 'case');
     if (containment === undefined) throw new Error('missing containment fixture');
     containment.location = 'head';
@@ -117,7 +117,7 @@ describe('saving to storage', () => {
   });
 
   it('migrates retired weapon ids in imported and browser-stored builds', () => {
-    const legacy = stock('sentinel_brawler');
+    const legacy = structuredClone(legacySentinelDesign);
     const mount = legacy.mounts.find((entry) => entry.weaponId === 'ac5');
     const ammo = legacy.ammo.find((entry) => entry.weaponId === 'ac5');
     if (mount === undefined || ammo === undefined) throw new Error('missing migration fixture');

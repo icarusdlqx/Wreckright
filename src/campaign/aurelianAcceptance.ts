@@ -114,8 +114,11 @@ export function registerAurelianAcceptance(): void {
           expect(state.completedNodes).toEqual(SPINE.slice(0, index + 1));
           const next = SPINE[index + 1];
           expect(availableNodes(catalog, state).map((node) => node.id)).toEqual(
-            next === undefined ? ENDINGS.map((ending) => ending.nodeId) : [next],
+            ['custody_survey', ...(next === undefined ? ENDINGS.map((ending) => ending.nodeId) : [next])],
           );
+          // The supply detour stays optional; skipping its survey must not
+          // expose the resupply reward or block either original ending.
+          expect(availableNodes(catalog, state).some((node) => node.id === 'custody_resupply')).toBe(false);
         });
 
         sign(state, nodeId);

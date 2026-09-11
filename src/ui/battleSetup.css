@@ -29,9 +29,31 @@
   color: var(--danger);
 }
 
-@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+@media (max-width: 900px), (pointer: coarse) and (max-width: 1100px) {
   .battle-code-field input {
     min-height: 44px;
     font-size: 16px;
   }
 }
+
+.enemy-force-setup {
+  margin-block: 18px 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--edge);
+  border-left: 3px solid var(--danger);
+  border-radius: 4px;
+  background: var(--panel);
+}
+.enemy-roster { margin-block: 12px; }
+.enemy-roster summary { cursor: pointer; padding-block: 8px; font-size: 13px; font-weight: 600; }
+.enemy-roster summary span { color: var(--muted); font-size: 11px; font-weight: 400; margin-left: 8px; }
+.briefing .briefing-blocked { color: var(--danger); padding: 10px 12px; border: 1px solid var(--danger); border-radius: 4px; }
+.enemy-force-setup .briefing-berth { grid-template-columns: minmax(0, 2fr) minmax(100px, 1fr) auto; }
+@media (max-width: 900px), (pointer: coarse) and (max-width: 1100px) {
+  .enemy-force-setup { padding: 10px; }
+  .enemy-force-setup .briefing-berth { grid-template-columns: minmax(0, 1fr); }
+}
+
+.skirmish-storage-notice { margin-block: 14px; padding: 12px 14px; border: 1px solid var(--warn); border-left-width: 4px; border-radius: 4px; background: var(--panel); color: var(--text); }
+.skirmish-storage-notice > strong { display: block; margin-bottom: 5px; color: var(--warn); }
+.briefing .skirmish-storage-notice > ul { margin-top: 6px; font-size: 12px; }

@@ -1,6 +1,7 @@
+import { Vector3 } from 'three';
 import { KILLING_BLOW_SECONDS } from '../render3d/camera';
 import { machineCulture } from '../render3d/machineCulture';
-import type { RouteMarkerLeg, RouteMarkerView } from '../render3d/routeMarkerTypes';
+import type { RouteMarkerView } from '../render3d/routeMarkerTypes';
 import type { Renderer } from '../render3d/scene';
 import { canPresentEntity } from '../render3d/visibilityPresentation';
 import type { SimEvent } from '../sim/events';
@@ -10,8 +11,6 @@ import {
   findEntity,
   isOperational,
   type EntityId,
-  type MechEntity,
-  type Vec2,
   type World,
 } from '../sim/types';
 import { stepWorld } from '../sim/world';
@@ -23,117 +22,12 @@ import { crossedMissionClockWarnings } from './missionClock';
 import { stoppedCount } from './objectiveReadout';
 import { snapshotUnits } from './snapshot';
 import { useGame, type HitPreviewView } from './store';
+import { beginFieldRadio, observeFieldRadio } from './fieldRadio';
+import { clearCommandReceipt } from './commandReceiptState';
+import { buildFriendlyRouteMarkers } from './friendlyRouteMarkers';
+export { buildFriendlyRouteMarkers } from './friendlyRouteMarkers';
 
-const MAX_QUEUED_ROUTE_MARKERS = 8;
-
-function copyPoint(point: Vec2): Vec2 {
-  return { x: point.x, y: point.y };
-}
-
-function appendDistinct(points: Vec2[], point: Vec2): void {
-  const previous = points[points.length - 1];
-  if (previous?.x === point.x && previous.y === point.y) return;
-  points.push(copyPoint(point));
-}
-
-function arrivalFacing(points: readonly Vec2[], fallback: number): number {
-  for (let index = points.length - 1; index > 0; index -= 1) {
-    const from = points[index - 1];
-    const to = points[index];
-    if (from === undefined || to === undefined) continue;
-    const dx = to.x - from.x;
-    const dy = to.y - from.y;
-    if (dx !== 0 || dy !== 0) return Math.atan2(dy, dx);
-  }
-  return fallback;
-}
-
-function polylineDistance(points: readonly Vec2[]): number {
-  let total = 0;
-  for (let index = 1; index < points.length; index += 1) {
-    const from = points[index - 1];
-    const to = points[index];
-    if (from === undefined || to === undefined) continue;
-    total += Math.hypot(to.x - from.x, to.y - from.y);
-  }
-  return total;
-}
-
-function cumulativeEta(
-  previous: number | null,
-  points: readonly Vec2[],
-  speed: number,
-): number | null {
-  if (previous === null || !Number.isFinite(speed) || speed <= 0) return null;
-  const legDistance = polylineDistance(points);
-  if (!Number.isFinite(legDistance)) return null;
-  return previous + legDistance / speed;
-}
-
-function routeFor(entity: MechEntity): RouteMarkerView | null {
-  const move = entity.orders.move;
-  if (move === null) return null;
-
-  const activePoints: Vec2[] = [copyPoint(entity.pos)];
-  const pathIndex = Math.max(0, Math.min(entity.path.length, entity.pathIndex));
-  for (const point of entity.path.slice(pathIndex)) appendDistinct(activePoints, point);
-  appendDistinct(activePoints, move.to);
-
-  let facing = arrivalFacing(activePoints, entity.facing);
-  let eta = cumulativeEta(0, activePoints, move.run ? entity.runSpeed : entity.walkSpeed);
-  const legs: RouteMarkerLeg[] = [
-    {
-      points: activePoints,
-      kind: 'active',
-      run: move.run,
-      arrivalFacing: facing,
-      arrivalFacingEstimated: true,
-      cumulativeEtaSeconds: eta,
-    },
-  ];
-
-  let from = activePoints[activePoints.length - 1] ?? entity.pos;
-  const queuedCount = Math.min(entity.orders.queue.length, MAX_QUEUED_ROUTE_MARKERS);
-  for (let index = 0; index < queuedCount; index += 1) {
-    const order = entity.orders.queue[index];
-    if (order === undefined) continue;
-    const points = [copyPoint(from), copyPoint(order.to)];
-    facing = arrivalFacing(points, facing);
-    eta = cumulativeEta(eta, points, order.run ? entity.runSpeed : entity.walkSpeed);
-    legs.push({
-      points,
-      kind: 'queued',
-      run: order.run,
-      arrivalFacing: facing,
-      arrivalFacingEstimated: true,
-      cumulativeEtaSeconds: eta,
-    });
-    from = order.to;
-  }
-
-  return { entityId: entity.id, team: entity.team, legs };
-}
-
-/**
- * Selected route intent, crossing the same friendly-only privacy boundary as
- * the rest of the presentation layer. Hostile order state is never inspected.
- */
-export function buildFriendlyRouteMarkers(
-  world: World,
-  selection: ReadonlySet<EntityId>,
-): readonly RouteMarkerView[] {
-  const playerTeam = world.playerTeam;
-  if (playerTeam === null) return [];
-
-  const routes: RouteMarkerView[] = [];
-  for (const id of selection) {
-    const entity = findEntity(world, id);
-    if (entity === null || entity.team !== playerTeam || !isOperational(entity)) continue;
-    const route = routeFor(entity);
-    if (route !== null) routes.push(route);
-  }
-  return routes;
-}
+const HOT_VENT = new Vector3();
 
 /** Owns the HUD-facing view of a battle, including its contact privacy boundary. */
 export class EnginePresentation {
@@ -151,6 +45,8 @@ export class EnginePresentation {
     private readonly incomingFire: IncomingFireDirections | null = null,
   ) {
     this.clockSeconds = maxTicks * world.dt;
+    beginFieldRadio(world);
+    clearCommandReceipt();
   }
 
   forceStep(): void {
@@ -159,11 +55,22 @@ export class EnginePresentation {
     stepWorld(this.world, this.maxTicks);
     this.clockSeconds = Math.max(0, (this.maxTicks - this.world.tick) * this.world.dt);
     this.renderer.snapshot(this.world);
+    this.presentEvents(true);
+    if (!this.world.finished) {
+      for (const warning of crossedMissionClockWarnings(before, this.clockSeconds)) {
+        useGame.getState().pushLog(warning);
+      }
+    }
+  }
+
+  /** Commands can finish while paused; their feedback must not wait for a simulation tick. */
+  presentEvents(includeEmpty = false): void {
     const events = this.world.events.splice(0, this.world.events.length);
+    if (events.length === 0 && !includeEmpty) return;
     this.renderer.consumeEvents(this.world, events);
     this.beginKillingBlow(events);
     this.incomingFire?.consume(this.world, events, useGame.getState().selection);
-    this.audio.listenAt = this.renderer.camera.target;
+    this.audio.setListener(this.renderer.camera.target, this.renderer.camera.azimuth, this.renderer.camera.distance);
     this.audio.consume(
       this.world,
       events,
@@ -171,11 +78,7 @@ export class EnginePresentation {
       this.renderer.camera.reducedMotion,
     );
     this.logEvents(events);
-    if (!this.world.finished) {
-      for (const warning of crossedMissionClockWarnings(before, this.clockSeconds)) {
-        useGame.getState().pushLog(warning);
-      }
-    }
+    observeFieldRadio(this.world, events);
   }
 
   /** Advances the results hold on wall time, independent of battle speed. */
@@ -198,8 +101,7 @@ export class EnginePresentation {
       // steam off the vents is how a player reads "that one is about to shut
       // down" while looking at the fight rather than at a bar.
       if (entity.heat > entity.heatCapacity * 0.62) {
-        const vent = this.renderer.positionOf(entity.id);
-        if (vent !== null) this.renderer.spawnSmoke(vent);
+        if (this.renderer.ventOf(entity.id, HOT_VENT)) this.renderer.spawnVentSteam(HOT_VENT);
       }
 
       const faction = this.world.catalog.chassis.get(entity.chassisId)?.faction ?? 'linewrought';

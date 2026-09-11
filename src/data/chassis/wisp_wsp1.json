@@ -95,11 +95,19 @@
     "stance": 0.95
   },
   "role": "Sensor scout",
-  "summary": "A sealed survey frame. It sees first, runs first and survives neither mistake.",
-  "lore": "The Karst Reach register calls the VES a boundary reader. Forty stood upright behind one door, each under a cover that had rotted without marking the shell beneath it. Sensor glass lies inside the hull rather than on it. The legs have no inspection plates. Of the twenty-six frames that woke, eleven still walk; the other fifteen stopped once and have not moved since. A Vesper does not fight. It finds, it counts and it leaves before the counting is noticed.",
+  "summary": "A deep scanner, tall sensor mast and paired arm lasers make the Vesper a fast reconnaissance machine. Jump jets let it break contact before the line arrives.",
+  "lore": "The Karst Reach register calls the Vesper a boundary reader. The recovery books record a hall of upright machines under covers that had rotted around their preserved armour. Restored optics and carefully serviced running gear can make an inherited survey root look newly built. The sensor glass sits deep inside the hull, protected but expensive to replace. A Vesper earns its keep by finding trouble and leaving before the counting is noticed. Its crew needs a retreat route more than another reason to fire.",
   "traits": [
     "long_stride",
     "sensor_mast",
     "narrow_profile"
+  ],
+  "strengths": [
+    "Exceptional detection and a small profile",
+    "Fast stride, jump jets and no weapon ammunition"
+  ],
+  "weaknesses": [
+    "Light armour and a modest laser pair",
+    "Not built to trade with line mechs"
   ]
 }

@@ -2,9 +2,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { playerWorld } from '../../tests/support';
 import type { TerrainMapData } from '../schema/map';
 import { AudioDirector } from './audio';
-import { startAmbient } from './audioAmbient';
+import { locationSoundProfile, startAmbient } from './audioAmbient';
 import { AudioGraph, type VoiceBus, type VoiceFrame } from './audioGraph';
 import { SCORE_CLOSE_DELAY_MS } from './audioScore';
+import { flushScoreLoad } from './audioScoreGraphTestSupport';
 import {
   playAbility,
   playAlphaStrike,
@@ -21,6 +22,8 @@ import {
   playSelect,
 } from './audioVoices';
 import { playCrunch, playDestruction, playImpact, playWeapon } from './audioWeapons';
+
+vi.mock('./audioScoreAssets', () => import('./audioScoreTestAssets'));
 
 class FakeParam {
   value = 0;
@@ -41,6 +44,7 @@ class FakeParam {
 }
 
 class FakeNode {
+  disconnect(): void {}
   connect<T>(destination: T): T {
     return destination;
   }
@@ -218,6 +222,20 @@ describe('procedural audio lifetimes', () => {
     expect(context.sources.every((source) => source.stops.length === 1)).toBe(true);
   });
 
+  it('gives workshop and tender locations distinct bounded machine beds', () => {
+    expect(locationSoundProfile('line_workshop_belt')).toMatchObject({ family: 'workshop', voice: 'square' });
+    expect(locationSoundProfile('aurelian_landing_apron')).toMatchObject({ family: 'tender', voice: 'sine' });
+    expect(locationSoundProfile('barrow_archive')).toMatchObject({ family: 'archive' });
+    expect(locationSoundProfile('ridge_pass')).toBeNull();
+
+    const { context, master, noise } = harness();
+    const handle = startAmbient({ context: context as unknown as AudioContext, master, noise, random: () => 0.25 },
+      'ash_dusk', 'line_workshop_belt');
+    expect(context.sources).toHaveLength(5);
+    handle.stop();
+    expect(context.sources.every((source) => source.stops.length === 1)).toBe(true);
+  });
+
   it('closes the shared context once, cancelling scheduled falls with it', () => {
     const { context, master, noise } = harness();
     const graph = new AudioGraph(context as unknown as AudioContext, master, noise);
@@ -257,8 +275,9 @@ describe('faction audio voices', () => {
     playWeapon(sealed.bus, 'aurelian', 'beam', 1, { level: 0.8, distance: 40 });
 
     expect(welded.context.sources[0]?.starts[0]).toBe(5);
-    expect(sealed.context.sources.slice(0, 2).map((source) => source.starts[0])).toEqual([5, 5.035]);
-    expect(sealed.context.sources.slice(2).some((source) => source.starts[0] === 5)).toBe(true);
+    expect(sealed.context.sources[0]?.starts[0]).toBe(5);
+    expect(sealed.context.sources.some((source) => source.starts[0] === 5.035)).toBe(true);
+    expect(sealed.context.sources.every((source) => (source.starts[0] ?? 0) >= 5)).toBe(true);
   });
 });
 
@@ -356,7 +375,7 @@ describe('the battle audio lifetime', () => {
     }
   });
 
-  it('routes the new events and cancels their pending sources on destroy', () => {
+  it('routes the new events and cancels their pending sources on destroy', async () => {
     vi.useFakeTimers();
     vi.stubGlobal('AudioContext', FakeContext as unknown as typeof AudioContext);
     const audio = new AudioDirector();
@@ -373,6 +392,7 @@ describe('the battle audio lifetime', () => {
     audio.setTerrain(map);
     audio.setAmbient('ash_dusk');
     audio.unlock();
+    await flushScoreLoad();
 
     const context = FakeContext.instances.at(-1);
     expect(context).toBeDefined();

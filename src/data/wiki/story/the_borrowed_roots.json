@@ -1,0 +1,10 @@
+{
+  "id": "the_borrowed_roots",
+  "category": "history",
+  "sourceLoreId": "the_borrowed_roots",
+  "related": [
+    { "kind": "story", "id": "the_refit" },
+    { "kind": "story", "id": "the_foundry_winter" },
+    { "kind": "story", "id": "the_custodians" }
+  ]
+}

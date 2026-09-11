@@ -1,4 +1,5 @@
 import {
+  Color,
   CylinderGeometry,
   DynamicDrawUsage,
   InstancedMesh,
@@ -30,6 +31,7 @@ export interface MachineMotionRig {
   readonly root: Object3D;
   readonly pistons: InstancedMesh | null;
   readonly links: readonly PistonLink[];
+  readonly sleeveLengths: number[];
   lowFx: boolean;
 }
 
@@ -63,7 +65,7 @@ function legLinks(leg: MachineMotionLeg, side: number, scale: number): PistonLin
   ];
 }
 
-/** One dynamic batch makes the welded leg actuators cost one draw, not four. */
+/** The exposed shafts and fixed sleeves share one dynamic batch. */
 export function createMachineMotion(
   faction: Faction,
   root: Object3D,
@@ -72,7 +74,7 @@ export function createMachineMotion(
   material: Material,
 ): MachineMotionRig {
   if (faction !== 'linewrought' || legs.length !== 2) {
-    return { faction, root, pistons: null, links: NO_LINKS, lowFx: false };
+    return { faction, root, pistons: null, links: NO_LINKS, sleeveLengths: [], lowFx: false };
   }
 
   const links = legs.flatMap((leg, index) => {
@@ -81,22 +83,26 @@ export function createMachineMotion(
     return legLinks(leg, side, scale);
   });
   const pistons = new InstancedMesh(
-    new CylinderGeometry(scale * 0.022, scale * 0.022, 1, 6),
+    new CylinderGeometry(scale * 0.025, scale * 0.025, 1, 10),
     material,
-    links.length,
+    links.length * 2,
   );
   pistons.name = 'linewrought-pistons';
   pistons.castShadow = false;
   pistons.frustumCulled = false;
   pistons.instanceMatrix.setUsage(DynamicDrawUsage);
+  for (let index = 0; index < links.length; index += 1) {
+    pistons.setColorAt(index, new Color(0xe8eff0));
+    pistons.setColorAt(index + links.length, new Color(0x64777c));
+  }
   root.add(pistons);
 
-  const rig = { faction, root, pistons, links, lowFx: false };
+  const rig: MachineMotionRig = { faction, root, pistons, links, sleeveLengths: [], lowFx: false };
   poseMachineMotion(rig);
   return rig;
 }
 
-/** Rebuilds the four matrices from the existing joint frames. */
+/** Sleeves keep their original length while shafts follow the actual knee and ankle frames. */
 export function poseMachineMotion(rig: MachineMotionRig): void {
   const pistons = rig.pistons;
   if (pistons === null || rig.lowFx) return;
@@ -116,12 +122,18 @@ export function poseMachineMotion(rig: MachineMotionRig): void {
     const length = DIRECTION.length();
     if (length <= 1e-6) {
       pistons.setMatrixAt(index, HIDDEN);
+      pistons.setMatrixAt(index + rig.links.length, HIDDEN);
       continue;
     }
     MIDPOINT.addVectors(FROM, TO).multiplyScalar(0.5);
     TURN.setFromUnitVectors(UP, DIRECTION.multiplyScalar(1 / length));
     SCALE.set(1, length, 1);
     pistons.setMatrixAt(index, MATRIX.compose(MIDPOINT, TURN, SCALE));
+    const sleeveLength = Math.min(length * 0.88, rig.sleeveLengths[index] ?? length * 0.54);
+    rig.sleeveLengths[index] ??= sleeveLength;
+    MIDPOINT.copy(FROM).addScaledVector(DIRECTION, sleeveLength / 2);
+    SCALE.set(2.1, sleeveLength, 2.1);
+    pistons.setMatrixAt(index + rig.links.length, MATRIX.compose(MIDPOINT, TURN, SCALE));
   }
   pistons.instanceMatrix.needsUpdate = true;
 }

@@ -51,10 +51,11 @@ describe('armour workbench model', () => {
   it('finds stock medians by class without counting inactive frame locations', () => {
     const medians = stockArmourMediansForClass(catalog, 'medium');
 
-    expect(medians.left_torso).toBe(49.5);
-    expect(medians.right_torso).toBe(49.5);
-    expect(medians.left_arm).toBe(35);
-    expect(medians.right_arm).toBe(35);
+    // Rivet and Trestle join the medium cohort; inactive vehicle arms still contribute no zeros.
+    expect(medians.left_torso).toBe(47.5);
+    expect(medians.right_torso).toBe(47.5);
+    expect(medians.left_arm).toBe(31);
+    expect(medians.right_arm).toBe(31);
     expect(medians.left_leg).toBe(46);
     expect(medians.right_leg).toBe(46);
   });

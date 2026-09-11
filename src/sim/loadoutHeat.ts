@@ -20,6 +20,12 @@ export function computeHeatProfile(catalog: Catalog, design: Design): HeatProfil
   const rules = catalog.rules.heat;
   const sink = catalog.equipment.get(design.heatSinkId);
   const dissipationPerSink = sink?.stats.dissipation ?? 1;
+  // Hull exchangers belong to the build; pilot skill, weather and terrain are
+  // mission conditions and must not be silently assumed by the bay preview.
+  const chassisFactor = (catalog.chassis.get(design.chassisId)?.traits ?? []).reduce(
+    (factor, id) => factor * (catalog.rules.traits.entries[id]?.dissipationFactor ?? 1),
+    1,
+  );
 
   let alphaStrikeHeat = 0;
   let heatPerSecond = 0;
@@ -33,7 +39,7 @@ export function computeHeatProfile(catalog: Catalog, design: Design): HeatProfil
   }
 
   const dissipationPerSecond =
-    design.heatSinks * dissipationPerSink * rules.dissipationPerSinkPerSecond;
+    design.heatSinks * dissipationPerSink * rules.dissipationPerSinkPerSecond * chassisFactor;
   const heatCapacity = rules.capacityBase + rules.capacityPerSink * design.heatSinks;
   const netHeatPerSecond = heatPerSecond - dissipationPerSecond;
 

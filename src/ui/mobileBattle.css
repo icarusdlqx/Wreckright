@@ -1,8 +1,9 @@
 /* A phone cannot afford every desktop panel at once. The dock keeps orders in
    one reserved strip and lets the battlefield own everything above it. */
-@media (max-width: 640px), (pointer: coarse) and (max-width: 1100px) {
+@media (max-width: 900px), (pointer: coarse) and (max-width: 1100px) {
   .app {
     --mobile-top: calc(52px + var(--safe-top));
+    --mobile-status: 38px;
     --mobile-dock: 250px;
     --tap-size: 44px;
   }
@@ -273,7 +274,7 @@
 
   .mobile-objectives {
     z-index: 31;
-    top: calc(var(--mobile-top) + 6px);
+    top: calc(var(--mobile-top) + var(--mobile-status) + 6px);
     left: calc(8px + var(--safe-left));
     width: min(210px, calc(100vw - 132px - var(--safe-left) - var(--safe-right)));
     max-width: none;
@@ -311,7 +312,7 @@
 
   .minimap {
     z-index: 30;
-    top: calc(var(--mobile-top) + 6px);
+    top: calc(var(--mobile-top) + var(--mobile-status) + 6px);
     width: 104px;
     height: 104px;
   }
@@ -346,7 +347,7 @@
   }
 }
 
-@media (max-width: 640px) and (orientation: landscape),
+@media (max-width: 900px) and (orientation: landscape),
   (pointer: coarse) and (max-width: 1100px) and (orientation: landscape) {
   .app {
     --mobile-dock: 118px;

@@ -1,5 +1,36 @@
+import { runPreparationWorkspaceChecks } from './preparation-workspace.mjs';
+import { runPilotCommandDockChecks } from './pilot-command-dock.mjs';
+import { runCompactCommandDockChecks } from './compact-command-dock.mjs';
+import { runMechbayAnatomyChecks } from './mechbay-anatomy.mjs';
+import { runSkirmishForceChecks } from './skirmish-forces.mjs';
+import { runSkirmishFactionChecks } from './skirmish-factions.mjs';
+import { runDeploymentCameraChecks } from './deployment-camera.mjs';
+import { runSkirmishStorageChecks } from './skirmish-storage.mjs';
+import { runMechbayPersistenceChecks } from './mechbay-persistence.mjs';
+import { runFittingGridChecks } from './fitting-grid.mjs';
+import { runDemoSupplyChecks } from './demo-supplies.mjs';
+import { runUnitHealthChecks } from './unit-health.mjs';
+import { runCompactDesktopChecks } from './compact-desktop.mjs';
+import { runCommanderRadioChecks } from './commander-radio.mjs';
+import { runCombatDamageChecks } from './combat-damage.mjs';
+import { runTargetFeedbackChecks } from './target-feedback.mjs';
+import { runSuppliesRefitUpgradeChecks } from './supplies-refit-upgrades.mjs';
+import { runCompanyJournalChecks } from './company-journal.mjs';
+import { completeInitialCampaignSetup } from './campaign-setup.mjs';
+import { checkCampaignHaul } from './campaign-haul.mjs';
+import { runMechbayCrewChecks } from './mechbay-crew.mjs';
+import { runColdMechbayChecks } from './mechbay-loading.mjs';
+import { runCommandRefinementChecks } from './command-refinement.mjs';
+import { runRefinementTouchChecks } from './refinement-touch.mjs';
+import { runCompanyOutcomeChecks } from './company-outcome-review.mjs';
+import { runLoreWikiChecks } from './lore-wiki.mjs';
+import { runOpeningRouteChecks } from './opening-route.mjs';
+import { runSensorActivationChecks } from './sensor-activation.mjs';
+import { runSupportServicesChecks } from './support-services.mjs';
+import { checkHomeTheatre } from './home-theatre.mjs';
+import { companyFile, restartCompany, checkRestartCancellation, checkCompanyWorkspaces } from './campaign-navigation.mjs';
 import { spawn } from 'node:child_process';
-import { existsSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { chromium } from 'playwright';
 import { openTactics, runDesktopSupportChecks } from './battle-hud.mjs';
@@ -17,11 +48,16 @@ import { runCultureSilhouetteChecks } from './culture-silhouettes.mjs';
 import { runTerrainWearChecks } from './terrain-wear.mjs';
 import { runAdaptiveScoreChecks } from './adaptive-score.mjs';
 import { runAdaptiveScoreTreatmentChecks } from './adaptive-score-treatments.mjs';
+import { runAudioChannelControlChecks } from './audio-channel-controls.mjs';
+import { runAudioThemePlaybackChecks } from './audio-theme-playback.mjs';
+import { runAudioPlaybackFocusChecks } from './audio-playback-focus.mjs';
 import { runLastSilentMomentsChecks } from './last-silent-moments.mjs';
 import { runCommanderViewChecks } from './commander-view.mjs';
 import { runMinimapControlChecks } from './minimap-control.mjs';
 import { runReadableRouteChecks } from './readable-routes.mjs';
 import { runCampaignRecovery } from './campaign-recovery.mjs';
+import { runCampaignSaveLibraryChecks } from './campaign-save-library.mjs';
+import { runCampaignCommandFlow } from './campaign-command-flow.mjs';
 import { runMobilePlaythrough } from './mobile-playthrough.mjs';
 import { runRangeDamageChartChecks } from './range-damage-chart.mjs';
 import {
@@ -151,6 +187,7 @@ async function verifyAlternateTrainingRoutes(browser, url) {
     await skipped.page.waitForSelector('[data-testid="briefing"]');
     await skipped.page.locator('[data-testid="training-skip"]').click();
     await skipped.page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(skipped.page);
     check(
       'training briefing skip opens the campaign explicitly',
       (await skipped.page.locator('[data-testid="home-screen"]').count()) === 0 &&
@@ -177,6 +214,7 @@ async function verifyAlternateTrainingRoutes(browser, url) {
     );
     await failed.page.locator('[data-testid="training-continue-anyway"]').click();
     await failed.page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(failed.page);
     check(
       'continue anyway records the training exit',
       (await failed.page.evaluate(() =>
@@ -200,6 +238,7 @@ async function freshCampaignFixture(browser, url) {
   await page.waitForSelector('[data-testid="home-screen"]');
   await page.locator('[data-testid="home-campaign"]').click();
   await page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(page);
   return { context, page };
 }
 
@@ -208,6 +247,7 @@ async function reopenSavedCampaign(page) {
   await page.waitForSelector('[data-testid="home-screen"]');
   await page.locator('[data-testid="home-campaign"]').click();
   await page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(page);
 }
 
 async function verifyFirstDropLaunchPaths({ browser, url, shots, check: recordCheck }) {
@@ -307,8 +347,9 @@ async function main() {
   // The sandbox image ships its own Chromium; Playwright's pinned revision is not present.
   const executablePath = process.env.CHROMIUM_PATH ?? '/opt/pw-browsers/chromium';
   const browser = await chromium.launch({
+    headless: true,
     executablePath: existsSync(executablePath) ? executablePath : undefined,
-    args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader', '--no-sandbox'],
+    args: ['--mute-audio', '--use-gl=swiftshader', '--enable-unsafe-swiftshader', '--no-sandbox'],
   });
 
   try {
@@ -334,10 +375,12 @@ async function main() {
         (await page.evaluate(() => globalThis.__wreckright === undefined)),
     );
     check(
-      'Home offers learn, campaign, and skirmish routes',
+      'Home offers learn, campaign, skirmish and the built-in wiki',
       (await page.locator('[data-testid="home-learn"]').count()) === 1 &&
         (await page.locator('[data-testid="home-campaign"]').count()) === 1 &&
         (await page.locator('[data-testid="home-skirmish"]').count()) === 1 &&
+        (await page.locator('[data-testid="home-wiki"]').getAttribute('href')) === '#wiki' &&
+        (await page.locator('[data-testid="home-wiki"]').innerText()).includes('Wiki') &&
         (await page.locator('#home-title').innerText()) === 'WRECKRIGHT' &&
         (await page.locator('.home-kicker').textContent()) === 'No new machines. Only new owners.' &&
         (await page.locator('[data-testid="home-learn"] strong').textContent()) === 'Learn Command',
@@ -428,6 +471,7 @@ async function main() {
     );
     await page.locator('[data-testid="training-start-campaign"]').click();
     await page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(page);
     check(
       'successful training reaches first-contract guidance',
       (await page.locator('[data-testid="campaign-guide"]').innerText()).includes(
@@ -488,12 +532,13 @@ async function main() {
     );
     await battleCode.fill('Ridge Touch 0000002A');
     await page.locator('[data-testid="briefing-deploy"]').click();
-    await sleep(1200);
+    await page.waitForFunction((tick) => globalThis.__wreckright?.world.tick > tick,
+      beforeBriefing, { timeout: 10_000 });
     const running = await sim(page);
     check('deploying starts the clock', running.tick > beforeBriefing, `${beforeBriefing} → ${running.tick}`);
-    const lanceIdentities = await page.locator('[data-testid="lance-bar"] .lance-chassis').allInnerTexts();
+    const lanceIdentities = await page.locator('[data-testid="lance-bar"] .lance-chassis').evaluateAll(elements => elements.map(element => element.title));
     check(
-      'battle lance cards carry complete machine identity without serial designations',
+      'compact lance cards retain complete machine identity in their tooltips without serial designations',
       lanceIdentities.length === 4 && lanceIdentities.every((label) =>
         /^[^—]+ — \d+t (Light|Medium|Heavy|Assault) · [^·]+ · (Linewrought|Aurelian Stock)$/.test(label) &&
         !/\b[A-Z]{3}-\d+\b/.test(label)),
@@ -531,6 +576,7 @@ async function main() {
     process.stdout.write('\nselection\n');
     await page.locator('[data-testid="lance-bar"] button').first().click();
     check('lance card selects a mech', (await state(page)).selection.length === 1);
+    await page.getByTestId('unit-details-toggle').click();
     await page.waitForSelector('[data-testid="paper-doll"]');
     check('paper doll renders eight locations', (await page.locator('.doll-cell').count()) === 8);
     check('heat bar renders', (await page.locator('[data-testid="heat-bar"]').count()) === 1);
@@ -683,11 +729,13 @@ async function main() {
     await page.keyboard.press('Space');
 
     process.stdout.write('\nweapon groups and hold fire\n');
-    await page.locator('[data-testid="group-2"]').click();
+    const mountedGroup = await page.evaluate((id) => globalThis.__wreckright.world.entities
+      .find(entity => entity.id === id).weapons[0].group, selectedId);
+    await page.locator(`[data-testid="group-${mountedGroup}"]`).click();
     const toggled = await sim(page);
     check(
       'clicking a group toggles it off',
-      toggled.entities.find((entity) => entity.id === selectedId).groupEnabled[1] === false,
+      toggled.entities.find((entity) => entity.id === selectedId).groupEnabled[mountedGroup - 1] === false,
     );
     await page.locator('[data-testid="command-hold_fire"]').click();
     const holding = await sim(page);
@@ -700,9 +748,46 @@ async function main() {
     await page.locator('[data-testid="command-hold_fire"]').click();
 
     process.stdout.write('\ncalled shot\n');
-    await page.locator('[data-testid="doll-left_leg"]').click();
-    check('called shot mode arms from the paper doll', (await state(page)).orderMode === 'called_shot');
-    check('called shot location is recorded', (await state(page)).calledShotLocation === 'left_leg');
+    check('own armour is an inspection view, not a called-shot control',
+      await page.locator('[data-testid="doll-left_leg"]').isDisabled());
+    // A controlled optical fixture lets this input test inspect a real hostile body section.
+    // Patch the paused world's vision directly instead of advancing a combat tick: on a slow
+    // CI runner, a projectile already in flight could otherwise destroy the chosen target in
+    // that one forced step and leave the hostile picker without its expected option.
+    const aimFixture = await page.evaluateHandle(() => {
+      const { world, useGame } = globalThis.__wreckright;
+      const enemy = world.entities.find(entity => entity.team !== world.playerTeam && !entity.destroyed);
+      const wasVisible = world.vision.visible.has(enemy.id);
+      const wasIdentified = world.vision.identified.has(enemy.id);
+      world.vision.visible.add(enemy.id);
+      world.vision.identified.add(enemy.id);
+      // A fresh array marks the paused HUD dirty; its next frame publishes the updated vision.
+      useGame.getState().setSelection([...useGame.getState().selection]);
+      return { world, useGame, targetId: enemy.id, wasVisible, wasIdentified };
+    });
+    try {
+      const aimTarget = await aimFixture.evaluate(({ targetId }) => targetId);
+      await page.locator('[data-testid="command-called_shot"]').click();
+      await page.locator('[data-testid="called-shot-hostile"]').selectOption(String(aimTarget));
+      await page.locator('[data-testid="called-shot-target"] [data-testid="doll-left_leg"]').click();
+      check('called shot targets the chosen hostile section through its armour panel',
+        (await state(page)).orderMode === 'called_shot' && (await state(page)).calledShotLocation === 'left_leg'
+        && await page.evaluate(({ selectedId, aimTarget }) => {
+          const entity = globalThis.__wreckright.world.entities.find(entity => entity.id === selectedId);
+          return entity.orders.attack?.targetId === aimTarget && entity.orders.attack?.calledShot === 'left_leg';
+        }, { selectedId, aimTarget }));
+      await page.locator('[data-testid="called-shot-target"] button').filter({ hasText: 'Done' }).click();
+    } finally {
+      try {
+        await aimFixture.evaluate(({ world, useGame, targetId, wasVisible, wasIdentified }) => {
+          if (!wasVisible) world.vision.visible.delete(targetId);
+          if (!wasIdentified) world.vision.identified.delete(targetId);
+          useGame.getState().setSelection([...useGame.getState().selection]);
+        });
+      } finally {
+        await aimFixture.dispose();
+      }
+    }
 
     process.stdout.write('\ncamera\n');
     const zoomPointer = { x: box.width * 0.72, y: box.height * 0.46 };
@@ -772,27 +857,51 @@ async function main() {
       JSON.stringify(arrowShifts.ArrowDown),
     );
 
-    const centreError = async () =>
-      page.evaluate(() => {
+    // Keep camera dispatch separate from live combat and the map-edge clamp:
+    // a correctly centred edge unit can legitimately remain off the target.
+    const centreFixture = await page.evaluate(() => {
+      const { engine, useGame, world } = globalThis.__wreckright;
+      const state = useGame.getState();
+      const unit = world.entities.find((entity) => entity.team === state.playerTeam &&
+        !entity.destroyed && !entity.withdrawn && !entity.pilot.dead && !entity.pilot.ejected);
+      if (unit === undefined) throw new Error('camera fixture needs an operational friendly');
+      const camera = engine.renderer.camera;
+      const saved = {
+        id: unit.id, pos: { ...unit.pos }, selection: [...state.selection], paused: state.paused,
+        cameraTarget: { ...camera.target }, tick: world.tick,
+      };
+      const expected = {
+        x: world.terrain.width * world.terrain.tileSize / 2,
+        y: world.terrain.height * world.terrain.tileSize / 2,
+      };
+      engine.setPaused(true);
+      Object.assign(unit.pos, expected);
+      useGame.getState().setSelection([unit.id]);
+      camera.centreOn({ x: expected.x * 0.6, y: expected.y * 0.6 });
+      return { ...saved, expected, start: { ...camera.target }, minimumTravel: world.terrain.tileSize };
+    });
+    try {
+      await page.locator('[data-testid="centre-selection"]').click();
+      const buttonCentre = await page.evaluate(({ expected }) => {
+        const { engine, world } = globalThis.__wreckright;
+        const target = { ...engine.renderer.camera.target };
+        return { target, tick: world.tick, error: Math.hypot(target.x - expected.x, target.y - expected.y) };
+      }, centreFixture);
+      check('centre button finds the selection',
+        Math.hypot(centreFixture.start.x - centreFixture.expected.x,
+          centreFixture.start.y - centreFixture.expected.y) > centreFixture.minimumTravel &&
+          buttonCentre.error < 0.01 && buttonCentre.tick === centreFixture.tick,
+        JSON.stringify({ fixture: centreFixture, result: buttonCentre }));
+    } finally {
+      await page.evaluate((saved) => {
         const { engine, useGame, world } = globalThis.__wreckright;
-        const selected = new Set(useGame.getState().selection);
-        const units = world.entities.filter((entity) => selected.has(entity.id));
-        const sum = units.reduce(
-          (point, entity) => ({ x: point.x + entity.pos.x, y: point.y + entity.pos.y }),
-          { x: 0, y: 0 },
-        );
-        const expected = { x: sum.x / units.length, y: sum.y / units.length };
-        return {
-          error: Math.hypot(
-            engine.renderer.camera.target.x - expected.x,
-            engine.renderer.camera.target.y - expected.y,
-          ),
-          tolerance: world.terrain.tileSize * 4,
-        };
-      });
-    await page.locator('[data-testid="centre-selection"]').click();
-    const buttonCentre = await centreError();
-    check('centre button finds the selection', buttonCentre.error < buttonCentre.tolerance);
+        const unit = world.entities.find((entity) => entity.id === saved.id);
+        if (unit !== undefined) Object.assign(unit.pos, saved.pos);
+        useGame.getState().setSelection(saved.selection);
+        engine.renderer.camera.centreOn(saved.cameraTarget);
+        engine.setPaused(saved.paused);
+      }, centreFixture);
+    }
 
     process.stdout.write('\nfog of war\n');
     const fog = await sim(page);
@@ -931,11 +1040,11 @@ async function main() {
     });
     await openDesktopBattleMenu(page);
     await page.locator('[data-testid="restart-battle"]').click();
-    await page.waitForFunction(
-      () =>
-        globalThis.__wreckright.engine !== globalThis.__setupEngine &&
-        globalThis.__wreckright.engine.world.mission.id === 'base_capture_ridge',
-    );
+    await page.waitForFunction(() => {
+      const game = globalThis.__wreckright;
+      return game !== undefined && game.engine !== globalThis.__setupEngine &&
+        game.world.mission.id === 'base_capture_ridge';
+    });
     await page.waitForFunction(() => {
       const state = globalThis.__wreckright.useGame.getState();
       return state.objectives.length >= 3 && state.zones.length === 2;
@@ -1006,8 +1115,9 @@ async function main() {
       (await page.locator('[data-testid="briefing"] h2').innerText()).includes('Cutbank Registry'),
     );
     await page.locator('[data-testid="briefing-deploy"]').click();
+    // A remount removes the old hook before the new field has finished loading.
     await page.waitForFunction(
-      () => globalThis.__wreckright.world.mission.id === 'exchange_register',
+      () => globalThis.__wreckright?.world.mission.id === 'exchange_register',
     );
     const largeField = await page.evaluate(() => {
       const { engine, world } = globalThis.__wreckright;
@@ -1071,6 +1181,7 @@ async function main() {
     await openDesktopBattleMenu(page);
     await page.locator('[data-testid="open-campaign"]').click();
     await page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(page);
 
     const day = async () =>
       Number((await page.locator('[data-testid="camp-day"]').innerText()).replace('Day ', ''));
@@ -1079,7 +1190,7 @@ async function main() {
         (await page.locator('[data-testid="camp-cbills"]').innerText()).replace(/[^0-9-]/g, ''),
       );
 
-    await page.locator('[data-testid="camp-campaigns"]').click();
+    await companyFile(page, 'camp-campaigns');
     await page.waitForSelector('[data-testid="campaign-chooser"]');
     const campaignChoices = await page.locator('[data-testid="campaign-choice"] option')
       .evaluateAll((options) => options.map((option) => ({
@@ -1104,10 +1215,10 @@ async function main() {
       JSON.parse(localStorage.getItem('ironline.campaign')).state,
     );
     check(
-      'the Aurelian campaign opens with its sealed roster, seven-contract spine and both endings',
-      (await page.locator('.camp-title h2').innerText()) === 'The Great Recall: Custodians' &&
+      'the Aurelian campaign opens with its stock roster, original spine, supply branch and both endings',
+      (await page.locator('.camp-title h2').textContent())?.trim() === 'The Great Recall: Custodians' &&
         aurelianNodeIds.join(',') ===
-          'first_warrant,cutbank_attestation,sarn_inventory,root_exchange,quarry_receipt,conduit_injunction,barrow_warrant,continuance_export,local_stewardship' &&
+          'first_warrant,custody_survey,custody_resupply,cutbank_attestation,sarn_inventory,root_exchange,quarry_receipt,conduit_injunction,barrow_warrant,continuance_export,local_stewardship' &&
         (await page.locator('.camp-node.available').count()) === 1 &&
         aurelianState.campaignId === 'aurelian_recall' &&
         aurelianState.mechs.map((mech) => mech.design.id).join(',') ===
@@ -1153,7 +1264,7 @@ async function main() {
     );
     await page.screenshot({ path: `${SHOTS}/06c-aurelian-branch-compact.png` });
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.locator('[data-testid="camp-restart"]').click();
+    await restartCompany(page);
     const restartedAurelian = await page.evaluate(() =>
       JSON.parse(localStorage.getItem('ironline.campaign')).state,
     );
@@ -1164,9 +1275,9 @@ async function main() {
       restartedAurelian.seed,
     );
     await page.screenshot({ path: `${SHOTS}/06b-aurelian-campaign.png` });
-    await page.locator('[data-testid="camp-campaigns"]').click();
+    await companyFile(page, 'camp-campaigns');
     await page.locator('[data-testid="campaign-choice"]').selectOption('border_dispute');
-    await page.locator('[data-testid="campaign-choice-start"]').click();
+    await page.locator('[data-testid="campaign-choice-resume"]').click();
     await page.waitForSelector('[data-testid="camp-node-militia_raid"]');
 
     const campaignNodeIds = await page.locator('.camp-node').evaluateAll((nodes) =>
@@ -1174,6 +1285,9 @@ async function main() {
     );
     const expectedCampaignNodeIds = [
       'militia_raid',
+      'marker_survey',
+      'recovery_window',
+      'workshop_defence',
       'pass_skirmish',
       'supply_line',
       'ridge_hold',
@@ -1186,9 +1300,8 @@ async function main() {
       'blackglass_receipt',
     ];
     check(
-      'campaign map draws the four-act route, both recoveries and both depot endings',
-      campaignNodeIds.length === expectedCampaignNodeIds.length &&
-        expectedCampaignNodeIds.every((id) => campaignNodeIds.includes(id)),
+      'campaign map draws the original route, recovery branch, large-map jobs and both depot endings',
+      JSON.stringify(campaignNodeIds) === JSON.stringify(expectedCampaignNodeIds),
       campaignNodeIds.join(', '),
     );
     check('only the opening node is available', (await page.locator('.camp-node.available').count()) === 1);
@@ -1199,7 +1312,13 @@ async function main() {
       'the opening company has four machines and four pilots on its books',
       openingCompany.mechs.length === 4 && openingCompany.pilots.length === 4,
     );
-    check('stores start empty', openingCompany.store.length === 0);
+    const openingCrate = JSON.parse(readFileSync(new globalThis.URL(
+      '../../src/data/campaigns/border_dispute.json', import.meta.url), 'utf8')).demoSupplies;
+    const stockLines = items => items.map(item => `${item.kind}:${item.itemId}:${item.count}`).sort();
+    const crateClaim = `${openingCompany.campaignId}/demo-supplies/${openingCrate.id}`;
+    check('opening stores contain the authored demo crate exactly once',
+      JSON.stringify(stockLines(openingCompany.store)) === JSON.stringify(stockLines(openingCrate.items))
+      && openingCompany.claimedRewardIds.filter(id => id === crateClaim).length === 1);
     check(
       'first-drop guidance begins at choosing the job',
       (await page.locator('[data-testid="campaign"]').getAttribute('data-first-drop-stage')) ===
@@ -1209,21 +1328,26 @@ async function main() {
         ),
     );
 
+    await checkRestartCancellation({ page, check });
     const firstRunCode = await page.locator('[data-testid="camp-seed"]').innerText();
     check(
-      'a new campaign exposes a readable run code',
-      /^Run [a-z]+-[a-z]+-[0-9a-f]{8}$/.test(firstRunCode),
+      'a new campaign exposes a readable run code and fixed difficulty',
+      /^Run [a-z]+-[a-z]+-[0-9a-f]{8} · regular difficulty$/.test(firstRunCode),
       firstRunCode,
     );
-    await page.locator('[data-testid="camp-restart"]').click();
+    await restartCompany(page);
     const restartedCode = await page.locator('[data-testid="camp-seed"]').innerText();
-    const persistedRun = await page.evaluate(() =>
-      JSON.parse(localStorage.getItem('ironline.campaign')).state.seed,
-    );
+    const persistedRun = await page.evaluate(() => {
+      const { seed, difficulty } = JSON.parse(localStorage.getItem('ironline.campaign')).state;
+      return { seed, difficulty };
+    });
     check('restart rolls a fresh run code', restartedCode !== firstRunCode, restartedCode);
-    check('the fresh run is saved immediately', restartedCode === `Run ${persistedRun}`);
+    check('the fresh run and its difficulty are saved immediately',
+      restartedCode === `Run ${persistedRun.seed} · ${persistedRun.difficulty} difficulty`
+      && persistedRun.difficulty === 'regular', JSON.stringify(persistedRun));
 
     await runCampaignRecovery({ page, shots: SHOTS, check });
+    await runCampaignSaveLibraryChecks({ page, shots: SHOTS, check });
 
     await page.locator('[data-testid="camp-manual-toggle"]').click();
     await page.waitForSelector('[data-testid="manual-controls"]');
@@ -1282,7 +1406,9 @@ async function main() {
     await page.screenshot({ path: `${SHOTS}/08-contract-terms.png` });
 
     const dayBefore = await day();
+    await page.locator('[data-testid="camp-waiting"] > summary').click();
     await page.locator('[data-testid="camp-advance"]').click();
+    await page.locator('[data-testid="camp-waiting"] > summary').click();
     check('advancing a day moves the clock', (await day()) === dayBefore + 1);
     const restDayLog = await page.locator('[data-testid="camp-log"]').innerText();
     check(
@@ -1324,25 +1450,24 @@ async function main() {
       (await page.locator('[data-testid="camp-active-terms"]').textContent()) === 'Salvage first',
     );
 
-    await page.locator('[data-testid="camp-save"]').click();
+    await companyFile(page, 'camp-save');
     const savedCampaign = await page.evaluate(() => localStorage.getItem('ironline.campaign'));
     check('the campaign saves to storage', savedCampaign !== null && savedCampaign.length > 100);
 
     const cashBefore = await cash();
-    // The quiet secondary keeps the full prep corridor covered: the hangar
-    // first — repairs and refits — then the manifest and launch.
+    // Machine condition and pilot assignments share one persistent preparation board.
     await page.locator('[data-testid="camp-review-machines"]').click();
     await page.waitForSelector('[data-testid="hangar-stage"]');
     check(
-      'Review machines first opens the guided hangar stage with the company machines',
+      'Review machines opens preparation with the company machines',
       (await page.locator('[data-testid="campaign"]').getAttribute('data-first-drop-stage')) ===
         'bay' &&
         (await page.locator('[data-testid="campaign-guide"]').innerText()).includes(
-          '3 · Check the machines',
+          '3 · Prepare the team',
         ) &&
-        ((await page.locator('[data-testid^="hangar-"][data-testid*="mech_"]').count()) > 0 ||
-          (await page.locator('.hangar .manifest-row').count()) > 0),
+        (await page.locator('[data-testid^="prep-machine-"]').count()) > 0,
     );
+    await page.screenshot({ path: `${SHOTS}/08-hangar.png` });
     await page.locator('[data-testid="hangar-continue"]').click();
     await page.waitForSelector('[data-testid="lance-manifest"]');
     check(
@@ -1350,53 +1475,61 @@ async function main() {
       (await page.locator('[data-testid="campaign"]').getAttribute('data-first-drop-stage')) ===
         'manifest' &&
         (await page.locator('[data-testid="campaign-guide"]').innerText()).includes(
-          '4 · Launch the lance',
+          '3 · Assign the pilots',
         ),
     );
-    // Five rated bars per pilot, not three lines of prose: what the player
-    // needs off this screen is to be able to tell two pilots apart.
-    const rated = page.locator('.manifest-row [data-testid="pilot-stats"]').first();
-    check(
-      'the manifest lists the crew with their skills',
-      (await page.locator('.manifest-row').count()) >= 4 &&
-        (await rated.locator('li').count()) === 5 &&
-        (await rated.innerText()).includes('Gunnery'),
-    );
-    const manifestMachineLabels = await page
-      .locator('[data-testid^="manifest-seat-"]')
-      .first()
-      .locator('option:not([value=""])')
-      .allInnerTexts();
-    check(
-      'the manifest offers weight, class, authored role and culture without serials',
-      manifestMachineLabels.length > 0 && manifestMachineLabels.every((label) =>
-        /^[^—]+ — \d+t (Light|Medium|Heavy|Assault) · [^·]+ · (Linewrought|Aurelian Stock)( \([^)]+\))?$/.test(label) &&
-        !/\b[A-Z]{3}-\d+\b/.test(label)),
-      manifestMachineLabels.join(' | '),
-    );
-    check(
-      'the manifest marks who is actually dropping',
-      (await page.locator('.manifest-row.drops').count()) > 0,
-    );
-
-    // Holding a pilot back takes them out of the drop, and calling them up
-    // puts them back: the bench is the only reason this screen exists.
-    const dropsBefore = await page.locator('.manifest-row.drops').count();
-    const bench = page.locator('[data-testid^="manifest-bench-"]').first();
-    await bench.click();
-    check(
-      'holding a pilot back removes them from the drop',
-      (await page.locator('.manifest-row.drops').count()) === dropsBefore - 1,
-    );
-    await bench.click();
-    check(
-      'calling them up puts them back',
-      (await page.locator('.manifest-row.drops').count()) === dropsBefore,
-    );
+    await page.screenshot({ path: `${SHOTS}/08-manifest.png` });
+    const manifestCrew = await page.evaluate(() => JSON.parse(localStorage.getItem('ironline.campaign')).state.pilots.filter(pilot => !pilot.dead));
+    let crewSkillsComplete = manifestCrew.length === 4;
+    for (const pilot of manifestCrew) {
+      await page.getByTestId(`prep-pilot-${pilot.id}`).click();
+      const dossier = page.locator('.prep-pilot-detail');
+      const rated = dossier.getByTestId('pilot-stats');
+      const labels = await rated.locator('.stat-label').allTextContents();
+      crewSkillsComplete &&= await rated.isVisible()
+        && JSON.stringify(labels) === JSON.stringify(['Gunnery', 'Piloting', 'Sensors'])
+        && (await dossier.locator('.pilot-name').textContent())?.trim() === pilot.name
+        && await dossier.getByTestId('pilot-ability-readout').isVisible();
+    }
+    check('each preparation pilot has three native skills, a portrait and their actual ability', crewSkillsComplete);
+    await page.getByTestId('prep-machines').click();
+    const manifestMachineLabels = await page.locator('.prep-roster-entry').allInnerTexts();
+    check('preparation distinguishes company bays and shows chassis tonnage',
+      manifestMachineLabels.length > 0 && new Set(manifestMachineLabels).size === manifestMachineLabels.length
+      && manifestMachineLabels.every(label => /\d+t · Bay \d+/.test(label) && !/\b[A-Z]{3}-\d+\b/.test(label)), manifestMachineLabels.join(' | '));
+    const manifestIdentities = await page.locator('.prep-machine-detail .exp-machine-identity').evaluateAll(cards =>
+      cards.map(card => ({ identity: card.getAttribute('aria-label'), visible: card.textContent })));
+    check('selected machine retains its class, role and faction in preparation', manifestIdentities.length > 0
+      && manifestIdentities.every(({ identity, visible }) => /^[^—]+ — \d+t (Light|Medium|Heavy|Assault) · [^·]+ · (Linewrought|Aurelian Stock)$/.test(identity ?? '')
+      && /Linewrought|Aurelian Stock/.test(visible ?? '')), JSON.stringify(manifestIdentities));
+    check('all five deployment positions stay visible', await page.locator('.prep-seats .prep-seat').count() === 5);
+    await page.getByTestId('hangar-continue').click();
+    const aboardIds = () => page.evaluate(() => JSON.parse(localStorage.getItem('ironline.campaign')).state.deploymentSelection);
+    const dropsBefore = await aboardIds();
+    const heldPilotId = dropsBefore[0];
+    await page.getByTestId('prep-seat-0').click();
+    await page.getByTestId(`manifest-bench-${heldPilotId}`).click();
+    check('holding a pilot back leaves an explicit empty cockpit and blocks launch',
+      JSON.stringify(await aboardIds()) === JSON.stringify(dropsBefore.slice(1))
+      && (await page.getByTestId('prep-seat-0').innerText()).includes('Needs pilot')
+      && await page.getByTestId('manifest-launch').isDisabled());
+    await page.getByTestId(`prep-pilot-${heldPilotId}`).click();
+    await page.getByTestId('prep-assign-pilot').click();
+    check('assigning the pilot restores the original cockpit order',
+      JSON.stringify(await aboardIds()) === JSON.stringify(dropsBefore)
+      && await page.getByTestId('manifest-launch').isEnabled());
 
     // The bay opens on one of the company's own machines, stocked from its own
     // stores — mission prep is who drops, in what, carrying what.
     await runCampaignRefitMechbayJourney({ page, check });
+    const beforeDrop = await page.evaluate(() => {
+      const { store, mechs, pilots, deploymentSelection } = JSON.parse(localStorage.getItem('ironline.campaign')).state;
+      const expectedLance = deploymentSelection.map(id => {
+        const pilot = pilots.find(entry => entry.id === id);
+        return { designId: mechs.find(mech => mech.id === pilot.mechId).design.id, pilotId: pilot.templateId };
+      });
+      return { store, mechs, expectedLance };
+    });
 
     await page.locator('[data-testid="manifest-launch"]').click();
     await page.waitForSelector('[data-testid="briefing"]');
@@ -1410,6 +1543,7 @@ async function main() {
       return {
         mission: world.mission.id,
         playerMechs: world.entities.filter((e) => e.team === 0).map((e) => e.name),
+        identities: world.entities.filter((e) => e.team === 0).map(e => ({ designId: e.designId, pilotId: e.pilot.id })),
       };
     });
     check(
@@ -1417,7 +1551,8 @@ async function main() {
       deployed.mission === 'line_maintenance',
       deployed.mission,
     );
-    check('the campaign lance deployed', deployed.playerMechs.length === 4, deployed.playerMechs.join(', '));
+    check('the exact chosen four-pilot campaign lance deployed', deployed.playerMechs.length === 4
+      && JSON.stringify(deployed.identities) === JSON.stringify(beforeDrop.expectedLance), JSON.stringify(deployed));
 
     await page.evaluate(async () => {
       const { engine } = globalThis.__wreckright;
@@ -1433,6 +1568,7 @@ async function main() {
     await page.locator('[data-testid="return-to-campaign"]').click();
     await page.locator('[data-testid="return-to-campaign"]').click();
     await page.waitForSelector('[data-testid="campaign"]');
+    await completeInitialCampaignSetup(page);
 
     // Coming home opens the debrief: what the drop earned each pilot.
     await page.waitForSelector('[data-testid="debrief"]');
@@ -1482,6 +1618,7 @@ async function main() {
         salvagedItems: latest.salvagedItems,
         salvageCandidates: latest.salvageCandidates ?? [],
         salvageOffered: latest.salvageOffered ?? [],
+        salvageFinalized: latest.salvageFinalized,
         pilotReportCount: latest.pilotReports.length,
       };
     });
@@ -1515,7 +1652,7 @@ async function main() {
     check('the debrief records banked experience', debriefText.includes('banked'));
     check(
       'the debrief names the signed package',
-      (await page.locator('[data-testid="debrief"] header').innerText()).includes('Salvage first'),
+      (await page.locator('[data-testid="debrief"] > .debrief > header').innerText()).includes('Salvage first'),
     );
 
     const hasDetailedSalvage =
@@ -1534,7 +1671,8 @@ async function main() {
       await adjustPicks.focus();
       check(
         'the editable salvage disclosure is named Adjust picks',
-        (await adjustPicks.innerText()) === 'Adjust picks',
+        !debriefOutcome.salvageFinalized && (await adjustPicks.textContent())?.trim() === 'Adjust picks',
+        JSON.stringify({ label: await adjustPicks.innerText(), finalized: debriefOutcome.salvageFinalized }),
       );
       await page.keyboard.press('Enter');
       check(
@@ -1572,9 +1710,8 @@ async function main() {
       await page.locator('[data-testid="debrief-close"]').focus();
       await page.keyboard.press('Tab');
       check(
-        'the campaign debrief traps forward focus',
-        (await page.evaluate(() => document.activeElement?.getAttribute('data-testid'))) ===
-          'debrief-adjust-picks',
+        'the campaign debrief traps forward focus at its first crew action',
+        await page.locator('.debrief-pair-actions button').first().evaluate(el => document.activeElement === el),
       );
       await page.keyboard.press('Shift+Tab');
       check(
@@ -1614,7 +1751,8 @@ async function main() {
         (await page.locator('[data-testid="campaign"]').getAttribute('data-first-drop-stage')) ===
           null,
     );
-    check('the lance is visible on the company books', (await page.locator('[data-testid="camp-bay"] li').count()) >= 4);
+    await checkCompanyWorkspaces({ page, shots: SHOTS, check });
+    check('the lance is visible on the company books', (await page.locator('[data-testid="camp-bay"] .company-workshop-machines > [data-testid^="camp-mech-"]').count()) >= 4);
     check(
       'the barracks lists the company pilots',
       (await page.locator('li[data-testid^="camp-pilot-"]').count()) >= 4,
@@ -1660,9 +1798,9 @@ async function main() {
       rosterText.includes('XP banked') && rosterText.includes('/day'),
     );
 
+    checkCampaignHaul({ before: beforeDrop, after: resolvedState, check });
     if (resolvedState.history[0].won) {
       check('winning paid out', (await cash()) > cashBefore, `${cashBefore} → ${await cash()}`);
-      check('salvage reached stores', resolvedState.store.length > 0);
       check(
         'the next contracts unlocked',
         (await page.locator('.camp-node.available').count()) >= 1,
@@ -1676,10 +1814,10 @@ async function main() {
       );
     }
 
-    check('battle damage came home', (await page.locator('[data-testid="camp-bay"] li').count()) >= 4);
+    check('battle damage came home', (await page.locator('[data-testid="camp-bay"] .company-workshop-machines > [data-testid^="camp-mech-"]').count()) >= 4);
     await page.screenshot({ path: `${SHOTS}/08-campaign.png` });
 
-    await page.locator('[data-testid="camp-load"]').click();
+    await companyFile(page, 'camp-load');
     const afterReload = await page.evaluate(() =>
       JSON.parse(localStorage.getItem('ironline.campaign')).state,
     );
@@ -1689,6 +1827,7 @@ async function main() {
     );
 
     check('no page errors across the whole run', pageErrors.length === 0, pageErrors.slice(0, 3).join(' | '));
+    await checkHomeTheatre({ browser, url: URL, shots: SHOTS, check });
     await runFireModeStage2Checks({ browser, url: URL, check });
     await runRangeDamageChartChecks({ browser, url: URL, shots: SHOTS, check });
     await runNightOperationsChecks({ browser, url: URL, shots: SHOTS, check });
@@ -1696,7 +1835,38 @@ async function main() {
     await runTerrainWearChecks({ browser, url: URL, shots: SHOTS, check });
     await runAdaptiveScoreChecks({ browser, url: URL, check });
     await runAdaptiveScoreTreatmentChecks({ browser, url: URL, check });
+    await runAudioChannelControlChecks({ browser, url: URL, shots: SHOTS, check });
+    await runAudioThemePlaybackChecks({ browser, url: URL, check });
+    await runAudioPlaybackFocusChecks({ browser, url: URL, check });
     await verifyFirstDropLaunchPaths({ browser, url: URL, shots: SHOTS, check });
+    await runMechbayCrewChecks({ browser, url: URL, shots: SHOTS, check });
+    await runColdMechbayChecks({ browser, url: URL, shots: SHOTS, check });
+    await runCommandRefinementChecks({ browser, url: URL, shots: SHOTS, check });
+    await runRefinementTouchChecks({ browser, url: URL, shots: SHOTS, check });
+    await runCompanyOutcomeChecks({ browser, url: URL, shots: SHOTS, check });
+    await runSuppliesRefitUpgradeChecks({ browser, url: URL, shots: SHOTS, check });
+    await runCompanyJournalChecks({ browser, url: URL, shots: SHOTS, check });
+    await runLoreWikiChecks({ browser, url: URL, shots: SHOTS, check });
+    await runOpeningRouteChecks({ browser, url: URL, shots: SHOTS, check });
+    await runCampaignCommandFlow({ browser, url: URL, shots: SHOTS, check });
+    await runSensorActivationChecks({ browser, url: URL, shots: SHOTS, check });
+    await runSupportServicesChecks({ browser, url: URL, shots: SHOTS, check });
+    await runSkirmishForceChecks({ browser, url: URL, shots: SHOTS, check });
+    await runSkirmishFactionChecks({ browser, url: URL, shots: SHOTS, check });
+    await runDeploymentCameraChecks({ browser, url: URL, shots: SHOTS, check });
+    await runSkirmishStorageChecks({ browser, url: URL, shots: SHOTS, check });
+    await runMechbayPersistenceChecks({ browser, url: URL, shots: SHOTS, check });
+    await runFittingGridChecks({ browser, url: URL, shots: SHOTS, check });
+    await runDemoSupplyChecks({ browser, url: URL, shots: SHOTS, check });
+    await runUnitHealthChecks({ browser, url: URL, shots: SHOTS, check });
+    await runCompactDesktopChecks({ browser, url: URL, shots: SHOTS, check });
+    await runCommanderRadioChecks({ browser, url: URL, shots: SHOTS, check });
+    await runCombatDamageChecks({ browser, url: URL, shots: SHOTS, check });
+    await runTargetFeedbackChecks({ browser, url: URL, shots: SHOTS, check });
+    await runPreparationWorkspaceChecks({ browser, url: URL, shots: SHOTS, check });
+    await runPilotCommandDockChecks({ browser, url: URL, shots: SHOTS, check });
+    await runCompactCommandDockChecks({ browser, url: URL, shots: SHOTS, check });
+    await runMechbayAnatomyChecks({ browser, url: URL, shots: SHOTS, check });
     await runLastSilentMomentsChecks({ browser, url: URL, check });
     await runMobilePlaythrough({ browser, url: URL, shots: SHOTS, check });
   } finally {

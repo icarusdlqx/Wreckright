@@ -8,5 +8,45 @@
     "spotter",
     "quick_study"
   ],
-  "bio": "Sensors officer off a Kestrel picket. Demir reads a return the way other people read a face."
+  "bio": "Sensors officer off a Kestrel picket. Demir reads a return the way other people read a face.",
+  "portrait": {
+    "skin": "#ba8662",
+    "hair": "#282528",
+    "jacket": "#314d58",
+    "accent": "#79c6bc",
+    "style": "bob",
+    "face": "oval",
+    "detail": "none",
+    "expression": "curious",
+    "kit": "officer",
+    "accessory": "glasses",
+    "age": "mature"
+  },
+  "personality": {
+    "label": "Inquisitive analyst",
+    "description": "Finds personality in a sensor return. Warmly curious, then exacting when the evidence matters.",
+    "lines": {
+      "move": [
+        "That route has possibilities. Moving.",
+        "Let us see it from another angle."
+      ],
+      "attack": [
+        "Pattern confirmed. Taking the shot.",
+        "I know what I am looking at now."
+      ],
+      "guard": [
+        "Good listening post. Settling in."
+      ],
+      "hold_fire": [
+        "No shot needed. I will keep reading."
+      ],
+      "investigate": [
+        "Interesting return. Let me ask it a few questions."
+      ],
+      "heavy_fire": [
+        "That is more data than my armour needs. Cover, please.",
+        "Taking repeated hits. I would like to observe from elsewhere."
+      ]
+    }
+  }
 }

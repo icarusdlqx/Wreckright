@@ -1,0 +1,9 @@
+.route-loading.bay-loading {
+  align-content: center;
+  gap: 20px;
+  box-sizing: border-box;
+  height: 100%;
+  min-height: min(420px, calc(100dvh - 64px));
+  padding: 24px;
+}
+.bay-loading button { min-height: 44px; min-width: 120px; letter-spacing: normal; text-transform: none; }

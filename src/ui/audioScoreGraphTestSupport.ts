@@ -4,6 +4,8 @@ import type { MechEntity, World } from '../sim/types';
 import type { AmbientBus } from './audioGraph';
 import { SCORE_GAIN_COUNT, startBattleScore } from './audioScoreGraph';
 
+export async function flushScoreLoad(): Promise<void> { await Promise.resolve(); await Promise.resolve(); }
+
 export interface TargetCall {
   value: number;
   at: number;
@@ -35,7 +37,9 @@ export class FakeParam {
 }
 
 export class FakeNode {
-  connect<T>(destination: T): T { return destination; }
+  readonly connections: unknown[] = [];
+  connect<T>(destination: T): T { this.connections.push(destination); return destination; }
+  disconnect(): void { this.connections.length = 0; }
 }
 
 export class FakeSource extends FakeNode {
@@ -51,9 +55,13 @@ export class FakeOscillator extends FakeSource {
   readonly frequency = new FakeParam();
 }
 
-class FakeBufferSource extends FakeSource {
+export class FakeBufferSource extends FakeSource {
   buffer: AudioBuffer | null = null;
   loop = false;
+  loopStart = 0;
+  loopEnd = 0;
+  onended: (() => void) | null = null;
+  readonly playbackRate = Object.assign(new FakeParam(), { value: 1 });
 }
 
 export class FakeGain extends FakeNode {
@@ -66,7 +74,11 @@ export class FakeFilter extends FakeNode {
   readonly Q = new FakeParam();
 }
 
-class FakeCompressor extends FakeNode {
+export class FakePanner extends FakeNode {
+  readonly pan = new FakeParam();
+}
+
+export class FakeCompressor extends FakeNode {
   readonly threshold = new FakeParam();
   readonly ratio = new FakeParam();
 }
@@ -79,18 +91,28 @@ export class FakeContext {
   readonly sources: FakeSource[] = [];
   readonly gains: FakeGain[] = [];
   readonly filters: FakeFilter[] = [];
+  readonly panners: FakePanner[] = [];
+  readonly compressors: FakeCompressor[] = [];
   closeCalls = 0;
   state: AudioContextState = 'running';
 
   constructor() { FakeContext.instances.push(this); }
 
   createDynamicsCompressor(): DynamicsCompressorNode {
-    return new FakeCompressor() as unknown as DynamicsCompressorNode;
+    const compressor = new FakeCompressor();
+    this.compressors.push(compressor);
+    return compressor as unknown as DynamicsCompressorNode;
   }
 
-  createBuffer(_channels: number, length: number): AudioBuffer {
+  createStereoPanner(): StereoPannerNode {
+    const panner = new FakePanner();
+    this.panners.push(panner);
+    return panner as unknown as StereoPannerNode;
+  }
+
+  createBuffer(channels: number, length: number): AudioBuffer {
     const data = new Float32Array(length);
-    return { getChannelData: () => data } as unknown as AudioBuffer;
+    return { numberOfChannels: channels, duration: 32 * 4 * 60 / 104, getChannelData: () => data } as unknown as AudioBuffer;
   }
 
   createBufferSource(): AudioBufferSourceNode {
@@ -146,28 +168,13 @@ export function scoreHarness(initialShare: number | null = 0, initialLevel = 1):
 export interface ScoreParams {
   readonly level: FakeParam;
   readonly intensity: FakeParam[];
-  readonly full: FakeParam;
   readonly culture: FakeParam[];
 }
 
 export function scoreParams(context: FakeContext): ScoreParams {
   const gainOffset = context.gains.length - SCORE_GAIN_COUNT;
-  const oscillators = context.sources.filter(
-    (source): source is FakeOscillator => source instanceof FakeOscillator,
-  );
   const gain = (index: number): FakeParam => required(context.gains[gainOffset + index]).gain;
-  const frequency = (index: number): FakeParam => required(oscillators[index]).frequency;
-  const full = gain(8);
-  return {
-    level: gain(0),
-    intensity: [gain(1), gain(4), frequency(3), full],
-    full,
-    culture: [
-      frequency(0), frequency(1), frequency(2), frequency(4),
-      gain(2), gain(3), gain(6),
-      ...context.filters.flatMap((filter) => [filter.frequency, filter.Q]),
-    ],
-  };
+  return { level: gain(0), intensity: [gain(1), gain(2)], culture: [gain(3), gain(4)] };
 }
 
 export function callsAt(param: FakeParam, at: number): AutomationCall[] {

@@ -4,12 +4,15 @@ import type { Design } from '../../schema/design';
 import type { Catalog } from '../../schema/load';
 import { computeLoadout } from '../../sim/loadout';
 import type { DropPayload } from './LocationCard';
+import { evaluateEdit } from './editPreview';
 import { evaluateDrop } from './mechbayEdits';
 
 export interface LocationFit {
   readonly ok: boolean;
   /** Why this location refused the held part, ready to show. Null when it fits. */
   readonly reason: string | null;
+  /** Space can fit while the editable draft still exceeds its overall mass limit. */
+  readonly massWarning?: string | null;
 }
 
 /**
@@ -30,11 +33,25 @@ export function fitByLocation(
 
   for (const location of LOCATIONS) {
     const evaluation = evaluateDrop(catalog, design, payload, location, availability);
+    let freeTonnage = evaluation.report.loadout.freeTonnage;
+    if (evaluation.status === 'needs_ammo') {
+      const berth = bestAmmoLocation(catalog, evaluation.nextDesign, evaluation.continuation.locations);
+      if (berth !== null) {
+        freeTonnage = evaluateEdit(catalog, evaluation.nextDesign, {
+          type: 'add_ammo', weaponId: evaluation.continuation.weaponId, location: berth,
+        }, availability).report.loadout.freeTonnage;
+      }
+    }
     fits.set(
       location,
       evaluation.status === 'blocked'
         ? { ok: false, reason: evaluation.reasons[0]?.message ?? 'This location cannot take it.' }
-        : { ok: true, reason: null },
+        : {
+            ok: true, reason: null,
+            massWarning: freeTonnage < 0
+              ? `Fits the space, but adds up to ${(-freeTonnage).toFixed(1)}t over the machine limit. Remove weight before saving.`
+              : null,
+          },
     );
   }
   return fits;

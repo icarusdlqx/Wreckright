@@ -137,7 +137,7 @@ export function FeedbackDialog({ journal, onClose }: FeedbackDialogProps) {
     update({ confusion: next });
   };
   const copy = (): void => {
-    const text = journal.serialiseExport(note);
+    const text = journal.serialiseReadable(note);
     if (text === null) return;
     const clipboard = globalThis.navigator?.clipboard;
     if (clipboard === undefined) {
@@ -180,7 +180,8 @@ export function FeedbackDialog({ journal, onClose }: FeedbackDialogProps) {
 
         <p id="playtest-feedback-privacy" className="playtest-privacy">
           This report stays in this browser until you copy or download it. Nothing is
-          sent automatically. Do not include a name or contact details in the note.
+          sent automatically. Do not include a name or contact details. Game context
+          includes the build, mission, faction, difficulty and current loadout only.
         </p>
 
         {!snapshot.enabled ? (
@@ -270,6 +271,31 @@ export function FeedbackDialog({ journal, onClose }: FeedbackDialogProps) {
               ))}
             </fieldset>
 
+            <section className="playtest-bug-report" aria-labelledby="playtest-bug-title">
+              <h3 id="playtest-bug-title">Report a bug</h3>
+              <p>Three short answers are usually enough to recreate the problem.</p>
+              <label>
+                <span>What did you expect?</span>
+                <textarea value={survey?.expected ?? ''} maxLength={500} rows={2}
+                  onChange={(event) => update({ expected: event.target.value })} />
+              </label>
+              <label>
+                <span>What actually happened?</span>
+                <textarea value={survey?.observed ?? ''} maxLength={500} rows={2}
+                  onChange={(event) => update({ observed: event.target.value })} />
+              </label>
+              <label>
+                <span>How can we reproduce it?</span>
+                <textarea value={survey?.reproductionSteps ?? ''} maxLength={1000} rows={3}
+                  onChange={(event) => update({ reproductionSteps: event.target.value })} />
+              </label>
+              <label className="playtest-context-choice">
+                <input type="checkbox" checked={survey?.includeContext ?? true}
+                  onChange={(event) => update({ includeContext: event.target.checked })} />
+                <span>Include build, mission, faction, difficulty and equipped weapons</span>
+              </label>
+            </section>
+
             <label className="playtest-note">
               <span>Optional note</span>
               <textarea
@@ -295,10 +321,10 @@ export function FeedbackDialog({ journal, onClose }: FeedbackDialogProps) {
                 }}
                 data-testid="playtest-download"
               >
-                Download report
+                Download structured report
               </button>
               <button type="button" onClick={copy} data-testid="playtest-copy">
-                Copy report
+                Copy readable report
               </button>
               <button
                 type="button"

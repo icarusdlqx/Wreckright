@@ -39,8 +39,8 @@ disable, locate or aim the walker.
 That makes every mech a physical individual with three identities: a fixed root
 class, a name kept by crews and owners, and a shop mark recording its current
 refit. **Linewrought** machines wear a century of local repairs around old
-Aurelian roots. **Aurelian Stock** remains sealed, capable and ruinously slow to
-repair. The player's company grows through custody, purchase and battlefield
+Aurelian roots. **Aurelian Stock** uses cleaner, more advanced machines with
+powerful equipment and costly workshop needs. The player's company grows through custody, purchase and battlefield
 salvage, never by creating a walker from a saved design.
 
 Tessell's field custom is **wreckright**: whoever holds a disabled machine at
@@ -56,8 +56,8 @@ the collision between those two answers to the same root serial.
 |---|---|---|
 | Language | TypeScript (strict) | Type safety across a large data-driven system |
 | Build | Vite | Instant HMR, zero config |
-| Tactical render | PixiJS v8 (WebGL) | Fast 2D sprite/particle rendering |
-| Shell UI | React 18 | Mechbay, briefing, campaign screens |
+| Tactical render | three.js (WebGL) | Stylised 3D terrain, articulated machines and combat effects |
+| Shell UI | React | Mechbay, briefing, campaign screens |
 | App state | Zustand | Simple, outside React render cycle |
 | Schema validation | Zod | All JSON content validated at load |
 | Tests | Vitest | Sim unit tests + headless battle harness |
@@ -73,7 +73,7 @@ Optional later: Tauri wrapper for a native `.app`. Not in scope for phases 0–7
 
 ```
 /src
-  /sim              # PURE. Deterministic. No DOM, no Pixi, no React.
+  /sim              # PURE. Deterministic. No DOM, rendering or React.
     rng.ts          # Seeded PRNG (xorshift128)
     world.ts        # World state, tick loop
     entity.ts       # Mech instances, components, state machine
@@ -87,7 +87,8 @@ Optional later: Tauri wrapper for a native `.app`. Not in scope for phases 0–7
   /data             # ALL game content. JSON. Zod-validated.
     chassis/  weapons/  equipment/  pilots/  missions/  maps/  factions/
   /schema           # Zod schemas mirroring /data
-  /render           # PixiJS. Reads sim state, never mutates it.
+  /render           # Shared machine silhouettes and presentation blueprints.
+  /render3d         # three.js scenes, terrain, articulation and effects; reads sim state.
   /ui               # React. Mechbay, briefing, HUD overlays, campaign map.
   /campaign         # Meta-layer: economy, salvage, roster, time, save/load
   /headless         # CLI battle harness for balance analysis
@@ -526,7 +527,7 @@ Mech entity and component state, terrain grid, A* pathfinding, locomotion, LOS a
 
 ### Phase 2 — Tactical Renderer
 
-PixiJS tilemap, mech rendering with facing, selection and move orders, attack orders, projectile and beam visuals, damage paper-doll, heat bar, pause, camera pan/zoom, fog of war.
+Three-dimensional terrain, articulated mech rendering with facing, selection and move orders, attack orders, projectile and beam visuals, damage paper-doll, heat bar, pause, camera pan/zoom, fog of war.
 
 **Accept:** A skirmish mission is playable end to end with mouse and keyboard. Pause instantly freezes the sim and accepts orders.
 

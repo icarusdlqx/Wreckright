@@ -101,5 +101,13 @@
   "traits": [
     "narrow_profile",
     "recon_optics"
+  ],
+  "strengths": [
+    "Fast wheeled scout",
+    "Recon optics"
+  ],
+  "weaknesses": [
+    "Light protection",
+    "Wheels constrain terrain access"
   ]
 }

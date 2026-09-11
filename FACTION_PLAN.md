@@ -11,6 +11,31 @@ namespace are **Wreckright**. Stable authored identifiers such as
 storage keys, remain unchanged for save and simulation compatibility. They are
 implementation details, not player-facing lore.
 
+## Current faction direction
+
+The September 2026 mechbay work supersedes the original "sealed versus welded"
+shorthand below. The cultures are **Linewrought** and **Aurelian Stock**. Linewrought
+crews are tough, resourceful workshop operators with patched machines. Aurelian
+crews field bright, precisely serviced machines with advanced energy weapons;
+their institutional arrogance treats local rebuilding as evidence of inferiority.
+New armour, optics and weapons can surround an inherited root. Root manufacture
+remains lost, and local yards still cannot supply Aurelian replacement weapons.
+
+Shared physical mounts permit weapons from either culture. The tradeoffs are the
+existing mount type, maximum weapon size, compartment boxes, tonnage, heat,
+ammunition and supply rules. There is no new adapter inventory or hidden faction
+penalty. Compact Aurelian energy weapons compete for a Linewrought mech's energy
+mounts and cooling; Linewrought cannon and missile refits on Aurelian Stock need
+appropriate mounts and ammunition space. Mixed stock fits are labelled as mixed
+refits, rather than silently presenting them as pure faction standards.
+
+Workshop armour and structure repair remains a paid job. Salvage-only supply
+refers to replacement Aurelian weapons, equipment and recovered machines; repair
+does not secretly consume a second chassis. The current model and measured
+weapon baseline are recorded in `docs/FACTION_FITTING.md`. The original stages
+below remain the implementation history, not an instruction to restore obsolete
+player-facing labels or introduce unimplemented spare-part requirements.
+
 ## The one rule that changed
 
 `CODEX_BRIEF.md` still holds: **do not edit `src/sim/**`.** Nothing in this

@@ -1,10 +1,12 @@
 import {
   BufferGeometry,
+  Box3,
   Group,
   InstancedMesh,
   Material,
   Matrix4,
   Mesh,
+  MeshStandardMaterial,
   Quaternion,
   Scene,
   Vector3,
@@ -19,6 +21,8 @@ interface DetachedSlot {
   age: number;
   active: boolean;
   settled: boolean;
+  corners: Vector3[];
+  bounces: number;
 }
 
 const CENTRE = new Vector3();
@@ -29,6 +33,8 @@ const LOCAL_POSITION = new Vector3();
 const LOCAL_ROTATION = new Quaternion();
 const LOCAL_SCALE = new Vector3();
 const MAX_DETACHED_PARTS = 12;
+const BOUNDS = new Box3();
+const CORNER = new Vector3();
 
 /** Bounded battlefield wreckage; only a destruction event clones resources. */
 export class DetachedPartPool {
@@ -54,6 +60,8 @@ export class DetachedPartPool {
         age: 0,
         active: false,
         settled: false,
+        corners: Array.from({ length: 8 }, () => new Vector3()),
+        bounces: 0,
       };
     });
   }
@@ -105,6 +113,16 @@ export class DetachedPartPool {
     const heading = Math.atan2(source.matrixWorld.elements[2] ?? 0, source.matrixWorld.elements[0] ?? 1);
     const drift = heading + side * Math.PI * 0.48 + ((seed % 7) - 3) * 0.045;
     const speed = this.reducedMotion ? 1.5 : this.lowFx ? 5.5 : 8;
+    // The hull centre is not its contact surface: keep a rotated arm above the soil.
+    slot.root.position.set(0, 0, 0);
+    slot.root.rotation.set(0, 0, 0);
+    slot.root.updateMatrixWorld(true);
+    BOUNDS.setFromObject(slot.root);
+    for (let index = 0; index < 8; index += 1) slot.corners[index]?.set(
+      index & 1 ? BOUNDS.max.x : BOUNDS.min.x,
+      index & 2 ? BOUNDS.max.y : BOUNDS.min.y,
+      index & 4 ? BOUNDS.max.z : BOUNDS.min.z,
+    );
     slot.root.position.copy(CENTRE);
     slot.root.rotation.set(0, 0, 0);
     slot.velocity.set(Math.cos(drift) * speed, this.reducedMotion ? 2 : 10, Math.sin(drift) * speed);
@@ -116,13 +134,14 @@ export class DetachedPartPool {
     slot.age = 0;
     slot.active = true;
     slot.settled = false;
+    slot.bounces = 0;
     slot.root.visible = true;
     return true;
   }
 
   advance(deltaSeconds: number): void {
     if (this.destroyed) return;
-    const dt = Math.min(0.1, Math.max(0, deltaSeconds));
+    const dt = Number.isFinite(deltaSeconds) ? Math.min(0.1, Math.max(0, deltaSeconds)) : 0;
     for (const slot of this.slots) {
       if (!slot.active) continue;
       slot.age += dt;
@@ -132,12 +151,23 @@ export class DetachedPartPool {
         slot.root.rotation.x += slot.spin.x * dt;
         slot.root.rotation.y += slot.spin.y * dt;
         slot.root.rotation.z += slot.spin.z * dt;
-        const ground = this.heightAt(slot.root.position.x, slot.root.position.z) + 0.4;
+        let lowest = 0;
+        for (const corner of slot.corners) lowest = Math.min(lowest, CORNER.copy(corner).applyQuaternion(slot.root.quaternion).y);
+        const ground = this.heightAt(slot.root.position.x, slot.root.position.z) + .25 - lowest;
         if (slot.root.position.y <= ground) {
           slot.root.position.y = ground;
-          slot.velocity.set(0, 0, 0);
-          slot.spin.set(0, 0, 0);
-          slot.settled = true;
+          if (!this.reducedMotion && !this.lowFx && slot.bounces === 0 && slot.velocity.y < -3) {
+            slot.velocity.y = -slot.velocity.y * .22;
+            slot.velocity.x *= .62; slot.velocity.z *= .62;
+            slot.spin.multiplyScalar(.4); slot.bounces += 1;
+          } else {
+            slot.velocity.y = 0;
+            const friction = Math.exp(-dt * 9);
+            slot.velocity.x *= friction; slot.velocity.z *= friction; slot.spin.multiplyScalar(friction);
+            if (slot.velocity.lengthSq() < .12) {
+              slot.velocity.set(0, 0, 0); slot.spin.set(0, 0, 0); slot.settled = true;
+            }
+          }
         }
       }
       if (slot.age >= (this.lowFx ? 4 : 8)) this.clearSlot(slot);
@@ -219,6 +249,14 @@ function cloneMaterial(source: Material, cache: Map<Material, Material>): Materi
   const existing = cache.get(source);
   if (existing !== undefined) return existing;
   const copy = source.clone();
+  if (copy instanceof MeshStandardMaterial && copy.emissive.getHex() !== 0) {
+    // Detached optics lose their power feed; weak paint fill is not a luminous lens.
+    if (copy.emissiveIntensity > 0.2) {
+      copy.color.multiplyScalar(0.12);
+      copy.roughness = 0.85;
+    }
+    copy.emissiveIntensity = 0;
+  }
   cache.set(source, copy);
   return copy;
 }

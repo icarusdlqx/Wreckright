@@ -17,6 +17,7 @@ import {
 } from '../../render3d/mechModel';
 import { HERO_MECH_RENDER } from '../../render3d/renderQuality';
 import { advanceStartupSequence, setStartupPowered } from '../../render3d/startupLights';
+import type { DamageWearTier } from '../../render3d/damageLedger';
 
 const BAY_COLOUR = 0x78c9ff;
 const MARKER_COLOUR = 0x60727e;
@@ -41,11 +42,21 @@ export interface PreviewModel {
   dispose(): void;
 }
 
+/** Campaign condition is a cosmetic snapshot, never a live simulation entity. */
+export interface PreviewCondition {
+  lost: ReadonlySet<MechLocation>;
+  wear: Readonly<Partial<Record<MechLocation, DamageWearTier>>>;
+  powered: boolean;
+  showMarkers: boolean;
+}
+
 /** Cosmetic refits do not rebuild geometry; only visible construction does. */
-export function previewModelKey(chassis: Chassis, design: Design): string {
+export function previewModelKey(chassis: Chassis, design: Design, condition?: PreviewCondition): string {
   return JSON.stringify([
     chassis.id,
     design.mounts.map((mount) => [mount.weaponId, mount.location]),
+    condition === undefined ? null : [LOCATIONS.filter((location) => condition.lost.has(location)),
+      LOCATIONS.map((location) => condition.wear[location] ?? 0), condition.powered, condition.showMarkers],
   ]);
 }
 
@@ -81,7 +92,7 @@ function markerMaterial(): MeshBasicMaterial {
 }
 
 /** Builds the battlefield machine once, then adds at most one marker per location. */
-export function buildPreviewModel(catalog: Catalog, chassis: Chassis, design: Design): PreviewModel {
+export function buildPreviewModel(catalog: Catalog, chassis: Chassis, design: Design, condition?: PreviewCondition): PreviewModel {
   const model = buildMechModel(
     chassis.silhouette,
     chassis.traits,
@@ -89,16 +100,16 @@ export function buildPreviewModel(catalog: Catalog, chassis: Chassis, design: De
     BAY_COLOUR,
     false,
     mountArt(catalog, design),
-    new Set(),
+    condition?.lost ?? new Set(),
     chassis.hardpoints,
     chassis.id,
-    {},
+    condition?.wear ?? {},
     chassis.faction,
     HERO_MECH_RENDER,
   );
 
   if (model.startup !== null) {
-    setStartupPowered(model, true);
+    setStartupPowered(model, condition?.powered ?? true);
     advanceStartupSequence(model, 0, true);
   }
 
@@ -114,7 +125,7 @@ export function buildPreviewModel(catalog: Catalog, chassis: Chassis, design: De
 
   for (const location of LOCATIONS) {
     const anchor = plan.hardpoints[location];
-    if (anchor === undefined || !hasWeaponHardpoint(chassis, location)) continue;
+    if (condition?.showMarkers === false || condition?.lost.has(location) || anchor === undefined || !hasWeaponHardpoint(chassis, location)) continue;
     const marker = new Mesh(geometry, markerMaterial()) as PreviewMarker;
     marker.position.set(anchor[0] * scale, anchor[1] * scale, anchor[2] * scale);
     marker.renderOrder = 20;
@@ -125,12 +136,14 @@ export function buildPreviewModel(catalog: Catalog, chassis: Chassis, design: De
 
   let disposed = false;
   return {
-    key: previewModelKey(chassis, design),
+    key: previewModelKey(chassis, design, condition),
     model,
     markers,
     dispose: () => {
       if (disposed) return;
       disposed = true;
+      // A showcase may deliberately have no markers, leaving this shared geometry unattached.
+      if (markers.length === 0) geometry.dispose();
       disposeModel(model.root);
     },
   };

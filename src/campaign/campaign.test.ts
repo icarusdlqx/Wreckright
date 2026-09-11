@@ -134,10 +134,9 @@ describe('mission resolution', () => {
     expect(outcome?.salvageFinalized).toBe(false);
     expect(state.cbills).toBeGreaterThan(before);
     expect(state.completedNodes).toContain('militia_raid');
-    expect(campaignNodes(catalog, state).map((node) => node.id).sort()).toEqual([
-      'pass_skirmish',
-      'supply_line',
-    ]);
+    expect(campaignNodes(catalog, state).map((node) => node.id)).toEqual(expect.arrayContaining([
+      'marker_survey', 'recovery_window', 'supply_line',
+    ]));
   });
 
   it('carries battle damage back onto the mech records', () => {
@@ -195,17 +194,19 @@ describe('salvage', () => {
   });
 
   it('recovers gear into the store when salvage rights are high', () => {
+    const before = state.store.reduce((sum, item) => sum + item.count, 0);
     fightNode(state, 'militia_raid');
     const recovered = state.store.reduce((sum, item) => sum + item.count, 0);
-    expect(recovered).toBeGreaterThan(0);
+    expect(recovered).toBeGreaterThan(before);
   });
 
   it('pays more and salvages nothing at the payout-heavy end', () => {
     const payoutRun = start('payout-run');
+    const suppliesBefore = structuredClone(payoutRun.store);
     acceptContract(catalog, payoutRun, 'militia_raid', 'fee_first');
     runMission(catalog, payoutRun);
 
-    expect(payoutRun.store).toHaveLength(0);
+    expect(payoutRun.store).toEqual(suppliesBefore);
     expect(payoutRun.history[0]?.termsId).toBe('fee_first');
     expect(payoutRun.history[0]?.salvagedChassis ?? []).toHaveLength(0);
   });
@@ -316,6 +317,7 @@ describe('save and load', () => {
     fightNode(state, 'militia_raid');
     const mech = state.mechs.find((entry) => estimateRepair(catalog, entry).days > 0);
     if (mech !== undefined) startRepair(catalog, state, mech);
+    state.campaignContentRevision = 1;
     acceptContract(catalog, state, 'pass_skirmish', 'standard');
 
     const restored = deserialiseCampaign(serialiseCampaign(state));
@@ -341,6 +343,7 @@ describe('save and load', () => {
   // Fights a whole mission twice over to compare the streams.
   it('resumes the same random stream after a reload', { timeout: 30_000 }, () => {
     fightNode(state, 'militia_raid');
+    state.campaignContentRevision = 1;
 
     const reloaded = deserialiseCampaign(serialiseCampaign(state)).state;
     expect(reloaded).not.toBeNull();

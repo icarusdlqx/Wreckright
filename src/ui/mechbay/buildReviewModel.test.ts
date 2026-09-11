@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { catalog } from '../../../tests/support';
+import { catalog, legacySentinelDesign } from '../../../tests/support';
 import type { Design } from '../../schema/design';
 import { validateDesign } from '../../schema/designValidation';
 import { computeHeatProfile, computeLoadout } from '../../sim/loadout';
 import { buildReviewSummary } from './buildReviewModel';
 
 function stock(): Design {
-  const design = catalog.designs.get('sentinel_brawler');
+  const design = legacySentinelDesign;
   if (design === undefined) throw new Error('missing Sentinel design');
   return structuredClone(design);
 }

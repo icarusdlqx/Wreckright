@@ -1,0 +1,12 @@
+.campaign-story { border: 1px solid #537074; border-left: 3px solid #ed975f; border-radius: 6px; padding: 14px 18px; background: #172b32; margin-bottom: 14px; color: #d8e4d8; }
+.campaign-story-aurelian { border-left-color: #baa56b; background: #202e39; }
+.campaign-story header { display: flex; gap: 12px; align-items: center; }
+.campaign-story header > div { min-width: 0; }
+.campaign-story header span { font-size: 10px; color: #bccbbd; letter-spacing: .04em; }
+.camp .campaign-story h3 { color: #f6e4c5; font-size: 18px; margin: 4px 0 0; }
+.campaign-story p { max-width: 85ch; font-size: 12px; line-height: 1.65; margin: 10px 0; }
+.campaign-story summary { width: fit-content; padding: 4px 0; cursor: pointer; color: #edbd88; font-size: 11px; }
+.campaign-story summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.campaign-story-entries { border-top: 1px solid #536c65; margin-top: 12px; padding-top: 4px; }
+.campaign-story-entries section + section { border-top: 1px solid #536c654d; padding-top: 8px; }
+.camp .campaign-story-entries h4 { color: #ebdfc4; margin-bottom: 6px; }

@@ -10,12 +10,15 @@ import {
 } from './audioScoreTreatments';
 
 describe('strategic score treatments', () => {
-  it('keeps the campaign on the drone and the bay on a restrained pulse', () => {
+  it('keeps campaign and bay arrangements below battle intensity', () => {
+    const home = STRATEGIC_SCORE_TREATMENTS.home;
     const campaign = STRATEGIC_SCORE_TREATMENTS.campaign;
     const mechbay = STRATEGIC_SCORE_TREATMENTS.mechbay;
     expect(campaign).toEqual({ intensity: 0, level: 0.6 });
     expect(mechbay).toEqual({ intensity: 0.3, level: 0.72 });
     expect(mechbay.intensity).toBeGreaterThan(campaign.intensity);
+    expect(home.level).toBeGreaterThan(campaign.level);
+    expect(home.intensity).toBeGreaterThan(campaign.intensity);
     expect(fullLayerLevel(campaign.intensity)).toBe(0);
     expect(fullLayerLevel(mechbay.intensity)).toBe(0);
   });

@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { refitAvailability, type RefitAvailability } from '../../campaign/refitQuote';
 import type { StoreItem } from '../../campaign/types';
 import type { Design } from '../../schema/design';
-import { catalog } from '../../../tests/support';
+import { catalog, legacySentinelDesign } from '../../../tests/support';
 import { evaluateEdit } from './editPreview';
 
 function design(id = 'sentinel_brawler'): Design {
-  const found = catalog.designs.get(id);
+  const found = id === 'sentinel_brawler' ? legacySentinelDesign : catalog.designs.get(id);
   if (found === undefined) throw new Error(`missing design ${id}`);
   return structuredClone(found);
 }

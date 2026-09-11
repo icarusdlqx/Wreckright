@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { catalog } from '../../tests/support';
+import { catalog, legacySentinelDesign } from '../../tests/support';
 import { LOCATIONS } from '../schema/common';
 import { createRng, type Rng } from '../sim/rng';
 import type { BattleResult, UnitResult } from '../sim/world';
@@ -124,7 +124,12 @@ function outcome(): MissionOutcome {
 
 describe('salvage field ledger', () => {
   it('records the signed hull odds, roll result, and each recovered part source', () => {
-    const report = resolveSalvage(catalog, alwaysRecover, battle(enemy()), 0, 0.5);
+    // Retain the three-laser salvage ledger from the original mixed loadout.
+    const mixedCatalog = {
+      ...catalog,
+      designs: new Map(catalog.designs).set(legacySentinelDesign.id, legacySentinelDesign),
+    };
+    const report = resolveSalvage(mixedCatalog, alwaysRecover, battle(enemy()), 0, 0.5);
 
     expect(report.candidates).toEqual([
       {

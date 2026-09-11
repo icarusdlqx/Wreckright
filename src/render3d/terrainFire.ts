@@ -1,6 +1,7 @@
 import {
   BufferGeometry,
   CircleGeometry,
+  Color,
   DoubleSide,
   DynamicDrawUsage,
   Float32BufferAttribute,
@@ -19,6 +20,7 @@ import type { TerrainMapData } from '../schema/map';
 import type { TeamVision } from '../sim/sensors';
 import type { TerrainGrid } from '../sim/terrain';
 import { disposeObjectResources } from './sceneResources';
+import { softenSmokeEdges } from './softSmokeMaterial';
 
 const FIRE_CAPACITY = 128;
 const SMOKE_PER_FIRE = 3;
@@ -75,10 +77,24 @@ function visualHash(cell: number, salt: number): number {
 
 function crossedFlameGeometry(): BufferGeometry {
   const geometry = new BufferGeometry();
-  geometry.setAttribute('position', new Float32BufferAttribute([
-    -0.5, 0, 0, 0.5, 0, 0, 0, 1, 0,
-    0, 0, -0.5, 0, 0, 0.5, 0, 1, 0,
-  ], 3));
+  const outline = [[-.5, 0], [-.42, .28], [-.22, .46], [-.26, .7], [-.05, .58],
+    [.1, 1], [.3, .62], [.27, .42], [.48, .24], [.5, 0]] as const;
+  const positions: number[] = [], colours: number[] = [];
+  const colour = new Color();
+  for (const plane of [0, 1]) for (const scale of [1, .55]) {
+    for (let index = 0; index < outline.length; index += 1) {
+      const first = outline[index]!; const second = outline[(index + 1) % outline.length]!;
+      for (const [x, y] of [[0, .24], first, second]) {
+        const along = (x ?? 0) * scale, height = (y ?? 0) * scale;
+        positions.push(plane === 0 ? along : scale < 1 ? .01 : 0, height,
+          plane === 1 ? along : scale < 1 ? .01 : 0);
+        colour.setHex(scale < 1 ? 0xffe1a1 : height > .48 ? 0xe95624 : 0xffa03d);
+        colours.push(colour.r, colour.g, colour.b);
+      }
+    }
+  }
+  geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new Float32BufferAttribute(colours, 3));
   geometry.computeBoundingSphere();
   geometry.name = 'terrain-fire-crossed-cards';
   return geometry;
@@ -134,7 +150,8 @@ export class TerrainFireLayer {
       'terrain-fire-flames',
       crossedFlameGeometry(),
       new MeshBasicMaterial({
-        color: 0xff7b22,
+        color: 0xffffff,
+        vertexColors: true,
         transparent: true,
         opacity: 0.88,
         depthWrite: false,
@@ -144,7 +161,7 @@ export class TerrainFireLayer {
     );
     this.smoke = fixedPool(
       'terrain-fire-smoke',
-      new SphereGeometry(1, 6, 4),
+      new SphereGeometry(1, 10, 7),
       new MeshLambertMaterial({
         color: 0x697078,
         transparent: true,
@@ -153,6 +170,7 @@ export class TerrainFireLayer {
       }),
       FIRE_CAPACITY * SMOKE_PER_FIRE,
     );
+    softenSmokeEdges(this.smoke.material as MeshLambertMaterial);
 
     const cells = grid.width * grid.height;
     this.scorchSlotByCell = new Int32Array(cells);

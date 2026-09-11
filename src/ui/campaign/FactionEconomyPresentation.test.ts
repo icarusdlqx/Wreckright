@@ -59,13 +59,14 @@ describe('campaign faction economy presentation', () => {
 
     for (const html of [panel, hangar]) {
       expect(html).toContain('Linewrought');
-      expect(html).toContain('Aurelian Stock (Sealed)');
+      expect(html).toContain('Aurelian Stock');
+      expect(html).not.toContain('(Sealed)');
       expect(html).toContain(`${expectedFactor(linewrought.cost)}× workshop cost`);
       expect(html).toContain(`${expectedFactor(linewrought.days)}× workshop time`);
       expect(html).toContain(`${expectedFactor(aurelian.cost)}× workshop cost`);
       expect(html).toContain(`${expectedFactor(aurelian.days)}× workshop time`);
       expect(html).toContain('local repair supply');
-      expect(html).toContain('replacement parts salvage-only');
+      expect(html).toContain('replacement weapons and equipment salvage-only');
     }
   });
 
@@ -82,9 +83,10 @@ describe('campaign faction economy presentation', () => {
     expect(html).toContain('machines only');
     if (!available.includes('aurelian')) {
       expect(html).toContain(
-        'Aurelian Stock (Sealed) machines and replacement parts are salvage-only',
+        'Aurelian Stock machines and replacement parts are salvage-only',
       );
     }
+    expect(html).toContain('Recovered weapons fit either faction');
   });
 
   it('keeps the 300px Hiring Hall rail in one wrappable column', () => {

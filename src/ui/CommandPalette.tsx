@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 import { actionStatus } from './combatTelemetry';
 import type { OrderMode, TimedActionSnapshot } from './store';
 import './battleChrome.css';
+import { ActiveOrderHelp, OrderGuide } from './OrderGuide';
+import { SelectionAbilityDetails, type SelectionAbilities } from './selectionAbilities';
 
 export interface Command {
   id: string;
@@ -24,13 +26,14 @@ export const COMMANDS: readonly Command[] = [
   },
   { id: 'attack', label: 'Attack', key: 'F', mode: 'attack' },
   { id: 'called_shot', label: 'Called Shot', key: 'C', mode: 'called_shot' },
+  { id: 'stop', label: 'Stop', key: 'S', mode: null, title: 'Cancel the route, queued waypoints and priority target. Weapons remain active (S)' },
   { id: 'hold_fire', label: 'Hold Fire', key: 'H', mode: null },
   {
     id: 'hold_position',
     label: 'Guard',
     key: 'G',
     mode: null,
-    title: 'Hold this ground and engage at will. Press again to release (G)',
+    title: 'Cancel the route and guard this ground; keep the priority target and weapons active. Press again to release (G)',
   },
   {
     id: 'ability',
@@ -68,6 +71,7 @@ interface Props {
   holdingFire: boolean;
   heatSafety: boolean;
   ability: TimedActionSnapshot | null;
+  abilitySelection?: SelectionAbilities | null;
   alpha: TimedActionSnapshot | null;
   /** Jets aboard, charged and free to fire. Null when nothing is selected. */
   jump: { ready: boolean; range: number; cooldown: number } | null;
@@ -85,13 +89,14 @@ interface CommandButtonProps {
   holdingFire: boolean;
   heatSafety: boolean;
   ability: TimedActionSnapshot | null;
+  abilitySelection?: SelectionAbilities | null;
   alpha: TimedActionSnapshot | null;
   jump: Props['jump'];
   posture: string;
   onCommand: (command: Command) => void;
 }
 
-const PRIMARY_COMMANDS = new Set(['move', 'attack_move', 'attack', 'hold_position', 'ability', 'jump']);
+const PRIMARY_COMMANDS = new Set(['move', 'attack_move', 'attack', 'stop', 'hold_position', 'ability', 'jump']);
 const ADVANCED_COMMANDS = new Set([
   'run',
   'called_shot',
@@ -119,6 +124,7 @@ function timedAction(
 
 function commandActive(props: CommandButtonProps): boolean {
   const timed = timedAction(props.command, props.ability, props.alpha);
+  if (props.command.id === 'ability' && props.abilitySelection != null) return props.abilitySelection.active > 0;
   return (
     (props.command.mode !== null && props.command.mode === props.orderMode) ||
     (props.command.id === 'hold_fire' && props.holdingFire) ||
@@ -134,7 +140,8 @@ function CommandButton(props: CommandButtonProps) {
   const active = commandActive(props);
   const isJump = command.id === 'jump';
   const disabled = command.disabled === true || !props.enabled || (isJump && props.jump?.ready !== true);
-  const title = isJump
+  const group = command.id === 'ability' ? props.abilitySelection : null;
+  const title = group != null ? `Activate ${group.ready}/${group.total} ready pilot abilities (V).\n${group.detail}` : isJump
     ? jumpTitle(props.jump)
     : timed === null
       ? (command.title ?? `${command.label} (${command.key})`)
@@ -151,8 +158,8 @@ function CommandButton(props: CommandButtonProps) {
       data-testid={`command-${command.id}`}
     >
       <span className="command-key">{command.key}</span>
-      <span className="command-label">{timed?.label ?? command.label}</span>
-      {timed === null ? null : <span className="command-state">{actionStatus(timed)}</span>}
+      <span className="command-label">{group != null ? 'Abilities' : timed?.label ?? command.label}</span>
+      {timed === null ? null : <span className="command-state">{group != null ? `${group.ready}/${group.total} READY` : actionStatus(timed)}</span>}
     </button>
   );
 }
@@ -163,6 +170,7 @@ export function CommandPalette({
   holdingFire,
   heatSafety,
   ability,
+  abilitySelection = null,
   alpha,
   jump,
   posture,
@@ -186,6 +194,7 @@ export function CommandPalette({
     holdingFire,
     heatSafety,
     ability,
+    abilitySelection,
     alpha,
     jump,
     posture,
@@ -238,9 +247,12 @@ export function CommandPalette({
             {advanced.map((command) => (
               <CommandButton key={command.id} command={command} {...buttonProps} />
             ))}
+            <SelectionAbilityDetails summary={abilitySelection} />
+            <OrderGuide jumpNote={jumpTitle(jump)} />
           </div>
         </details>
       )}
+      <ActiveOrderHelp mode={orderMode} />
     </div>
   );
 }

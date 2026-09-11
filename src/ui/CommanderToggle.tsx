@@ -17,13 +17,14 @@ export function CommanderToggle({ compact = false, disabled = false }: Commander
       type="button"
       className={`commander-toggle${active ? ' active' : ''}`}
       aria-pressed={active}
+      aria-label={active ? 'Return to battlefield' : 'Open Commander map'}
       disabled={disabled}
       title="Toggle Commander view (`)"
       data-battle-shortcut="Backquote"
       onClick={() => toggleCommanderView()}
       data-testid={compact ? 'mobile-commander-toggle' : 'commander-toggle'}
     >
-      {active ? 'Field' : compact ? 'Map' : 'Commander'}
+      {active ? 'Field' : 'Map'}
       {compact ? null : <span aria-hidden="true"> · `</span>}
     </button>
   );

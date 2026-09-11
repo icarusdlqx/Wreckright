@@ -1,5 +1,5 @@
 import { BoxGeometry, Group, Mesh, MeshStandardMaterial, Scene } from 'three';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { DetachedPartPool } from './detachedPartPool';
 
 describe('detached part pool', () => {
@@ -77,4 +77,51 @@ describe('detached part pool', () => {
     geometry.dispose();
     material.dispose();
   });
+  it.each(['expiry', 'dispose'] as const)(
+    'depowers detached emitters without touching live equipment and releases their shared clone on %s',
+    (retire) => {
+      const scene = new Scene(), source = new Group();
+      const geometry = new BoxGeometry(1, 3, 1);
+      const material = new MeshStandardMaterial({ color: 0x44ff66, emissive: 0x44ff66,
+        emissiveIntensity: 2, roughness: 0.25 });
+      const originalColour = material.color.clone();
+      const originalEmission = material.emissive.clone();
+      const sourceMaterialDispose = vi.spyOn(material, 'dispose');
+      const sourceGeometryDispose = vi.spyOn(geometry, 'dispose');
+      const hardpoint = new Group();
+      hardpoint.userData.detachmentLocation = 'right_arm';
+      hardpoint.add(new Mesh(geometry, material), new Mesh(geometry, material));
+      source.add(hardpoint); source.position.y = 18;
+      const pool = new DetachedPartPool(scene, () => 0, false);
+      expect(pool.spawn(source, 'right_arm', 1)).toBe(true);
+      const detached = scene.children.find((child) => child.visible)!;
+      const first = detached.children[0] as Mesh;
+      const second = detached.children[1] as Mesh;
+      const cold = first.material as MeshStandardMaterial;
+      const cloneMaterialDispose = vi.spyOn(cold, 'dispose');
+      const cloneGeometryDispose = vi.spyOn(first.geometry, 'dispose');
+      expect(cold).not.toBe(material);
+      expect(second.material).toBe(cold);
+      expect(second.geometry).toBe(first.geometry);
+      expect(cold.emissiveIntensity).toBe(0);
+      expect(cold.color.r).toBeCloseTo(originalColour.r * 0.12);
+      for (let frame = 0; frame < 180; frame += 1) pool.advance(1 / 60);
+      expect(cold.emissiveIntensity).toBe(0);
+      expect(material.emissiveIntensity).toBe(2);
+      expect(material.color.equals(originalColour)).toBe(true);
+      expect(material.emissive.equals(originalEmission)).toBe(true);
+      expect(material.roughness).toBe(0.25);
+      if (retire === 'expiry') for (let frame = 0; frame < 360; frame += 1) pool.advance(1 / 60);
+      else pool.dispose();
+      expect(cloneMaterialDispose).toHaveBeenCalledTimes(1);
+      expect(cloneGeometryDispose).toHaveBeenCalledTimes(1);
+      pool.dispose();
+      expect(cloneMaterialDispose).toHaveBeenCalledTimes(1);
+      expect(cloneGeometryDispose).toHaveBeenCalledTimes(1);
+      expect(sourceMaterialDispose).not.toHaveBeenCalled();
+      expect(sourceGeometryDispose).not.toHaveBeenCalled();
+      geometry.dispose(); material.dispose();
+    },
+  );
+
 });

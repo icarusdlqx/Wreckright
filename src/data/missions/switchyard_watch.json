@@ -1,64 +1,64 @@
 {
   "id": "switchyard_watch",
-  "name": "Watch — Foundry Registry",
+  "name": "Warrant — Sarn Inventory",
   "type": "defend",
-  "mapId": "foundry_district",
-  "briefing": "The foundry's attestation node has to remain under contract control for two and a half minutes. One scout is already moving and three relief elements are due from separate gates. If the registry changes hands, the contract is lost. You are not being paid to clear survivors.",
-  "maxDurationSeconds": 150,
-  "startingResourcePoints": 500,
+  "mapId": "aurelian_civic_exchange",
+  "briefing": "Protect the Sarn registry through a short custody transfer. Defenders will use both workshop access streets. The record, not enemy destruction, is the objective.",
+  "maxDurationSeconds": 260,
+  "startingResourcePoints": 550,
   "lances": [
     {
       "team": 0,
-      "name": "Registry Guard",
+      "name": "Aurelian Custody Detail",
       "units": [
         {
+          "designId": "votive_picket",
+          "pilotId": "petra_lindqvist",
+          "spawn": {
+            "x": 540,
+            "y": 612
+          },
+          "facingDegrees": 0
+        },
+        {
           "designId": "sentinel_brawler",
-          "pilotId": "kessa_vale",
+          "pilotId": "silas_okonkwo",
           "spawn": {
-            "x": 444,
-            "y": 492
+            "x": 588,
+            "y": 612
           },
-          "facingDegrees": -135
+          "facingDegrees": 0
         },
         {
-          "designId": "bulwark_assault",
-          "pilotId": "dorn_hess",
+          "designId": "falchion_duellist",
+          "pilotId": "teodor_krysa",
           "spawn": {
-            "x": 516,
-            "y": 492
+            "x": 540,
+            "y": 660
           },
-          "facingDegrees": -45
+          "facingDegrees": 0
         },
         {
-          "designId": "wisp_scout",
-          "pilotId": "marek_sud",
+          "designId": "halberd_prime",
+          "pilotId": "arne_gedde",
           "spawn": {
-            "x": 492,
-            "y": 444
+            "x": 588,
+            "y": 660
           },
-          "facingDegrees": 135
-        },
-        {
-          "designId": "cairn_battery",
-          "pilotId": "ilse_brant",
-          "spawn": {
-            "x": 492,
-            "y": 540
-          },
-          "facingDegrees": -45
+          "facingDegrees": 0
         }
       ]
     },
     {
       "team": 1,
-      "name": "Gate Scout",
+      "name": "Sarn Registry Defence",
       "units": [
         {
           "designId": "courser_patrol",
           "pilotId": "leda_morcant",
           "spawn": {
-            "x": 36,
-            "y": 36
+            "x": 84,
+            "y": 60
           },
           "facingDegrees": 45
         }
@@ -68,19 +68,19 @@
   "zones": [
     {
       "id": "freight_switch",
-      "name": "Foundry Attestation Node",
-      "x": 492,
-      "y": 492,
-      "radius": 76,
+      "name": "Sarn Registry Court",
+      "x": 756,
+      "y": 372,
+      "radius": 78,
       "owner": 0,
-      "captureSeconds": 10,
+      "captureSeconds": 12,
       "resourcePoints": 0
     }
   ],
   "objectives": [
     {
       "id": "keep_switch",
-      "label": "Keep the attestation node secure until pickup",
+      "label": "Protect the Sarn registry",
       "type": "protect_zones",
       "team": 0,
       "required": true,
@@ -89,8 +89,19 @@
       ]
     },
     {
+      "id": "complete_inventory",
+      "label": "Hold the registry for 95 seconds",
+      "type": "hold_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": [
+        "freight_switch"
+      ],
+      "holdSeconds": 95
+    },
+    {
       "id": "guard_survives",
-      "label": "Keep at least one mech operational",
+      "label": "Keep at least one custody machine operational",
       "type": "survive",
       "team": 0,
       "required": true
@@ -107,143 +118,115 @@
       "effects": [
         {
           "type": "message",
-          "text": "Registry control: north-west scout moving. Three more gates just opened on the board."
-        },
-        {
-          "type": "reveal",
-          "x": 36,
-          "y": 36,
-          "radius": 150,
-          "seconds": 18
+          "text": "Tender: registry transfer in progress. West garden contact first; east workshop street follows.",
+          "speakerPilotId": "silas_okonkwo"
         }
       ]
     },
     {
-      "id": "north_east_wave",
+      "id": "west_wave",
       "when": {
         "type": "elapsed",
-        "seconds": 30
+        "seconds": 24
       },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "North-east gate: two light contacts, closing fast."
+          "text": "West garden lane: two defenders inbound.",
+          "speakerPilotId": "petra_lindqvist"
         },
         {
           "type": "spawn",
           "team": 1,
           "units": [
-            {
-              "designId": "courser_patrol",
-              "pilotId": "suri_kell",
-              "spawn": {
-                "x": 876,
-                "y": 36
-              },
-              "facingDegrees": 135
-            },
             {
               "designId": "hornet_spotter",
-              "pilotId": "bram_nyen",
+              "pilotId": "dario_senn",
               "spawn": {
-                "x": 924,
-                "y": 84
+                "x": 60,
+                "y": 492
               },
-              "facingDegrees": 135
-            }
-          ]
-        },
-        {
-          "type": "reveal",
-          "x": 900,
-          "y": 60,
-          "radius": 170,
-          "seconds": 18
-        }
-      ]
-    },
-    {
-      "id": "south_west_wave",
-      "when": {
-        "type": "elapsed",
-        "seconds": 70
-      },
-      "once": true,
-      "effects": [
-        {
-          "type": "message",
-          "text": "South-west gate: two Linewrought contacts. They are taking the road."
-        },
-        {
-          "type": "spawn",
-          "team": 1,
-          "units": [
-            {
-              "designId": "courser_patrol",
-              "pilotId": "oksana_valev",
-              "spawn": {
-                "x": 36,
-                "y": 876
-              },
-              "facingDegrees": -45
+              "facingDegrees": 0
             },
             {
               "designId": "drover_carrier",
-              "pilotId": "anja_verrin",
+              "pilotId": "bram_nyen",
               "spawn": {
-                "x": 84,
-                "y": 924
+                "x": 60,
+                "y": 564
               },
-              "facingDegrees": -45
+              "facingDegrees": 0
             }
           ]
         },
         {
           "type": "reveal",
           "x": 60,
-          "y": 900,
-          "radius": 170,
-          "seconds": 18
+          "y": 528,
+          "radius": 220,
+          "seconds": 24
         }
       ]
     },
     {
-      "id": "south_east_wave",
+      "id": "east_wave",
       "when": {
         "type": "elapsed",
-        "seconds": 110
+        "seconds": 58
       },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "South-east gate: one heavy contact. Last scheduled arrival."
+          "text": "East workshop street: second section inbound.",
+          "speakerPilotId": "teodor_krysa"
         },
         {
           "type": "spawn",
           "team": 1,
           "units": [
             {
-              "designId": "cairn_battery",
-              "pilotId": "corin_dast",
+              "designId": "bulwark_assault",
+              "pilotId": "anja_verrin",
               "spawn": {
-                "x": 876,
-                "y": 876
+                "x": 1092,
+                "y": 708
               },
-              "facingDegrees": -135
+              "facingDegrees": 180
+            },
+            {
+              "designId": "prybar_courier",
+              "pilotId": "oksana_valev",
+              "spawn": {
+                "x": 1092,
+                "y": 780
+              },
+              "facingDegrees": 180
             }
           ]
         },
         {
           "type": "reveal",
-          "x": 876,
-          "y": 876,
-          "radius": 150,
-          "seconds": 18
+          "x": 1092,
+          "y": 744,
+          "radius": 220,
+          "seconds": 24
         }
       ]
     }
   ],
-  "dropTonnage": 210
+  "dropTonnage": 220,
+  "enemyDirectives": [
+    {
+      "id": "registry_counterattack",
+      "team": 1,
+      "zoneId": "freight_switch",
+      "behavior": "retake",
+      "units": 5,
+      "pursuitRadius": 700
+    }
+  ],
+  "maxPlayerUnits": 5,
+  "atmosphereId": "overcast_day"
 }

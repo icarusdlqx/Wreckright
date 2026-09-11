@@ -3,8 +3,8 @@
   "name": "Contact — First Attestation",
   "type": "ambush",
   "mapId": "ridge_pass",
-  "briefing": "Three Linewrought Kestrel machines are escorting one bone-white walker carrying a Continuance seal. The fourth has no shop stamp, hatch seam or ammunition signature. Break the escort, put the sealed machine down, and hold the ground until Halloran's recovery crews arrive.",
-  "maxDurationSeconds": 360,
+  "briefing": "An Aurelian claim detail holds the exposed freight approach. Its range and armour favour the centre lane; break its escorts from the flank, then hold the field long enough to copy the attestation.",
+  "maxDurationSeconds": 420,
   "startingResourcePoints": 500,
   "lances": [
     {
@@ -14,25 +14,37 @@
         {
           "designId": "hornet_spotter",
           "pilotId": "kessa_vale",
-          "spawn": { "x": 108, "y": 852 },
+          "spawn": {
+            "x": 108,
+            "y": 852
+          },
           "facingDegrees": -45
         },
         {
           "designId": "bulwark_assault",
           "pilotId": "dorn_hess",
-          "spawn": { "x": 156, "y": 876 },
+          "spawn": {
+            "x": 156,
+            "y": 876
+          },
           "facingDegrees": -45
         },
         {
           "designId": "hornet_spotter",
           "pilotId": "marek_sud",
-          "spawn": { "x": 204, "y": 828 },
+          "spawn": {
+            "x": 204,
+            "y": 828
+          },
           "facingDegrees": -45
         },
         {
           "designId": "cairn_battery",
           "pilotId": "ilse_brant",
-          "spawn": { "x": 132, "y": 780 },
+          "spawn": {
+            "x": 132,
+            "y": 780
+          },
           "facingDegrees": -45
         }
       ]
@@ -44,25 +56,28 @@
         {
           "designId": "votive_picket",
           "pilotId": "anja_verrin",
-          "spawn": { "x": 852, "y": 108 },
+          "spawn": {
+            "x": 852,
+            "y": 108
+          },
           "facingDegrees": 135
         },
         {
           "designId": "cairn_battery",
           "pilotId": "corin_dast",
-          "spawn": { "x": 804, "y": 132 },
-          "facingDegrees": 135
-        },
-        {
-          "designId": "hornet_spotter",
-          "pilotId": "leda_morcant",
-          "spawn": { "x": 876, "y": 180 },
+          "spawn": {
+            "x": 804,
+            "y": 132
+          },
           "facingDegrees": 135
         },
         {
           "designId": "drover_carrier",
           "pilotId": "tomas_arvel",
-          "spawn": { "x": 828, "y": 84 },
+          "spawn": {
+            "x": 828,
+            "y": 84
+          },
           "facingDegrees": 135
         }
       ]
@@ -71,7 +86,7 @@
   "objectives": [
     {
       "id": "stop_recovery_train",
-      "label": "Bring down the Kestrel claim detail",
+      "label": "Defeat the Aurelian claim detail",
       "type": "destroy_all",
       "team": 0,
       "required": true
@@ -87,12 +102,16 @@
   "triggers": [
     {
       "id": "cold_contact",
-      "when": { "type": "elapsed", "seconds": 3 },
+      "when": {
+        "type": "elapsed",
+        "seconds": 3
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Halloran: the white hull answered the checkpoint reader. Aurelian root serial, Continuance attestation. The reader identified it; it did not move it."
+          "text": "Halloran: the white hull answered the checkpoint reader. Aurelian root serial, Continuance attestation. The reader identified it; it did not move it.",
+          "speakerPilotId": "ilse_brant"
         },
         {
           "type": "reveal",
@@ -105,15 +124,21 @@
     },
     {
       "id": "recovery_order",
-      "when": { "type": "team_losses", "team": 1, "count": 2 },
+      "when": {
+        "type": "team_losses",
+        "team": 1,
+        "count": 2
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Halloran: hold the field at dusk. Authority seal or not, wreckright gives the white hull to whoever is still standing around it."
+          "text": "Halloran: hold the field at dusk. Authority seal or not, wreckright gives the white hull to whoever is still standing around it.",
+          "speakerPilotId": "dorn_hess"
         }
       ]
     }
   ],
-  "dropTonnage": 205
+  "dropTonnage": 215,
+  "maxPlayerUnits": 5
 }

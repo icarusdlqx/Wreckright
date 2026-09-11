@@ -18,12 +18,12 @@ function stripControlCharacters(value: string): string {
     .join('');
 }
 
-export function sanitisePlaytestNote(input: string): string {
+export function sanitisePlaytestNote(input: string, maximum = MAX_PLAYTEST_NOTE_LENGTH): string {
   const redacted = stripControlCharacters(input)
     .replace(EMAIL_ADDRESS, '[email removed]')
     .replace(WEB_ADDRESS, '[link removed]')
     .replace(PHONE_LIKE, redactLongNumber)
     .replace(/\s+/gu, ' ')
     .trim();
-  return [...redacted].slice(0, MAX_PLAYTEST_NOTE_LENGTH).join('').trim();
+  return [...redacted].slice(0, maximum).join('').trim();
 }

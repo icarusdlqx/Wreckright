@@ -27,33 +27,11 @@ import { hasUsableFiringSolution } from '../weaponEngagement';
 import { holdingForRepair } from './support';
 import { assignIndirectTrackTarget } from './indirect';
 import { selectFireModesForRange } from './fireModes';
+import { chooseCalledShot } from './aim';
+import { assignDirectives, decideDirective } from './directives';
 
 export { lanceFocus } from './focus';
 export { difficultyTier } from './difficulty';
-
-const LEG_LOCATIONS = ['left_leg', 'right_leg'] as const;
-
-function chooseCalledShot(world: World, mech: MechEntity, target: MechEntity, tier: DifficultyTier): void {
-  if (!tier.calledShots) {
-    mech.calledShot = null;
-    return;
-  }
-
-  const rules = world.rules.ai.calledShot;
-  if (structureFraction(target) > rules.targetStructureFraction) {
-    mech.calledShot = null;
-    return;
-  }
-
-  const standing = LEG_LOCATIONS.filter((location) => !target.locations[location].destroyed);
-  if (standing.length === 0) {
-    mech.calledShot = null;
-    return;
-  }
-
-  // Taking the legs leaves the chassis on the field to be towed home.
-  mech.calledShot = world.rng.chance(rules.chance) ? world.rng.pick(standing) : null;
-}
 
 function moveTo(world: World, mech: MechEntity, destination: { x: number; y: number }, run: boolean): void {
   const path = findPath(
@@ -387,10 +365,13 @@ export function resolveDisengagement(world: World): void {
 export function runTeamAi(world: World, team: number, tier: DifficultyTier): void {
   const focus = lanceFocus(world, team, tier);
   const stations = assignZones(world, team);
+  const duties = assignDirectives(world, team);
   for (const mech of world.entities) {
     if (mech.team !== team || mech.controller !== 'tactical') continue;
     // Airborne: the arc is committed, so there is nothing left to decide.
     if (mech.jump !== null) continue;
+    const duty = duties.get(mech.id);
+    if (duty !== undefined && decideDirective(world, mech, duty, focus, tier)) continue;
     decideTactical(world, mech, focus, tier, stations.get(mech.id) ?? null);
   }
 }

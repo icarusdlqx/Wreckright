@@ -17,6 +17,7 @@ export interface MachineCultureProfile {
 export interface HullRecoil {
   kick: number;
   travel: number;
+  brace?: number;
 }
 
 const LINEWROUGHT: Readonly<MachineCultureProfile> = Object.freeze({
@@ -74,6 +75,8 @@ export function triggerHullRecoil(
   profile: Readonly<MachineCultureProfile>,
   weaponTravel: number,
 ): void {
+  recoil.brace = Math.max(recoil.brace ?? 0, Math.max(recoil.travel, weaponTravel * 0.5)
+    * (profile.faction === 'aurelian' ? 0.2 : 1));
   if (profile.wholeHullRecoil === 0) return;
   recoil.kick = Math.max(
     recoil.kick,
@@ -99,6 +102,8 @@ export function triggerPowerShudder(
 }
 
 export function advanceHullRecoil(recoil: HullRecoil, deltaSeconds: number): void {
+  recoil.brace = (recoil.brace ?? 0) * Math.exp(-Math.max(0, deltaSeconds) * 8);
+  if (recoil.brace < 0.003) recoil.brace = 0;
   recoil.kick *= Math.exp(-Math.max(0, deltaSeconds) * 10);
   if (recoil.kick < 0.003) recoil.kick = 0;
 }

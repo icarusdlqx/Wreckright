@@ -1,11 +1,9 @@
 import {
   Group,
-  InstancedMesh,
   Material,
   Mesh,
   MeshStandardMaterial,
   Object3D,
-  type BufferGeometry,
 } from 'three';
 import type { MechLocation } from '../schema/common';
 import type { Faction } from '../schema/faction';
@@ -22,77 +20,25 @@ import {
   motionProfileFor,
   OPEN_STRIDE_TERRAIN,
   strideLengthFor,
-  type MotionProfile,
 } from './motionProfiles';
 import { buildWeaponModel, type MountArt, type WeaponRig } from './weaponModels';
-import {
-  machineCulture,
-  type HullRecoil,
-  type MachineCultureProfile,
-} from './machineCulture';
-import type { StartupLightRig } from './startupLights';
+import { machineCulture } from './machineCulture';
 import type { LoosePanelRig } from './damagedPanels';
 import { castsMechShadow, geometryForBlueprintPart } from './mechGeometry';
 import { applyModelDetail, markBlueprintDetail } from './modelDetail';
 import { TACTICAL_MECH_RENDER, type MechRenderOptions } from './renderQuality';
-import { createMachineMotion, type MachineMotionRig } from './machineMotion';
+import { createMachineMotion } from './machineMotion';
 import { createMachinePowerLights } from './runningLights';
-import type { TerminalFallAxis } from './unitVisualState';
 import { markDamagedLimbMesh, settleDamagedLegRig } from './limbDamagePresentation';
+import { createModelArticulation } from './modelArticulation';
+import { createMachineServices } from './machineServices';
 
 export type { MountArt } from './weaponModels';
-
-/** Three pivots keep the boot planted without adding another visible part. */
-export interface LegRig {
-  hip: Group;
-  knee: Group;
-  ankle: Group;
-  hipRestX: number;
-  hipRestY: number;
-  hipRestZ: number;
-  location: 'left_leg' | 'right_leg';
-  damageTier: DamageWearTier;
-  destroyed: boolean;
-}
-
-export interface Footprint {
-  minForward: number;
-  maxForward: number;
-  halfWidth: number;
-}
-
-export interface MechModel {
-  root: Group;
-  /** Turns with the torso; the legs stay with the hull. */
-  torso: Group;
-  /** Metres from the ground to the top of the hull, for HUD markers. */
-  height: number;
-  /** Left and right legs, hung from real pivots so the mech can walk. */
-  legs: LegRig[];
-  /** Where the torso rests, so a walk bob has a base to come back to. */
-  torsoRestY: number;
-  /** One full stride, in world metres, for pacing the walk cycle. */
-  strideLength: number;
-  /** The articulated chain's comfortable reach in world metres. */
-  legReach: number;
-  /** An ankle sits above the ground even when its boot is flat. */
-  ankleClearance: number;
-  /** Sole bounds let contact sample the ground the visible boot actually covers. */
-  footprint: Footprint;
-  /** Hull yaw at this radius has to show up in the feet. */
-  turnRadius: number;
-  /** Presentation weight belongs to the chassis, never the movement rules. */
-  motion: MotionProfile | null;
-  /** Authored mounts keep their own muzzle and recoil travel after construction. */
-  weapons: WeaponRig[];
-  machineMotion: MachineMotionRig;
-  faction: Faction;
-  culture: Readonly<MachineCultureProfile>;
-  hullRecoil: HullRecoil;
-  startup: StartupLightRig | null;
-  loosePanels: LoosePanelRig[];
-  terminalFallAxis: TerminalFallAxis | null;
-}
+export { disposeModel } from './modelDisposal';
+export type { MechModel, LegRig, Footprint } from './modelTypes';
+import type { MechModel, LegRig, Footprint } from './modelTypes';
+import { createTerminalSupport } from './terminalSupport';
+import { WeaponMountStack } from './weaponMountStack';
 
 type PresentedMount = MountArt & { destroyed?: boolean };
 
@@ -132,8 +78,8 @@ export function buildMechModel(
     for (const location of lost) sealedFailures.add(location);
     for (const mount of mounts) if (mount.destroyed === true) sealedFailures.add(mount.location);
   }
-  const tones = createMechMaterials(identity, team, destroyed);
-  const burnt = createMechMaterials(identity, team, true);
+  const tones = createMechMaterials(identity, team, destroyed, faction);
+  const burnt = createMechMaterials(identity, team, true, faction);
   const worn = Object.values(shownWear).some((tier) => tier === 1)
     ? createDamageWearMaterials(tones, 1)
     : null;
@@ -177,6 +123,9 @@ export function buildMechModel(
     const knee = new Group();
     knee.position.set(plan.legs.kneeForward * scale, (plan.legs.kneeHeight - plan.legs.hipHeight) * scale, 0);
     const ankle = new Group();
+    const sole = new Object3D();
+    sole.name = 'sole-contact';
+    ankle.add(sole);
     ankle.position.set(
       (plan.legs.ankleForward - plan.legs.kneeForward) * scale,
       (plan.legs.ankleHeight - plan.legs.kneeHeight) * scale,
@@ -186,7 +135,7 @@ export function buildMechModel(
     hip.add(knee);
     root.add(hip);
     const rig = {
-      hip, knee, ankle, hipRestX, hipRestY, hipRestZ,
+      hip, knee, ankle, sole, hipRestX, hipRestY, hipRestZ,
       location: side, damageTier: 0 as const, destroyed: false,
     };
     rigs.set(side, rig);
@@ -270,6 +219,11 @@ export function buildMechModel(
           footprint.maxForward = Math.max(footprint.maxForward, mesh.position.x + bounds.max.x);
           footprint.halfWidth = Math.max(footprint.halfWidth, Math.abs(bounds.min.z), bounds.max.z);
           ankleClearance = Math.max(ankleClearance, -(mesh.position.y + bounds.min.y));
+          const minimum = mesh.position.y + bounds.min.y;
+          if (rig.sole.userData.authored !== true || minimum < rig.sole.position.y) {
+            rig.sole.position.set(mesh.position.x + (bounds.min.x + bounds.max.x) / 2, minimum, 0);
+            rig.sole.userData.authored = true;
+          }
         }
       }
     } else if (part.location === null || part.fixed === true || running) {
@@ -291,21 +245,18 @@ export function buildMechModel(
   if (startup !== null) torso.add(...startup.lights);
 
   // --------------------------------------------------------------- weapons
-  const stacked = new Map<MechLocation, number>();
+  const stacked = new WeaponMountStack(scale);
   for (const mount of mounts) {
     const anchor = plan.hardpoints[mount.location];
     if (anchor === undefined) continue;
 
-    const index = stacked.get(mount.location) ?? 0;
-    stacked.set(mount.location, index + 1);
-
-    const material = mount.destroyed === true && faction === 'aurelian'
+    const material = destroyed || (mount.destroyed === true && faction === 'aurelian')
       ? new MeshStandardMaterial({ color: 0x10171a, roughness: 0.74, metalness: 0.48 })
       : createWeaponMaterial(mount.type);
     ownedMaterials.push(material);
     const heft = 0.5 + Math.min(1, mount.tonnage / 14);
     const weapon = buildWeaponModel(
-      mount,
+      destroyed ? { ...mount, destroyed: true } : mount,
       heft,
       scale,
       material,
@@ -320,7 +271,7 @@ export function buildMechModel(
     hardpoint.userData.detachmentLocation = mount.location;
     hardpoint.position.set(
       anchor[0] * scale,
-      (anchor[1] + index * 0.22) * scale,
+      anchor[1] * scale + stacked.place(mount.location, weapon.root),
       anchor[2] * scale,
     );
     hardpoint.add(weapon.root);
@@ -335,6 +286,9 @@ export function buildMechModel(
 
   torso.position.y = plan.torsoY * scale;
   root.add(torso);
+  const articulation = plan.articulated ? createModelArticulation(torso) : { arms: [], shoulders: [] };
+  const services = createMachineServices(plan, torso, scale, identity, faction, destroyed,
+    ownedMaterials, lost.has('centre_torso'));
   const legs = [...rigs.values()];
   const machineMotion = createMachineMotion(faction, root, legs, scale, tones.trim);
   applyModelDetail(root, options.detail);
@@ -362,6 +316,9 @@ export function buildMechModel(
     startup,
     loosePanels,
     terminalFallAxis: null,
+    articulation,
+    services,
+    terminalSupport: createTerminalSupport(root),
   };
 }
 
@@ -374,27 +331,4 @@ function jointWorld(joint: Group, rig: LegRig): import('three').Vector3 {
     return rig.hip.position.clone().add(rig.knee.position);
   }
   return rig.hip.position.clone();
-}
-
-/** Frees the geometry and materials a model owns. */
-export function disposeModel(root: Object3D): void {
-  if (root.userData.modelDisposed === true) return;
-  root.userData.modelDisposed = true;
-  const geometries = new Set<BufferGeometry>();
-  const materials = new Set<Material>();
-  const instances = new Set<InstancedMesh>();
-  root.traverse((child) => {
-    if (!(child instanceof Mesh)) return;
-    if (child instanceof InstancedMesh) instances.add(child);
-    geometries.add(child.geometry);
-    if (Array.isArray(child.material)) child.material.forEach((entry) => materials.add(entry));
-    else materials.add(child.material);
-  });
-  const owned = root.userData.ownedMaterials;
-  if (Array.isArray(owned)) {
-    for (const entry of owned) if (entry instanceof Material) materials.add(entry);
-  }
-  instances.forEach((instance) => instance.dispose());
-  geometries.forEach((geometry) => geometry.dispose());
-  materials.forEach((material) => material.dispose());
 }

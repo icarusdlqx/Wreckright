@@ -129,10 +129,10 @@ export function BayChrome({
         <button
           type="button"
           onClick={onToggleMuted}
-          title={muted ? 'Sound is off' : 'Sound is on'}
+          title={muted ? 'Release master mute; keep your music and effects choices.' : 'Silence music and sound effects.'}
           data-testid="bay-mute-button"
         >
-          {muted ? 'Sound off' : 'Sound on'}
+          {muted ? 'Unmute all' : 'Mute all'}
         </button>
         <button type="button" onClick={onExit} data-testid="bay-exit">
           {commissioned ? commissionCancelLabel ?? 'Back to manifest' : 'Back to skirmish'}
@@ -163,6 +163,7 @@ export function BayChrome({
                 data-testid="bay-import"
                 onChange={(event) => {
                   const file = event.target.files?.[0];
+                  event.target.value = '';
                   if (file !== undefined) onImport(file);
                 }}
               />
@@ -185,7 +186,7 @@ export function BayChrome({
           </>
         )}
 
-        <span className={`bay-status ${status?.tone ?? ''}`} data-testid="bay-status" role="status">
+        <span className={`bay-status${status === null ? '' : ` bay-status--${status.tone}`}`} data-testid="bay-status" role="status">
           {status?.text ?? (saveable ? 'Loadout is legal.' : 'Loadout is not legal.')}
         </span>
       </footer>

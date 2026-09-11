@@ -1,0 +1,10 @@
+{
+  "id": "the_two_readings",
+  "category": "history",
+  "sourceLoreId": "the_two_readings",
+  "related": [
+    { "kind": "story", "id": "the_borrowed_roots" },
+    { "kind": "story", "id": "the_code" },
+    { "kind": "story", "id": "the_custodians" }
+  ]
+}

@@ -172,19 +172,18 @@ export function Minimap({ engine }: { engine: Engine | null }) {
 
       const blips = minimapBlips(world);
       updateMinimapContactPulses(pulseLedger, blips, now);
-      // Machines need optical contact. Electronic returns are hollow coarse tracks.
+      // Filled red dots are live electronic returns; hollow rings are frozen memory.
       for (const blip of blips) {
         const x = blip.position.x * scaleX;
         const y = blip.position.y * scaleY;
         if (blip.kind === 'sensor' || blip.kind === 'memory') {
-          screen.strokeStyle = blip.kind === 'sensor' ? '#ffc15c' : 'rgba(255, 193, 92, 0.38)';
+          const live = blip.kind === 'sensor';
+          screen.strokeStyle = live ? '#ffd4d7' : 'rgba(255, 137, 144, 0.46)';
+          screen.fillStyle = '#ff4655';
           screen.lineWidth = 1;
           screen.beginPath();
-          screen.moveTo(x, y - 3);
-          screen.lineTo(x + 3, y);
-          screen.lineTo(x, y + 3);
-          screen.lineTo(x - 3, y);
-          screen.closePath();
+          screen.arc(x, y, live ? 3.5 : 3, 0, Math.PI * 2);
+          if (live) screen.fill();
           screen.stroke();
           continue;
         }
@@ -195,7 +194,7 @@ export function Minimap({ engine }: { engine: Engine | null }) {
       for (const pulse of pulseLedger.pulses) {
         const appearance = minimapPulseAppearance(pulse, now, view.reducedMotion);
         if (appearance === null) continue;
-        screen.strokeStyle = `rgba(255, 193, 92, ${appearance.alpha})`;
+        screen.strokeStyle = `rgba(255, 100, 110, ${appearance.alpha})`;
         screen.lineWidth = 1.5;
         screen.beginPath();
         screen.arc(

@@ -1,0 +1,16 @@
+{
+  "id": "falchion_fal2",
+  "designId": "falchion_duellist",
+  "provenance": "The Falchion cradles at Vasi were marked INTERCEPT and faced the depot door. Long limbs and integrated lift channels survived beneath their preservation armour.",
+  "serviceHistory": [
+    "Restored Falchions retained the original arrangement: a narrow body with long weapon sleeves and room to move between exchanges. Aurelian service crews value the precise alignment work. Tessellan fitters value the ordinary interfaces that let a local rack occupy a place for which no replacement emitter is available.",
+    "The class attracts pilots who like to answer a heavier machine and leave before it has settled its aim. Training reports celebrate the first part more often than the second. Experienced crew chiefs read the cooling record before congratulating the pilot; a successful interception can still produce an unnecessary repair bill."
+  ],
+  "fieldNotes": "The open waist and long sleeves give the Falchion its distinctive reach in silhouette. Its standard mixed fit rewards movement between exchanges. Jump equipment provides options, but the machine still needs time to shed heat. Staying to prove superiority is a poor use of an expensive interceptor.",
+  "related": [
+    { "kind": "story", "id": "the_sealed" },
+    { "kind": "story", "id": "the_shared_mounts" },
+    { "kind": "mech", "id": "votive_vtv2" },
+    { "kind": "mech", "id": "warden_wrd5" }
+  ]
+}

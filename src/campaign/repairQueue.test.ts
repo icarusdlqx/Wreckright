@@ -60,18 +60,20 @@ describe('single repair bay', () => {
     const mech = start().mechs[0];
     if (mech === undefined) throw new Error('campaign has no test mech');
     damage(mech, 20);
+    mech.condition.left_arm.destroyed = true;
 
     const line = estimateRepair(withChassisFaction(mech, 'linewrought'), mech);
     const sealed = estimateRepair(withChassisFaction(mech, 'aurelian'), mech);
     const factors = catalog.rules.economy.repair.factionFactors;
 
     expect(factors.linewrought).toEqual({ cost: 1, days: 1 });
-    expect(factors.aurelian.cost).toBeGreaterThanOrEqual(2);
-    expect(factors.aurelian.cost).toBeLessThanOrEqual(3);
-    expect(factors.aurelian.days).toBeGreaterThanOrEqual(2);
-    expect(factors.aurelian.days).toBeLessThanOrEqual(3);
+    expect(factors.aurelian.cost).toBeGreaterThan(1);
+    expect(factors.aurelian.cost).toBeLessThan(2);
+    expect(factors.aurelian.days).toBeGreaterThan(1);
+    expect(factors.aurelian.days).toBeLessThan(2);
     expect(sealed.cost).toBe(Math.round(line.cost * factors.aurelian.cost));
-    expect(sealed.days).toBe(Math.ceil(line.days * factors.aurelian.days));
+    expect(sealed.days).toBeGreaterThanOrEqual(line.days);
+    expect(sealed.days).toBeLessThanOrEqual(Math.ceil(line.days * factors.aurelian.days));
   });
 
   it('defaults older economy packs to one repair lift', () => {

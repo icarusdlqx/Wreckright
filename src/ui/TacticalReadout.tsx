@@ -36,8 +36,10 @@ function Stability({ unit }: { unit: UnitSnapshot }) {
 
 function Governor({ unit }: { unit: UnitSnapshot }) {
   const reactor = unit.reactor;
+  const spacing = unit.weapons.filter((weapon) => weapon.cooling === true).length;
   const status = !unit.heatSafety
     ? 'OFF — weapons free'
+    : spacing > 0 ? `SPACING ${spacing} WEAPON${spacing === 1 ? '' : 'S'}`
     : reactor.shedGroups.length > 0
       ? `SHEDDING G${reactor.shedGroups.join(' G')}`
       : `ARMED AT ${Math.round(reactor.governorHoldAt * 100)}%`;
@@ -45,11 +47,11 @@ function Governor({ unit }: { unit: UnitSnapshot }) {
   return (
     <div
       className="governor-line"
-      title={`The governor resumes every requested group below ${Math.round(reactor.governorResumeAt * 100)}% heat.`}
+      title={`Heat safety relaxes below ${Math.round(reactor.governorResumeAt * 100)}% heat, but still spaces a volley that would risk shutdown.`}
       data-testid="governor-readout"
     >
       <span className="tactical-label">Governor</span>
-      <strong className={reactor.shedGroups.length > 0 ? 'warn' : ''}>{status}</strong>
+      <strong className={spacing > 0 || reactor.shedGroups.length > 0 ? 'warn' : ''}>{status}</strong>
     </div>
   );
 }

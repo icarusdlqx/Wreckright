@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { catalog } from '../../../tests/support';
+import { catalog, legacySentinelDesign } from '../../../tests/support';
 import type { Design } from '../../schema/design';
 import { bestAmmoLocation, bestLocationFor, compatibleFrom, fitByLocation } from './autoFit';
 
 function sentinel(): Design {
-  const design = catalog.designs.get('sentinel_brawler');
+  const design = legacySentinelDesign;
   if (design === undefined) throw new Error('missing Sentinel fixture');
   return structuredClone(design);
 }

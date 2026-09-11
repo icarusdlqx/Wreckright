@@ -1,0 +1,13 @@
+{
+  "id": "the_shared_mounts",
+  "title": "What Fits, What It Costs",
+  "order": 10,
+  "summary": "Either faction can use the other's weapons. Shared mounts make it possible; cooling, ammunition and the next replacement make it a decision.",
+  "body": [
+    "Every walker root descends from the same industrial standards. Weapons are not loyal. A recovered Aurelian emitter fires for a Linewrought crew, and a workshop gun answers an Aurelian trigger. Match the mount type and its maximum weapon size, then find enough boxes in the selected part and enough spare tonnage across the mech. The bay marks the locations that can accept it.",
+    "An Aurelian energy weapon needs no ammunition bin and often saves substantial payload weight. On a Linewrought rebuild, it competes for limited energy mounts and cooling. Its performance does not fall because it crossed factions, but firing too many hot weapons together can slow the whole machine and force a shutdown. Replacements come from recovered equipment, another owned machine or a specific contract supply transfer. The local Yard cannot supply one.",
+    "A Linewrought cannon or missile rack gives an Aurelian mech a practical weapon supplied by Tessell's shops. It needs the appropriate ballistic or missile mount, plus ammunition bins that occupy boxes and tonnage. The bins can be exhausted or detonated. Cooler guns can reduce the demand on the machine's cooling, but a missile battery is not automatically weaker than expensive energy weapons.",
+    "The recovery crew brings back the parts actually present on a wreck. A workshop gun stripped from an Aurelian hull stays a workshop gun; a captured emitter on a Linewrought hull remains Aurelian technology. Holding the ground and disabling a machine without destroying its fitted parts improves what can be recovered. Contract salvage terms and cargo space still limit what comes home.",
+    "Keep useful recovered weapons in company stores, fit them to a compatible owned machine, or strip a mounted weapon back into stores for another refit. Its original maker stays on the label. Armour repairs are paid workshop jobs; replacing a missing weapon uses an actual weapon from stores. There is no separate adapter item or hidden faction penalty."
+  ]
+}

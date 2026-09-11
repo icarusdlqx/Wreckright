@@ -5,6 +5,14 @@ import type { Catalog } from '../../schema/load';
 import { armourFacesForDesign } from '../../sim/designArmour';
 import { weaponSizeLabel, type LocationUsage } from '../../sim/loadout';
 import { buildLocationOccupants, type LocationOccupant } from './locationOccupants';
+import { parsedDrop, type DropPayload } from './dropPayload';
+import { RackCapacity } from './RackCapacity';
+import { FittedPart } from './FittedPart';
+import type { WeaponReplacement } from './weaponReplacement';
+export { mutateAfterStableFocus, stableRemovalFocusTarget } from './locationFocus';
+import { payloadFootprint, payloadName } from './SlotBoxes';
+
+export type { DropPayload } from './dropPayload';
 
 export const MECH_LOCATION_NAMES: Record<MechLocation, string> = {
   head: 'Head',
@@ -17,56 +25,6 @@ export const MECH_LOCATION_NAMES: Record<MechLocation, string> = {
   right_leg: 'Right Leg',
 };
 
-export interface DropPayload {
-  kind: 'weapon' | 'equipment' | 'ammo';
-  id: string;
-}
-
-export function mutateAfterStableFocus(
-  focusTarget: Pick<HTMLElement, 'focus'> | null,
-  mutate: () => void,
-): void {
-  focusTarget?.focus({ preventScroll: true });
-  mutate();
-}
-
-export function stableRemovalFocusTarget(removeControl: HTMLElement): HTMLButtonElement | null {
-  const ownLocation = removeControl
-    .closest('.bay-location')
-    ?.querySelector<HTMLButtonElement>('.bay-location-name') ?? null;
-  if (ownLocation !== null && !ownLocation.disabled) return ownLocation;
-
-  const mechbay = removeControl.closest('[data-testid="mechbay"]');
-  return mechbay?.querySelector<HTMLButtonElement>(
-    '.bay-location.selected .bay-location-name:not(:disabled)',
-  ) ?? mechbay?.querySelector<HTMLButtonElement>('.bay-location-name:not(:disabled)')
-    ?? mechbay?.querySelector<HTMLButtonElement>('[data-workspace-tab][aria-selected="true"]')
-    ?? mechbay?.querySelector<HTMLButtonElement>('[data-testid="bay-exit"]')
-    ?? null;
-}
-
-/** One consistently sized cell per slot makes footprints comparable across locations. */
-function RackCells({ count, incoming = 0 }: { count: number; incoming?: number }) {
-  return (
-    <span className="rack-cells" aria-hidden="true">
-      {Array.from({ length: count }, (_, index) => (
-        <i
-          key={index}
-          className={`rack-cell${index < incoming ? ' rack-cell--incoming' : ''}`}
-        />
-      ))}
-    </span>
-  );
-}
-
-function armedFootprint(catalog: Catalog, armed: DropPayload | null): number {
-  if (armed === null) return 0;
-  if (armed.kind === 'weapon') return catalog.weapons.get(armed.id)?.slots ?? 1;
-  if (armed.kind === 'equipment') return catalog.equipment.get(armed.id)?.slots ?? 1;
-  // A bin is always one slot per ton, placed a ton at a time.
-  return 1;
-}
-
 interface Props {
   catalog: Catalog;
   chassis: Chassis;
@@ -74,10 +32,13 @@ interface Props {
   location: MechLocation;
   usage: LocationUsage;
   onDrop: (payload: DropPayload, location: MechLocation) => void;
+  onReplace?: (payload: DropPayload, index: number) => void;
+  replacements?: ReadonlyMap<number, WeaponReplacement>;
   onRemoveMount: (index: number) => void;
   onRemoveAmmo: (index: number) => void;
   onRemoveEquipment: (index: number) => void;
   onInspect?: (payload: DropPayload) => void;
+  onMove?: (payload: DropPayload) => void;
   onSelect?: (location: MechLocation) => void;
   onHover?: (location: MechLocation | null) => void;
   selected?: boolean;
@@ -98,10 +59,13 @@ export function LocationCard({
   location,
   usage,
   onDrop,
+  onReplace,
+  replacements,
   onRemoveMount,
   onRemoveAmmo,
   onRemoveEquipment,
   onInspect,
+  onMove,
   onSelect,
   onHover,
   selected = false,
@@ -113,7 +77,8 @@ export function LocationCard({
   snapTarget = null,
   snapPhase = 0,
 }: Props) {
-  const hardpoints = chassis.hardpoints[location];
+  const hardpoints = usage.hardpointsAvailable;
+  const hasWeaponMounts = hardpoints.energy + hardpoints.ballistic + hardpoints.missile > 0;
   const slotsOver = usage.slotsUsed > usage.slotsAvailable;
 
   const overHardpointTypes = (['energy', 'ballistic', 'missile'] as const).filter(
@@ -140,7 +105,9 @@ export function LocationCard({
 
   const plate = armourFacesForDesign(catalog.rules.construction, design, location);
   const target = targeting ?? armed;
-  const targetFits = target === null || compatible;
+  const targetFits = target !== null && compatible;
+  const canReplaceHere = target?.kind === 'weapon' && target.sourceIndex === undefined && occupants.some((item) => item.kind === 'weapon' && replacements?.get(item.index)?.ok);
+  const incoming = targetFits ? Math.min(empty, payloadFootprint(catalog, target)) : 0;
   const invalid = slotsOver || hardpointOver || sizeOver;
   const locationName = MECH_LOCATION_NAMES[location];
   const issueStates = [
@@ -152,9 +119,11 @@ export function LocationCard({
   ];
   const fitState = target === null
     ? null
-    : compatible ? 'Fits held part' : 'Cannot fit held part';
+    : compatible ? 'Fits held part' : canReplaceHere ? 'Replacement available' : 'Cannot fit held part';
   // Preserve the evaluator's actionable reason instead of reducing refusal to a red state.
-  const refusalText = target !== null && !compatible ? refusal : null;
+  const refusalText = target !== null && !compatible
+    ? canReplaceHere ? 'No empty fit here. Select an installed weapon below to preview a replacement.' : refusal
+    : null;
 
   const classes = ['bay-location', `loc-${location}`];
   if (invalid) classes.push('invalid');
@@ -180,14 +149,20 @@ export function LocationCard({
       onPointerEnter={() => onHover?.(location)}
       onPointerLeave={() => onHover?.(null)}
       onDragOver={(event) => {
+        if (target === null && !Array.from(event.dataTransfer.types).includes('application/wreckright')) return;
         event.preventDefault();
-        event.dataTransfer.dropEffect = 'copy';
+        event.dataTransfer.dropEffect = target?.sourceIndex !== undefined ? 'move' : 'copy';
+        onHover?.(location);
+      }}
+      onDragLeave={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) onHover?.(null);
       }}
       onDrop={(event) => {
         event.preventDefault();
-        const raw = event.dataTransfer.getData('application/wreckright');
-        if (raw === '') return;
-        onDrop(JSON.parse(raw) as DropPayload, location);
+        const payload = parsedDrop(event.dataTransfer.getData('application/wreckright'));
+        if (payload === null) return;
+        onDrop(payload, location);
+        onHover?.(null);
       }}
       onClick={() => {
         if (armed !== null) {
@@ -209,10 +184,11 @@ export function LocationCard({
             onSelect?.(location);
           }}
         >
-          {locationName}
+          {locationName}{selected ? <span className="location-selection-label">Selected</span> : null}
         </button>
       </header>
 
+      <div className="bay-location-feedback" aria-hidden={target === null || undefined}>
       {target === null ? null : (
         <div className="bay-location-flags">
           {selected ? <span className="location-flag location-flag--selected">Selected</span> : null}
@@ -231,30 +207,30 @@ export function LocationCard({
         </p>
       )}
 
-      {target === null ? null : (
-        <div className="bay-hardpoints">
+      </div>
+
+      <div className="bay-hardpoints" aria-label={`Weapon mounts in ${locationName}`}>
           {(['energy', 'ballistic', 'missile'] as const).map((type) =>
             hardpoints[type] === 0 ? null : (
               <span
                 key={type}
                 className={`pip ${type} ${usage.hardpointsUsed[type] > hardpoints[type] ? 'over' : ''}`}
-                title={`${type} hardpoints`}
+                title={`${type} weapon mounts`}
                 aria-label={`${type} hardpoints: ${usage.hardpointsUsed[type]} of ${hardpoints[type]} used`}
               >
-                {type.slice(0, 1).toUpperCase()} {usage.hardpointsUsed[type]}/{hardpoints[type]}
+                {type.slice(0, 1).toUpperCase()}{type.slice(1)} {Math.max(0, hardpoints[type] - usage.hardpointsUsed[type])} free
               </span>
             ),
           )}
-          <span
+          {!hasWeaponMounts ? <span className="bay-mounts-none">Ammo &amp; gear only</span> : <span
             className={`pip size ${sizeOver ? 'over' : ''}`}
             title={`Takes ${weaponSizeLabel(catalog, usage.size)} weapons and smaller`}
             data-testid={`size-${location}`}
             aria-label={`Maximum weapon size: ${weaponSizeLabel(catalog, usage.size)}`}
           >
-            ≤ {weaponSizeLabel(catalog, usage.size)}
-          </span>
-        </div>
-      )}
+            Up to {weaponSizeLabel(catalog, usage.size)}
+          </span>}
+      </div>
 
       <ul
         className="bay-slotgrid"
@@ -262,44 +238,12 @@ export function LocationCard({
         aria-label={`Fitted parts in ${locationName}`}
       >
         {occupants.map((item) => (
-          <li
-            key={item.key}
-            className={`slot-block tone-${item.tone}${item.oversized ? ' too-big' : ''}${item.key === snapOccupantKey ? ' snap-target' : ''}`}
-            title={
-              item.oversized
-                ? `${item.label} — too large for this mount`
-                : `${item.label} — ${item.slots} slot${item.slots === 1 ? '' : 's'}`
-            }
-          >
-            <button
-              type="button"
-              className="slot-block__inspect"
-              data-testid={`inspect-${item.kind}-${item.index}`}
-              aria-label={`Inspect ${item.label}`}
-              onClick={(event) => {
-                event.stopPropagation();
-                onInspect?.({ kind: item.kind, id: item.id });
-              }}
-              onFocus={() => onInspect?.({ kind: item.kind, id: item.id })}
-            >
-              <span>{item.label}</span>
-              <RackCells count={item.slots} />
-              <small>{item.kind === 'ammo' ? 'Ammo' : item.kind === 'equipment' ? 'Gear' : 'Weapon'} · {item.slots} slot{item.slots === 1 ? '' : 's'}</small>
-            </button>
-            <button
-              type="button"
-              className="slot-block__remove"
-              data-testid={`remove-${item.kind}-${item.index}`}
-              aria-label={`Remove ${item.label} from ${locationName}`}
-              title={`Remove ${item.label} from ${locationName}`}
-              onClick={(event) => {
-                event.stopPropagation();
-                mutateAfterStableFocus(stableRemovalFocusTarget(event.currentTarget), () => remove(item));
-              }}
-            >
-              Remove
-            </button>
-          </li>
+          <FittedPart
+            key={item.key} catalog={catalog} item={item} locationName={locationName}
+            snap={item.key === snapOccupantKey} target={target}
+            replacement={replacements?.get(item.index)}
+            onInspect={onInspect} onMove={onMove} onRemove={() => remove(item)} onReplace={onReplace}
+          />
         ))}
         <li
           className="slot-block empty"
@@ -314,12 +258,14 @@ export function LocationCard({
             'No fitting space'
           ) : (
             <>
-              <RackCells
-                count={empty}
-                incoming={targetFits && target !== null ? Math.min(empty, armedFootprint(catalog, target)) : 0}
-              />
+              <span className="rack-drop-space">{targetFits ? <strong className="rack-drop-preview">
+                {hovered ? 'Release to fit' : 'Fit here'} · {payloadName(catalog, target)}
+              </strong> : null}</span>
+              <RackCapacity capacity={usage.slotsAvailable} occupants={occupants} incoming={incoming} />
               <small className="rack-free-count">
-                {empty} slot{empty === 1 ? '' : 's'} free
+                {targetFits
+                  ? `${incoming} box${incoming === 1 ? '' : 'es'} needed · ${empty - incoming} left after fit`
+                  : `${empty} of ${usage.slotsAvailable} box${usage.slotsAvailable === 1 ? '' : 'es'} free`}
               </small>
             </>
           )}

@@ -1,14 +1,6 @@
-import {
-  Mesh,
-  MeshBasicMaterial,
-  Object3D,
-  PlaneGeometry,
-  Scene,
-  Vector3,
-  WebGLRenderer,
-} from 'three';
+import { readoutFrameSeconds } from './damageReadoutPolicy';
+import { Mesh, Object3D, Scene, Vector3, WebGLRenderer } from 'three';
 import type { Atmosphere } from '../schema/atmosphere';
-import type { Faction } from '../schema/faction';
 import type { TerrainMapData } from '../schema/map';
 import type { SimEvent } from '../sim/events';
 import { jumpHeight } from '../sim/movement';
@@ -17,9 +9,11 @@ import { teamColour } from '../render/palette';
 import { radiusFor } from '../render/shape';
 import { buildAtmosphereRig, surroundColour } from './atmosphere';
 import { BattleEffects } from './battleEffects';
+import { buildBattlefieldLandscape, type BattlefieldLandscape } from './battlefieldLandscape';
 import { TacticalCamera, type Viewport } from './camera';
 import { FogLayer } from './fog';
 import { Locomotion } from './locomotion';
+import type { FootfallCallback } from './locomotionContact';
 import { MarkerLayer, type MarkerViewState } from './markerLayer';
 import type { RouteMarkerStats } from './routeMarkerPool';
 import { PropLayer } from './props';
@@ -32,23 +26,18 @@ import {
 } from './sceneResources';
 import { buildTerrain, type TerrainMesh } from './terrain';
 import { UnitViews } from './unitViews';
+import { UnitHealthBars } from './unitHealthBars';
+import { TargetBrackets } from './targetBrackets';
 import { SupportEffects } from './supportEffects';
 import { TerrainFireLayer, type TerrainFireStats } from './terrainFire';
 import { canPresentEntity } from './visibilityPresentation';
 import { routeVisibleLegLoss } from './legLossEventPresentation';
+import { readLowFx, subscribeLowFx, writeLowFx } from './renderQuality';
 
 export interface ViewState extends MarkerViewState {
   hovered: EntityId | null;
   cursor: Vec2 | null;
   selectionBox: { a: Vec2; b: Vec2 } | null;
-}
-
-function readLowFx(): boolean {
-  try {
-    return localStorage.getItem('ironline.lowfx') === '1';
-  } catch {
-    return false;
-  }
 }
 
 /** The battlefield facade; specialised layers own models, gait, effects and markers. */
@@ -59,10 +48,13 @@ export class Renderer {
 
   private readonly renderer: WebGLRenderer;
   private readonly terrain: TerrainMesh;
+  private readonly landscape: BattlefieldLandscape;
   private readonly props: PropLayer;
   private readonly terrainFire: TerrainFireLayer;
   private readonly fog: FogLayer;
   private readonly units: UnitViews;
+  private readonly healthBars: UnitHealthBars;
+  private readonly targetBrackets: TargetBrackets;
   private readonly effects: BattleEffects;
   private readonly supportEffects: SupportEffects;
   private readonly locomotion: Locomotion;
@@ -71,6 +63,8 @@ export class Renderer {
   private visionTick = -1;
   private destroyed = false;
   private contextLost = false;
+  private footfallCallback: FootfallCallback | null = null;
+  private readonly unsubscribeQuality: () => void;
 
   /**
    * Raised when the GPU takes its context back — a backgrounded tab, a driver
@@ -86,7 +80,7 @@ export class Renderer {
     this.mapData = mapData;
     this.host = host;
     this.renderer = new WebGLRenderer({ antialias: true });
-    configureRenderer(this.renderer, this.lowFx, globalThis.devicePixelRatio ?? 1);
+    configureRenderer(this.renderer, this.lowFx, globalThis.devicePixelRatio ?? 1, this.viewport);
 
     const mapWidth = world.terrain.width * world.terrain.tileSize;
     const mapHeight = world.terrain.height * world.terrain.tileSize;
@@ -117,17 +111,16 @@ export class Renderer {
     this.terrainFire.setPresentationMode(this.lowFx, this.camera.reducedMotion);
     this.scene.add(this.terrainFire.group);
 
-    const surround = new Mesh(
-      new PlaneGeometry(mapWidth * 9, mapHeight * 9),
-      new MeshBasicMaterial({ color: surroundColour(rig) }),
-    );
-    surround.rotation.x = -Math.PI / 2;
-    surround.position.set(mapWidth / 2, -3, mapHeight / 2);
-    this.scene.add(surround);
+    this.landscape = buildBattlefieldLandscape(world.terrain, mapData, this.terrain.heightAt, rig);
+    this.landscape.setLowFx(this.lowFx);
+    this.scene.add(this.landscape.group);
 
     this.fog = new FogLayer(world.terrain, this.terrain.heightAt);
+    this.fog.setLowFx(this.lowFx);
     this.scene.add(this.fog.mesh);
     this.units = new UnitViews(this.scene, this.terrain.heightAt, this.camera.reducedMotion);
+    this.healthBars = new UnitHealthBars(host);
+    this.targetBrackets = new TargetBrackets(host);
     this.effects = new BattleEffects(
       this.scene,
       surroundColour(rig),
@@ -137,6 +130,7 @@ export class Renderer {
       (id, weaponId, out, breech) => this.units.fireMount(id, weaponId, out, breech),
       {
         anchorOf: (id, location, out) => this.units.locationOf(id, location, out),
+        contactOf: (id, location, bearing, out) => this.units.contactOf(id, location, bearing, out),
         canLocate: (id) => this.units.canLocate(id),
         currentPositionOf: (id) => this.units.currentPositionOf(id),
         readouts: { host, world, viewport: () => this.viewport },
@@ -157,6 +151,10 @@ export class Renderer {
       this.effects,
       this.camera.reducedMotion,
     );
+    this.locomotion.onFootfall = (at, tonnage, faction, contact) => {
+      if (contact !== undefined) this.effects.footfall(at, contact);
+      this.footfallCallback?.(at, tonnage, faction, contact);
+    };
     this.markers = new MarkerLayer(this.terrain.heightAt, (id) => this.units.positionOf(id));
     this.scene.add(this.markers.group);
 
@@ -172,9 +170,13 @@ export class Renderer {
       { x: 0, y: 0 },
     );
     this.camera.centreOn(lance.length === 0 ? { x: mapWidth / 2, y: mapHeight / 2 } : centroid);
-    this.camera.beginDropIn();
+    // Setup changes rebuild this preview; deployment owns the opening camera move.
     this.resize();
     this.snapshot(world);
+    this.unsubscribeQuality = subscribeLowFx(() => {
+      const low = readLowFx();
+      if (low !== this.lowFx) this.setLowFx(low);
+    });
   }
 
   get canvas(): HTMLCanvasElement {
@@ -205,26 +207,24 @@ export class Renderer {
     return this.terrain.mesh;
   }
 
-  get onFootfall(): ((at: Vec2, tonnage: number, faction: Faction) => void) | null {
-    return this.locomotion.onFootfall;
+  get onFootfall(): FootfallCallback | null {
+    return this.footfallCallback;
   }
 
-  set onFootfall(callback: ((at: Vec2, tonnage: number, faction: Faction) => void) | null) {
-    this.locomotion.onFootfall = callback;
+  set onFootfall(callback: FootfallCallback | null) {
+    this.footfallCallback = callback;
   }
 
   setLowFx(low: boolean): void {
     this.lowFx = low;
-    try {
-      localStorage.setItem('ironline.lowfx', low ? '1' : '0');
-    } catch {
-      // Private browsing; the preference lasts for the session.
-    }
-    configureRenderer(this.renderer, low, globalThis.devicePixelRatio ?? 1);
+    writeLowFx(low);
+    configureRenderer(this.renderer, low, globalThis.devicePixelRatio ?? 1, this.viewport);
     this.effects.setPresentationMode(low);
     this.supportEffects.setPresentationMode(low);
     this.terrainFire.setPresentationMode(low, this.camera.reducedMotion);
     this.terrain.setLowFx(low);
+    this.fog.setLowFx(low);
+    this.landscape.setLowFx(low);
     this.resize();
     this.scene.traverse((node) => {
       const mesh = node as Mesh;
@@ -236,6 +236,7 @@ export class Renderer {
 
   resize(): void {
     const { width, height } = this.viewport;
+    configureRenderer(this.renderer, this.lowFx, globalThis.devicePixelRatio ?? 1, { width, height });
     this.renderer.setSize(width, height);
     this.camera.update({ width, height });
   }
@@ -253,11 +254,14 @@ export class Renderer {
   destroy(): void {
     if (this.destroyed) return;
     this.destroyed = true;
+    this.unsubscribeQuality();
     this.renderer.domElement.removeEventListener('webglcontextlost', this.handleContextLost);
     this.effects.destroy();
     this.supportEffects.dispose();
     this.terrainFire.dispose();
     this.units.dispose();
+    this.healthBars.destroy();
+    this.targetBrackets.destroy();
     this.markers.dispose();
     this.scene.remove(
       this.markers.group, this.supportEffects.group, this.terrainFire.group,
@@ -338,7 +342,7 @@ export class Renderer {
     }
     this.units.finishFrame();
 
-    this.effects.finishFrame(presentationDelta);
+    this.effects.finishFrame(presentationDelta, readoutFrameSeconds(deltaSeconds, presentationDelta));
     this.supportEffects.draw(world, presentationDelta);
     this.terrainFire.draw(world, presentationDelta);
     this.markers.draw(world, view, deltaSeconds, this.camera.reducedMotion);
@@ -350,7 +354,11 @@ export class Renderer {
 
     this.camera.advance(deltaSeconds);
     this.camera.update(this.viewport);
-    this.terrain.setTime((world.tick + alpha) * world.dt);
+    this.healthBars.draw(world, view.selection, view.hovered,
+      (entity) => this.screenBodyOf(entity), this.viewport.width, this.viewport.height);
+    this.targetBrackets.draw(world, view.selection,
+      (entity) => this.screenBodyOf(entity), this.viewport.width, this.viewport.height);
+    this.terrain.setTime(this.camera.reducedMotion ? 0 : (world.tick + alpha) * world.dt);
     this.renderer.render(this.scene, this.camera.camera);
     this.effects.advance(presentationDelta);
   }
@@ -381,6 +389,14 @@ export class Renderer {
 
   spawnSmoke(at: Vec2): void {
     this.effects.spawnSmoke(at);
+  }
+
+  ventOf(id: EntityId, out: Vector3, index = 0): boolean {
+    return this.units.ventOf(id, out, index);
+  }
+
+  spawnVentSteam(at: Vector3): void {
+    this.effects.spawnVentSteam(at);
   }
 
   teamTint(team: number): number {

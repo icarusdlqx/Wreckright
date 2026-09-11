@@ -128,6 +128,20 @@ describe('bounded campaign records', () => {
     expect(twice === null ? null : serialiseCampaign(twice)).toBe(once);
   });
 
+  it('keeps the latest authored contract report as renewable boards rotate', () => {
+    const state = startCampaign(catalog, CAMPAIGN_ID, 'journal-history');
+    const first = { ...outcome(1, 0), nodeId: 'militia_raid' };
+    const oldAttempt = { ...outcome(0, 0), nodeId: 'militia_raid' };
+    state.day = 100;
+    const latest = outcome(2, 100);
+    state.history = [oldAttempt, first, latest];
+    pruneCampaignHistory(catalog, state);
+    expect(state.history).toEqual([first, latest]);
+    expect(state.historyArchive.outcomes).toBe(1);
+    expect(campaignOutcomeCount(state)).toBe(3);
+    expect(deserialiseCampaign(serialiseCampaign(state)).state?.history).toEqual([first, latest]);
+  });
+
   it('defaults old saves before applying the same idempotent compaction', () => {
     const state = startCampaign(catalog, CAMPAIGN_ID, 'old-bounded-history');
     state.day = catalog.rules.economy.sideContracts.refreshDays * 3;

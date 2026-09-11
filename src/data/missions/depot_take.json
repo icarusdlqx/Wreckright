@@ -2,96 +2,132 @@
   "id": "depot_take",
   "name": "Manifest — Take",
   "type": "assault",
-  "mapId": "foundry_district",
-  "briefing": "Halloran's fee ends at the depot doors. Take the attestation key intact and clear Kestrel's guard. The key opens the storage lifts and authenticates the master root manifest. It does not command a cockpit. Put it under your own seal.",
+  "mapId": "barrow_archive",
+  "briefing": "Preserve the manifest. Secure the archive reader and freight loading court, then hold both while Halloran copies the record. Attacks are announced; surviving contractors do not block completion.",
   "maxDurationSeconds": 480,
   "startingResourcePoints": 800,
   "lances": [
     {
       "team": 0,
-      "name": "Depot Entry Lance",
+      "name": "Linewrought Company",
       "units": [
         {
           "designId": "hornet_spotter",
           "pilotId": "kessa_vale",
-          "spawn": { "x": 36, "y": 36 },
-          "facingDegrees": 45
+          "spawn": {
+            "x": 204,
+            "y": 1212
+          },
+          "facingDegrees": -45
         },
         {
           "designId": "bulwark_assault",
           "pilotId": "dorn_hess",
-          "spawn": { "x": 108, "y": 36 },
-          "facingDegrees": 45
+          "spawn": {
+            "x": 228,
+            "y": 1212
+          },
+          "facingDegrees": -45
         },
         {
           "designId": "hornet_spotter",
           "pilotId": "marek_sud",
-          "spawn": { "x": 180, "y": 36 },
-          "facingDegrees": 45
+          "spawn": {
+            "x": 252,
+            "y": 1212
+          },
+          "facingDegrees": -45
         },
         {
           "designId": "cairn_battery",
           "pilotId": "ilse_brant",
-          "spawn": { "x": 252, "y": 36 },
-          "facingDegrees": 45
+          "spawn": {
+            "x": 228,
+            "y": 1140
+          },
+          "facingDegrees": -45
         }
       ]
     },
     {
       "team": 1,
-      "name": "Kestrel Depot Guard",
+      "name": "Seizure Contractor Guard",
       "units": [
         {
-          "designId": "votive_picket",
-          "pilotId": "anja_verrin",
-          "spawn": { "x": 636, "y": 636 },
-          "facingDegrees": -135
-        },
-        {
           "designId": "sentinel_brawler",
-          "pilotId": "corin_dast",
-          "spawn": { "x": 708, "y": 636 },
-          "facingDegrees": -135
+          "pilotId": "anja_verrin",
+          "spawn": {
+            "x": 1116,
+            "y": 300
+          },
+          "facingDegrees": 135
         },
         {
-          "designId": "wisp_scout",
+          "designId": "falchion_duellist",
+          "pilotId": "corin_dast",
+          "spawn": {
+            "x": 1044,
+            "y": 300
+          },
+          "facingDegrees": 135
+        },
+        {
+          "designId": "votive_picket",
           "pilotId": "leda_morcant",
-          "spawn": { "x": 852, "y": 636 },
-          "facingDegrees": -135
+          "spawn": {
+            "x": 1188,
+            "y": 372
+          },
+          "facingDegrees": 135
         }
       ]
     }
   ],
   "zones": [
     {
-      "id": "depot_key",
-      "name": "Manifest Attestation Key",
-      "x": 492,
-      "y": 492,
-      "radius": 76,
-      "owner": 1,
+      "id": "archive_reader",
+      "name": "Barrow Archive Reader",
+      "x": 660,
+      "y": 660,
+      "radius": 72,
+      "owner": 0,
       "captureSeconds": 10,
-      "resourcePoints": 250
+      "resourcePoints": 0
+    },
+    {
+      "id": "loading_access",
+      "name": "Freight Loading Access",
+      "x": 1044,
+      "y": 924,
+      "radius": 70,
+      "owner": 1,
+      "captureSeconds": 12,
+      "resourcePoints": 0
     }
   ],
   "objectives": [
     {
-      "id": "take_command_key",
-      "label": "Take the manifest attestation key",
+      "id": "secure_loading_access",
+      "label": "Secure archive and loading access",
       "type": "capture_zones",
       "team": 0,
       "required": true,
       "zoneIds": [
-        "depot_key"
-      ],
-      "resourcePoints": 200
+        "archive_reader",
+        "loading_access"
+      ]
     },
     {
-      "id": "clear_depot_guard",
-      "label": "Destroy the Kestrel depot guard",
-      "type": "destroy_all",
+      "id": "copy_manifest",
+      "label": "Hold both sites while the manifest copies",
+      "type": "hold_zones",
       "team": 0,
-      "required": true
+      "required": true,
+      "zoneIds": [
+        "archive_reader",
+        "loading_access"
+      ],
+      "holdSeconds": 50
     },
     {
       "id": "lance_survives",
@@ -104,45 +140,92 @@
   "triggers": [
     {
       "id": "vault_opens",
-      "when": { "type": "elapsed", "seconds": 2 },
+      "when": {
+        "type": "elapsed",
+        "seconds": 3
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Vault door moving. One hundred-tonne sealed contact coming out of storage."
+          "text": "Barrow reader is intact. Freight access must stay open for the full copy.",
+          "speakerPilotId": "marek_sud"
+        }
+      ]
+    },
+    {
+      "id": "cooling_attack",
+      "when": {
+        "type": "elapsed",
+        "seconds": 45
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Cooling lane: contractor section inbound.",
+          "speakerPilotId": "dorn_hess"
         },
         {
           "type": "spawn",
           "team": 1,
           "units": [
             {
-              "designId": "pallvault_procession",
-              "pilotId": "tomas_arvel",
-              "spawn": { "x": 780, "y": 660 },
-              "facingDegrees": -135
+              "designId": "courser_patrol",
+              "pilotId": "roz_havel",
+              "spawn": {
+                "x": 1308,
+                "y": 804
+              },
+              "facingDegrees": 180
+            },
+            {
+              "designId": "drover_carrier",
+              "pilotId": "suri_kell",
+              "spawn": {
+                "x": 1308,
+                "y": 876
+              },
+              "facingDegrees": 180
             }
           ]
         },
         {
           "type": "reveal",
-          "x": 780,
-          "y": 660,
-          "radius": 180,
-          "seconds": 24
+          "x": 1308,
+          "y": 840,
+          "radius": 230,
+          "seconds": 28
         }
       ]
     },
     {
-      "id": "key_taken",
-      "when": { "type": "zone_captured", "zoneId": "depot_key", "team": 0 },
+      "id": "manifest_copied",
+      "when": {
+        "type": "objective_complete",
+        "objectiveId": "copy_manifest"
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Attestation key accepted. The storage lifts recognise your seal; the walkers do not. Clear the remaining guard."
+          "text": "Manifest copy complete. The archive and its century of maintenance records remain in operation.",
+          "speakerPilotId": "kessa_vale"
         }
       ]
     }
   ],
-  "dropTonnage": 255
+  "dropTonnage": 255,
+  "maxPlayerUnits": 5,
+  "atmosphereId": "ash_dusk",
+  "enemyDirectives": [
+    {
+      "id": "loading_counterattack",
+      "team": 1,
+      "zoneId": "loading_access",
+      "behavior": "retake",
+      "units": 5,
+      "pursuitRadius": 620
+    }
+  ]
 }

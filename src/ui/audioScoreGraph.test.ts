@@ -1,231 +1,169 @@
-import { afterEach, describe, expect, it } from 'vitest';
-import {
-  SCORE_FILTER_COUNT,
-  SCORE_GAIN_COUNT,
-  SCORE_NODE_COUNT,
-  SCORE_LEVEL,
-  SCORE_RETARGET_INTERVAL_SECONDS,
-  SCORE_SOURCE_COUNT,
-  fullLayerLevel,
-} from './audioScoreGraph';
-import {
-  callsAt,
-  FakeContext,
-  FakeOscillator,
-  type FakeParam,
-  scoreHarness,
-  scoreParams,
-  targetAt,
-} from './audioScoreGraphTestSupport';
-import { SCORE_CULTURE_VOICINGS, scoreVoicingAt } from './audioScoreVoicing';
+vi.mock('./audioScoreAssets', () => import('./audioScoreTestAssets'));
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { createAuthoredScore, SCORE_SOURCE_COUNT, SCORE_GAIN_COUNT, SCORE_NODE_COUNT, SCORE_LEVEL, SCORE_CLOSE_DELAY_MS, rhythmLayerLevel } from './audioScoreGraph';
+import { FakeContext, FakeGain, FakeBufferSource, scoreHarness, scoreParams, targetAt } from './audioScoreGraphTestSupport';
+import type { ScoreBuffers, ScoreBufferLoader } from './audioScoreAssets';
 
-function expectAutomation(param: FakeParam, at: number, seconds: number): void {
-  const calls = callsAt(param, at);
-  expect(calls.map((call) => call.method)).toEqual(['cancel', 'target']);
-  const target = calls[1];
-  expect(target?.method).toBe('target');
-  if (target?.method === 'target') expect(target.timeConstant).toBeCloseTo(seconds, 8);
+afterEach(() => { vi.useRealTimers(); FakeContext.instances.length = 0; });
+
+function delayedHarness(loader: ScoreBufferLoader) {
+  const context = new FakeContext();
+  const handle = createAuthoredScore({ context: context as unknown as AudioContext, master: new FakeGain() as unknown as GainNode }, 0, 1, loader);
+  return { context, handle };
+}
+function buffers(context: AudioContext): ScoreBuffers {
+  return [context.createBuffer(2, 8, 8), context.createBuffer(1, 8, 8), context.createBuffer(1, 8, 8)];
 }
 
-function expectIntensityTiming(
-  context: FakeContext,
-  at: number,
-  layerSeconds: number,
-  fullSeconds: number,
-): void {
-  const { intensity, full } = scoreParams(context);
-  for (const param of intensity) {
-    expectAutomation(param, at, param === full ? fullSeconds : layerSeconds);
-  }
-}
-
-function expectCultureTargets(
-  context: FakeContext,
-  at: number,
-  share: number,
-  seconds: number,
-): void {
-  const expected = scoreVoicingAt(share);
-  const values = [
-    expected.rootHz, expected.fifthHz, expected.pulseHz, expected.fullHz,
-    expected.rootLevel, expected.fifthLevel, expected.pulseLevel,
-    expected.droneCutoffHz, expected.droneQ,
-    expected.pulseCutoffHz, expected.pulseQ,
-    expected.fullCutoffHz, expected.fullQ,
-  ];
-  const params = scoreParams(context).culture;
-  expect(params).toHaveLength(13);
-  params.forEach((param, index) => {
-    expectAutomation(param, at, seconds);
-    expect(targetAt(param, at)?.value).toBeCloseTo(values[index] ?? Number.NaN, 8);
-  });
-}
-
-afterEach(() => {
-  FakeContext.instances.length = 0;
-});
-
-describe('fixed procedural score graph', () => {
-  it('initialises the exact five-source graph at either culture endpoint', () => {
-    for (const [share, voice] of [
-      [0, SCORE_CULTURE_VOICINGS.linewrought],
-      [1, SCORE_CULTURE_VOICINGS.aurelian],
-    ] as const) {
-      const { context, handle } = scoreHarness(share);
-      const sources = context.sources as FakeOscillator[];
-      expect(sources).toHaveLength(SCORE_SOURCE_COUNT);
-      expect(context.gains).toHaveLength(SCORE_GAIN_COUNT);
-      expect(context.filters).toHaveLength(SCORE_FILTER_COUNT);
-      expect(context.sources.length + context.gains.length + context.filters.length)
-        .toBe(SCORE_NODE_COUNT);
-      expect(sources.map((source) => source.type))
-        .toEqual(['triangle', 'sine', 'triangle', 'sine', 'sawtooth']);
-      expect(sources.map((source) => source.frequency.value)).toEqual([
-        voice.rootHz, voice.fifthHz, voice.pulseHz, 0.72, voice.fullHz,
-      ]);
-      expect(context.filters.map((filter) => [filter.frequency.value, filter.Q.value])).toEqual([
-        [voice.droneCutoffHz, voice.droneQ],
-        [voice.pulseCutoffHz, voice.pulseQ],
-        [voice.fullCutoffHz, voice.fullQ],
-      ]);
-      expect([
-        context.gains[2]?.gain.value,
-        context.gains[3]?.gain.value,
-        context.gains[6]?.gain.value,
-      ]).toEqual([voice.rootLevel, voice.fifthLevel, voice.pulseLevel]);
-      expect(sources.every((source) => source.starts.length === 1)).toBe(true);
-      handle.stop();
-    }
-  });
-
-  it('never allocates another score node while pressure and culture change', () => {
+describe('fixed authored score graph', () => {
+  it('starts three synchronized loops through five music gains at fixed tempo', async () => {
     const { context, handle } = scoreHarness();
+    expect(context.sources).toHaveLength(SCORE_SOURCE_COUNT);
+    expect(context.gains).toHaveLength(SCORE_GAIN_COUNT);
+    expect(context.filters).toHaveLength(0);
+    expect(context.sources.length + context.gains.length).toBe(SCORE_NODE_COUNT);
+    expect(context.sources.every(source => source.starts.length === 0)).toBe(true);
+    expect(await handle.ready).toBe(true);
+    const sources = context.sources as FakeBufferSource[];
+    expect(sources.every(source => source.loop && source.loopEnd > 73 && source.starts[0] === 5.025)).toBe(true);
+    expect(sources.map(source => source.buffer?.numberOfChannels)).toEqual([2, 1, 1]);
+    const rates = sources.map(source => source.playbackRate.value);
+    context.currentTime = 10;
+    handle.setState({ intensity: 1, aurelianShare: 1 }, 4);
+    expect(sources.map(source => source.playbackRate.value)).toEqual(rates);
+    handle.stop();
+  });
+
+  it('never allocates more sources or nodes while pressure and culture change', async () => {
+    const { context, handle } = scoreHarness();
+    await handle.ready;
     const counts = [context.sources.length, context.gains.length, context.filters.length];
     for (let step = 0; step < 1_000; step += 1) {
       context.currentTime = 10 + step * 0.13;
-      handle.setState(
-        { intensity: (step % 11) / 10, aurelianShare: (step % 7) / 6 },
-        step % 3 === 0 ? 4 : 1,
-      );
+      handle.setState({ intensity: (step % 11) / 10, aurelianShare: (step % 7) / 6 }, 4);
     }
     expect([context.sources.length, context.gains.length, context.filters.length]).toEqual(counts);
-    expect(context.sources.every((source) => source.starts.length === 1)).toBe(true);
+    expect(context.sources.every(source => source.starts.length === 1)).toBe(true);
+    handle.stop();
   });
 
-  it('keeps the full layer monotonic, bounded, and silent below commitment', () => {
-    expect(fullLayerLevel(-1)).toBe(0);
-    expect(fullLayerLevel(Number.NaN)).toBe(0);
-    expect(fullLayerLevel(0.46)).toBe(0);
-    const t = (0.6 - 0.46) / (0.74 - 0.46);
-    const smooth = t * t * (3 - 2 * t);
-    expect(fullLayerLevel(0.6)).toBeCloseTo(smooth * (0.035 + 0.075 * 0.6), 10);
-    expect(fullLayerLevel(1)).toBeCloseTo(0.11, 10);
-    const levels = Array.from({ length: 101 }, (_, index) => fullLayerLevel(index / 100));
-    expect(levels.every((level) => level >= 0 && level <= 0.11)).toBe(true);
+  it('keeps rhythm monotonic and bounded while exposing quieter strategic color', () => {
+    const levels = Array.from({ length: 101 }, (_, index) => rhythmLayerLevel(index / 100));
+    expect(levels[0]).toBeGreaterThan(0);
+    expect(levels.at(-1)).toBeLessThanOrEqual(1);
     expect(levels.every((level, index) => index === 0 || level >= levels[index - 1]!)).toBe(true);
   });
 
-  it('uses independent attack and release smoothing with speed scaling', () => {
-    const { context, handle } = scoreHarness();
-    context.currentTime = 12.75;
-    handle.setState({ intensity: 0.8, aurelianShare: 0 });
-    expectIntensityTiming(context, 12.75, 0.6, 0.35);
-
-    context.currentTime = 17.25;
-    handle.setState({ intensity: 0.1, aurelianShare: 0 });
-    expectIntensityTiming(context, 17.25, 1.6, 2.2);
-
-    context.currentTime = 21.5;
-    handle.setState({ intensity: 0.9, aurelianShare: 0 }, 4);
-    expectIntensityTiming(context, 21.5, 0.6 / 4, 0.35 / 4);
-
-    context.currentTime = 24.75;
-    handle.setState({ intensity: 0.05, aurelianShare: 0 }, 4);
-    expectIntensityTiming(context, 24.75, 1.6 / 4, 2.2 / 4);
+  it('uses independent pressure attack/release and speed-scaled gain envelopes', async () => {
+    const { context, handle } = scoreHarness(); await handle.ready;
+    const rhythm = scoreParams(context).intensity[1]!;
+    for (const [at, intensity, speed, seconds] of [[10, .8, 1, .6], [12, .1, 1, 1.6], [14, .9, 4, .15], [16, .05, 4, .4]]) {
+      context.currentTime = at!;
+      handle.setState({ intensity: intensity!, aurelianShare: 0 }, speed);
+      expect(targetAt(rhythm, at!)?.timeConstant).toBeCloseTo(seconds!);
+    }
+    handle.stop();
   });
 
-  it('crossfades treatment trim without changing the graph or battle defaults', () => {
-    const { context, handle } = scoreHarness(0, 0);
+  it('crossfades culture endpoints and treatment level without source changes', async () => {
+    const { context, handle } = scoreHarness(0, 0); await handle.ready;
     const params = scoreParams(context);
     expect(params.level.value).toBe(0);
-    const counts = [context.sources.length, context.gains.length, context.filters.length];
-
     context.currentTime = 9;
-    handle.setState({ intensity: 0, aurelianShare: 0, level: 0.6 });
-    expectAutomation(params.level, 9, 1.2);
-    expect(targetAt(params.level, 9)?.value).toBeCloseTo(SCORE_LEVEL * 0.6);
-
+    handle.setState({ intensity: 0, aurelianShare: .5, level: .6 });
+    expect(params.culture.every(param => Math.abs(param.value - Math.SQRT1_2) < .00001)).toBe(true);
+    expect(targetAt(params.level, 9)?.value).toBeCloseTo(SCORE_LEVEL * .6);
     context.currentTime = 11;
-    handle.setState({ intensity: 0, aurelianShare: 0 });
-    expect(targetAt(params.level, 11)?.value).toBeCloseTo(SCORE_LEVEL);
-    expect([context.sources.length, context.gains.length, context.filters.length]).toEqual(counts);
-    expect(context.sources.every((source) => source.starts.length === 1)).toBe(true);
+    handle.setState({ intensity: .3, aurelianShare: 1 });
+    expect(params.culture.map(param => param.value)).toEqual([0, 1]);
+    expect(targetAt(params.level, 11)?.value).toBe(SCORE_LEVEL);
+    handle.stop();
   });
 
-  it('morphs pitch and filters geometrically and levels and Q linearly', () => {
-    const { context, handle } = scoreHarness();
-    context.currentTime = 8;
-    handle.setState({ intensity: 0, aurelianShare: 0.5 });
-    expectCultureTargets(context, 8, 0.5, 0.75);
-
-    context.currentTime = 10;
-    handle.setState({ intensity: 0, aurelianShare: 1 }, 4);
-    expectCultureTargets(context, 10, 1, 0.75 / 4);
-  });
-
-  it('applies the last pending state atomically on the shared 125 ms cadence', () => {
-    const { context, handle } = scoreHarness();
-    context.currentTime = 10;
-    handle.setState({ intensity: 0.2, aurelianShare: 0 });
-    context.currentTime = 10.05;
-    handle.setState({ intensity: 0.9, aurelianShare: 1 });
-    context.currentTime = 10.1;
-    handle.setState({ intensity: 0.7, aurelianShare: 0.5 });
+  it('applies latest pending state atomically on the bounded cadence', async () => {
+    const { context, handle } = scoreHarness(); await handle.ready;
+    context.currentTime = 10; handle.setState({ intensity: .2, aurelianShare: 0 });
+    context.currentTime = 10.05; handle.setState({ intensity: .9, aurelianShare: 1 });
+    context.currentTime = 10.1; handle.setState({ intensity: .7, aurelianShare: .5 });
     const params = scoreParams(context);
-    expect([...params.intensity, ...params.culture].every(
-      (param) => callsAt(param, 10.05).length + callsAt(param, 10.1).length === 0,
-    )).toBe(true);
-
-    context.currentTime = 10.13;
-    handle.setState({ intensity: 0.7, aurelianShare: null });
-    const all = [...params.intensity, ...params.culture];
-    expect(new Set(all)).toHaveLength(17);
-    expect(all.every((param) => callsAt(param, 10.13).length === 2)).toBe(true);
-    expect(targetAt(params.full, 10.13)?.value).toBeCloseTo(fullLayerLevel(0.7), 8);
-    expect(targetAt(params.culture[0]!, 10.13)?.value)
-      .toBeCloseTo(scoreVoicingAt(0.5).rootHz, 8);
-  });
-
-  it('bounds a long 20 Hz stream by the retarget cadence', () => {
-    const { context, handle } = scoreHarness();
-    const start = 10;
-    const seconds = 120;
-    for (let tick = 0; tick < seconds * 20; tick += 1) {
-      context.currentTime = start + tick / 20;
-      handle.setState({ intensity: tick % 2 === 0 ? 0.18 : 0.82, aurelianShare: null });
+    expect([...params.intensity, ...params.culture].every(param => !param.targets.some(call => call.at > 10 && call.at < 10.13))).toBe(true);
+    context.currentTime = 10.13; handle.setState({ intensity: .7, aurelianShare: null });
+    expect(targetAt(params.intensity[1]!, 10.13)?.value).toBeCloseTo(rhythmLayerLevel(.7));
+    expect(params.culture.every(param => Math.abs(param.value - Math.SQRT1_2) < .00001)).toBe(true);
+    for (let tick = 0; tick < 2400; tick += 1) {
+      context.currentTime = 20 + tick / 20;
+      handle.setState({ intensity: tick % 2 ? .8 : .2, aurelianShare: null });
     }
-    const times = new Set(
-      scoreParams(context).intensity[0]?.targets
-        .filter((target) => target.at >= start)
-        .map((target) => target.at),
-    );
-    expect(times.size).toBeGreaterThan(1);
-    expect(times.size).toBeLessThanOrEqual(
-      Math.ceil(seconds / SCORE_RETARGET_INTERVAL_SECONDS) + 1,
-    );
+    expect(params.intensity[1]!.targets.filter(call => call.at >= 20).length).toBeLessThanOrEqual(961);
+    handle.stop();
   });
 
-  it('retains culture on null updates and stops every source exactly once', () => {
-    const { context, handle } = scoreHarness(0.25);
+  it('starts with newest mix after delayed decoding', async () => {
+    let deliver!: (value: ScoreBuffers) => void;
+    const { context, handle } = delayedHarness(() => new Promise(resolve => { deliver = resolve; }));
+    handle.setState({ intensity: .9, aurelianShare: 1, level: .4 });
+    context.currentTime = 30;
+    deliver(buffers(context as unknown as AudioContext));
+    expect(await handle.ready).toBe(true);
+    expect(context.sources.every(source => source.starts[0] === 30.025)).toBe(true);
+    expect(scoreParams(context).culture.map(param => param.value)).toEqual([0, 1]);
+    expect(scoreParams(context).level.value).toBeCloseTo(SCORE_LEVEL * .4);
+    handle.stop();
+  });
+
+  it('can return to the pre-load state after a throttled update completed during decoding', async () => {
+    let deliver!: (value: ScoreBuffers) => void;
+    const { context, handle } = delayedHarness(() => new Promise(resolve => { deliver = resolve; }));
     context.currentTime = 10;
-    handle.setState({ intensity: 0, aurelianShare: 1 });
+    handle.setState({ intensity: .2, aurelianShare: 0, level: .5 });
+    context.currentTime = 10.05;
+    handle.setState({ intensity: .9, aurelianShare: 1, level: .8 });
+    deliver(buffers(context as unknown as AudioContext)); await handle.ready;
     context.currentTime = 11;
-    handle.setState({ intensity: 0.7, aurelianShare: null });
-    expect(scoreParams(context).culture.every((param) => callsAt(param, 11).length === 0)).toBe(true);
-    context.currentTime = 23;
+    handle.setState({ intensity: .2, aurelianShare: 0, level: .5 });
+    expect(scoreParams(context).culture.map(param => param.value)).toEqual([1, 0]);
+    expect(scoreParams(context).intensity[1]?.value).toBeCloseTo(rhythmLayerLevel(.2));
+    expect(scoreParams(context).level.value).toBeCloseTo(SCORE_LEVEL * .5);
     handle.stop();
+  });
+
+  it('settles readiness when its context closes before decoding completes', async () => {
+    let deliver!: (value: ScoreBuffers) => void;
+    const { context, handle } = delayedHarness(() => new Promise(resolve => { deliver = resolve; }));
+    await context.close();
+    deliver(buffers(context as unknown as AudioContext));
+    expect(await handle.ready).toBe(false);
+    expect(context.sources.every(source => source.starts.length === 0 && source.connections.length === 0)).toBe(true);
     handle.stop();
-    expect(context.sources.every((source) => source.stops.length === 1)).toBe(true);
-    expect(context.sources.every((source) => Number.isFinite(source.stops[0]))).toBe(true);
+  });
+
+  it('cancels before decode without starting or stopping unstarted sources', async () => {
+    let deliver!: (value: ScoreBuffers) => void;
+    const { context, handle } = delayedHarness(() => new Promise(resolve => { deliver = resolve; }));
+    handle.stop(); handle.stop();
+    expect(await handle.ready).toBe(false);
+    deliver(buffers(context as unknown as AudioContext)); await Promise.resolve();
+    expect(context.sources.every(source => source.starts.length === 0 && source.stops.length === 0)).toBe(true);
+    expect((context.sources as FakeBufferSource[]).every(source => source.buffer === null)).toBe(true);
+  });
+
+  it('retries loading once, then fails quietly without leaking connected nodes', async () => {
+    vi.useFakeTimers();
+    const loader = vi.fn<ScoreBufferLoader>().mockRejectedValue(new Error('network unavailable'));
+    const { context, handle } = delayedHarness(loader);
+    await vi.advanceTimersByTimeAsync(1001);
+    expect(await handle.ready).toBe(false);
+    expect(loader).toHaveBeenCalledTimes(2);
+    expect(context.sources.every(source => source.starts.length === 0 && source.connections.length === 0)).toBe(true);
+    handle.stop();
+  });
+
+  it('stops each started source once and releases PCM after the shutdown fade', async () => {
+    vi.useFakeTimers();
+    const { context, handle } = scoreHarness(); await handle.ready;
+    context.currentTime = 23; handle.stop(); handle.stop();
+    expect(context.sources.every(source => source.stops.length === 1 && source.stops[0] === 23.1)).toBe(true);
+    await vi.advanceTimersByTimeAsync(SCORE_CLOSE_DELAY_MS);
+    expect((context.sources as FakeBufferSource[]).every(source => source.buffer === null && source.connections.length === 0)).toBe(true);
   });
 });

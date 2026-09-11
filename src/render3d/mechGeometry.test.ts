@@ -17,7 +17,7 @@ function triangles(geometry: ReturnType<typeof geometryForBlueprintPart>): numbe
 }
 
 describe('mech geometry', () => {
-  it('keeps the battlefield primitive tessellation as the default', () => {
+  it('uses clean circular joints at tactical scale with a bounded mesh', () => {
     const cylinder = geometryForBlueprintPart(
       part('head', 'cylinder', [0, 0, 0], [2, 3, 2], 'plate'),
       1,
@@ -30,9 +30,9 @@ describe('mech geometry', () => {
     expect(cylinder).toBeInstanceOf(CylinderGeometry);
     expect(sphere).toBeInstanceOf(SphereGeometry);
     if (!(cylinder instanceof CylinderGeometry) || !(sphere instanceof SphereGeometry)) return;
-    expect(cylinder.parameters.radialSegments).toBe(12);
-    expect(sphere.parameters.widthSegments).toBe(16);
-    expect(sphere.parameters.heightSegments).toBe(12);
+    expect(cylinder.parameters.radialSegments).toBe(16);
+    expect(sphere.parameters.widthSegments).toBe(20);
+    expect(sphere.parameters.heightSegments).toBe(14);
   });
 
   it.each([

@@ -1,5 +1,7 @@
 import {
   BoxGeometry,
+  CapsuleGeometry,
+  CylinderGeometry,
   BufferGeometry,
   InstancedMesh,
   Mesh,
@@ -7,6 +9,7 @@ import {
   Object3D,
   Vector3,
 } from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { Weapon } from '../schema/weapon';
 
 export type ShotStyle = Weapon['visual']['style'];
@@ -26,9 +29,18 @@ const FORWARD = new Vector3(1, 0, 0);
 const POSITION = new Vector3();
 const TANGENT = new Vector3();
 const INSTANCE = new Object3D();
-const SHELL_GEOMETRY = new BoxGeometry(4.2, 1.1, 1.1);
+const SHELL_GEOMETRY = new CylinderGeometry(.2, .55, 4.2, 8).rotateZ(-Math.PI / 2);
 const SLUG_GEOMETRY = new BoxGeometry(7.5, 0.7, 0.7);
-const MISSILE_GEOMETRY = new BoxGeometry(5, 1.4, 1.4);
+const MISSILE_GEOMETRY = missileGeometry();
+
+function missileGeometry(): BufferGeometry {
+  const body = new CapsuleGeometry(.58, 3.4, 3, 8).rotateZ(-Math.PI / 2);
+  const firstFin = new BoxGeometry(1.4, 2.5, .18).translate(-1.4, 0, 0);
+  const secondFin = new BoxGeometry(1.4, .18, 2.5).translate(-1.4, 0, 0);
+  const result = mergeGeometries([body, firstFin, secondFin]);
+  body.dispose(); firstFin.dispose(); secondFin.dispose();
+  return result;
+}
 
 export function projectileTrack(
   from: Vector3,

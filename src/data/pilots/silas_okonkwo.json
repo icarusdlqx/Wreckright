@@ -8,5 +8,45 @@
     "marksman",
     "cool_hand"
   ],
-  "bio": "Continuance-trained, Compact-mannered, and expensive. Okonkwo will tell you which of the two he is charging for."
+  "bio": "Continuance-trained, Compact-mannered, and expensive. Okonkwo will tell you which of the two he is charging for.",
+  "portrait": {
+    "skin": "#805239",
+    "hair": "#222a30",
+    "jacket": "#273e52",
+    "accent": "#5dcbbb",
+    "style": "high_top",
+    "face": "broad",
+    "detail": "beard",
+    "expression": "wry",
+    "kit": "officer",
+    "accessory": "none",
+    "age": "mature"
+  },
+  "personality": {
+    "label": "Polished sceptic",
+    "description": "Impeccable manners and a costly education. Respects competence more than pedigree.",
+    "lines": {
+      "move": [
+        "An agreeable route. Proceeding.",
+        "Repositioning. No ceremony required."
+      ],
+      "attack": [
+        "A practical solution to an impolite problem.",
+        "With your permission already established: firing."
+      ],
+      "guard": [
+        "This position is accounted for."
+      ],
+      "hold_fire": [
+        "A sensible economy. Weapons safe."
+      ],
+      "investigate": [
+        "Evidence first. I shall take a look."
+      ],
+      "heavy_fire": [
+        "Our opponents are being persistent. Some cover, please.",
+        "Sustained fire. I would prefer a less charitable exchange."
+      ]
+    }
+  }
 }

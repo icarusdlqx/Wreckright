@@ -1,5 +1,6 @@
 import { setTimeout as sleep } from 'node:timers/promises';
 import { closeDesktopBattleMenu, clearControlFocus } from './input-safety.mjs';
+import { minimapPaintCadence } from './minimap-cadence.mjs';
 
 function closePoint(left, right, tolerance = 0.05) {
   return Math.abs(left.x - right.x) <= tolerance && Math.abs(left.y - right.y) <= tolerance;
@@ -34,7 +35,7 @@ async function samplePaintBudget(page) {
     () => globalThis.__minimapPaintProbe?.paints.length >= 12,
     { timeout: 5_000 },
   );
-  return page.evaluate(() => {
+  const { availableFrames, paintTimes, ...sample } = await page.evaluate(() => {
     const probe = globalThis.__minimapPaintProbe;
     globalThis.__stopMinimapPaintProbe?.();
     const paints = probe.paints.slice(0, 12);
@@ -47,6 +48,8 @@ async function samplePaintBudget(page) {
     delete globalThis.__minimapPaintProbe;
     delete globalThis.__stopMinimapPaintProbe;
     return {
+      availableFrames,
+      paintTimes: paints.map(paint => paint.at),
       calls: paints.map((paint) => paint.calls),
       intervals,
       hz: ((paints.length - 1) * 1_000) / elapsed,
@@ -54,6 +57,7 @@ async function samplePaintBudget(page) {
       p95: durations[Math.floor((durations.length - 1) * 0.95)],
     };
   });
+  return { ...sample, cadence: minimapPaintCadence(availableFrames, paintTimes) };
 }
 
 export async function runMinimapControlChecks({ page, check, shots }) {
@@ -151,11 +155,12 @@ export async function runMinimapControlChecks({ page, check, shots }) {
     paint.calls.length === 12 &&
       paint.calls.every((calls) => calls === 2) &&
       paint.intervals.every((interval) => interval >= 90) &&
-      // A 10Hz timer on an fps-starved harness can only land on frame
-      // boundaries: at ~14fps it fires every other frame and honestly reads
-      // ~7Hz. The floor is therefore half the available rate with slack, so
-      // the check measures the minimap's cadence rather than the machine's.
-      paint.hz >= Math.min(8, paint.availableHz * 0.45) &&
+      // A 100ms RAF throttle takes three frames at 21fps (~7Hz), but two at
+      // 14fps. Require the first eligible frame after every paint instead of
+      // imposing a floor derived from average FPS. No extra frame may slip.
+      paint.cadence.firstEligibleFrames.length === 11 &&
+      paint.cadence.missedEligibleFrames === 0 &&
+      paint.cadence.offSchedulePaints === 0 &&
       paint.hz <= 12 &&
       paint.p95 < 8,
     JSON.stringify(paint),

@@ -1,0 +1,28 @@
+{
+  "id": "halberd_hlb4",
+  "designId": "halberd_prime",
+  "provenance": "The Halberd is an Aurelian heavy striker built around paired arm batteries and oversized cooling surfaces. Some recovered examples served with local missile cradles while their original emitters awaited replacement.",
+  "serviceHistory": [
+    "Those early service refits made the difference between a valuable stored root and a machine that could earn its upkeep. Later work restored calibrated cooling and energy armament without always removing the practical local additions. A bright Halberd can therefore carry a thoroughly mixed maintenance history.",
+    "The tall shoulder pylons make an approaching Halberd easy to recognise. Freight guards learned not to assume that a heavy-looking contact would take a heavy machine's usual time to arrive. Custodian pilots take pride in that reputation; their workshops take equal care over the cooling surfaces that make repeated engagements affordable."
+  ],
+  "fieldNotes": "The current standard pairs an Extended Arc Projector and Large Laser in each arm, with a central laser for close contacts. Compound cooling and reinforced plate support coordinated advances without ammunition bins. Keep the arms protected: losing one removes two primary weapons. Its stride helps a lance reposition, but there are no jump jets and a lone Halberd can lose a close duel to a well-equipped Bulwark.",
+  "related": [
+    {
+      "kind": "story",
+      "id": "the_sealed"
+    },
+    {
+      "kind": "story",
+      "id": "the_shared_mounts"
+    },
+    {
+      "kind": "mech",
+      "id": "warden_wrd5"
+    },
+    {
+      "kind": "mech",
+      "id": "obsequy_obq3"
+    }
+  ]
+}

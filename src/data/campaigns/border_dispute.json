@@ -1,6 +1,107 @@
 {
   "id": "border_dispute",
   "name": "The Great Recall",
+  "contentRevision": 2,
+  "legacyRoutes": [
+    {
+      "revision": 1,
+      "victoryNodeId": "depot_burn",
+      "alternateVictoryNodeIds": [
+        "depot_take"
+      ],
+      "nodes": [
+        {
+          "id": "militia_raid",
+          "requires": []
+        },
+        {
+          "id": "marker_survey",
+          "requires": [
+            "militia_raid"
+          ]
+        },
+        {
+          "id": "recovery_window",
+          "requires": [
+            "marker_survey"
+          ]
+        },
+        {
+          "id": "workshop_defence",
+          "requires": [
+            "recovery_window"
+          ]
+        },
+        {
+          "id": "pass_skirmish",
+          "requires": [
+            "militia_raid"
+          ]
+        },
+        {
+          "id": "supply_line",
+          "requires": [
+            "militia_raid"
+          ]
+        },
+        {
+          "id": "ridge_hold",
+          "requires": [
+            "shale_overwatch_node"
+          ]
+        },
+        {
+          "id": "causeway_push",
+          "requires": [
+            "supply_line"
+          ]
+        },
+        {
+          "id": "foundry_sweep_node",
+          "requires": [
+            "pass_skirmish"
+          ]
+        },
+        {
+          "id": "shale_overwatch_node",
+          "requires": [
+            "foundry_sweep_node"
+          ]
+        },
+        {
+          "id": "depot_burn",
+          "requires": [
+            "ridge_hold"
+          ]
+        },
+        {
+          "id": "depot_take",
+          "requires": [
+            "ridge_hold"
+          ]
+        },
+        {
+          "id": "cutbank_register",
+          "requires": [
+            "supply_line"
+          ]
+        },
+        {
+          "id": "blackglass_receipt",
+          "requires": [
+            "foundry_sweep_node"
+          ]
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "faction": "linewrought",
+    "title": "Linewrought",
+    "premise": "The Recall lists your four patched walkers as someone else’s property. Defend Tessell’s workshops, bring crews home and build a company strong enough to decide what happens to the record.",
+    "strength": "Practical guns, locally supplied parts and generous salvage opportunities. Optional rescue and workshop contracts help you rebuild before taking on the Recall.",
+    "tradeoff": "Ammunition and older weapons demand teamwork. Captured Aurelian emitters fit compatible mounts, but need cooling and a source of rare replacements."
+  },
   "startingCbills": 3200000,
   "startingDay": 0,
   "startingDesignIds": [
@@ -26,16 +127,46 @@
     "depot_take"
   ],
   "employers": [
-    { "id": "kestrel_combine", "name": "Kestrel Combine" },
-    { "id": "halloran_freight", "name": "Halloran Freight" },
-    { "id": "sarn_foundry", "name": "Sarn Foundry" },
-    { "id": "ridgeward_assembly", "name": "Ridgeward Assembly" },
-    { "id": "halloran_combine", "name": "Halloran Combine" },
-    { "id": "vasi_reclamation", "name": "Vasi Reclamation" },
-    { "id": "ferrous_guild", "name": "the Ferrous Guild" },
-    { "id": "kestrel_freight", "name": "Kestrel Freight" },
-    { "id": "harrow_compact", "name": "the Harrow Compact" },
-    { "id": "ostrow_holdings", "name": "Ostrow Holdings" }
+    {
+      "id": "kestrel_combine",
+      "name": "Kestrel Combine"
+    },
+    {
+      "id": "halloran_freight",
+      "name": "Halloran Freight"
+    },
+    {
+      "id": "sarn_foundry",
+      "name": "Sarn Foundry"
+    },
+    {
+      "id": "ridgeward_assembly",
+      "name": "Ridgeward Assembly"
+    },
+    {
+      "id": "halloran_combine",
+      "name": "Halloran Combine"
+    },
+    {
+      "id": "vasi_reclamation",
+      "name": "Vasi Reclamation"
+    },
+    {
+      "id": "ferrous_guild",
+      "name": "the Ferrous Guild"
+    },
+    {
+      "id": "kestrel_freight",
+      "name": "Kestrel Freight"
+    },
+    {
+      "id": "harrow_compact",
+      "name": "the Harrow Compact"
+    },
+    {
+      "id": "ostrow_holdings",
+      "name": "Ostrow Holdings"
+    }
   ],
   "sideWork": {
     "missionIds": [
@@ -72,13 +203,124 @@
       }
     },
     {
+      "id": "marker_survey",
+      "name": "The Missing Trail",
+      "missionId": "marker_survey",
+      "employerId": "halloran_freight",
+      "brief": "Two old readers overlook the western service road. Send one machine no heavier than 45 tonnes, read both sites and avoid the watched road. This optional survey adds advance warning and two ammunition isolation cases; The Quiet Claim remains available if it is skipped.",
+      "requires": [
+        "militia_raid"
+      ],
+      "basePayout": 350000,
+      "maxSalvageShare": 0.5,
+      "deadlineDays": 28,
+      "position": {
+        "x": 0.08,
+        "y": 0.52
+      },
+      "rewards": [
+        {
+          "id": "road_ledger_supplies",
+          "label": "Road ledger: two ammunition isolation cases",
+          "objectiveId": "copy_road_ledger",
+          "items": [
+            {
+              "kind": "equipment",
+              "itemId": "case",
+              "count": 2
+            }
+          ],
+          "afterword": "Halloran trades the copied ledger for two unopened ammunition isolation cases from its freight stock. These supplies are separate from battlefield salvage."
+        }
+      ]
+    },
+    {
+      "id": "recovery_window",
+      "name": "The Quiet Claim",
+      "missionId": "recovery_window",
+      "employerId": "halloran_freight",
+      "brief": "A repair crew is trapped beside an unclaimed walker cradle in the western recovery cut. Secure the winch and protect the cradle through the lift with up to 140 tonnes and three machines. The optional service cabinet holds useful stock. Surviving guards do not block extraction.",
+      "requires": [
+        "militia_raid"
+      ],
+      "basePayout": 650000,
+      "maxSalvageShare": 0.95,
+      "deadlineDays": 30,
+      "position": {
+        "x": 0.14,
+        "y": 0.34
+      },
+      "rewards": [
+        {
+          "id": "unclaimed_prybar",
+          "label": "Released Prybar workshop hulk",
+          "hulls": [
+            {
+              "designId": "prybar_courier",
+              "integrityFraction": 0.55
+            }
+          ],
+          "afterword": "The repair crew signs over an unclaimed Prybar cradle from a sealed workshop rack. It is a damaged hulk, distinct from the opposing machines recovered under your salvage terms; rebuilding still takes credits and bay time."
+        },
+        {
+          "id": "service_cannon",
+          "label": "Service cabinet: Canister Cannon",
+          "objectiveId": "recover_service_stock",
+          "items": [
+            {
+              "kind": "weapon",
+              "itemId": "lbx_ac10",
+              "count": 1
+            }
+          ],
+          "afterword": "The cabinet contains one crated Canister Cannon. Cluster fire spreads damage; its slug setting concentrates it. Fit and supply it in the workshop before the next drop."
+        }
+      ]
+    },
+    {
+      "id": "workshop_defence",
+      "name": "Keep the Gantries",
+      "missionId": "workshop_defence",
+      "employerId": "sarn_foundry",
+      "brief": "Kestrel traced the recovered crew to a working Sarn repair hall. Defend gantry control against the announced north and east approaches with up to 205 tonnes. A forward service position can blunt the second wave. Keeping the workshop alive opens the main route to First Attestation.",
+      "requires": [
+        "recovery_window"
+      ],
+      "basePayout": 950000,
+      "maxSalvageShare": 0.75,
+      "deadlineDays": 34,
+      "position": {
+        "x": 0.35,
+        "y": 0.58
+      },
+      "rewards": [
+        {
+          "id": "gantry_repair_days",
+          "label": "Two workshop day credits",
+          "effects": {
+            "freeRepairDays": 2
+          },
+          "afterword": "Sarn banks two workshop day credits. Each later repair or rebuild booking can use one to shorten its duration by a day. Parts, labour and payroll remain payable."
+        },
+        {
+          "id": "stores_supplier_terms",
+          "label": "Stores cabinet: seven days of supplier terms",
+          "objectiveId": "recover_workshop_stock",
+          "effects": {
+            "supplierDiscountDays": 7
+          },
+          "afterword": "The recovered stores records establish the company with Sarn's suppliers. Preferential terms last seven campaign days."
+        }
+      ]
+    },
+    {
       "id": "pass_skirmish",
       "name": "First Attestation",
       "missionId": "sealed_contact",
       "employerId": "halloran_freight",
       "brief": "A Halloran camera caught Kestrel escorting one bone-white walker with a Continuance seal and no shop stamp. Bring the claim detail down and hold the ground. Halloran waives its share of the first Aurelian Stock the company can recover.",
       "requires": [
-        "militia_raid"
+        "workshop_defence"
       ],
       "basePayout": 1450000,
       "maxSalvageShare": 1,
@@ -86,7 +328,21 @@
       "position": {
         "x": 0.5,
         "y": 0.42
-      }
+      },
+      "rewards": [
+        {
+          "id": "foundry_optics",
+          "label": "Foundry exchange: two Focused Medium Lasers",
+          "items": [
+            {
+              "kind": "weapon",
+              "itemId": "er_medium_laser",
+              "count": 2
+            }
+          ],
+          "afterword": "Sarn trades two reclaimed precision emitters against the attestation. They extend your reach, but their heat and cross-culture fitting burden still need room in the build."
+        }
+      ]
     },
     {
       "id": "supply_line",
@@ -110,7 +366,7 @@
       "name": "Manifest Key",
       "missionId": "depot_road",
       "employerId": "halloran_freight",
-      "brief": "A Sarn title fragment carries an Aurelian service address. Kestrel has the same fragment and a rearguard above its reader. Hold the attestation key long enough for Halloran to resolve the depot approach.",
+      "brief": "Barrow’s archive is sealed behind a contractor checkpoint. Open the service access and hold the key. A scout can use the short cooling lane; heavier machines can push through freight cover. Optional evidence explains the two endings, but the key alone opens both.",
       "requires": [
         "shale_overwatch_node"
       ],
@@ -154,7 +410,21 @@
       "position": {
         "x": 0.3,
         "y": 0.24
-      }
+      },
+      "rewards": [
+        {
+          "id": "gantry_canister",
+          "label": "Gantry armoury: Canister Cannon",
+          "items": [
+            {
+              "kind": "weapon",
+              "itemId": "lbx_ac10",
+              "count": 1
+            }
+          ],
+          "afterword": "The gantry crew releases its last Canister Cannon. Cluster fire strips several sections; slug mode concentrates the hit. Fit the matching ammunition before deployment."
+        }
+      ]
     },
     {
       "id": "shale_overwatch_node",
@@ -171,7 +441,21 @@
       "position": {
         "x": 0.75,
         "y": 0.34
-      }
+      },
+      "rewards": [
+        {
+          "id": "cold_yard_rail",
+          "label": "Cold-yard vault: Gauss Rifle",
+          "items": [
+            {
+              "kind": "weapon",
+              "itemId": "gauss_rifle",
+              "count": 1
+            }
+          ],
+          "afterword": "The vault yields a working electromagnetic rifle. It fires cool and reaches far, but its mass, seven-box mount and vulnerable ammunition demand a deliberate refit."
+        }
+      ]
     },
     {
       "id": "depot_burn",
@@ -188,6 +472,13 @@
       "position": {
         "x": 0.93,
         "y": 0.2
+      },
+      "ending": {
+        "title": "The Unwritten Claim",
+        "body": [
+          "The master manifest burns behind the depot doors. The Recall Authority loses its cleanest chain of proof, and the foundries keep their named roots in service. Halloran has the crossing it paid for. Your company has chosen what no court can now reconstruct.",
+          "Freedom has an invoice. Certified service is harder to obtain, the old repairs still need doing, and every surviving crew must carry its own account of the field. The company leaves with its machines, its scars and a claim nobody can close for it."
+        ]
       }
     },
     {
@@ -195,7 +486,7 @@
       "name": "Take the Manifest",
       "missionId": "depot_take",
       "employerId": "halloran_freight",
-      "brief": "Halloran's contract gets the company through the doors. What happens behind them is your account. Take the attestation key intact, clear Kestrel's guard, and put the root manifest under your own seal. The key proves custody; it commands no cockpit.",
+      "brief": "Keep Barrow’s master manifest intact. Secure the archive reader and freight access, then hold both while the record is copied into company custody. Kestrel attacks the loading lane after transfer begins. The record, not a body count, completes the campaign.",
       "requires": [
         "ridge_hold"
       ],
@@ -205,6 +496,13 @@
       "position": {
         "x": 0.93,
         "y": 0.46
+      },
+      "ending": {
+        "title": "The Company Seal",
+        "body": [
+          "The attestation key accepts the company seal. The master manifest survives, and with it the record linking old workshop names to serialized roots. Your company holds evidence both the foundries and the Recall Authority need.",
+          "Custody grants no command over a cockpit. The pilots still choose whom to serve, and every repaired machine returns under a human hand. You have kept the proof and accepted the responsibility of deciding who may read it."
+        ]
       }
     },
     {
@@ -239,7 +537,93 @@
       "position": {
         "x": 0.52,
         "y": 0.12
-      }
+      },
+      "rewards": [
+        {
+          "id": "quarry_rockets",
+          "label": "Quarry battery: Longshot 20",
+          "items": [
+            {
+              "kind": "weapon",
+              "itemId": "lrm20",
+              "count": 1
+            }
+          ],
+          "afterword": "Blackglass signs over a long-range rocket rack. A spotter can guide its indirect fire; carry enough matching ammunition and keep clear of its minimum range."
+        }
+      ]
     }
-  ]
+  ],
+  "demoSupplies": {
+    "id": "fitting_crate_v1",
+    "label": "Demo fitting crate",
+    "description": "Twelve weapon types are supplied for this demo, including a few from the other faction. Try different builds early. Advanced weapons still arrive through contract rewards and battlefield salvage. The workshop automatically fits a first ammunition bin when needed; add more in the mechbay.",
+    "items": [
+      {
+        "kind": "weapon",
+        "itemId": "ac5",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "ac20",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "flamer",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "machine_gun",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "lrm10",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "srm2",
+        "count": 2
+      },
+      {
+        "kind": "weapon",
+        "itemId": "srm6",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "mrm20",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "small_laser",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "medium_laser",
+        "count": 2
+      },
+      {
+        "kind": "weapon",
+        "itemId": "large_laser",
+        "count": 1
+      },
+      {
+        "kind": "weapon",
+        "itemId": "ppc",
+        "count": 1
+      },
+      {
+        "kind": "equipment",
+        "itemId": "case",
+        "count": 2
+      }
+    ]
+  }
 }

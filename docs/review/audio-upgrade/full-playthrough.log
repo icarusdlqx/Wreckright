@@ -1,0 +1,1238 @@
+✓ a fresh profile opens on Home without mounting the engine
+  ✓ Home offers learn, campaign, skirmish and the built-in wiki
+  ✓ Learn Command opens the authored training field
+  ✓ training briefing is fixed and omits skirmish setup
+  ✓ range walk deploys paused
+  ✓ selection lesson starts with only lance and camera affordances
+  ✓ move lesson exposes Move but not combat orders
+  ✓ Move control plots the initial route to the range gate
+  ✓ queued movement keeps the gate lesson and explains Resume
+  ✓ Commander is absent until its training controls are available
+  ✓ reaching and capturing the actual gate unlocks the engage lesson
+  ✓ engage lesson adds contacts and Attack without advanced heat controls
+  ✓ force stepping reaches a real optical hostile card
+  ✓ optical hostile card has a short name and complete accessible identity
+  ✓ automatic fire control does not complete the explicit Engage lesson
+  ✓ optical hostile card assigns the target through the UI
+  ✓ heat lesson adds the heat readout and safety controls
+  ✓ range drill keeps advanced orders behind Tactics
+  ✓ range drill restores the complete battle interface
+  ✓ successful training offers campaign first and range replay second
+  ✓ successful training reaches first-contract guidance
+  ✓ training briefing skip opens the campaign explicitly
+  ✓ failed training offers retry first and a campaign exit
+  ✓ continue anyway records the training exit
+
+boot
+  ✓ canvas is mounted at full size
+  ✓ no page errors during boot
+  ✓ eight mechs deployed
+  ✓ player lance is under player control
+  ✓ opposing lance is on autopilot
+
+briefing
+  ✓ the mission opens on a briefing
+  ✓ the briefing lists the objectives
+  ✓ the sim is held while briefing
+  ✓ desktop clock controls stay disabled until deployment
+  ✓ 1280px briefing leaves the primary battle controls on top
+  ✓ 1280px topbar is one line with no overlap
+  ✓ desktop secondary controls are closed by default
+  ✓ 1280px battle menu exposes every secondary control above the field
+  ✓ battlefield clicks cannot queue an order behind the briefing
+  ✓ 1280px briefing leaves Mechbay navigation clickable
+  ✓ Space types into the focused Battle code
+  ✓ focused Battle code leaves the clock held
+  ✓ battle hotkeys do nothing before deployment
+  ✓ an invalid Battle code blocks deployment
+  ✓ deploying starts the clock
+  ✓ compact lance cards retain complete machine identity in their tooltips without serial designations
+  ✓ typing then tapping deploy locks the normalized Battle code
+  ✓ Space activates a focused battle button without pausing
+  ✓ a repeated toggle key does not change pause
+  ✓ Feedback opens from a pointer click
+  ✓ Space after enabling feedback closes the dialog without toggling battle
+
+selection
+  ✓ lance card selects a mech
+  ✓ paper doll renders eight locations
+  ✓ heat bar renders
+  ✓ weapon groups render with cooldown rings
+  ✓ tactical readouts expose ability, stability, alpha heat and governor state
+  ✓ the default command row exposes only primary orders
+  ✓ ability and alpha commands show live readiness
+  ✓ Tactics discloses formation and advanced orders
+
+pause
+  ✓ pause freezes the simulation
+  ✓ pause banner is shown
+
+incoming fire direction
+  ✓ an off-screen visible shooter raises one directional edge tick
+  ✓ sustained incoming fire keeps the fixed six-slot DOM pool
+  ✓ same-tick volleys project one incoming-fire cue
+  ✓ sustained incoming fire stays inside its CPU budget (p95 0.10ms; frame-other ABBA median 1.35ms telemetry)
+
+orders while paused
+  ✓ right-click issues a move order while paused
+  ✓ a path was planned
+  ✓ simulation is still frozen after issuing orders
+  ✓ a wobbly click still selects the mech
+  ✓ the destination order after a wobbly click lands with a route
+
+resume and move
+  ✓ the ordered mech actually moves
+  ✓ resuming restarts the clock
+
+formation move
+  ✓ a group move gives every mech a distinct destination
+
+weapon groups and hold fire
+  ✓ clicking a group toggles it off
+  ✓ hold fire disables every group
+
+called shot
+  ✓ own armour is an inspection view, not a called-shot control
+  ✓ called shot targets the chosen hostile section through its armour panel
+
+camera
+  ✓ wheel zooms the camera
+  ✓ wheel zoom keeps the ground under the pointer
+  ✓ left arrow moves the view left
+  ✓ right arrow moves the view right
+  ✓ up arrow moves the view up
+  ✓ down arrow moves the view down
+  ✓ centre button finds the selection
+
+fog of war
+  ✓ fog hides at least some of the opposing lance at range
+
+run the battle to a conclusion
+  ✓ battle reaches a conclusion
+  ✓ battle debrief is shown
+  ✓ battle debrief receives focus without skipping its report
+  ✓ battle controls stay suspended behind the debrief
+  ✓ battle debrief tabs into its first action
+  ✓ battle debrief traps forward focus
+  ✓ battle debrief traps reverse focus
+  ✓ the debrief reports battle and lance statistics
+  ✓ skirmish debrief offers replay or another briefing
+  ✓ battle log recorded destructions
+
+objectives and support
+  ✓ closing the battle debrief returns focus
+  ✓ switching mission shows its briefing
+  ✓ the base capture mission is loaded
+  ✓ deployed setup is locked until the run is left explicitly
+  ✓ restart redeploys the same setup immediately
+  ✓ it has two comm posts and three objectives
+  ✓ the objective tracker is on screen
+  ✓ the zone tracker lists both posts
+  ✓ resource points are shown
+
+minimap control
+  ✓ minimap exposes one keyboard-reachable canvas control
+  ✓ minimap accepts keyboard focus with a visible focus treatment
+  ✓ clicking the minimap jumps the field camera
+  ✓ dragging the minimap pans live before pointer release
+  ✓ minimap owns the active drag through pointer capture
+  ✓ captured drag reaches outside the canvas and ends cleanly
+  ✓ a held minimap arrow moves north-up by one two-tile step only
+  ✓ minimap retains its 10Hz two-blit canvas budget
+  ✓ minimap keeps one stable visible canvas
+  ✓ new-contact pulse stays on the coarse presented point under reduced motion
+  ✓ minimap camera controls never alter selection or orders
+
+commander view
+  ✓ Commander map is pre-mounted and hidden before use
+  ✓ Commander click-select routes through the live battle selection
+  ✓ Commander map shows the whole privacy-gated force picture
+  ✓ Commander arrow keys do not move the hidden field camera
+  ✓ four Commander waypoints render as one active and three queued legs
+  ✓ paused Commander planning still accepts live engine orders
+  ✓ Commander toggle retains an explicit Backquote shortcut while focused
+  ✓ Backquote toggles the pre-mounted map while its button retains focus
+  ✓ Commander hotkey leaves field Tab unit cycling intact
+  ✓ Commander switching costs less than one frame without remounting
+
+readable field routes
+  ✓ the selected Commander plan becomes one active and three queued field legs
+  ✓ every field leg ends in an estimated arrival wedge
+  ✓ field direction chevrons are visible along the route
+  ✓ four readable approximate ETA labels increase along the route
+  ✓ active and queued route styling stays distinct in all shared batches
+  ✓ route chevrons animate while planning remains paused
+  ✓ animated route frames keep draw calls, geometries, textures, and pools stable
+  ✓ reduced motion keeps route chevrons static while retaining all route information
+  ✓ static reduced-motion route frames retain the same pooled render resources
+  ✓ the field camera is centred and zoomed to the complete planned route
+  ✓ support drawer is closed by default
+  ✓ desktop support drawer opens above its right-hand control without losing pointer hits
+  ✓ exactly three support calls are offered
+  ✓ the authored reserve reaches the support palette
+  ✓ support cost and effect are visible without a tooltip
+  ✓ the mission resource points reached the HUD
+  ✓ a rejected mouse placement stays armed and records the refusal
+  ✓ picking a support call arms it
+  ✓ the accepted air strike shows its pending lane and spends resource points
+  ✓ the air strike resolves after its delay
+  ✓ the resolved air strike renders an aircraft and all impact scars
+  ✓ the repair truck arms from the support drawer
+  ✓ the armed call explains placement in the palette
+  ✓ calling the truck spends resource points
+  ✓ the call is queued with a delay
+  ✓ the HUD reflects the spend
+  ✓ the call resolves after its delay
+  ✓ the active repair truck renders its rig, radius and repair link
+  ✓ the repair truck restores actual rear armour inside its radius
+  ✓ air strike, repair truck and reinforcement were all accepted
+  ✓ every accepted call resolved
+  ✓ the spent reserve gives its slot back to the sensor probe
+  ✓ the paused sensor probe spends RP, classifies immediately, and leaves time and optical fog unchanged
+  ✓ the coarse sensor card exposes the authored indirect penalty and sweep countdown
+  ✓ a current coarse return fires supplied indirect mounts while direct weapons stay blind
+  ✓ holding a comm post captures it
+  ✓ capturing the south post calls in the relief lance
+  ✓ the relief lance was announced to the player
+
+mechbay
+  ✓ the skirmish outfit dialog keeps focus through a battle-store rerender
+  ✓ closing the rerendered outfit dialog restores its berth trigger
+  ✓ mechbay shows all eight quiet resting locations
+  ✓ the workspace opens on one visible Loadout panel
+  ✓ the starting build is legal
+  ✓ Review starts with seven neutral stock-comparison metrics
+  ✓ the desktop stock picker carries complete machine identity without serial designations
+  ✓ Armour & Cooling contains the two focused systems workbenches
+  ✓ the armour paper doll exposes eight native location controls over one presentational silhouette
+  ✓ selecting the left torso leaves exactly one pressed location and labels its native slider
+  ✓ the selected-location slider changes with the keyboard and keeps focus through its live rerender
+  ✓ one Undo restores the keyboard armour edit
+  ✓ wheel armour edits stay on the selected control without scrolling the page
+  ✓ one Undo restores the complete wheel gesture
+  ✓ starting another armour control closes the pending wheel transaction
+  ✓ one Undo after a wheel then preset gesture restores only the preset
+  ✓ a second Undo restores the preceding wheel gesture
+  ✓ a horizontal drag changes armour as one direct-manipulation gesture
+  ✓ below-median armour is visible, named accessibly, and reflected in the live plate weight
+  ✓ one Undo restores the complete pointer drag and stock plate weight
+  ✓ the loadout workspace renders the machine and one visual weapon inspector
+  ✓ weapon search narrows the compact catalog
+  ✓ weapon family filter shows one plain-English family
+  ✓ the shelf hides weapons the hull cannot mount
+  ✓ selecting a hardpoint filters the shelf to that mount
+  ✓ showing incompatible weapons explains rather than offering them
+  ✓ an incompatible row opens its exact reason without arming a weapon
+  ✓ a keyboard pick arms and focuses its compatible hardpoint
+  ✓ an incompatible occupied location is unavailable while a part is held
+  ✓ removing there restores focus to the selected compatible location
+  ✓ keyboard pick-to-hardpoint mounts the weapon
+  ✓ the first successful fit folds both explainers and records training progress
+  ✓ the fitting guide reopens and component provenance stays available in the selected item details
+  ✓ Review exposes the fitted weapon trade across heat, alpha, and all range bands
+  ✓ an illegal build reports its problems
+  ✓ save is refused for an illegal build
+  ✓ export is refused for an illegal build
+  ✓ clicking a disabled save writes nothing to storage
+  ✓ Review groups the illegal fit into an actionable verdict
+  ✓ the review correction returns to Loadout
+  ✓ selecting a fitted weapon inspects it without removing it
+  ✓ the explicit Remove control restores the legal build and stable location focus
+  ✓ free tonnage returns to its starting value
+  ✓ removing the edit restores all stock comparison metrics to neutral
+  ✓ auto-fit marks the landing rack for snap feedback without changing its controls
+  ✓ drag-to-hardpoint reveals targeting and uses the same legal mount path
+  ✓ dragged weapon can be removed cleanly
+  ✓ Undo restores the last removed fitting
+  ✓ Redo restores the clean legal build
+  ✓ advanced armour frees tonnage
+  ✓ the final review confirms armour allocation and a legal build
+  ✓ a legal build saves to storage
+  ✓ saving reports success
+  ✓ the standalone workshop selects an authored Linewrought loadout without a frame builder
+  ✓ authored chassis lore remains readable without exposing a serial designation
+  ✓ renaming the stock machine creates an edited loadout without changing chassis
+  ✓ the renamed stock loadout reaches the same legal review
+  ✓ the edited loadout keeps the existing saved-design storage contract
+  ✓ the saved-loadout picker keeps its stable id behind a complete machine identity
+  ✓ the briefing exposes the saved loadout through the existing picker
+  ✓ the briefing picker offers weight, class, authored role and culture without serials
+  ✓ choosing the saved loadout freezes it inline in the mission lance
+  ✓ the saved loadout reopens as a same-chassis berth refit
+  ✓ the quiet-bay fold state survives a real reload
+  ✓ returning to the skirmish remounts the battle
+
+large battlefield navigation
+  ✓ Cutbank is available from the visible mission picker
+  ✓ Cutbank loads the complete 56 by 56 field
+  ✓ large-map panning clamps without exposing an unbounded void
+  ✓ large-map arrows preserve browser reading direction
+  ✓ the large field remains represented on the minimap
+  ✓ choosing another field clears the previous mission log
+
+campaign
+  ✓ returning players can choose either side of the Great Recall
+  ✓ the Aurelian campaign opens with its stock roster, original spine, supply branch and both endings
+  ✓ Aurelian disposition choices stay contained and separate at compact desktop width
+  ✓ restart stays on the selected campaign and persists a fresh run
+  ✓ campaign map draws the original route, recovery branch, large-map jobs and both depot endings
+  ✓ only the opening node is available
+  ✓ the opening company has four machines and four pilots on its books
+  ✓ opening stores contain the authored demo crate exactly once
+  ✓ first-drop guidance begins at choosing the job
+  ✓ restart confirmation begins on the non-destructive action
+  ✓ Escape cancels restart, keeps the company and restores focus
+  ✓ Cancel leaves the stored campaign byte-for-byte intact
+  ✓ a new campaign exposes a readable run code and fixed difficulty
+  ✓ restart rolls a fresh run code
+  ✓ the fresh run and its difficulty are saved immediately
+  ✓ a damaged campaign is left byte-for-byte intact
+  ✓ the campaign explains its memory-only recovery state
+  ✓ memory-only transactions remain usable
+  ✓ memory-only transactions do not overwrite the damaged save
+  ✓ recovery export returns the original bytes
+  ✓ an explicit restart clears recovery mode
+  ✓ an explicit restart writes a valid campaign
+  ✓ the field manual takes keyboard focus
+  ✓ the field manual carries desktop, touch and support controls
+  ✓ the manual names only the current camera grammar
+  ✓ Escape closes the manual and returns focus
+  ✓ named packages trade payout against salvage
+  ✓ contract terms name success pay, field clock and wage exposure
+  ✓ advancing a day moves the clock
+  ✓ a rest day draws and records one seeded campaign event
+  ✓ signing shows the active contract with launch and review controls
+  ✓ signing advances first-drop guidance to Launch the drop
+  ✓ the active contract preserves its named package
+  ✓ the campaign saves to storage
+  ✓ Review machines opens preparation with the company machines
+  ✓ hangar continue opens the guided manifest stage
+  ✓ each preparation pilot has three native skills, a portrait and their actual ability
+  ✓ preparation distinguishes company bays and shows chassis tonnage
+  ✓ selected machine retains its class, role and faction in preparation
+  ✓ all five deployment positions stay visible
+  ✓ holding a pilot back leaves an explicit empty cockpit and blocks launch
+  ✓ assigning the pilot restores the original cockpit order
+  ✓ depleted-store refit fixture has no spare inventory
+  ✓ the refit bay opens on the company mech in Loadout
+  ✓ a depleted campaign shelf holds only the selected mech's installed weapons
+  ✓ every resting campaign location exposes a quiet accessible rack summary
+  ✓ the selected inspector explains exhausted weapon costs, heat, and range
+  ✓ campaign stock cannot be fitted twice before commit
+  ✓ campaign cooling shows owned technology and disables unavailable alternatives
+  ✓ a no-change company refit has a visible final review
+  ✓ a company-owned no-change refit returns to the manifest
+  ✓ depleted-stock checks leave the main campaign and its demo equipment unchanged
+  ✓ the contracted mission opens on its briefing
+  ✓ deploying launches the contracted mission
+  ✓ the mission is the opening Linewrought contract
+  ✓ the exact chosen four-pilot campaign lance deployed
+  ✓ the campaign debrief receives focus as a modal report
+  ✓ the campaign debrief does not overflow the mobile viewport
+  ✓ the mobile debrief action keeps a 44px touch target
+  ✓ the one-line ledger answers outcome, payment and salvage at a glance
+  ✓ the debrief accounts for every pilot who dropped
+  ✓ the pilot XP rows stay visible beside the compact ledger
+  ✓ the debrief reports experience earned
+  ✓ the debrief records banked experience
+  ✓ the debrief names the signed package
+  ✓ the recovery ledger and picker begin folded behind the salvage disclosure
+  ✓ the editable salvage disclosure is named Adjust picks
+  ✓ the keyboard opens the full salvage report one click deeper
+  ✓ the existing salvage picker remains visible and reachable
+  ✓ the compact ledger names everything shown as recovered or aboard
+  ✓ the campaign debrief traps forward focus at its first crew action
+  ✓ the campaign debrief traps reverse focus
+  ✓ closing the campaign debrief restores focus to its previous or fallback control
+  ✓ first-drop guidance retires after the opening outcome
+  ✓ Workshop exposes the machines without unrelated contract controls
+  ✓ the workshop opens the existing detailed refit bay directly
+  ✓ closing a workshop refit restores its launch control
+  ✓ Crew exposes pilot progression and hides the workshop
+  ✓ Stores and yard exposes both the inventory and parts counter
+  ✓ Operations restores the contract board and navigation leaves the save intact
+  ✓ the lance is visible on the company books
+  ✓ the barracks lists the company pilots
+  ✓ the hiring hall is posting work
+  ✓ a posting states its battlefield and rated opposition
+  ✓ the board states when it renews
+  ✓ a posting drives the contract panel
+  ✓ the contract resolved into history
+  ✓ the contract slot is clear again
+  ✓ drop experience waits for a training choice
+  ✓ the barracks states experience and daily payroll
+  ✓ stores match the recorded salvage haul exactly
+  ✓ recovered hulks match the receipt without duplicating their loose weapons
+  ✓ winning paid out
+  ✓ the next contracts unlocked
+  ✓ battle damage came home
+  ✓ reloading preserves the campaign exactly
+  ✓ no page errors across the whole run
+  ✓ the home artwork loads without WebGL, battle startup, or campaign and training creation
+  ✓ the main menu clearly names the Wiki and preserves its native archive link
+  ✓ a phone shows all three game routes and Wiki as unobstructed touch-sized choices
+  ✓ the illustrated home reports no page errors
+  ✓ a failed artwork download still opens Wiki without starting a battle or changing progress
+  ✓ a failed artwork download still allows creating and entering the campaign
+
+fire modes
+  ✓ the Canister Cannon dossier compares both authored fire modes
+  ✓ the fire-mode dossier states the two complete profiles
+  ✓ a friendly modal mount exposes its current mode and next action
+  ✓ keyboard mode switching preserves the charged cycle and group intent
+  ✓ the keyed mode control retains focus and offers the next mode
+  ✓ Slug presents as one shell tracer
+  ✓ desktop fire-mode flow reports no page errors
+  ✓ the mobile fire-mode control is a reachable touch target
+  ✓ mobile mode switching updates the sim without horizontal overflow
+  ✓ mobile fire-mode flow reports no page errors
+
+range damage chart
+  ✓ desktop range chart exposes separate inspected and current-loadout graphics
+  ✓ desktop range chart states the fixed domain and Longshot minimum-range notch
+  ✓ desktop range chart stacks the exact four-mount Cairn battery
+  ✓ desktop range chart remains horizontally contained and reachable
+  ✓ desktop range chart reports no page errors
+  ✓ portrait range chart exposes separate inspected and current-loadout graphics
+  ✓ portrait range chart states the fixed domain and Longshot minimum-range notch
+  ✓ portrait range chart stacks the exact four-mount Cairn battery
+  ✓ portrait range chart remains horizontally contained and reachable
+  ✓ portrait range chart reports no page errors
+  ✓ landscape range chart exposes separate inspected and current-loadout graphics
+  ✓ landscape range chart states the fixed domain and Longshot minimum-range notch
+  ✓ landscape range chart stacks the exact four-mount Cairn battery
+  ✓ landscape range chart remains horizontally contained and reachable
+  ✓ landscape range chart reports no page errors
+  ✓ tablet range chart exposes separate inspected and current-loadout graphics
+  ✓ tablet range chart states the fixed domain and Longshot minimum-range notch
+  ✓ tablet range chart stacks the exact four-mount Cairn battery
+  ✓ tablet range chart remains horizontally contained and reachable
+  ✓ tablet range chart reports no page errors
+
+night operations
+  ✓ night fixture loads the moonlit atmosphere
+  ✓ night fixture stages a four-machine alpha volley
+  ✓ night mechs carry visible running lights
+  ✓ all staged enemies remain pickable in darkness
+  ✓ muzzle-light pool starts as exactly four dormant unshadowed lights
+  ✓ alpha activation and lighting stay inside their ABBA 60Hz-equivalent frame budgets (activation 7.9ms; following 12.1ms median contrast)
+  ✓ ordinary volley draws stay within their fixed shot-pool capacity
+  ✓ alpha lighting and non-shot presentation stay inside the fixed two-draw budget
+  ✓ render-only alpha fixture leaves simulation state unchanged
+  ✓ an alpha volley lights exactly the four pooled flashes
+  ✓ repeated volleys retain the same four light identities
+  ✓ repeated volleys allocate no scene or renderer resources
+  ✓ low FX suppresses pooled muzzle lighting
+  ✓ night-operations flow reports no page errors
+
+culture silhouettes
+  ✓ culture proof stages the expected same-team mixed company
+  ✓ culture proof is paused, unselected, full-FX and inside the surface-detail range
+  ✓ all four close tactical models expose their exact surface budget and no hero meshes
+  ✓ Aurelian powered seams corroborate geometry without becoming a Linewrought cue
+  ✓ one team tint cannot reveal culture in the proof image
+  ✓ every proof silhouette fits the canvas without overlap
+  ✓ normal tactical zoom retains the authored surface cues
+  ✓ far tactical view removes every optional surface mesh
+  ✓ low FX keeps all optional surface meshes hidden at close range
+  ✓ detail cycling restores all cues without creating scene resources
+  ✓ warmed detail cycling keeps the same resident geometry and draw budget
+  ✓ culture fixture emits no browser errors
+  ✓ landscape touch proof keeps all four same-team culture silhouettes readable
+  ✓ landscape culture fixture emits no browser errors
+
+terrain wear
+  ✓ terrain proof loads the daytime Causeway and freezes a clean camera
+  ✓ Causeway supplies eighty road tiles surrounded by its drowned valley
+  ✓ road and water samples on both sides project inside the desktop canvas
+  ✓ desktop terrain proof excludes units, selection and the centre objective
+  ✓ road wear fills the full-FX extension of the existing terrain draw
+  ✓ full-FX Causeway keeps one visible water surface
+  ✓ water shimmer is deterministic at an explicit presentation time
+  ✓ low FX restores the base terrain draw and freezes visible water at its old opacity
+  ✓ restoring full FX restores wear and shimmer without growing scene resources
+  ✓ low-FX Causeway retains its draw budget with bounded resident surface geometry
+  ✓ rendered full and low-FX cycling preserves the resident terrain budget
+  ✓ desktop terrain fixture emits no browser errors
+  ✓ landscape terrain proof keeps road wear and water framed at touch size
+  ✓ landscape terrain fixture emits no browser errors
+  ✓ adaptive score starts one fixed phase-aligned three-stem graph
+  ✓ sensor-only hostile culture changes do not leak identity into the score
+  ✓ hidden hostile fire and culture do not leak into score automation
+  ✓ an engine-routed pressure event shapes the existing theme and preserves the score graph
+  ✓ support pressure adds only a bounded two-tone interface acknowledgment
+  ✓ low activity keeps the rhythm below full combat weight
+  ✓ optical reveal admits hostile culture at the exact half-roster voicing
+  ✓ Aurelian roster reaches its authored Monolith arrangement
+  ✓ Linewrought roster returns to its authored Ironwork arrangement
+  ✓ sustained engine-routed fire reaches full rhythm without allocating nodes
+  ✓ mute zeros the master while the full score arc keeps tracking
+  ✓ unmute restores the shared master without restarting score sources
+  ✓ pause holds simulation intensity and the same score sources
+  ✓ resume keeps the score graph instead of rebuilding it
+  ✓ adaptive score battle 1 closes the prior context
+  ✓ adaptive score battle 2 closes the prior context
+  ✓ adaptive score battle 3 closes the prior context
+  ✓ adaptive score battle 4 closes the prior context
+  ✓ adaptive score battle 5 closes the prior context
+  ✓ adaptive score battle 6 closes the prior context
+  ✓ adaptive score battle 7 closes the prior context
+  ✓ adaptive score battle 8 closes the prior context
+  ✓ adaptive score battle 9 closes the prior context
+  ✓ ten consecutive battles create identical fixed graphs and exactly 30 score lifetimes
+  ✓ adaptive score fixture reports no page errors
+
+adaptive score treatments
+  ✓ native audio creates no context before a home gesture
+  ✓ a home gesture starts decoded local music in a running native audio context
+  ✓ native home to campaign handoff reuses the running context
+  ✓ native decode completion cannot start music after route teardown
+  ✓ native music lifecycle reports no page errors
+  ✓ home theme waits for the first user gesture
+  ✓ home starts the original stereo theme and its synchronized faction colors
+  ✓ home to campaign keeps the already unlocked score through route effects
+  ✓ pending decode owns only the fixed three-source music cohort
+  ✓ leaving home during decode never revives or starts the abandoned music
+  ✓ the next battle can load its own theme after cancellation
+  ✓ authored score loading reports no page errors
+  ✓ training skip creates the campaign score before any second strategic gesture
+  ✓ campaign route owns one fixed strategic score graph
+  ✓ campaign mute zeros the strategic master without rebuilding its score
+  ✓ campaign refit borrows the strategic graph and applies the mechbay treatment
+  ✓ closing campaign refit restores the map treatment on the same sources
+  ✓ campaign return reuses its strategic sources for the home theme
+  ✓ leaving strategic screens stops every started source and closes once
+  ✓ campaign treatment fixture reports no page errors
+  ✓ standalone mechbay owns one fixed strategic score graph
+  ✓ standalone mechbay mute shares the persisted master control
+  ✓ leaving standalone mechbay tears down its strategic graph before battle unlock
+  ✓ muted standalone bay returns a muted battle whose first toggle audibly restores sound
+  ✓ presented battlefield sources follow camera-relative stereo placement
+  ✓ interface feedback stays centred on its separate bus
+  ✓ standalone mechbay score fixture reports no page errors
+  ✓ battle briefing outfitter reuses the battle score graph
+  ✓ opposite-culture bay treatment reaches the Linewrought voicing before deployment
+  ✓ closing an opposite-culture bay restores the primed Aurelian battle voice before a sim step
+  ✓ embedded outfitter mute silences the existing battle master
+  ✓ embedded outfitter mute synchronises the battle menu and toggles back there
+  ✓ reopening the battle outfitter allocates no context or score sources
+  ✓ campaign navigation closes the battle graph and opens a separate strategic graph
+  ✓ campaign return keeps the home theme on its strategic context
+  ✓ battle outfitter fixture reports no page errors
+  ✓ Home exposes separate named music and sound-effects switches before the advanced mix
+  ✓ keyboard Music Off and Sound effects Off preserve all four selected volume trims
+  ✓ phone sound switches remain readable, reachable and within the settings panel
+  ✓ reload restores both disabled channels and their chosen volumes
+  ✓ campaign keeps music on while all effects and interface buses are off
+  ✓ campaign switches restore separate effects and interface trims without restarting audio
+  ✓ master mute overrides both enabled channels without discarding their choices
+  ✓ unmuting restores the chosen master and independent channel volumes
+  ✓ battle shares the same independent switches and keeps its music bus audible with effects off
+  ✓ Reset mix restores volume trims while preserving explicit channel Off choices
+  ✓ legacy battle mute button remains the shared all-sound override
+  ✓ audio switches and route changes produce no browser errors
+  ✓ theme creates no audio context before a player gesture
+  ✓ real browser decodes and starts all three shipped theme stems
+  ✓ decoded theme contains finite audible music with headroom
+  ✓ all real music stems loop at the same timestamp and unchanged playback speed
+  ✓ Music Off silences the real music bus without stopping or recreating the theme
+  ✓ Music On restores the real bus at the same musical position
+  ✓ real theme playback produces no uncaught browser errors
+
+first drop launch
+  ✓ a fresh signed company offers launch first and machine review second
+  ✓ fresh campaign reaches the contracted briefing in exactly Sign and Launch clicks
+  ✓ damaged assigned machine retains Prepare drop instead of direct launch
+  ✓ damaged assigned machine still opens the existing hangar prep corridor
+  ✓ missing assigned machine retains Prepare drop instead of direct launch
+  ✓ missing assigned machine still opens the existing hangar prep corridor
+  ✓ unarmed assigned machine retains Prepare drop instead of direct launch
+  ✓ unarmed assigned machine still opens the existing hangar prep corridor
+  ✓ new campaign setup stays inside a short landscape phone
+  ✓ landscape setup scrolls its start button into an unobstructed touch target
+  ✓ landscape touch starts the selected difficulty without browser errors
+  ✓ restart difficulty dialog also fits a short landscape screen
+  ✓ landscape cancellation preserves the current campaign and difficulty
+  ✓ a new campaign asks for difficulty before its first contract
+  ✓ chosen Veteran difficulty is stored on the campaign
+  ✓ resuming a campaign retains difficulty without asking again
+  ✓ each compact crew row opens its portrait, biography, strengths and weaknesses
+  ✓ workshop machine cards use local rendered portraits and a selected field guide
+  ✓ player-facing machine labels no longer use Sealed
+  ✓ every body section has fitting boxes and keyboard inspection reveals its mounts
+  ✓ shelf weapon footprint agrees with its slot cost
+  ✓ picking a named weapon shows its one-box landing preview and compatible arm feedback
+  ✓ inspecting an incompatible head explains why the weapon cannot fit
+  ✓ keyboard inspection also keeps the incompatible location reason visible
+  ✓ invalid native drop preserves the shelf filter and keeps the weapon ready to retry
+  ✓ dropping onto an invalid mount leaves the draft unchanged
+  ✓ native drag and drop snaps the weapon into its valid body section
+  ✓ refit remains a draft until explicitly committed
+  ✓ undo removes the snapped weapon
+  ✓ keyboard placement uses the same matching section
+  ✓ committed move preserves exactly one weapon and updates its location
+  ✓ campaign briefing uses the chosen tier with no mission difficulty picker
+  ✓ desktop bay and crew journey has no browser errors
+  ✓ pilot portraits, bios and assignments fit their cards and the phone
+  ✓ fitting boxes and locations fit a phone without horizontal scrolling
+  ✓ mobile bay has loaded real fitting boxes rather than a loading placeholder
+  ✓ touch pickup reveals the same incoming footprint
+  ✓ tap placement snaps into the selected part on a phone
+  ✓ cold refit displays an explicit loading cancel action
+  ✓ Escape cancels a still-loading refit and restores its launch control
+  ✓ the loading Cancel button closes without changing the campaign
+  ✓ loaded bay Escape still protects an unsaved draft instead of cancelling it
+  ✓ discarding that isolated draft preserves the saved company
+  ✓ Workshop exposes the machines without unrelated contract controls
+  ✓ the workshop opens the existing detailed refit bay directly
+  ✓ closing a workshop refit restores its launch control
+  ✓ Crew exposes pilot progression and hides the workshop
+  ✓ Stores and yard exposes both the inventory and parts counter
+  ✓ Operations restores the contract board and navigation leaves the save intact
+  ✓ cold-load cancellation and workspace navigation produce no browser errors
+  ✓ shared settings persist low graphics without leaving the home screen
+  ✓ planning map opens by default with friendly insertion and known terrain
+  ✓ occupied mount opens a reviewable replacement with weight, heat and stores
+  ✓ cancelling replacement keeps both original arm weapons
+  ✓ native drop replacement snaps in exactly one smaller weapon
+  ✓ one undo restores the complete old mount
+  ✓ redo reapplies one atomic replacement without mutating the company
+  ✓ lance presets store explicit ordered seats
+  ✓ moving a pilot to reserve preserves the uncrewed machine and blocks deployment
+  ✓ loading the lance restores the saved commander selection and actual pilot assignments without spending
+  ✓ armed orders explain the next click in the field
+  ✓ successful orders receive a pilot radio acknowledgement with a portrait
+  ✓ refinement journey has no browser errors
+  ✓ phone shared Display settings remain inside the viewport with a touch-sized selector
+  ✓ phone graphics selection persists and remains visible in shared settings
+  ✓ phone campaign opens the planning map with an explained friendly insertion
+  ✓ phone planning map, its legend and terrain survey have no horizontal overflow
+  ✓ phone crew uses compact portrait rows and one selected detailed record
+  ✓ phone crew selection opens that pilot’s bio, strengths and weaknesses
+  ✓ phone selected crew profile fits its panel and compact row controls stay touch-sized
+  ✓ phone refit creates a real spare from Bulwark’s mounted laser without committing company stores
+  ✓ phone pickup offers a touch-sized occupied weapon replacement button
+  ✓ phone replacement preview explains both weapons, boxes, weight, heat and stores
+  ✓ phone replacement dialog fits the unchanged viewport and scrolls its own long content
+  ✓ phone replacement boxes have visible borders against their pale cards
+  ✓ phone replacement confirmation and cancellation are reachable native touch controls
+  ✓ phone cancellation restores the interactive draft with both old weapons and the unspent spare
+  ✓ phone refinement journey keeps 390 × 844 geometry and produces no browser errors
+  ✓ diagnostic offer shows guaranteed and optional reward conditions before signing
+  ✓ reviewing guaranteed rewards leaves credits, crew, stock and repair bookings intact
+  ✓ resolved company shows each guaranteed receipt, afterword and delivered stock exactly once
+  ✓ return cards retain the pilot, fielded machine and separate current condition
+  ✓ a non-firing scout sees the capped shared mission XP subtotal and can choose training
+  ✓ company next steps show a priced repair, mission injury and honest salvage totals
+  ✓ repair deep link opens its exact machine and closes the receipt without booking or spending
+  ✓ training deep link selects the named pilot with a live skill choice and spends no XP
+  ✓ phone debrief scrolls its training action into an unobstructed touch-sized target
+  ✓ phone training destination retains the selected portrait and full record without spending
+  ✓ successful Linewrought ending records authored consequences, surviving crew and the fallen
+  ✓ phone Custodian ending has its own consequence text and surviving company instead of a generic win
+  ✓ isolated company outcome review has no browser errors
+  ✓ Escape protects a dirty refit and leaves the saved company intact
+  ✓ Keep editing retains the draft and its Undo history
+  ✓ Discard restores the saved loadout without consuming stores
+  ✓ laptop fitting retains at least 160px of visible parts shelf
+  ✓ held-part feedback keeps the drop rectangle stable
+  ✓ native drag fits the Flamer in the chosen arm
+  ✓ Save and leave commits the chosen location
+  ✓ Stores opens the chosen machine with its part held and no hidden automatic fit
+  ✓ an untouched Stores refit exits without a discard dialog
+  ✓ sale review shows fittings, condition and the pilot consequence before spending
+  ✓ immediate sale undo restores the exact company
+  ✓ yard inspection exposes actual condition and mounted loadout
+  ✓ supplies and refit upgrade journey has no browser errors
+  ✓ company choice shows both illustrated factions and practical tradeoffs
+  ✓ switching factions preserves each company and resumes the original seed and roster
+  ✓ completed map nodes reopen a journal with objective service and recovery facts
+  ✓ preparation makes condition, duplicate bay labels and paired pilot strengths visible across its views
+  ✓ returning from a dossier restores the archive list position
+  ✓ company upgrades raise no browser errors
+  ✓ direct archive opens without a game renderer, company or training visit
+  ✓ archive starts with ten public story articles and four hidden discoveries
+  ✓ direct archive defers playtest consent until the game is entered
+  ✓ story articles resolve into shareable native hash links
+  ✓ all sixteen walker dossiers are present
+  ✓ Linewrought collection contains eight machines
+  ✓ Aurelian collection contains eight machines
+  ✓ machine search finds names and references within the selected faction
+  ✓ dossier shows portrait, live standard armament and actionable tradeoffs
+  ✓ copy link either succeeds or provides a selectable address
+  ✓ late clipboard permission cannot mark a different article as copied
+  ✓ direct undiscovered story link does not render its title or body
+  ✓ spoiler confirmation can be cancelled
+  ✓ explicit spoiler consent reveals story without creating a campaign
+  ✓ malformed archive links have a recoverable missing-record page
+  ✓ compact laptop refit keeps one visible history link and all eight body locations
+  ✓ opening a refit dossier makes the game background inert
+  ✓ keyboard focus stays inside the archive
+  ✓ Escape returns to the same dirty refit and restores its link focus
+  ✓ leaving the restored dirty refit asks before discarding
+  ✓ phone archive has no horizontal overflow
+  ✓ phone dossier keeps stock fit, history and return control accessible
+  ✓ archive browsing leaves the company save unchanged
+  ✓ archive pauses a live battle and blocks field shortcuts
+  ✓ closing the archive resumes a battle that was running
+  ✓ closing the archive preserves an already paused battle
+  ✓ wiki journey has no browser errors
+  ✓ border_dispute: fresh first-drop corridor suppresses the optional opening guide
+  ✓ border_dispute: diagnostic first victory keeps guidance behind the pending debrief
+  ✓ border_dispute: closing the first debrief recommends the one-scout survey
+  ✓ border_dispute: choosing the main route is not overridden by the suggestion
+  ✓ border_dispute: contextual story roundtrip preserves the full save and chosen contract
+  ✓ border_dispute: explicit Review selects and focuses the survey without signing
+  ✓ border_dispute: phone guide has no overflow and an unobstructed touch-sized review action
+  ✓ border_dispute: phone keyboard review returns focus to the selected contract
+  ✓ border_dispute: signing the survey hides the opening guide
+  ✓ border_dispute: survey preparation enforces one berth and its authored tonnage limit
+  ✓ border_dispute: archived reports preserve completed-node progress to the recovery suggestion
+  ✓ border_dispute: session dismissal survives workspace navigation without changing the save
+  ✓ aurelian_recall: fresh first-drop corridor suppresses the optional opening guide
+  ✓ aurelian_recall: diagnostic first victory keeps guidance behind the pending debrief
+  ✓ aurelian_recall: closing the first debrief recommends the one-scout survey
+  ✓ aurelian_recall: choosing the main route is not overridden by the suggestion
+  ✓ aurelian_recall: contextual story roundtrip preserves the full save and chosen contract
+  ✓ aurelian_recall: explicit Review selects and focuses the survey without signing
+  ✓ aurelian_recall: phone guide has no overflow and an unobstructed touch-sized review action
+  ✓ aurelian_recall: phone keyboard review returns focus to the selected contract
+  ✓ aurelian_recall: signing the survey hides the opening guide
+  ✓ aurelian_recall: survey preparation enforces one berth and its authored tonnage limit
+  ✓ aurelian_recall: archived reports preserve completed-node progress to the recovery suggestion
+  ✓ aurelian_recall: session dismissal survives workspace navigation without changing the save
+  ✓ isolated opening-route review has no browser errors
+  ✓ border_dispute: settled debrief offers a next-mission review without calendar waiting
+  ✓ border_dispute: next mission selects the main route, finalizes salvage and preserves day and treasury
+  ✓ border_dispute: Journal retains a visible continuation action
+  ✓ border_dispute: header returns from Journal to contract review without any transaction
+  ✓ border_dispute: optional work remains an explicit choice with no automatic signature
+  ✓ border_dispute: signed primary action saves actual cockpits without launching or spending
+  ✓ border_dispute: pilot view keeps the same saved deployment ready for review
+  ✓ border_dispute: reload retains signed contract and resumes at outfit step
+  ✓ border_dispute: booked work exposes a priced wait to the next ready day
+  ✓ border_dispute: paid-repair wait finishes the booked mech and retains the signed mission
+  ✓ border_dispute: phone waiting controls stay inside the viewport
+  ✓ border_dispute: phone continuation fits without horizontal overflow
+  ✓ aurelian_recall: settled debrief offers a next-mission review without calendar waiting
+  ✓ aurelian_recall: next mission selects the main route, finalizes salvage and preserves day and treasury
+  ✓ aurelian_recall: Journal retains a visible continuation action
+  ✓ aurelian_recall: header returns from Journal to contract review without any transaction
+  ✓ aurelian_recall: optional work remains an explicit choice with no automatic signature
+  ✓ aurelian_recall: signed primary action saves actual cockpits without launching or spending
+  ✓ aurelian_recall: pilot view keeps the same saved deployment ready for review
+  ✓ aurelian_recall: reload retains signed contract and resumes at outfit step
+  ✓ aurelian_recall: booked work exposes a priced wait to the next ready day
+  ✓ aurelian_recall: paid-repair wait finishes the booked mech and retains the signed mission
+  ✓ aurelian_recall: phone waiting controls stay inside the viewport
+  ✓ aurelian_recall: phone continuation fits without horizontal overflow
+  ✓ campaign command flow has no browser errors
+  ✓ both faction debriefs wrap Tab from the final action to the first crew action
+  ✓ both faction debriefs wrap Shift+Tab from the first crew action to the final action
+  ✓ diagnostic sensor target begins beyond normal electronic reach
+  ✓ real Sensor Sweep command publishes coarse contacts while time, positions and random rolls stay fixed
+  ✓ paused mech scan grants no optical identity, pilot name or fog reveal
+  ✓ pilot sweep shows its active range and rejects reuse without restarting its cooldown
+  ✓ Deep Scanner is a measurable passive equipment bonus with an explicit automatic-sensor explanation
+  ✓ real support-probe placement detects immediately while paused and charges exactly once
+  ✓ mobile: sensor readout clears pause, minimap, top chrome and commands
+  ✓ mobile: orders remain usable while sensor coverage is displayed
+  ✓ mobile-landscape: sensor readout clears pause, minimap, top chrome and commands
+  ✓ mobile-landscape: orders remain usable while sensor coverage is displayed
+  ✓ sensor probe paints a red field dot above intact fog
+  ✓ an acquired enemy keeps its painted moving dot after leaving the probe circle
+  ✓ probe expiry removes the live dot and leaves a frozen hollow memory ring
+  ✓ sensor activation review has no browser errors
+  ✓ repair_truck arms through its actual button before field placement
+  ✓ repair UI accepts one real target and explains paused dispatch
+  ✓ truck arrives visibly before healing begins
+  ✓ visible service vehicle parks beside the mech and restores real armour
+  ✓ service report distinguishes armour repair from internal or weapon repairs
+  ✓ phone service status does not cover command controls
+  ✓ truck stops service and lifts away when its time expires
+  ✓ departed service vehicle is removed from presentation
+  ✓ air_strike arms through its actual button before field placement
+  ✓ airstrike request spends once and shows an inbound ETA
+  ✓ aircraft approaches the marked lane before impact
+  ✓ aircraft pass and impacts correspond to real strike damage
+  ✓ aircraft departs while bounded impact scars remain
+  ✓ support service journey has no browser errors
+  ✓ both skirmish sides show paired pilot and mech cards with one editable berth
+  ✓ keyboard selection exposes only its paired berth editor
+  ✓ assigning a pilot updates the same card, portrait and selected dossier
+  ✓ laptop paired preparation preserves every portrait with readable controls and ability
+  ✓ phone paired preparation preserves every portrait with readable controls and ability
+  ✓ skirmish offers all six terrain maps
+  ✓ blackglass_quarry is a pure skirmish with legal default forces
+  ✓ causeway is a pure skirmish with legal default forces
+  ✓ cutbank_exchange is a pure skirmish with legal default forces
+  ✓ foundry_district is a pure skirmish with legal default forces
+  ✓ ridge_pass is a pure skirmish with legal default forces
+  ✓ shale_steps is a pure skirmish with legal default forces
+  ✓ aurelian presets are selectable for both sides and fit the drop
+  ✓ linewrought presets are selectable for both sides and fit the drop
+  ✓ mixed presets are selectable for both sides and fit the drop
+  ✓ reselecting the current difficulty or mission keeps the briefing usable
+  ✓ tonnage and empty berths permit one selected mech on each side
+  ✓ friendly Commit refit saves its actual changed weapons before leaving the bay
+  ✓ enemy refit identifies its side and opens the selected chassis
+  ✓ enemy refit returns an edited loadout to the opposing berth
+  ✓ enemy refit save keeps its actual weapon configuration and friendly selection separate
+  ✓ Home Skirmish reopens the last selected map automatically after reload
+  ✓ reload restores both sides, customized enemy weapons and independent experience
+  ✓ map selection explains the per-map saved setup
+  ✓ a campaign scenario selection cannot replace the remembered skirmish map or its refit
+  ✓ an empty enemy force is blocked with a visible explanation
+  ✓ deployment uses the exact two selected forces and their independent tiers
+  ✓ skirmish setup does not create or mutate a campaign
+  ✓ Learn Command does not overwrite the last skirmish map
+  ✓ invalid map preference retired_map safely opens Ridge without changing saved refits
+  ✓ invalid map preference authority_root_exchange safely opens Ridge without changing saved refits
+  ✓ skirmish setup and repeated refits produce no browser errors
+  ✓ failed berth Commit refit returns to a visible session-only warning
+  ✓ failed berth save keeps the edited session configuration and preserves the earlier saved roster
+  ✓ leaving for the workshop and returning preserves the unsaved session loadout and warning
+  ✓ successful crew and enemy-roster saves do not clear an unsaved friendly roster warning
+  ✓ independent roster failures are both retained
+  ✓ saving the friendly refit clears only its own warning
+  ✓ warning clears after every affected roster is actually saved
+  ✓ an actual mixed-gun refit saves its changed weapon footprint
+  ✓ stock selection protects an unsaved weapon configuration
+  ✓ Keep editing retains the draft and undo history after a stock selection
+  ✓ Save and switch stores the outgoing configuration, including automatic removal of orphan ammunition
+  ✓ cancelling a saved-loadout selection retains the current draft
+  ✓ discarding a draft loads only the chosen saved variant
+  ✓ import asks before replacing an edited draft
+  ✓ cancelling an import clears the file picker so the same file can be chosen again
+  ✓ confirmed import restores the chosen weapon configuration
+  ✓ an unknown imported chassis is rejected without losing the draft or the exit controls
+  ✓ saved configurations survive a page reload with separate weapons and ammunition
+  ✓ a storage quota failure keeps the unsaved draft instead of switching or claiming success
+  ✓ failed browser saves still allow an intact JSON export
+  ✓ a failed save leaves the exit protection active
+  ✓ mechbay persistence paths produce no uncaught browser errors
+  ✓ the mechbay opens with usable fitting controls when the browser blocks all storage
+  ✓ blocked storage reports a recoverable save refusal without an uncaught error
+  ✓ an import finishing after an edit protects the latest draft instead of using stale clean state
+  ✓ Save and switch after a delayed import saves the latest weapon changes
+  ✓ a slower earlier import cannot replace a newer completed import
+  ✓ a file read finishing after leaving the bay cannot affect the next workshop session
+  ✓ every compartment shows its exact full capacity as a two dimensional box group
+  ✓ shelf makes ammunition required and automatic first bin explicit
+  ✓ an installed weapon moves by real pointer drag without creating another copy
+  ✓ relocation does not open a replacement dialog
+  ✓ undo restores the source and destination of the moved weapon
+  ✓ incompatible pointer drop preserves the installed weapon and explains refusal
+  ✓ a shelf weapon snaps into the matching compartment by real pointer drag
+  ✓ energy weapon shelf explicitly needs no ammunition
+  ✓ ammo weapon drag automatically fits a feed and reports where it is stowed
+  ✓ legal moved and ammo-fed layout saves with a matching ammo bin
+  ✓ saved weapon and ammunition configuration survives a full page reload exactly
+  ✓ the Move button supports keyboard and tap placement without dragging
+  ✓ fitted move and remove controls retain forty-four pixel touch targets
+  ✓ mobile fitting has no sideways page overflow
+  ✓ grid fitting journey produces no browser errors
+  ✓ border_dispute: new company receives twelve weapon types once
+  ✓ border_dispute: advanced weapon rewards are visible on future contracts
+  ✓ border_dispute: reload does not duplicate demo supplies or alter treasury and day
+  ✓ border_dispute: choosing an owned weapon opens the correct campaign refit with it held
+  ✓ border_dispute: legal store-to-refit commit consumes one spare and updates only its owned mech
+  ✓ border_dispute: crew portraits retain identity and distinct vector facial and uniform details
+  ✓ border_dispute: old save offers an explicit optional crate claim
+  ✓ border_dispute: demo claim stays readable and touch sized on a phone
+  ✓ border_dispute: claiming old-save supplies merges existing stock exactly once for no money or time
+  ✓ border_dispute: old-save claim and complete stock survive reload without another claim button
+  ✓ border_dispute: supply and crew journey produces no browser errors
+  ✓ aurelian_recall: new company receives twelve weapon types once
+  ✓ aurelian_recall: advanced weapon rewards are visible on future contracts
+  ✓ aurelian_recall: reload does not duplicate demo supplies or alter treasury and day
+  ✓ aurelian_recall: choosing an owned weapon opens the correct campaign refit with it held
+  ✓ aurelian_recall: legal store-to-refit commit consumes one spare and updates only its owned mech
+  ✓ aurelian_recall: crew portraits retain identity and distinct vector facial and uniform details
+  ✓ aurelian_recall: old save offers an explicit optional crate claim
+  ✓ aurelian_recall: demo claim stays readable and touch sized on a phone
+  ✓ aurelian_recall: claiming old-save supplies merges existing stock exactly once for no money or time
+  ✓ aurelian_recall: old-save claim and complete stock survive reload without another claim button
+  ✓ aurelian_recall: supply and crew journey produces no browser errors
+
+unit health readouts
+  ✓ friendly field health bar remains compact without contact-card CSS
+  ✓ friendly field health bar displays partial integrity after damage
+  ✓ optical enemy field health bar remains compact without contact-card CSS
+  ✓ optical enemy field health bar displays partial integrity after damage
+  ✓ friendly Commander health strip shows damage with a small constant stroke
+  ✓ optical enemy Commander health strip shows damage with a small constant stroke
+  ✓ losing optics removes exact enemy health from both field and Commander views
+  ✓ live sensor-only contacts do not reveal enemy health
+  ✓ regaining optics restores the surviving enemy health bars
+  ✓ destroying a visible mech removes both previously displayed health bars
+  ✓ health readout journey has no page errors
+
+compact desktop Commander
+  ✓ fine 792×830 selects the intended HUD without changing the pointer device
+  ✓ fine 792×830 leaves the Commander map large, unobstructed and above the command dock
+  ✓ fine 792×830 Shift-click adds a second mech to mouse selection
+  ✓ fine 792×830 Shift-click toggles that mech back out
+  ✓ fine 792×830 right-click moves and Shift-right-click queues a second waypoint
+  ✓ fine 792×830 plain mouse ground click deselects without replacing the route
+  ✓ fine 792×830 responsive Commander produces no browser errors
+  ✓ fine 900×830 selects the intended HUD without changing the pointer device
+  ✓ fine 900×830 leaves the Commander map large, unobstructed and above the command dock
+  ✓ fine 900×830 Shift-click adds a second mech to mouse selection
+  ✓ fine 900×830 Shift-click toggles that mech back out
+  ✓ fine 900×830 right-click moves and Shift-right-click queues a second waypoint
+  ✓ fine 900×830 plain mouse ground click deselects without replacing the route
+  ✓ fine 900×830 responsive Commander produces no browser errors
+  ✓ fine 1024×768 selects the intended HUD without changing the pointer device
+  ✓ fine 1024×768 leaves the Commander map large, unobstructed and above the command dock
+  ✓ fine 1024×768 Shift-click adds a second mech to mouse selection
+  ✓ fine 1024×768 Shift-click toggles that mech back out
+  ✓ fine 1024×768 right-click moves and Shift-right-click queues a second waypoint
+  ✓ fine 1024×768 plain mouse ground click deselects without replacing the route
+  ✓ fine 1024×768 responsive Commander produces no browser errors
+  ✓ coarse 1024×768 selects the intended HUD without changing the pointer device
+  ✓ coarse 1024×768 leaves the Commander map large, unobstructed and above the command dock
+  ✓ coarse 1024×768 touch selects a mech and tap-moves without a mouse button
+  ✓ coarse 1024×768 responsive Commander produces no browser errors
+
+Commander radio docking
+  ✓ radio sits inside the command dock and outside the Commander map
+  ✓ paired pilot and mech cards stay inside the command dock
+  ✓ dismissing a docked report leaves the selection unchanged
+  ✓ field contacts attach directly beneath the header
+  ✓ radio docking journey has no browser errors
+  ✓ damage miniature gives every mech section a named silhouette region
+  ✓ armour stripped from a live section is critical while its internal core remains sound
+  ✓ damaged armour and critical internal structure use independent conditions
+  ✓ lost sections retain a visible cross and a destroyed accessible name
+  ✓ secondary skills, combat modifiers and log start folded while weapon controls stay visible
+  ✓ rear toggle exposes stripped torso protection without changing shared arm protection
+  ✓ exact front, rear and structure values remain available on demand
+  ✓ expanding tactical details restores pilot attributes and diagnostic readouts
+  ✓ keyboard called shots still direct the selected lance at the chosen hostile body section
+  ✓ pointer called shots update the highlighted hostile section
+  ✓ compact inspection tray shows the whole damage miniature without horizontal overflow
+  ✓ phone inspection tray keeps the complete damage silhouette visible
+  ✓ short landscape inspection keeps rear controls reachable by scrolling without horizontal overflow
+  ✓ damage miniature and called-shot journey produce no browser errors
+  ✓ 1440: a paused field click confirms the target in the dock
+  ✓ 1440: field target has four thin non-intercepting corners
+  ✓ 1440: Commander preserves the explicit target with constant-width brackets
+  ✓ 1440: a paused Commander target click is acknowledged without losing friendly selection
+  ✓ 1440: fog removes exact brackets from both views while the coarse sensor dot remains
+  ✓ 1440: attack without a friendly selection gives a visible explanation
+  ✓ 1440: selecting an enemy for inspection gives distinct visible acknowledgement
+  ✓ 1440: command receipt expires while simulation remains paused
+  ✓ 1440: targeting journey has no page errors
+  ✓ 792: a paused field click confirms the target in the dock
+  ✓ 792: field target has four thin non-intercepting corners
+  ✓ 792: Commander preserves the explicit target with constant-width brackets
+  ✓ 792: a paused Commander target click is acknowledged without losing friendly selection
+  ✓ 792: fog removes exact brackets from both views while the coarse sensor dot remains
+  ✓ 792: attack without a friendly selection gives a visible explanation
+  ✓ 792: selecting an enemy for inspection gives distinct visible acknowledgement
+  ✓ 792: command receipt expires while simulation remains paused
+  ✓ 792: targeting journey has no page errors
+  ✓ preparation opens one workspace with five visible paired seats
+  ✓ opening preparation records the exact previewed assignments
+  ✓ returning a pilot leaves the same uncrewed machine and tonnage aboard
+  ✓ an uncrewed machine blocks deployment instead of silently autofilling
+  ✓ dragging a reserve portrait into the cockpit saves the same pilot and machine pairing
+  ✓ explicit pilot assignment restores a launchable team
+  ✓ refitting retains the mission and same deployment team
+  ✓ an uncommitted refit does not change the campaign machine
+  ✓ committing a refit returns to the same selected cockpit
+  ✓ the chosen machine receives the saved loadout and retains its pilot
+  ✓ mission planning remains inside the same preparation workspace
+  ✓ preparation fits 1280px without horizontal overflow
+  ✓ preparation fits 390px without horizontal overflow
+  ✓ reopening the company restores ordered pairs and the committed loadout
+  ✓ the prepared pilots arrive in the combat dock
+  ✓ preparation journey has no browser errors
+  ✓ battle starts with essential details and the tall inspector explicitly folded
+  ✓ 1440: five paired cards sit between the minimap and commands without hiding a berth
+  ✓ 1024: five paired cards sit between the minimap and commands without hiding a berth
+  ✓ the fifth portrait selects its paired mech without changing deployment order
+  ✓ keyboard Show details opens the complete condition and weapon inspector
+  ✓ Tab reaches weapon controls from the opened inspector without returning through the dock
+  ✓ Escape from inspector controls closes details and returns keyboard focus to its toggle
+  ✓ Hide details frees the field while retaining its selected portrait
+  ✓ a move order illuminates the speaking pilot and moves the correct paired mech
+  ✓ dismissing radio clears its portrait signal without changing the selected mech
+  ✓ a destroyed mech and ejected pilot keep their berths without inventing a KIA
+  ✓ pilot command dock has no browser errors
+  ✓ all authored loadouts keep eight anatomical racks and their installed tiles visible at 1280×720
+  ✓ installed weapons retain the same recognizable artwork as catalogue weapons
+  ✓ expanded fitting guide is visibly expanded without requiring hover
+  ✓ focusing an installed weapon exposes keyboard accessible Move and Remove actions
+  ✓ inspecting a fitted weapon describes its installed location rather than trying to fit another copy
+  ✓ phone overview has eight labeled touch sized body locations
+  ✓ phone anatomy navigation selects and brings the corresponding rack into view
+  ✓ phone anatomy does not cause horizontal overflow
+  ✓ campaign refit retains all eight body racks alongside mission and deployment context at 1280×720
+  ✓ anatomical workshop journey produces no browser errors
+  ✓ ability_used has a finite screen-off voice
+  ✓ alpha_strike has a finite screen-off voice
+  ✓ stood_up has a finite screen-off voice
+  ✓ pilot_ejected has a finite screen-off voice
+  ✓ unit_withdrew has a finite screen-off voice
+  ✓ mission_message has a finite screen-off voice
+  ✓ rising heat reaches a finite high-tier warning
+  ✓ all seven silent moments have distinct procedural signatures
+  ✓ hidden hostile lifecycle moments do not leak through audio
+  ✓ mute suppresses every one-shot without rebuilding the graph
+  ✓ the worst simultaneous seven-cue mix renders with real headroom and no clipped sample
+  ✓ destroy closes the one context with no active or unstopped source
+  ✓ last-silent-moments fixture reports no page errors
+
+mobile portrait
+  ✓ mobile portrait Home does not mount the battle engine
+  ✓ mobile portrait uses a coarse touch layout
+  ✓ mobile portrait matches the compact boundary
+  ✓ mobile portrait leaves browser zoom available
+  ✓ mobile portrait briefing has no horizontal overflow
+  ✓ mobile portrait keeps deploy pinned and reachable on the opening briefing
+  ✓ mobile portrait deploy starts the battle
+  ✓ mobile portrait keeps the compact topbar and dock on screen
+  ✓ mobile portrait selection lesson hides the untaught dock
+  ✓ mobile portrait first lance card accepts a touch
+  ✓ mobile portrait select-all chooses the live lance
+  ✓ mobile portrait Move control plots the initial route to the range gate
+  ✓ mobile portrait queued movement keeps the gate lesson and explains Resume
+  ✓ mobile portrait Commander is absent until its training controls are available
+  ✓ mobile portrait reaching and capturing the actual gate unlocks the engage lesson
+  ✓ mobile portrait engage lesson adds contacts and Attack without advanced heat controls
+  ✓ mobile portrait force stepping reaches a real optical hostile card
+  ✓ mobile portrait optical hostile card has a short name and complete accessible identity
+  ✓ mobile portrait automatic fire control does not complete the explicit Engage lesson
+  ✓ mobile portrait optical hostile card assigns the target through the UI
+  ✓ mobile portrait range drill restores the full mobile dock
+  ✓ mobile portrait support tab embeds the three calls without another drawer
+  ✓ mobile portrait keeps advanced orders behind Tactics
+  ✓ mobile portrait Tactics reveals advanced orders and formation
+  ✓ mobile portrait hides Queue and Cancel until an order is armed
+  ✓ mobile portrait order palette arms a move and reveals route actions
+  ✓ mobile portrait queue mode arms from the dock
+  ✓ mobile portrait cancel clears the route and hides transient actions
+  ✓ mobile portrait switching to a target order clears queued routing
+  ✓ mobile portrait cancel clears an armed order
+  ✓ mobile portrait Commander map accepts touch movement orders
+  ✓ mobile portrait Commander map and dock fit without horizontal overflow
+  ✓ mobile portrait repeated lance-card taps only select
+  ✓ mobile portrait touch drag pans the battlefield
+  ✓ mobile portrait centre action finds the selection
+  ✓ mobile portrait pause notice has its own strip above the minimap and objectives
+  ✓ mobile portrait Mission summary remains touchable with the range coach open
+  ✓ mobile portrait Mission opens readable objectives above the command dock
+  ✓ mobile portrait minimap touch drag pans live before touch-end
+  ✓ mobile portrait minimap touch cancellation releases the next gesture
+  ✓ mobile portrait minimap touch gestures do not select or order
+  ✓ mobile portrait pinch changes camera distance
+  ✓ mobile portrait pinch does not select or order
+  ✓ mobile portrait pointer cancellation does not select or order
+  ✓ mobile portrait battlefield tap issues a move order
+  ✓ mobile portrait battlefield tap issues a target order
+  ✓ mobile portrait campaign operations are one column
+  ✓ mobile portrait campaign has no horizontal overflow
+  ✓ mobile portrait field manual puts touch controls first
+  ✓ mobile portrait campaign contract controls accept touch
+  ✓ mobile portrait stock picker carries complete machine identity without serial designations
+  ✓ mobile portrait mechbay is one column
+  ✓ mobile portrait mechbay has no horizontal overflow
+  ✓ mobile portrait workspace tabs and explainer disclosures are reachable touch targets
+  ✓ mobile portrait opens one visible Loadout workspace
+  ✓ mobile portrait location cards show only their quiet resting information
+  ✓ mobile portrait stock comparison is contained in Review without overflow
+  ✓ mobile portrait loadout keeps hardpoints before the weapon shelf
+  ✓ mobile portrait Armour & Cooling reflows without losing touch controls
+  ✓ mobile portrait armour paper doll exposes eight active native location buttons
+  ✓ mobile portrait armour silhouette stays out of the focus order
+  ✓ mobile portrait armour location buttons are touch-sized and centre hit-testable
+  ✓ mobile portrait armour paper doll selects the left torso
+  ✓ mobile portrait selected armour location exposes a reachable slider
+  ✓ mobile portrait armour paper doll has no horizontal overflow
+  ✓ mobile portrait Review presents the legal build without horizontal overflow
+  ✓ mobile portrait mechbay hardpoint selection filters the shelf
+  ✓ mobile portrait filtered weapon card is visibly reachable
+  ✓ mobile portrait mechbay shelf arms only a compatible target
+  ✓ mobile portrait placement banner spans the location workbench
+  ✓ mobile portrait mechbay location accepts the armed item
+  ✓ mobile portrait first fit folds both explanations without shrinking their disclosures
+  ✓ mobile portrait comparison updates live after the fitted weapon
+  ✓ mobile portrait fitted-part inspect and Remove controls stay touch-sized
+  ✓ mobile portrait inspecting the fitted weapon does not remove it
+  ✓ mobile portrait explicit Remove restores the starting loadout
+  ✓ mobile portrait mechbay actions remain reachable
+  ✓ mobile portrait horizontal touch drag edits armour without stealing vertical scroll
+  ✓ mobile portrait touch drag creates an undoable armour transaction
+  ✓ mobile portrait one Undo restores the complete touch drag
+  ✓ mobile portrait mechbay exit remains reachable
+  ✓ mobile portrait reports no page errors
+
+mobile landscape
+  ✓ mobile landscape Home does not mount the battle engine
+  ✓ mobile landscape uses a coarse touch layout
+  ✓ mobile landscape matches the compact boundary
+  ✓ mobile landscape leaves browser zoom available
+  ✓ mobile landscape briefing has no horizontal overflow
+  ✓ mobile landscape keeps deploy pinned and reachable on the opening briefing
+  ✓ mobile landscape deploy starts the battle
+  ✓ mobile landscape keeps the compact topbar and dock on screen
+  ✓ mobile landscape selection lesson hides the untaught dock
+  ✓ mobile landscape first lance card accepts a touch
+  ✓ mobile landscape select-all chooses the live lance
+  ✓ mobile landscape Move control plots the initial route to the range gate
+  ✓ mobile landscape queued movement keeps the gate lesson and explains Resume
+  ✓ mobile landscape Commander is absent until its training controls are available
+  ✓ mobile landscape reaching and capturing the actual gate unlocks the engage lesson
+  ✓ mobile landscape engage lesson adds contacts and Attack without advanced heat controls
+  ✓ mobile landscape force stepping reaches a real optical hostile card
+  ✓ mobile landscape optical hostile card has a short name and complete accessible identity
+  ✓ mobile landscape automatic fire control does not complete the explicit Engage lesson
+  ✓ mobile landscape optical hostile card assigns the target through the UI
+  ✓ mobile landscape range drill restores the full mobile dock
+  ✓ mobile landscape support tab embeds the three calls without another drawer
+  ✓ mobile landscape keeps advanced orders behind Tactics
+  ✓ mobile landscape Tactics reveals advanced orders and formation
+  ✓ mobile landscape hides Queue and Cancel until an order is armed
+  ✓ mobile landscape order palette arms a move and reveals route actions
+  ✓ mobile landscape queue mode arms from the dock
+  ✓ mobile landscape cancel clears the route and hides transient actions
+  ✓ mobile landscape switching to a target order clears queued routing
+  ✓ mobile landscape cancel clears an armed order
+  ✓ mobile landscape repeated lance-card taps only select
+  ✓ mobile landscape touch drag pans the battlefield
+  ✓ mobile landscape centre action finds the selection
+  ✓ mobile landscape pause notice has its own strip above the minimap and objectives
+  ✓ mobile landscape Mission summary remains touchable with the range coach open
+  ✓ mobile landscape Mission opens readable objectives above the command dock
+  ✓ mobile landscape with 21px bottom safe area pause notice has its own strip above the minimap and objectives
+  ✓ mobile landscape with 21px bottom safe area Mission summary remains touchable with the range coach open
+  ✓ mobile landscape with 21px bottom safe area Mission opens readable objectives above the command dock
+  ✓ mobile landscape 21px safe area keeps the coach summary touchable above the dock
+  ✓ mobile landscape minimap touch drag pans live before touch-end
+  ✓ mobile landscape minimap touch cancellation releases the next gesture
+  ✓ mobile landscape minimap touch gestures do not select or order
+  ✓ mobile landscape pinch changes camera distance
+  ✓ mobile landscape pinch does not select or order
+  ✓ mobile landscape pointer cancellation does not select or order
+  ✓ mobile landscape campaign operations are one column
+  ✓ mobile landscape campaign has no horizontal overflow
+  ✓ mobile landscape field manual puts touch controls first
+  ✓ mobile landscape campaign contract controls accept touch
+  ✓ mobile landscape stock picker carries complete machine identity without serial designations
+  ✓ mobile landscape mechbay is one column
+  ✓ mobile landscape mechbay has no horizontal overflow
+  ✓ mobile landscape workspace tabs and explainer disclosures are reachable touch targets
+  ✓ mobile landscape opens one visible Loadout workspace
+  ✓ mobile landscape location cards show only their quiet resting information
+  ✓ mobile landscape stock comparison is contained in Review without overflow
+  ✓ mobile landscape loadout keeps hardpoints before the weapon shelf
+  ✓ mobile landscape Armour & Cooling reflows without losing touch controls
+  ✓ mobile landscape armour paper doll exposes eight active native location buttons
+  ✓ mobile landscape armour silhouette stays out of the focus order
+  ✓ mobile landscape armour location buttons are touch-sized and centre hit-testable
+  ✓ mobile landscape armour paper doll selects the left torso
+  ✓ mobile landscape selected armour location exposes a reachable slider
+  ✓ mobile landscape armour paper doll has no horizontal overflow
+  ✓ mobile landscape Review presents the legal build without horizontal overflow
+  ✓ mobile landscape mechbay hardpoint selection filters the shelf
+  ✓ mobile landscape filtered weapon card is visibly reachable
+  ✓ mobile landscape mechbay shelf arms only a compatible target
+  ✓ mobile landscape placement banner spans the location workbench
+  ✓ mobile landscape mechbay location accepts the armed item
+  ✓ mobile landscape first fit folds both explanations without shrinking their disclosures
+  ✓ mobile landscape comparison updates live after the fitted weapon
+  ✓ mobile landscape fitted-part inspect and Remove controls stay touch-sized
+  ✓ mobile landscape inspecting the fitted weapon does not remove it
+  ✓ mobile landscape explicit Remove restores the starting loadout
+  ✓ mobile landscape mechbay actions remain reachable
+  ✓ mobile landscape horizontal touch drag edits armour without stealing vertical scroll
+  ✓ mobile landscape touch drag creates an undoable armour transaction
+  ✓ mobile landscape one Undo restores the complete touch drag
+  ✓ mobile landscape mechbay exit remains reachable
+  ✓ mobile landscape reports no page errors
+
+coarse tablet
+  ✓ mobile tablet Home does not mount the battle engine
+  ✓ mobile tablet uses a coarse touch layout
+  ✓ mobile tablet matches the compact boundary
+  ✓ mobile tablet leaves browser zoom available
+  ✓ mobile tablet briefing has no horizontal overflow
+  ✓ mobile tablet keeps deploy pinned and reachable on the opening briefing
+  ✓ mobile tablet deploy starts the battle
+  ✓ mobile tablet keeps the compact topbar and dock on screen
+  ✓ mobile tablet selection lesson hides the untaught dock
+  ✓ mobile tablet first lance card accepts a touch
+  ✓ mobile tablet select-all chooses the live lance
+  ✓ mobile tablet Move control plots the initial route to the range gate
+  ✓ mobile tablet queued movement keeps the gate lesson and explains Resume
+  ✓ mobile tablet Commander is absent until its training controls are available
+  ✓ mobile tablet reaching and capturing the actual gate unlocks the engage lesson
+  ✓ mobile tablet engage lesson adds contacts and Attack without advanced heat controls
+  ✓ mobile tablet force stepping reaches a real optical hostile card
+  ✓ mobile tablet optical hostile card has a short name and complete accessible identity
+  ✓ mobile tablet automatic fire control does not complete the explicit Engage lesson
+  ✓ mobile tablet optical hostile card assigns the target through the UI
+  ✓ mobile tablet range drill restores the full mobile dock
+  ✓ mobile tablet support tab embeds the three calls without another drawer
+  ✓ mobile tablet keeps advanced orders behind Tactics
+  ✓ mobile tablet Tactics reveals advanced orders and formation
+  ✓ mobile tablet hides Queue and Cancel until an order is armed
+  ✓ mobile tablet order palette arms a move and reveals route actions
+  ✓ mobile tablet queue mode arms from the dock
+  ✓ mobile tablet cancel clears the route and hides transient actions
+  ✓ mobile tablet switching to a target order clears queued routing
+  ✓ mobile tablet cancel clears an armed order
+  ✓ mobile tablet repeated lance-card taps only select
+  ✓ mobile tablet touch drag pans the battlefield
+  ✓ mobile tablet centre action finds the selection
+  ✓ mobile tablet pause notice has its own strip above the minimap and objectives
+  ✓ mobile tablet Mission summary remains touchable with the range coach open
+  ✓ mobile tablet Mission opens readable objectives above the command dock
+  ✓ mobile tablet minimap touch drag pans live before touch-end
+  ✓ mobile tablet minimap touch cancellation releases the next gesture
+  ✓ mobile tablet minimap touch gestures do not select or order
+  ✓ mobile tablet pinch changes camera distance
+  ✓ mobile tablet pinch does not select or order
+  ✓ mobile tablet pointer cancellation does not select or order
+  ✓ mobile tablet campaign operations are one column
+  ✓ mobile tablet campaign has no horizontal overflow
+  ✓ mobile tablet field manual puts touch controls first
+  ✓ mobile tablet campaign contract controls accept touch
+  ✓ mobile tablet stock picker carries complete machine identity without serial designations
+  ✓ mobile tablet mechbay is one column
+  ✓ mobile tablet mechbay has no horizontal overflow
+  ✓ mobile tablet workspace tabs and explainer disclosures are reachable touch targets
+  ✓ mobile tablet opens one visible Loadout workspace
+  ✓ mobile tablet location cards show only their quiet resting information
+  ✓ mobile tablet stock comparison is contained in Review without overflow
+  ✓ mobile tablet loadout keeps hardpoints before the weapon shelf
+  ✓ mobile tablet Armour & Cooling reflows without losing touch controls
+  ✓ mobile tablet armour paper doll exposes eight active native location buttons
+  ✓ mobile tablet armour silhouette stays out of the focus order
+  ✓ mobile tablet armour location buttons are touch-sized and centre hit-testable
+  ✓ mobile tablet armour paper doll selects the left torso
+  ✓ mobile tablet selected armour location exposes a reachable slider
+  ✓ mobile tablet armour paper doll has no horizontal overflow
+  ✓ mobile tablet Review presents the legal build without horizontal overflow
+  ✓ mobile tablet mechbay hardpoint selection filters the shelf
+  ✓ mobile tablet filtered weapon card is visibly reachable
+  ✓ mobile tablet mechbay shelf arms only a compatible target
+  ✓ mobile tablet placement banner spans the location workbench
+  ✓ mobile tablet mechbay location accepts the armed item
+  ✓ mobile tablet first fit folds both explanations without shrinking their disclosures
+  ✓ mobile tablet comparison updates live after the fitted weapon
+  ✓ mobile tablet fitted-part inspect and Remove controls stay touch-sized
+  ✓ mobile tablet inspecting the fitted weapon does not remove it
+  ✓ mobile tablet explicit Remove restores the starting loadout
+  ✓ mobile tablet mechbay actions remain reachable
+  ✓ mobile tablet horizontal touch drag edits armour without stealing vertical scroll
+  ✓ mobile tablet touch drag creates an undoable armour transaction
+  ✓ mobile tablet one Undo restores the complete touch drag
+  ✓ mobile tablet mechbay exit remains reachable
+  ✓ mobile tablet reports no page errors
+  ✓ 1024px fine-pointer desktop keeps the desktop layout
+  ✓ 1024px fine-pointer location cards contain their fitted contents
+
+1170/1170 checks passed

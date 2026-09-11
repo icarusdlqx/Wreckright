@@ -9,6 +9,8 @@ export const LoreEntrySchema = z.strictObject({
   order: z.number().int().min(0).max(99),
   /** Field discoveries stay hidden so the manual cannot spoil the campaign reveal. */
   unlockNodeId: IdSchema.optional(),
+  /** Familiar company doctrine need not be discovered through an opposing campaign. */
+  knownByCampaigns: z.array(IdSchema).optional(),
   /** One line, used as the summary wherever there is no room for the whole page. */
   summary: z.string().min(1).max(240),
   body: z.array(z.string().min(1).max(1200)).min(1).max(12),

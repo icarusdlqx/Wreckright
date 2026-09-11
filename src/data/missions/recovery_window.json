@@ -1,0 +1,216 @@
+{
+  "id": "recovery_window",
+  "name": "Recovery — The Quiet Claim",
+  "type": "extraction",
+  "mapId": "line_recovery_cut",
+  "briefing": "Get the fitters out. Secure the road-junction winch and protect the recovery cradle while the lift runs. Bring no more than three machines and 140 tonnes. Surviving guards do not block extraction.",
+  "maxDurationSeconds": 240,
+  "startingResourcePoints": 350,
+  "dropTonnage": 140,
+  "maxPlayerUnits": 3,
+  "lances": [
+    {
+      "team": 0,
+      "name": "Linewrought Company",
+      "units": [
+        {
+          "designId": "hornet_spotter",
+          "pilotId": "kessa_vale",
+          "spawn": {
+            "x": 612,
+            "y": 636
+          },
+          "facingDegrees": -90
+        },
+        {
+          "designId": "cairn_battery",
+          "pilotId": "ilse_brant",
+          "spawn": {
+            "x": 516,
+            "y": 636
+          },
+          "facingDegrees": -90
+        },
+        {
+          "designId": "prybar_courier",
+          "pilotId": "marek_sud",
+          "spawn": {
+            "x": 564,
+            "y": 636
+          },
+          "facingDegrees": -90
+        }
+      ]
+    },
+    {
+      "team": 1,
+      "name": "Kestrel Recovery Claim",
+      "units": [
+        {
+          "designId": "hornet_spotter",
+          "pilotId": "corin_dast",
+          "spawn": {
+            "x": 540,
+            "y": 492
+          },
+          "facingDegrees": 90
+        },
+        {
+          "designId": "prybar_courier",
+          "pilotId": "leda_morcant",
+          "spawn": {
+            "x": 252,
+            "y": 612
+          },
+          "facingDegrees": 45
+        }
+      ]
+    }
+  ],
+  "zones": [
+    {
+      "id": "recovery_ground",
+      "name": "Recovery Cradle",
+      "x": 540,
+      "y": 636,
+      "radius": 78,
+      "owner": 0,
+      "captureSeconds": 14,
+      "resourcePoints": 0
+    },
+    {
+      "id": "service_cabinet",
+      "name": "Optional Service Cabinet",
+      "x": 252,
+      "y": 612,
+      "radius": 44,
+      "owner": null,
+      "captureSeconds": 8,
+      "resourcePoints": 200
+    },
+    {
+      "id": "winch_controls",
+      "name": "Recovery Winch Controls",
+      "x": 540,
+      "y": 564,
+      "radius": 48,
+      "owner": null,
+      "captureSeconds": 8,
+      "resourcePoints": 0
+    }
+  ],
+  "objectives": [
+    {
+      "id": "keep_recovery_ground",
+      "label": "Protect the recovery cradle",
+      "type": "protect_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": [
+        "recovery_ground"
+      ]
+    },
+    {
+      "id": "complete_recovery_lift",
+      "label": "Hold cradle and winch for 25 seconds",
+      "type": "hold_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": [
+        "winch_controls"
+      ],
+      "holdSeconds": 25
+    },
+    {
+      "id": "recover_service_stock",
+      "label": "Optional: secure the service cabinet",
+      "type": "capture_zones",
+      "team": 0,
+      "required": false,
+      "zoneIds": [
+        "service_cabinet"
+      ],
+      "resourcePoints": 150
+    },
+    {
+      "id": "detail_survives",
+      "label": "Keep a recovery machine operational",
+      "type": "survive",
+      "team": 0,
+      "required": true
+    }
+  ],
+  "enemyDirectives": [
+    {
+      "id": "cradle_claim",
+      "team": 1,
+      "zoneId": "recovery_ground",
+      "behavior": "retake",
+      "units": 1,
+      "pursuitRadius": 420
+    },
+    {
+      "id": "cabinet_watch",
+      "team": 1,
+      "zoneId": "service_cabinet",
+      "behavior": "defend",
+      "units": 1,
+      "pursuitRadius": 190
+    }
+  ],
+  "triggers": [
+    {
+      "id": "claim_terms",
+      "when": {
+        "type": "elapsed",
+        "seconds": 2
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Recovery desk: winch first, then cover the cradle for twenty-five seconds. The west cabinet is optional.",
+          "speakerPilotId": "kessa_vale"
+        }
+      ]
+    },
+    {
+      "id": "north_warning",
+      "when": {
+        "type": "zone_captured",
+        "zoneId": "winch_controls",
+        "team": 0
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Winch live. Kestrel movement on the west shelf; keep the cradle covered.",
+          "speakerPilotId": "marek_sud"
+        },
+        {
+          "type": "reveal",
+          "x": 252,
+          "y": 612,
+          "radius": 180,
+          "seconds": 24
+        }
+      ]
+    },
+    {
+      "id": "service_taken",
+      "when": {
+        "type": "zone_captured",
+        "zoneId": "service_cabinet",
+        "team": 0
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Service cabinet secured. Field support authority transferred to the company."
+        }
+      ]
+    }
+  ]
+}

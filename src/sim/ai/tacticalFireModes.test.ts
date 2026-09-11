@@ -84,8 +84,8 @@ describe('tactical fire-mode integration', () => {
     const mount = keepOnlyCanister(redoubt);
     isolateOpticalDuel(world, redoubt, target);
     makeSlugHot(world);
-    redoubt.heat = redoubt.heatCapacity * 0.8;
-    mount.cooldown = 10;
+    redoubt.heat = redoubt.heatCapacity * 0.7;
+    mount.cooldown = 0;
 
     expect(isImmobile(redoubt)).toBe(true);
     applyHeatGovernor(world, redoubt, false);

@@ -1,0 +1,108 @@
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 100 1000;
+  font-display: swap;
+  src: url('./assets/fonts/DMSans-Variable.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('./assets/fonts/BarlowCondensed-SemiBold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./assets/fonts/BarlowCondensed-Bold.ttf') format('truetype');
+}
+
+:root {
+  --exp-paper: #f3f0e7;
+  --exp-paper-raised: #fdfbf4;
+  --exp-ink: #193744;
+  --exp-muted: #52665e;
+  --exp-orange: #d97753;
+  --exp-orange-ink: #984726;
+  --exp-navy: #112c39;
+  --exp-teal: #32766d;
+  --exp-line: #c6cec1;
+  --exp-sand: #e8bd7c;
+  --exp-positive: #28684d;
+  --exp-negative: #ab402f;
+  --exp-shadow: 0 12px 36px rgb(12 35 43 / 12%);
+  --font-body: 'DM Sans', Arial, sans-serif;
+  --font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --bg: #0c222c;
+  --panel: rgb(17 44 57 / 96%);
+  --edge: rgb(159 192 179 / 36%);
+  --accent: #b5dfc9;
+  --warn: #efc182;
+  --danger: #ffa087;
+  --text: #eff1e6;
+  --muted: #b0c2ba;
+  --ok: #a9d7ad;
+  font-family: var(--font-body);
+  font-synthesis: none;
+  font-size: 14px;
+}
+
+button, select, input, textarea { font-family: var(--font-body); }
+h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; }
+
+.clock, .tactical-number, .gauge-value, .briefing-tonnage,
+.weapon-ammo, .weapon-range, .pilot-skills, .command-key,
+.build-review__metrics dd, .battle-results-summary strong,
+.armour-paper-doll__location-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+button, select, input, textarea, summary { accent-color: var(--accent); }
+
+:is(button, select, input, textarea, summary, a, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+button:disabled { cursor: not-allowed; }
+input, textarea, select { -webkit-user-select: text; user-select: text; }
+
+.route-loading, .crash { font-family: var(--font-body); }
+.crash-panel { border-radius: 8px; }
+
+@media (prefers-contrast: more) {
+  :root {
+    --exp-paper: #fffdf5;
+    --exp-paper-raised: #fff;
+    --exp-ink: #102a35;
+    --exp-muted: #334b42;
+    --exp-line: #60786c;
+    --exp-teal: #17594f;
+    --exp-positive: #195532;
+  }
+}
+
+@media (forced-colors: active) {
+  :root {
+    --exp-paper: Canvas;
+    --exp-paper-raised: Canvas;
+    --exp-ink: CanvasText;
+    --exp-muted: CanvasText;
+    --exp-line: CanvasText;
+    --exp-teal: LinkText;
+    --exp-orange-ink: LinkText;
+    --exp-positive: CanvasText;
+    --exp-negative: CanvasText;
+  }
+
+  :is(button, select, input, textarea, summary, a, [tabindex]):focus-visible {
+    outline-color: Highlight;
+  }
+}

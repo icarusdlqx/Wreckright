@@ -2,68 +2,92 @@
   "id": "authority_conduit_injunction",
   "name": "Injunction — Cold Conduit",
   "type": "base_capture",
-  "mapId": "shale_steps",
-  "briefing": "The Blackglass receipts identify a service conduit feeding unlicensed rebuilds into the foundry district. Open both isolators and hold them while the Tender's custody clerks attest every root on the spur. The line must go cold without destroying the machines it serves.",
-  "maxDurationSeconds": 480,
-  "startingResourcePoints": 600,
-  "dropTonnage": 205,
+  "mapId": "aurelian_service_terraces",
+  "briefing": "Secure the main conduit isolator and hold it through verification. The workshop bypass is optional; keeping it in custody preserves the local service block in the record.",
+  "maxDurationSeconds": 390,
+  "startingResourcePoints": 650,
+  "dropTonnage": 230,
   "lances": [
     {
       "team": 0,
-      "name": "Continuance Injunction Detail",
+      "name": "Aurelian Custody Detail",
       "units": [
         {
           "designId": "votive_picket",
           "pilotId": "petra_lindqvist",
-          "spawn": { "x": 36, "y": 636 },
-          "facingDegrees": -45
+          "spawn": {
+            "x": 540,
+            "y": 1092
+          },
+          "facingDegrees": -90
         },
         {
           "designId": "sentinel_brawler",
           "pilotId": "silas_okonkwo",
-          "spawn": { "x": 108, "y": 636 },
-          "facingDegrees": -45
+          "spawn": {
+            "x": 612,
+            "y": 1092
+          },
+          "facingDegrees": -90
         },
         {
           "designId": "falchion_duellist",
           "pilotId": "teodor_krysa",
-          "spawn": { "x": 180, "y": 636 },
-          "facingDegrees": -45
+          "spawn": {
+            "x": 684,
+            "y": 1092
+          },
+          "facingDegrees": -90
         },
         {
           "designId": "halberd_prime",
           "pilotId": "arne_gedde",
-          "spawn": { "x": 252, "y": 636 },
-          "facingDegrees": -45
+          "spawn": {
+            "x": 756,
+            "y": 1092
+          },
+          "facingDegrees": -90
         }
       ]
     },
     {
       "team": 1,
-      "name": "Foundry Rebuild Guard",
+      "name": "Conduit Counterclaim",
       "units": [
         {
           "designId": "hornet_spotter",
           "pilotId": "kessa_vale",
-          "spawn": { "x": 636, "y": 36 },
-          "facingDegrees": 135
+          "spawn": {
+            "x": 540,
+            "y": 228
+          },
+          "facingDegrees": 90
         },
         {
           "designId": "drover_carrier",
           "pilotId": "dorn_hess",
-          "spawn": { "x": 708, "y": 36 },
+          "spawn": {
+            "x": 876,
+            "y": 228
+          },
           "facingDegrees": 135
         },
         {
           "designId": "redoubt_emplacement",
           "pilotId": "ilse_brant",
-          "spawn": { "x": 780, "y": 36 },
-          "facingDegrees": 135
+          "spawn": {
+            "x": 540,
+            "y": 564
+          },
+          "facingDegrees": 90
         },
         {
           "designId": "courser_patrol",
           "pilotId": "marek_sud",
-          "spawn": { "x": 852, "y": 36 },
+          "spawn": {
+            "x": 876,
+            "y": 564
+          },
           "facingDegrees": 135
         }
       ]
@@ -72,45 +96,57 @@
   "reserves": [],
   "zones": [
     {
-      "id": "west_isolator",
-      "name": "West Conduit Isolator",
-      "x": 300,
-      "y": 684,
-      "radius": 72,
+      "id": "main_isolator",
+      "name": "Main Conduit Isolator",
+      "x": 540,
+      "y": 228,
+      "radius": 64,
       "owner": 1,
-      "captureSeconds": 10,
-      "resourcePoints": 100
+      "captureSeconds": 11,
+      "resourcePoints": 0
     },
     {
-      "id": "east_isolator",
-      "name": "East Conduit Isolator",
-      "x": 684,
-      "y": 300,
-      "radius": 72,
+      "id": "workshop_bypass",
+      "name": "Optional Workshop Bypass",
+      "x": 876,
+      "y": 564,
+      "radius": 55,
       "owner": 1,
       "captureSeconds": 10,
-      "resourcePoints": 100
+      "resourcePoints": 0
     }
   ],
   "objectives": [
     {
-      "id": "isolate_rebuild_line",
-      "label": "Open both conduit isolators",
+      "id": "secure_main_isolator",
+      "label": "Secure the main conduit isolator",
       "type": "capture_zones",
       "team": 0,
       "required": true,
-      "zoneIds": ["west_isolator", "east_isolator"],
-      "resourcePoints": 200
+      "zoneIds": [
+        "main_isolator"
+      ]
     },
     {
-      "id": "attest_cold_line",
-      "label": "Hold both isolators for 60 seconds",
+      "id": "verify_conduit",
+      "label": "Hold the isolator through verification",
       "type": "hold_zones",
       "team": 0,
       "required": true,
-      "zoneIds": ["west_isolator", "east_isolator"],
-      "holdSeconds": 60,
-      "resourcePoints": 250
+      "zoneIds": [
+        "main_isolator"
+      ],
+      "holdSeconds": 58
+    },
+    {
+      "id": "preserve_bypass",
+      "label": "Optional: secure the workshop bypass",
+      "type": "capture_zones",
+      "team": 0,
+      "required": false,
+      "zoneIds": [
+        "workshop_bypass"
+      ]
     },
     {
       "id": "lance_survives",
@@ -123,86 +159,100 @@
   "triggers": [
     {
       "id": "injunction_read",
-      "when": { "type": "elapsed", "seconds": 4 },
+      "when": {
+        "type": "elapsed",
+        "seconds": 4
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Custody clerk: west isolator, then east. Open both and keep the conduit cold while we bind every root on the spur to this attestation."
-        },
-        {
-          "type": "reveal",
-          "x": 492,
-          "y": 492,
-          "radius": 300,
-          "seconds": 28
+          "text": "Custody clerk: main isolator is required. Workshop bypass is optional and changes the closure record.",
+          "speakerPilotId": "petra_lindqvist"
         }
       ]
     },
     {
-      "id": "first_isolator_open",
-      "when": { "type": "zone_captured", "zoneId": "west_isolator", "team": 0 },
+      "id": "verification_started",
+      "when": {
+        "type": "zone_captured",
+        "zoneId": "main_isolator",
+        "team": 0
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "West feed is open. Pressure is falling across the spur; the east isolator is still carrying the rebuild line."
-        },
-        {
-          "type": "reveal",
-          "x": 684,
-          "y": 300,
-          "radius": 180,
-          "seconds": 24
-        }
-      ]
-    },
-    {
-      "id": "foundry_counterclaim",
-      "when": { "type": "objective_complete", "objectiveId": "isolate_rebuild_line" },
-      "once": true,
-      "effects": [
-        {
-          "type": "message",
-          "text": "Both feeds are cold. Two Linewrought contacts are bringing the foundry's counterclaim up the south road. Hold the isolators until the clerks seal the record."
+          "text": "Verification started. Counterclaim machines climbing the east switchback.",
+          "speakerPilotId": "silas_okonkwo"
         },
         {
           "type": "spawn",
           "team": 1,
           "units": [
             {
-              "designId": "drover_carrier",
+              "designId": "bulwark_assault",
               "pilotId": "nadia_ostrow",
-              "spawn": { "x": 852, "y": 852 },
-              "facingDegrees": -135
+              "spawn": {
+                "x": 1068,
+                "y": 948
+              },
+              "facingDegrees": 180
             },
             {
-              "designId": "courser_patrol",
-              "pilotId": "roz_havel",
-              "spawn": { "x": 780, "y": 852 },
-              "facingDegrees": -135
+              "designId": "prybar_courier",
+              "pilotId": "suri_kell",
+              "spawn": {
+                "x": 1068,
+                "y": 1020
+              },
+              "facingDegrees": 180
             }
           ]
         },
         {
           "type": "reveal",
-          "x": 816,
-          "y": 852,
+          "x": 1068,
+          "y": 984,
           "radius": 220,
-          "seconds": 28
+          "seconds": 26
         }
       ]
     },
     {
       "id": "conduit_attested",
-      "when": { "type": "objective_complete", "objectiveId": "attest_cold_line" },
+      "when": {
+        "type": "objective_complete",
+        "objectiveId": "verify_conduit"
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Attestation sealed. Every root on this spur now has a named claimant, and their controlling warrant is filed at Barrow Reach."
+          "text": "Conduit verified. Barrow holds the final warrant and the maintenance compact beside it.",
+          "speakerPilotId": "arne_gedde"
         }
       ]
     }
-  ]
+  ],
+  "enemyDirectives": [
+    {
+      "id": "isolator_retake",
+      "team": 1,
+      "zoneId": "main_isolator",
+      "behavior": "retake",
+      "units": 5,
+      "pursuitRadius": 760
+    },
+    {
+      "id": "bypass_defence",
+      "team": 1,
+      "zoneId": "workshop_bypass",
+      "behavior": "defend",
+      "units": 1,
+      "pursuitRadius": 190
+    }
+  ],
+  "maxPlayerUnits": 5,
+  "atmosphereId": "cold_rime"
 }

@@ -7,5 +7,45 @@
   "traits": [
     "butcher"
   ],
-  "bio": "Learned gunnery on salvage, cutting hulls apart for parts. He still aims at the joins."
+  "bio": "Learned gunnery on salvage, cutting hulls apart for parts. He still aims at the joins.",
+  "portrait": {
+    "skin": "#a77759",
+    "hair": "#313336",
+    "jacket": "#594b40",
+    "accent": "#df8955",
+    "style": "bald",
+    "face": "broad",
+    "detail": "beard",
+    "expression": "wry",
+    "kit": "workcoat",
+    "accessory": "goggles",
+    "age": "veteran"
+  },
+  "personality": {
+    "label": "Salvage mechanic",
+    "description": "Can identify a machine by its fasteners. Talks to damaged hardware more gently than to officers.",
+    "lines": {
+      "move": [
+        "Hear that bearing? Still has a journey in it.",
+        "Moving. I tightened the important bits."
+      ],
+      "attack": [
+        "There is the join. That is where it opens.",
+        "Let us take this apart properly."
+      ],
+      "guard": [
+        "Bracing the joints. This position will do."
+      ],
+      "hold_fire": [
+        "Tools down. Keep the good components intact."
+      ],
+      "investigate": [
+        "Let me see how it is put together."
+      ],
+      "heavy_fire": [
+        "They are undoing my repairs. Cover me.",
+        "That noise was expensive. I need some breathing room."
+      ]
+    }
+  }
 }

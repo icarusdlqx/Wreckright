@@ -19,7 +19,10 @@ export function openCampaignSession(
   const saved = loadCampaign(catalog);
   if (saved.state !== null) return { state: saved.state, persistence: saved.persistence };
   onEmpty();
-  const state = startFreshCampaign(catalog, campaignId);
+  const state = startFreshCampaign(catalog, campaignId, undefined, (fresh) => {
+    fresh.difficultyConfigured = saved.source !== 'missing';
+    saveCampaign(fresh);
+  });
   return { state, persistence: campaignPersistenceStatus() };
 }
 

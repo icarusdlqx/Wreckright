@@ -12,6 +12,7 @@ import {
   type FirstRunEventInput,
   type PlaytestReport,
   type PlaytestSurveyPatch,
+  type ReproductionContext,
 } from './schema';
 import { sanitisePlaytestNote } from './sanitise';
 
@@ -36,7 +37,9 @@ export interface PlaytestJournal {
   clear: () => boolean;
   record: (event: FirstRunEventInput) => boolean;
   updateSurvey: (patch: PlaytestSurveyPatch) => boolean;
+  captureContext: (context: ReproductionContext) => boolean;
   serialiseExport: (note?: string) => string | null;
+  serialiseReadable: (note?: string) => string | null;
 }
 
 export interface PlaytestJournalOptions {
@@ -165,15 +168,65 @@ class LocalPlaytestJournal implements PlaytestJournal {
     return this.commit({ ...report, survey: survey.data });
   };
 
-  serialiseExport = (note = ''): string | null => {
+  captureContext = (context: ReproductionContext): boolean => {
+    if (this.report === null) return false;
+    return this.commit({ ...this.report, context });
+  };
+
+  private exportReport(): PlaytestReport | null {
     if (this.report === null) return null;
+    const report = cloneReport(this.report);
+    const survey = {
+      ...report.survey,
+      expected: sanitisePlaytestNote(report.survey.expected),
+      observed: sanitisePlaytestNote(report.survey.observed),
+      reproductionSteps: sanitisePlaytestNote(report.survey.reproductionSteps, 1_000),
+    };
+    return { ...report, survey, context: survey.includeContext ? report.context : null };
+  }
+
+  serialiseExport = (note = ''): string | null => {
+    const report = this.exportReport();
+    if (report === null) return null;
     const safeNote = sanitisePlaytestNote(note);
     const payload: PlaytestExport = {
       schema: PLAYTEST_EXPORT_SCHEMA,
-      report: cloneReport(this.report),
+      report,
       ...(safeNote === '' ? {} : { note: safeNote }),
     };
     return `${JSON.stringify(payload, null, 2)}\n`;
+  };
+
+  serialiseReadable = (note = ''): string | null => {
+    const report = this.exportReport();
+    if (report === null) return null;
+    const context = report.context;
+    const lines = [
+      '# Wreckright playtest report', '',
+      `Build: ${context?.build ?? 'context not included'}`,
+      `Mode: ${context?.mode ?? 'context not included'}`,
+      `Mission: ${context?.mission || 'not recorded'}`,
+      `Faction: ${context?.faction || 'not recorded'}`,
+      `Difficulty: ${context?.difficulty || 'not recorded'}`, '',
+      '## Bug report',
+      `Expected: ${report.survey.expected || 'not supplied'}`,
+      `Observed: ${report.survey.observed || 'not supplied'}`,
+      `Steps: ${report.survey.reproductionSteps || 'not supplied'}`, '',
+      '## Loadout',
+      ...(context?.lance.flatMap((unit) => [
+        `- ${unit.pilot} — ${unit.mech}`,
+        ...unit.loadout.map((weapon) => `  - ${weapon}`),
+      ]) ?? ['Context not included.']), '',
+      '## Ratings',
+      `Next step clarity: ${report.survey.clarity ?? 'not supplied'}`,
+      `Combat readability: ${report.survey.combatReadability ?? 'not supplied'}`,
+      `Performance: ${report.survey.performance ?? 'not supplied'}`,
+      `Would continue: ${report.survey.continueIntent ?? 'not supplied'}`,
+      `Confusing areas: ${report.survey.confusion.join(', ') || 'none supplied'}`,
+    ];
+    const safeNote = sanitisePlaytestNote(note);
+    if (safeNote !== '') lines.push('', '## Other notes', safeNote);
+    return `${lines.join('\n')}\n`;
   };
 
   private open(storageFactory: () => Storage | null): void {

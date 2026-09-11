@@ -1,4 +1,5 @@
 import type { DifficultyChoice } from './battleSetupState';
+import type { SkirmishMapChoice } from './skirmishForces';
 import { BattleCodeField } from './BattleCodeField';
 import './battleSetup.css';
 
@@ -20,9 +21,14 @@ interface SharedSetupProps {
 interface BriefingSetupProps extends SharedSetupProps {
   battleCode: string;
   onBattleCode: (battleCode: string) => void;
-  /** Which culture's machines fill the lance; null hides the choice. */
+  /** Explicit hull filter, independent of current roster composition; null hides the choice. */
   lanceFactionId: 'linewrought' | 'aurelian' | 'mixed' | null;
-  onLanceFaction: (faction: 'linewrought' | 'aurelian') => void;
+  onLanceFaction: (faction: 'linewrought' | 'aurelian' | 'mixed') => void;
+  maps?: readonly SkirmishMapChoice[];
+  mapId?: string;
+  playerDifficulty?: string;
+  onPlayerDifficulty?: (tier: string) => void;
+  separateEnemySetup?: boolean;
 }
 
 export function BriefingSetup(props: BriefingSetupProps) {
@@ -32,8 +38,21 @@ export function BriefingSetup(props: BriefingSetupProps) {
     <section className="briefing-setup" data-testid="briefing-setup">
       <h4>Battle setup</h4>
       <div className="briefing-setup-grid">
+        {props.campaignMissionName === null && props.maps !== undefined ? (
+          <label className="setup-field"><span>Map</span>
+            <select value={props.mapId} data-testid="briefing-map-picker" onChange={(event) => {
+              const map = props.maps?.find((choice) => choice.id === event.target.value);
+              if (map !== undefined) props.onMission(map.missionId);
+            }}>
+              {props.maps.map((map) => <option key={map.id} value={map.id}>{map.name}</option>)}
+            </select>
+            <small className="setup-description" data-testid="skirmish-map-save-note">
+              Each map remembers both lances, their refits and your crew experience.
+            </small>
+          </label>
+        ) : null}
         <label className="setup-field">
-          <span>Mission</span>
+          <span>{props.maps === undefined || props.campaignMissionName !== null ? 'Mission' : 'Scenario'}</span>
           {props.campaignMissionName === null ? (
             <select
               value={props.missionId}
@@ -55,29 +74,40 @@ export function BriefingSetup(props: BriefingSetupProps) {
         </label>
         {props.campaignMissionName === null && props.lanceFactionId !== null ? (
           <label className="setup-field">
-            <span>Company machines</span>
+            <span>Your faction</span>
             <select
               value={props.lanceFactionId}
               onChange={(event) => {
                 const picked = event.target.value;
-                if (picked === 'linewrought' || picked === 'aurelian') props.onLanceFaction(picked);
+                if (picked === 'linewrought' || picked === 'aurelian' || picked === 'mixed') props.onLanceFaction(picked);
               }}
               data-testid="briefing-faction-picker"
             >
-              {props.lanceFactionId === 'mixed' ? (
-                <option value="mixed">Mixed company</option>
-              ) : null}
+              <option value="mixed">Mixed company</option>
               <option value="linewrought">Linewrought</option>
               <option value="aurelian">Aurelian</option>
             </select>
             <small className="setup-description">
-              Refills the berths with one culture's machines, class for class.
+              Choosing a faction refills your berths and limits mech choices. Choose Mixed company to use both cultures.
             </small>
           </label>
         ) : null}
-        <label className="setup-field">
+        {props.campaignMissionName === null && props.onPlayerDifficulty !== undefined ? (
+          <label className="setup-field"><span>Your crew experience</span>
+            <select value={props.playerDifficulty} data-testid="player-difficulty-picker"
+              onChange={(event) => props.onPlayerDifficulty?.(event.target.value)}>
+              {props.difficulties.map((choice) => <option key={choice.id} value={choice.id}>{choice.label}</option>)}
+            </select>
+            <small className="setup-description">Green lowers crew skills; Regular keeps their profiles; Veteran and Elite raise them. You give the orders.</small>
+          </label>
+        ) : null}
+        {props.separateEnemySetup && props.campaignMissionName === null ? null : <label className="setup-field">
           <span>Difficulty</span>
-          <select
+          {props.campaignMissionName !== null ? (
+            <span className="setup-fixed" data-testid="briefing-difficulty-fixed">
+              {difficulty?.label ?? props.difficultyId}<small>Fixed for this campaign</small>
+            </span>
+          ) : <select
             value={props.difficultyId}
             onChange={(event) => props.onDifficulty(event.target.value)}
             data-testid="briefing-difficulty-picker"
@@ -87,11 +117,11 @@ export function BriefingSetup(props: BriefingSetupProps) {
                 {choice.label}
               </option>
             ))}
-          </select>
+          </select>}
           <small className="setup-description" data-testid="difficulty-description">
             {difficulty?.description ?? 'Enemy behaviour follows the selected tier.'}
           </small>
-        </label>
+        </label>}
         {props.campaignMissionName === null ? (
           <BattleCodeField code={props.battleCode} onCode={props.onBattleCode} />
         ) : null}
@@ -116,7 +146,10 @@ export function SetupToolbar({
 
   return (
     <>
-      <select
+      {props.campaignMissionName !== null ? (
+        <span className="pause setup-contract" data-testid="campaign-difficulty-fixed"
+          title="Chosen when this campaign began.">{difficulty?.label ?? props.difficultyId} campaign</span>
+      ) : <select
         className="pause"
         value={props.difficultyId}
         disabled={locked}
@@ -129,7 +162,7 @@ export function SetupToolbar({
             {choice.label}
           </option>
         ))}
-      </select>
+      </select>}
       {props.campaignMissionName === null ? (
         <select
           className="pause"

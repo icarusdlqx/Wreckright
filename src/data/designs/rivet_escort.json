@@ -1,0 +1,62 @@
+{
+  "id": "rivet_escort",
+  "name": "Rivet",
+  "chassisId": "rivet_rvt1",
+  "armour": {
+    "head": 14,
+    "centre_torso": 64,
+    "left_torso": 46,
+    "right_torso": 46,
+    "left_arm": 30,
+    "right_arm": 30,
+    "left_leg": 45,
+    "right_leg": 45
+  },
+  "heatSinkId": "heat_sink",
+  "heatSinks": 10,
+  "mounts": [
+    {
+      "weaponId": "ac5",
+      "location": "right_arm"
+    },
+    {
+      "weaponId": "srm6",
+      "location": "left_arm"
+    },
+    {
+      "weaponId": "srm6",
+      "location": "left_torso"
+    }
+  ],
+  "ammo": [
+    {
+      "weaponId": "ac5",
+      "location": "right_torso",
+      "tons": 2
+    },
+    {
+      "weaponId": "srm6",
+      "location": "left_torso",
+      "tons": 2
+    },
+    {
+      "weaponId": "srm6",
+      "location": "right_torso",
+      "tons": 2
+    }
+  ],
+  "equipment": [
+    {
+      "equipmentId": "case",
+      "location": "left_torso"
+    },
+    {
+      "equipmentId": "case",
+      "location": "right_torso"
+    },
+    {
+      "equipmentId": "ams",
+      "location": "centre_torso"
+    }
+  ]
+}

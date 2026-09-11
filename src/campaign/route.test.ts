@@ -7,6 +7,8 @@ if (campaign === undefined) throw new Error('missing Great Recall campaign');
 
 const VICTORY_LINE = [
   'militia_raid',
+  'recovery_window',
+  'workshop_defence',
   'pass_skirmish',
   'foundry_sweep_node',
   'shale_overwatch_node',
@@ -86,17 +88,23 @@ describe('Great Recall route', () => {
     expect(routes.some((route) => route.includes('causeway_push'))).toBe(true);
     expect(routes.some((route) => !route.includes('causeway_push'))).toBe(true);
 
-    expect(openNodes(campaign, ['militia_raid'])).toEqual(['pass_skirmish', 'supply_line']);
+    expect(openNodes(campaign, ['militia_raid'])).toEqual([
+      'marker_survey', 'recovery_window', 'supply_line',
+    ]);
     expect(openNodes(campaign, ['militia_raid', 'supply_line', 'causeway_push'])).toContain(
-      'pass_skirmish',
+      'recovery_window',
     );
-    expect(openNodes(campaign, ['militia_raid', 'pass_skirmish'])).toEqual(
+    expect(openNodes(campaign, [
+      'militia_raid', 'recovery_window', 'workshop_defence', 'pass_skirmish',
+    ])).toEqual(
       expect.arrayContaining(['supply_line', 'foundry_sweep_node']),
     );
   });
 
   it('opens Foundry, Shale and Ridge in campaign order', () => {
-    const throughPass = ['militia_raid', 'pass_skirmish'];
+    const throughPass = [
+      'militia_raid', 'recovery_window', 'workshop_defence', 'pass_skirmish',
+    ];
     expect(openNodes(campaign, throughPass)).toContain('foundry_sweep_node');
     expect(openNodes(campaign, [...throughPass, 'foundry_sweep_node'])).toContain(
       'shale_overwatch_node',
@@ -106,7 +114,7 @@ describe('Great Recall route', () => {
     ).toEqual(expect.arrayContaining(['supply_line', 'ridge_hold']));
 
     expect(mapIds(campaign, ['causeway_push', 'foundry_sweep_node', 'shale_overwatch_node'])).toEqual(
-      ['causeway', 'foundry_district', 'shale_steps'],
+      ['causeway', 'line_workshop_belt', 'shale_steps'],
     );
   });
 });

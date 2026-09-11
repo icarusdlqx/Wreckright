@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { catalog } from '../../tests/support';
+import { catalog, legacySentinelDesign } from '../../tests/support';
 import { startCampaign } from '../campaign/campaign';
 import { applyRefit } from '../campaign/refit';
 import { designIssues } from '../ui/mechbay/editor';
@@ -48,7 +48,7 @@ describe('shared design legality', () => {
   });
 
   it('treats a zero-ton bin as dead and rejects its dry gun', () => {
-    const design = clone('sentinel_brawler');
+    const design = structuredClone(legacySentinelDesign);
     const bin = design.ammo.find((entry) => entry.weaponId === 'ac5');
     if (bin === undefined) throw new Error('missing AC/5 bin');
     bin.tons = 0;
@@ -74,7 +74,7 @@ describe('shared design legality', () => {
   });
 
   it('warns about misplaced blast containment without making the build illegal', () => {
-    const design = clone('sentinel_brawler');
+    const design = structuredClone(legacySentinelDesign);
     const containment = design.equipment.find((fit) => fit.equipmentId === 'case');
     if (containment === undefined) throw new Error('missing containment fixture');
     containment.location = 'head';

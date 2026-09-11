@@ -49,10 +49,12 @@ describe('content catalog', () => {
     expect(factions).toEqual({ aurelian: 12, linewrought: 12 });
   });
 
-  it('fields two chassis per class in each machine culture', () => {
+  it('fields two walker chassis per class in each machine culture', () => {
     const classes = ['light', 'medium', 'heavy', 'assault'] as const;
     for (const faction of FactionSchema.options) {
-      const roster = [...catalog.chassis.values()].filter((chassis) => chassis.faction === faction);
+      const roster = [...catalog.chassis.values()].filter(
+        (chassis) => chassis.faction === faction && chassis.frame === 'mech',
+      );
       expect(roster, faction).toHaveLength(8);
       expect(
         Object.fromEntries(

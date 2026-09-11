@@ -21,6 +21,12 @@ const CHASSIS_IDS = [
   'sentinel_snl2',
   'warden_wrd5',
   'wisp_wsp1',
+  'votive_vtv2',
+  'obsequy_obq3',
+  'pallvault_plv1',
+  'prybar_pry1',
+  'rivet_rvt1',
+  'trestle_trs1',
 ] as const;
 
 describe('mech materials', () => {
@@ -50,6 +56,18 @@ describe('mech materials', () => {
     expect(intact.glass.emissiveIntensity).toBeGreaterThan(1);
     expect(wreck.glass.emissive.getHex()).toBe(0);
     expect(wreck.glass.emissiveIntensity).toBe(0);
+  });
+
+  it('keeps faction construction legible independently of team markings', () => {
+    const field = createMechMaterials('hornet_hnt2', TEAM_COLOURS[0] ?? 0, false, 'linewrought');
+    const sealed = createMechMaterials('sentinel_snl2', TEAM_COLOURS[0] ?? 0, false, 'aurelian');
+    expect(field.trim.color.getHex()).toBe(sealed.trim.color.getHex());
+    expect(field.plate.color.r).toBeGreaterThan(field.plate.color.b * 1.3);
+    expect(sealed.accent.color.g).toBeGreaterThan(sealed.accent.color.r * 2);
+    expect(field.accent.color.r).toBeGreaterThan(field.accent.color.g * 2);
+    expect(field.accent.color.r).toBeLessThan(field.plate.color.r);
+    expect(sealed.plate.color.r).toBeGreaterThan(sealed.deep.color.r * 3);
+    expect(chassisBodyColour(null, 'aurelian')).not.toBe(chassisBodyColour(null, 'linewrought'));
   });
 
   it('separates weapon metal from painted armour', () => {

@@ -11,5 +11,6 @@ describe('armed placement focus', () => {
   it('falls back to the first compatible location and reports no target truthfully', () => {
     expect(armedPlacementTarget(null, new Set<MechLocation>(['left_arm']))).toBe('left_arm');
     expect(armedPlacementTarget(null, new Set<MechLocation>())).toBeNull();
+    expect(armedPlacementTarget('left_arm', new Set<MechLocation>())).toBeNull();
   });
 });

@@ -17,7 +17,7 @@ describe('Phase 3 Aurelian stock', () => {
       const loadout = computeLoadout(catalog, designOf(id));
       expect(loadout.valid, `${id}: ${loadout.issues.map((issue) => issue.message).join('; ')}`)
         .toBe(true);
-      expect(loadout.freeTonnage, id).toBeCloseTo(0, 6);
+      expect(loadout.freeTonnage, id).toBeCloseTo(id === 'pallvault_procession' ? 0.5 : 0, 6);
     }
   });
 
@@ -51,7 +51,7 @@ describe('Phase 3 Aurelian stock', () => {
     expect(profile.secondsToShutdownRisk).not.toBeNull();
   });
 
-  it('makes the Pallvault trade sustained fire for speed', () => {
+  it('keeps the Pallvault mobile with full plate and a central plasma weapon', () => {
     const design = designOf('pallvault_procession');
     const chassis = catalog.chassis.get(design.chassisId);
     const battery = design.mounts.reduce<Record<string, number>>(
@@ -59,8 +59,11 @@ describe('Phase 3 Aurelian stock', () => {
       {},
     );
     const heat = computeHeatProfile(catalog, design);
-    expect(battery).toEqual({ large_pulse_laser: 2, medium_pulse_laser: 2 });
-    expect(chassis?.engineRating).toBeGreaterThan(380);
+    expect(battery).toEqual({ large_pulse_laser: 2, medium_pulse_laser: 2, plasma_rifle: 1 });
+    expect(chassis?.engineRating).toBeGreaterThan(catalog.chassis.get('colossus_cls1')!.engineRating);
+    expect(design.armour).toEqual(chassis?.armourMax);
+    expect(design.mounts.find(mount => mount.weaponId === 'plasma_rifle')?.location).toBe('centre_torso');
+    expect(design.heatSinkId).toBe('double_heat_sink');
     expect(heat.alphaSafe).toBe(false);
     expect(heat.netHeatPerSecond).toBeGreaterThan(0);
   });

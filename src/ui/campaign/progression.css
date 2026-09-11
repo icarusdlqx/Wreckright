@@ -3,6 +3,17 @@
   max-height: 520px;
 }
 
+.pilot-person.pilot-person--prominent { grid-template-columns: 112px minmax(0, 1fr); gap: 16px; }
+.pilot-person--prominent > .pilot-portrait { width: 112px; height: 140px; }
+.pilot-person--prominent .pilot-name { font-size: 22px; }
+.pilot-record-capabilities { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; margin: 12px 0; align-items: center; }
+.pilot-record-capabilities > .pilot-readout { grid-column: auto; }
+@media (max-width: 640px) {
+  .pilot-person.pilot-person--prominent { grid-template-columns: 80px minmax(0, 1fr); gap: 12px; }
+  .pilot-person--prominent > .pilot-portrait { width: 80px; height: 100px; }
+  .pilot-record-capabilities { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+}
+
 /* Scroll containers contribute almost no height to the campaign grid. These
    are decisions, not narrow title bars with their contents trapped inside. */
 .progression-bay {
@@ -129,31 +140,6 @@
 
 .progression-roster .camp-hires .pilot-trait {
   margin-top: 2px;
-}
-
-.progression-roster .camp-hires li {
-  grid-template-columns: 1fr auto;
-  grid-template-areas:
-    'hire-name hire-button'
-    'hire-skills hire-state';
-}
-
-.progression-roster .camp-hires .pilot-name {
-  grid-area: hire-name;
-  white-space: normal;
-}
-
-.progression-roster .camp-hires .pilot-skills {
-  grid-area: hire-skills;
-}
-
-.progression-roster .camp-hires .pilot-state {
-  grid-area: hire-state;
-}
-
-.progression-roster .camp-hires > li > button {
-  grid-area: hire-button;
-  grid-row: 1 / span 2;
 }
 
 /* The one line that stops training from being a secret. */

@@ -1,32 +1,33 @@
 import { useEffect, useMemo, useState } from 'react';
-import { abandonContract, acceptContract, advanceDays, availableNodes, campaignOf,
-  deployableLance, negotiationOptions } from '../../campaign/campaign';
+import { abandonContract, acceptContract, availableNodes, campaignOf, standDownCampaign,
+  negotiationOptions } from '../../campaign/campaign';
 import {
   campaignBlob,
   campaignPersistenceStatus,
-  deserialiseCampaign,
-  loadCampaign,
   rawCampaignBlob,
   saveCampaign,
 } from '../../campaign/save';
 import type { CampaignState, ContractTermsId } from '../../campaign/types';
 import { getCatalog } from '../../schema/load';
-import { applyRefit, refitAvailability } from '../../campaign/refit';
 import { isSideContract } from '../../campaign/sidework';
-import { createCampaignSeed, startFreshCampaign } from '../../campaign/freshness';
+import { deploymentCandidates, deploymentPlan } from '../../campaign/deployment';
 import { campaignOutcomeCount } from '../../campaign/history';
 import { assessSolvency, retireCompany } from '../../campaign/solvency';
 import { employerHistories } from '../../campaign/employers';
-import type { BayCommission } from '../mechbay/Mechbay';
-import { authoredDesignName } from '../designLabel';
+import { useCampaignRefit } from './useCampaignRefit';
+import { readCompanySlot } from '../../campaign/companySlots';
+import { CampaignWorkspace } from './CampaignWorkspace';
+import { useCampaignNavigation } from './campaignNavigation';
 import { CampaignHeader } from './CampaignHeader';
 import { CampaignChooser } from './CampaignChooser';
+import { useCampaignFiles } from './useCampaignFiles';
 import { CampaignMap, type NodeState } from './CampaignMap';
 import { CampaignPostBattle } from './CampaignPostBattle';
 import { resolveCurrentEmployer } from './campaignEmployer';
 import { visibleCampaignLore } from './campaignLore';
 import { ContractPanel } from './ContractPanel';
 import { CompanyStatus } from './CompanyStatus';
+import { CrewStandDown } from './CrewStandDown';
 import { debriefedCount, resetDebriefed, revealLatestDebrief } from './Debrief';
 import { FieldManual } from './FieldManual';
 import { HiringHall } from './HiringHall';
@@ -37,20 +38,31 @@ import { useGame } from '../store';
 import { usePlaytest } from '../playtest';
 import { CampaignGuide } from './CampaignGuide';
 import { CampaignPrep } from './CampaignPrep';
+import { beginPreparation } from './preparationModel';
 import { firstDropStage, type FirstDropPrep } from './firstDropGuide';
 import { canLaunchFirstDropDirectly } from './firstDropLaunch';
 import { useCampaignScore } from './useCampaignScore';
+import { MissionSurvey } from './MissionSurvey';
+import { missionPreviewData, previewMissionId } from './missionPreviewData';
+import { openingRecommendation } from './openingRoute';
+import { OpeningRouteGuide } from './OpeningRouteGuide';
+import { CampaignStoryPanel } from './CampaignStoryPanel';
+import { CampaignNextStep } from './CampaignNextStep';
+import { CampaignWaiting } from './CampaignWaiting';
+import { CampaignRouteList } from './CampaignRouteList';
+import { nextCampaignNode, waitCompany } from './campaignFlow';
 
 const catalog = getCatalog();
 const DEFAULT_CAMPAIGN_ID = 'border_dispute';
 export function CampaignScreen({ onExit }: { onExit: () => void }) {
   const [initial] = useState(() => openCampaignSession(catalog, DEFAULT_CAMPAIGN_ID, resetDebriefed));
   const [state, setState] = useState<CampaignState>(initial.state);
+  const navigation = useCampaignNavigation(`${state.campaignId}:${state.seed}`);
   const [persistence, setPersistence] = useState(initial.persistence);
   const [manualOpen, setManualOpen] = useState(false);
   const [guideDismissed, setGuideDismissed] = useState(false);
+  const [openingDismissedRun, setOpeningDismissedRun] = useState<string | null>(null);
   const [prep, setPrep] = useState<FirstDropPrep>(null);
-  const [refitting, setRefitting] = useState<string | null>(null);
   const [debriefed, setDebriefed] = useState(() => debriefedCount());
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [selectedTerms, setSelectedTerms] = useState<ContractTermsId>('standard');
@@ -71,9 +83,9 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
   );
   const open = useMemo(() => availableNodes(catalog, state), [state]);
   const posted = useMemo(() => open.filter((entry) => isSideContract(entry.id)), [open]);
-  const node = open.find((entry) => entry.id === selectedNode) ?? open[0] ?? null;
+  const node = open.find((entry) => entry.id === selectedNode) ?? nextCampaignNode(catalog, state);
   const options = node === null ? [] : negotiationOptions(catalog, node);
-  const lance = deployableLance(state);
+  const lance = deploymentCandidates(state);
   const directLaunch = canLaunchFirstDropDirectly(catalog, state);
   const solvency = useMemo(() => assessSolvency(catalog, state), [state]);
   const outcomeCount = campaignOutcomeCount(state);
@@ -86,38 +98,15 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
     prep,
   });
   const guidedFirstDrop = guideDismissed ? 'done' : firstDrop;
+  const openingRun = `${state.campaignId}:${state.seed}`;
+  const opening = openingRecommendation(catalog, state, open);
+  const surveyMission = previewMissionId(state.contract, node);
+  const survey = useMemo(() => missionPreviewData(catalog, surveyMission), [surveyMission]);
+
 
   useEffect(() => {
     record({ name: 'campaign_opened' });
   }, [record]);
-
-  const refitMech = refitting === null ? null : (state.mechs.find((m) => m.id === refitting) ?? null);
-  const refitBay: BayCommission | null =
-    refitMech === null
-      ? null
-      : {
-          title: authoredDesignName(catalog, refitMech.design),
-          cancelLabel: prep === 'bay' ? 'Back to hangar' : 'Back to manifest',
-          design: refitMech.design,
-          inventory: refitAvailability(state, refitMech),
-          onCancel: () => setRefitting(null),
-          onCommit: (next) => {
-            let outcome: { ok: boolean; reason: string | null } = {
-              ok: false,
-              reason: 'that mech is no longer in the bay',
-            };
-            mutate((draft) => {
-              const target = draft.mechs.find((entry) => entry.id === refitMech.id);
-              if (target === undefined) return;
-              outcome = applyRefit(catalog, draft, target, next);
-            });
-            if (outcome.ok) {
-              setRefitting(null);
-              setStatus(`${authoredDesignName(catalog, next)} refitted.`);
-            }
-            return outcome;
-          },
-        };
 
   // A refusal knows more than the button that hoped it would work.
   const mutate = (
@@ -130,36 +119,24 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
     setStatus(committed.message ?? message ?? null);
   };
 
-  const restore = (restored: CampaignState, message: string, recover = false): void => {
-    const saved = saveCampaign(restored, { recover });
-    setDebriefed(revealLatestDebrief(campaignOutcomeCount(restored)));
-    setPrep(null);
-    setRefitting(null);
-    setState(restored);
-    setPersistence(saved.status);
-    setStatus(saved.ok ? message : 'Campaign opened in memory; the save was not written.');
-  };
+  const { refitting, refitBay, setRefitting, onRefitPart } = useCampaignRefit({ catalog, state, prep, mutate, onStatus: setStatus });
+  const previewsActive = state.difficultyConfigured && prep === null && refitting === null && !manualOpen && !choosingCampaign && outcomeCount <= debriefed;
 
-  const startNewCampaign = (campaignId: string): void => {
-    resetDebriefed();
-    setDebriefed(0);
-    let saved = campaignPersistenceStatus();
-    let stored = false;
-    const fresh = startFreshCampaign(catalog, campaignId, createCampaignSeed, (next) => {
-      const result = saveCampaign(next, { recover: true });
-      saved = result.status;
-      stored = result.ok;
-    });
-    setPrep(null);
-    setGuideDismissed(false);
-    setRefitting(null);
-    setSelectedNode(null);
-    setSelectedTerms('standard');
-    setChoosingCampaign(false);
-    setState(fresh);
-    setPersistence(saved);
-    setStatus(stored ? `New campaign. Run ${fresh.seed}.` : `New campaign opened in memory. Run ${fresh.seed}.`);
-  };
+  const files = useCampaignFiles({ catalog, current: state, onNotice: setStatus,
+    onAdopt: (restored, fresh, message) => {
+      if (fresh) resetDebriefed();
+      setDebriefed(fresh ? 0 : revealLatestDebrief(campaignOutcomeCount(restored)));
+      setPrep(null);
+      setRefitting(null);
+      setSelectedNode(null);
+      setSelectedTerms('standard');
+      setChoosingCampaign(false);
+      if (fresh) setGuideDismissed(false);
+      setState(restored);
+      setPersistence(campaignPersistenceStatus());
+      setStatus(message);
+    },
+  });
 
   const onDeploy = (): void => {
     if (state.finished) {
@@ -171,6 +148,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
       return;
     }
     record({ name: 'drop_prep_opened' });
+    mutate((draft) => beginPreparation(catalog, draft));
     setPrep('bay');
   };
 
@@ -181,8 +159,12 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
       setStatus('This campaign is over.');
       return;
     }
-    if (lance.length === 0) {
-      setStatus('No mech is ready to deploy.');
+    if (state.contract === null) { setStatus('Accept a contract first.'); return; }
+    const plan = deploymentPlan(catalog, state, state.contract.missionId);
+    if (plan.issues.length > 0) {
+      mutate((draft) => beginPreparation(catalog, draft));
+      setStatus(plan.issues.join(' '));
+      setPrep('manifest');
       return;
     }
     setPrep(null);
@@ -197,6 +179,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
   };
 
   const revealPosting = (id: string): void => {
+    navigation.navigate({ area: 'operations' });
     setSelectedNode(id);
     globalThis.requestAnimationFrame?.(() => {
       const panel = globalThis.document?.querySelector<HTMLElement>('[data-testid="camp-contract"]');
@@ -204,43 +187,40 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
       panel?.scrollIntoView({ block: 'start' });
     });
   };
+  const continueMission = (): void => {
+    if (state.contract !== null) onDeploy();
+    else if (node !== null) revealPosting(node.id);
+    else navigation.navigate({ area: 'operations' });
+  };
 
   return (
     <div
-      className="camp"
+      className="camp camp-workspace"
       data-testid="campaign"
       data-first-drop-stage={guidedFirstDrop === 'done' ? undefined : guidedFirstDrop}
     >
       <CampaignHeader
+        key={`header:${state.campaignId}:${state.seed}`}
         title={campaign.name}
         day={state.day}
         balance={cbills(state.cbills)}
         seed={state.seed}
+        difficulty={state.difficulty}
         manualOpen={manualOpen}
         muted={score.muted}
         persistence={persistence}
-        advanceDisabled={state.finished}
-        onAdvance={advanceDay}
-        onSave={() => {
-          const saved = saveCampaign(state);
-          setPersistence(saved.status);
-          setStatus(saved.ok ? 'Campaign saved.' : 'Save not written; campaign is memory-only.');
-        }}
-        onLoad={() => {
-          const loaded = loadCampaign(catalog, { storedOnly: true });
-          setPersistence(loaded.persistence);
-          if (loaded.state === null) setStatus(loaded.error ?? 'no save');
-          else restore(loaded.state, 'Campaign loaded.');
-        }}
+        nextDisabled={state.finished}
+        nextLabel={state.finished ? 'Campaign ended' : state.contract !== null ? 'Outfit & deploy' : 'Next mission'}
+        onNext={continueMission}
+        waiting={<CampaignWaiting catalog={catalog} state={state}
+          onWait={(day) => mutate((draft) => waitCompany(catalog, draft, day))} />}
+        onSave={files.openSave}
+        onLoad={files.openLoad}
         onExport={onExportSave}
         onExportRecovery={onExportRecovery}
-        onImport={(text) => {
-          const loaded = deserialiseCampaign(text);
-          if (loaded.state === null) setStatus(loaded.error ?? 'bad save');
-          else restore(loaded.state, 'Save imported.', true);
-        }}
+        onImport={files.importSave}
         onChooseCampaign={() => setChoosingCampaign(true)}
-        onRestart={() => startNewCampaign(state.campaignId)}
+        onRestart={(difficulty) => files.startNew(state.campaignId, difficulty)}
         onToggleManual={() => setManualOpen((open) => !open)}
         onToggleMuted={score.toggleMuted}
         onExit={() => {
@@ -253,34 +233,62 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
           onExit();
         }}
       />
-      {!choosingCampaign ? null : (
+      {files.dialog}
+      {!choosingCampaign && state.difficultyConfigured ? null : (
         <CampaignChooser
           campaigns={[...catalog.campaigns.values()]}
           currentId={state.campaignId}
-          onClose={() => setChoosingCampaign(false)}
-          onStart={startNewCampaign}
+          difficulty={state.difficulty}
+          initial={!state.difficultyConfigured}
+          onClose={() => state.difficultyConfigured ? setChoosingCampaign(false) : onExit()}
+          notice={status}
+          onStart={files.startNew}
+          onResume={(campaignId) => {
+            const slot = readCompanySlot(campaignId);
+            if (slot.state === null) { setStatus(slot.error ?? 'No saved company.'); return; }
+            files.loadRaw(slot.raw ?? '');
+          }}
         />
       )}
       {!manualOpen ? null : (
         <FieldManual
-          lore={visibleCampaignLore([...catalog.lore.values()], state.completedNodes)}
+          lore={visibleCampaignLore([...catalog.lore.values()], state.completedNodes, state.campaignId)}
           onClose={() => setManualOpen(false)}
         />
       )}
       <CampaignGuide stage={guidedFirstDrop} onDismiss={() => setGuideDismissed(true)} />
-
+      <CampaignNextStep catalog={catalog} state={state} node={node} onContinue={continueMission} />
+      <CampaignWorkspace
+        key={`${state.campaignId}:${state.seed}`}
+        catalog={catalog}
+        state={state}
+        story={<CampaignStoryPanel campaign={campaign} completedNodes={state.completedNodes} />}
+        route={guidedFirstDrop !== 'done' ? null : <CampaignRouteList campaign={campaign} state={state} open={open}
+          selectedId={node?.id ?? null} onReview={revealPosting} />}
+        fullCompany={guidedFirstDrop === 'done'}
+        area={navigation.area} onAreaChange={navigation.setArea} journalNodeId={navigation.target?.nodeId}
+        workshop={(active) => <MechBayPanel state={state} mutate={mutate} onRefit={setRefitting} previewActive={active && previewsActive} focus={navigation.target} />}
+        crew={<BarracksPanel state={state} mutate={mutate} focus={navigation.target} />}
+        supplies={<><StoresPanel state={state} mutate={mutate} onRefitPart={onRefitPart} /><MarketPanel state={state} mutate={mutate} /></>}
+        operations={(active) => <>
+      {opening === null || openingDismissedRun === openingRun || guidedFirstDrop !== 'done' || outcomeCount > debriefed ? null : (
+        <OpeningRouteGuide recommendation={opening} selectedId={node?.id ?? null}
+          onReview={revealPosting} onDismiss={() => setOpeningDismissedRun(openingRun)} />
+      )}
+      {state.finished ? null : <MissionSurvey data={survey} active={active && previewsActive} signed={state.contract !== null} />}
       <CampaignMap
         campaign={campaign}
         catalog={catalog}
+        contentRevision={state.campaignContentRevision}
         selectedId={node?.id ?? null}
         onSelect={setSelectedNode}
+        onReview={(nodeId) => navigation.navigate({ area: 'journal', nodeId })}
         stateOf={(entry): NodeState => {
           if (state.completedNodes.includes(entry.id)) return 'complete';
           if (state.failedNodes.includes(entry.id)) return 'failed';
           return open.some((candidate) => candidate.id === entry.id) ? 'available' : 'locked';
         }}
       />
-
       <ContractPanel
         catalog={catalog}
         state={state}
@@ -296,11 +304,12 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         employer={employer}
         employers={employers}
         companyStatus={
+          <><CrewStandDown catalog={catalog} state={state} onStandDown={() => mutate((draft) => standDownCampaign(catalog, draft).reason)} />
           <CompanyStatus
             report={solvency}
             contractActive={state.contract !== null}
             onAdvance={(day) =>
-              mutate((draft) => advanceDays(catalog, draft, day - draft.day))
+              mutate((draft) => waitCompany(catalog, draft, day))
             }
             onRetire={() =>
               mutate((draft) => {
@@ -308,7 +317,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
                 return result.ok ? 'Company retired. This campaign is over.' : result.reason;
               })
             }
-          />
+          /></>
         }
         onSelectTerms={setSelectedTerms}
         onAccept={(termsId) => {
@@ -336,10 +345,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
           )
         }
       />
-
-      {state.finished || guidedFirstDrop !== 'done' ? null : (
-        <>
-          {state.contract !== null ? null : (
+      {state.finished || guidedFirstDrop !== 'done' || state.contract !== null ? null : (
             <HiringHall
               catalog={catalog}
               campaign={campaign}
@@ -349,15 +355,9 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
               selectedId={node?.id ?? null}
               onSelect={revealPosting}
             />
-          )}
-
-          <MechBayPanel state={state} mutate={mutate} />
-          <BarracksPanel state={state} mutate={mutate} />
-          <StoresPanel state={state} mutate={mutate} />
-          <MarketPanel state={state} mutate={mutate} />
-        </>
       )}
-
+        </>}
+      />
       <CampaignPostBattle
         catalog={catalog}
         state={state}
@@ -366,10 +366,14 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         debriefed={debriefed}
         mutate={mutate}
         onDebriefed={setDebriefed}
+        onNavigate={(target) => {
+          if (target.area === 'operations' && target.nodeId !== undefined) revealPosting(target.nodeId);
+          else navigation.navigate(target);
+        }}
       />
-
       <CampaignPrep
         catalog={catalog}
+        persistent={persistence.mode === 'persistent'}
         state={state}
         prep={prep}
         refitting={refitting}
@@ -382,10 +386,6 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
       />
     </div>
   );
-
-  function advanceDay(): void {
-    mutate((draft) => advanceDays(catalog, draft, 1));
-  }
 
   function onExportSave(): void {
     downloadCampaignFile(campaignBlob(state), `${state.campaignId}-day${state.day}.json`);

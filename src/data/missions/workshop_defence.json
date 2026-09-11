@@ -1,0 +1,282 @@
+{
+  "id": "workshop_defence",
+  "name": "Defence — Keep the Gantries",
+  "type": "defend",
+  "mapId": "line_workshop_belt",
+  "briefing": "Keep Sarn’s repair gantry working through the announced north and east attacks. A scout can secure the stores cabinet while the main lance holds the yard.",
+  "maxDurationSeconds": 210,
+  "startingResourcePoints": 500,
+  "dropTonnage": 205,
+  "maxPlayerUnits": 5,
+  "lances": [
+    {
+      "team": 0,
+      "name": "Linewrought Company",
+      "units": [
+        {
+          "designId": "hornet_spotter",
+          "pilotId": "kessa_vale",
+          "spawn": {
+            "x": 684,
+            "y": 324
+          },
+          "facingDegrees": 0
+        },
+        {
+          "designId": "bulwark_assault",
+          "pilotId": "dorn_hess",
+          "spawn": {
+            "x": 732,
+            "y": 252
+          },
+          "facingDegrees": 0
+        },
+        {
+          "designId": "hornet_spotter",
+          "pilotId": "marek_sud",
+          "spawn": {
+            "x": 780,
+            "y": 252
+          },
+          "facingDegrees": 0
+        },
+        {
+          "designId": "cairn_battery",
+          "pilotId": "ilse_brant",
+          "spawn": {
+            "x": 756,
+            "y": 300
+          },
+          "facingDegrees": 0
+        }
+      ]
+    },
+    {
+      "team": 1,
+      "name": "Kestrel Yard Seizure",
+      "units": [
+        {
+          "designId": "courser_patrol",
+          "pilotId": "leda_morcant",
+          "spawn": {
+            "x": 588,
+            "y": 60
+          },
+          "facingDegrees": 90
+        }
+      ]
+    }
+  ],
+  "zones": [
+    {
+      "id": "gantry_control",
+      "name": "Sarn Repair Gantry",
+      "x": 756,
+      "y": 252,
+      "radius": 76,
+      "owner": 0,
+      "captureSeconds": 12,
+      "resourcePoints": 0
+    },
+    {
+      "id": "stores_cabinet",
+      "name": "Forward Stores Cabinet",
+      "x": 300,
+      "y": 612,
+      "radius": 45,
+      "owner": null,
+      "captureSeconds": 8,
+      "resourcePoints": 150
+    }
+  ],
+  "objectives": [
+    {
+      "id": "keep_gantries",
+      "label": "Protect Sarn repair gantry",
+      "type": "protect_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": [
+        "gantry_control"
+      ]
+    },
+    {
+      "id": "hold_workshop_cycle",
+      "label": "Keep the gantry working for 135 seconds",
+      "type": "hold_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": [
+        "gantry_control"
+      ],
+      "holdSeconds": 135
+    },
+    {
+      "id": "recover_workshop_stock",
+      "label": "Optional: secure the stores cabinet",
+      "type": "capture_zones",
+      "team": 0,
+      "required": false,
+      "zoneIds": [
+        "stores_cabinet"
+      ],
+      "resourcePoints": 150
+    },
+    {
+      "id": "guard_survives",
+      "label": "Keep at least one defender operational",
+      "type": "survive",
+      "team": 0,
+      "required": true
+    }
+  ],
+  "enemyDirectives": [
+    {
+      "id": "seize_workshop",
+      "team": 1,
+      "zoneId": "gantry_control",
+      "behavior": "retake",
+      "units": 6,
+      "pursuitRadius": 620
+    }
+  ],
+  "triggers": [
+    {
+      "id": "workshop_order",
+      "when": {
+        "type": "elapsed",
+        "seconds": 3
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Sarn foreman: first approach is the north freight gate. East service gate follows.",
+          "speakerPilotId": "kessa_vale"
+        }
+      ]
+    },
+    {
+      "id": "north_section",
+      "when": {
+        "type": "elapsed",
+        "seconds": 28
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "North freight gate: two contacts inbound.",
+          "speakerPilotId": "dorn_hess"
+        },
+        {
+          "type": "spawn",
+          "team": 1,
+          "units": [
+            {
+              "designId": "drover_carrier",
+              "pilotId": "tomas_arvel",
+              "spawn": {
+                "x": 588,
+                "y": 60
+              },
+              "facingDegrees": 90
+            },
+            {
+              "designId": "hornet_spotter",
+              "pilotId": "corin_dast",
+              "spawn": {
+                "x": 660,
+                "y": 60
+              },
+              "facingDegrees": 90
+            }
+          ]
+        },
+        {
+          "type": "reveal",
+          "x": 624,
+          "y": 60,
+          "radius": 220,
+          "seconds": 25
+        }
+      ]
+    },
+    {
+      "id": "east_section",
+      "when": {
+        "type": "elapsed",
+        "seconds": 78
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "East service gate: second section inbound.",
+          "speakerPilotId": "marek_sud"
+        },
+        {
+          "type": "spawn",
+          "team": 1,
+          "units": [
+            {
+              "designId": "courser_patrol",
+              "pilotId": "roz_havel",
+              "spawn": {
+                "x": 1140,
+                "y": 420
+              },
+              "facingDegrees": 180
+            },
+            {
+              "designId": "prybar_courier",
+              "pilotId": "suri_kell",
+              "spawn": {
+                "x": 1140,
+                "y": 492
+              },
+              "facingDegrees": 180
+            }
+          ]
+        },
+        {
+          "type": "reveal",
+          "x": 1068,
+          "y": 456,
+          "radius": 220,
+          "seconds": 25
+        }
+      ]
+    },
+    {
+      "id": "last_section",
+      "when": {
+        "type": "elapsed",
+        "seconds": 112
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Final carrier on the north road. Keep the gantry moving.",
+          "speakerPilotId": "ilse_brant"
+        },
+        {
+          "type": "spawn",
+          "team": 1,
+          "units": [
+            {
+              "designId": "drover_carrier",
+              "pilotId": "bram_nyen",
+              "spawn": {
+                "x": 588,
+                "y": 60
+              },
+              "facingDegrees": 90
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

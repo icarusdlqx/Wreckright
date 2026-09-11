@@ -9,6 +9,7 @@ import {
 } from './BayWorkspaceTabs';
 import { buildReviewSummary } from './buildReviewModel';
 import './mechbayWorkspace.css';
+import { LoadoutMap } from './LoadoutMap';
 
 export interface BuildReviewProps {
   catalog: Catalog;
@@ -111,6 +112,11 @@ export function BuildReview({
           lines={review.ammunition}
         />
       </div>
+
+      <details className="build-review__positions">
+        <summary>Weapon positions &amp; fitting boxes</summary>
+        <LoadoutMap catalog={catalog} design={design} />
+      </details>
 
       {review.issueGroups.length === 0 ? (
         <div className="build-review__clear" role="note">

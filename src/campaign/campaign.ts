@@ -1,110 +1,42 @@
-import type { Campaign, CampaignNode } from '../schema/campaign';
+import type { CampaignNode } from '../schema/campaign';
 import type { Catalog } from '../schema/load';
 import { missionTickBudget } from '../schema/missionClock';
 import { pruneMarket } from './market';
 import { isSideContract, pruneSideOffers, sideContracts } from './sidework';
-import { createRng } from '../sim/rng';
 import { runBattle, type BattleResult } from '../sim/world';
-import { completeRepair, pristineCondition } from './repair';
+import { completeRepair } from './repair';
 import { applyContractFailure, recoveryNotice } from './recovery';
 import { availableXp, awardXp, resolveCasualty, returnedFromField } from './roster';
 import { applySalvage, resolveSalvage, type SalvageReport } from './salvage';
+import { awardSharedMissionXp, missionServiceNotes } from './missionProgression';
+import { earnedCampaignRewards, validateRewardGrants, applyCampaignRewards } from './missionRewards';
 import { recoveredHulk } from './salvagedHull';
 import { negotiationOptions } from './contractTerms';
 import { dailyPayroll } from './ledger';
 import { employerById, recordEmployerFailure } from './employers';
-import { emptyHistoryArchive, pruneCampaignHistory } from './history';
+import { pruneCampaignHistory } from './history';
 import { fillEmptySeats, PLAYER_TEAM, prepareDeployment, type DeployablePair } from './deployment';
 import { logCampaign, withCampaignRng } from './campaignState';
-import { applyRestDayEvent } from './events';
 import {
-  findMech, findPilot, type CampaignState, type MechRecord, type MissionOutcome, type PilotReport,
+  campaignRouteForRevision,
+  hasCompletedRouteVictory,
+  isRouteVictory,
+  type CampaignRouteView,
+} from './campaignRoute';
+import { applyRestDayEvent } from './events';
+import { needsCrewStandDown, recoverRestingCrew } from './crewRecovery';
+import {
+  findMech, findPilot, type CampaignState, type MissionOutcome, type PilotReport,
 } from './types';
 
 export { negotiationOptions } from './contractTerms';
 export {
-  deployableLance, DeploymentError, DROP_BERTHS, dropTeam, dropTonnageFor,
+  deployableLance, DeploymentError, defaultDropBerths, dropTeam, dropTonnageFor,
   fillEmptySeats, missionSlots, PLAYER_TEAM, prepareDeployment,
 } from './deployment';
 export type { DeployablePair, Deployment } from './deployment';
 
-function isVictoryNode(campaign: Campaign, nodeId: string): boolean {
-  return campaign.victoryNodeId === nodeId || campaign.alternateVictoryNodeIds.includes(nodeId);
-}
-
-function completedVictory(campaign: Campaign, completedNodes: readonly string[]): boolean {
-  return completedNodes.some((nodeId) => isVictoryNode(campaign, nodeId));
-}
-
-export function startCampaign(catalog: Catalog, campaignId: string, seed: string): CampaignState {
-  const campaign = catalog.campaigns.get(campaignId);
-  if (campaign === undefined) throw new Error(`unknown campaign "${campaignId}"`);
-
-  const state: CampaignState = {
-    campaignId,
-    seed,
-    rng: createRng(`${seed}:campaign`).save(),
-    day: campaign.startingDay,
-    cbills: campaign.startingCbills,
-    mechs: [],
-    pilots: [],
-    benched: [],
-    store: [],
-    completedNodes: [],
-    failedNodes: [],
-    sideTaken: [],
-    marketBought: [],
-    contract: null,
-    history: [],
-    historyArchive: emptyHistoryArchive(),
-    employerFailures: [],
-    eventEffects: { supplierDiscountThroughDay: null, freeRepairDays: 0 },
-    log: [],
-    finished: false,
-    won: false,
-    nextId: 1,
-  };
-
-  campaign.startingDesignIds.forEach((designId, index) => {
-    const design = catalog.designs.get(designId);
-    if (design === undefined) throw new Error(`unknown design "${designId}"`);
-
-    const mech: MechRecord = {
-      id: `mech-${state.nextId}`,
-      design: JSON.parse(JSON.stringify(design)) as typeof design,
-      condition: pristineCondition(catalog, design),
-      status: 'ready',
-      readyOnDay: state.day,
-      rebuildCost: 0,
-    };
-    state.nextId += 1;
-    state.mechs.push(mech);
-
-    const pilotId = campaign.startingPilotIds[index];
-    const template = pilotId === undefined ? undefined : catalog.pilots.get(pilotId);
-    if (template === undefined) return;
-
-    state.pilots.push({
-      id: `pilot-${state.nextId}`,
-      templateId: template.id,
-      name: template.name,
-      gunnery: template.gunnery,
-      piloting: template.piloting,
-      sensors: template.sensors,
-      xp: 0,
-      spentXp: 0,
-      traits: [...template.traits],
-      bio: template.bio,
-      injuredUntilDay: state.day,
-      dead: false,
-      mechId: mech.id,
-    });
-    state.nextId += 1;
-  });
-
-  logCampaign(state, `${campaign.name} begins.`);
-  return state;
-}
+export { startCampaign } from './campaignStart';
 
 export function campaignOf(catalog: Catalog, state: CampaignState) {
   const campaign = catalog.campaigns.get(state.campaignId);
@@ -112,12 +44,23 @@ export function campaignOf(catalog: Catalog, state: CampaignState) {
   return campaign;
 }
 
+export function campaignRouteOf(catalog: Catalog, state: CampaignState): CampaignRouteView {
+  const campaign = campaignOf(catalog, state);
+  const route = campaignRouteForRevision(campaign, state.campaignContentRevision);
+  if (route === null) {
+    throw new Error(
+      `campaign "${campaign.id}" has no content revision ${state.campaignContentRevision}`,
+    );
+  }
+  return route;
+}
+
 /** The authored campaign only — the jobs that advance the war. */
 export function campaignNodes(catalog: Catalog, state: CampaignState): CampaignNode[] {
-  const campaign = campaignOf(catalog, state);
+  const route = campaignRouteOf(catalog, state);
   const done = new Set(state.completedNodes);
 
-  return campaign.nodes.filter(
+  return route.nodes.filter(
     (node) =>
       !done.has(node.id) &&
       !state.failedNodes.includes(node.id) &&
@@ -205,6 +148,7 @@ export function runMission(catalog: Catalog, state: CampaignState): MissionRun {
     missionId: deployment.missionId,
     playerTeam: deployment.playerTeam,
     playerLance: deployment.entries,
+    difficulty: state.difficulty,
     maxTicks: missionTickBudget(catalog, deployment.missionId),
     // Auto-resolving a contract should play the lance properly, not park it.
     playerController: 'tactical',
@@ -212,19 +156,50 @@ export function runMission(catalog: Catalog, state: CampaignState): MissionRun {
   return resolveMission(catalog, state, battle, deployment.lance);
 }
 
+/** Validate before spending claim IDs, changing a pilot, or touching the company account. */
+function validateSettlement(state: CampaignState, battle: BattleResult, lance: readonly DeployablePair[]): void {
+  if (battle.missionStatus === 'active') throw new Error('battle has not finished');
+  const units = battle.units.filter((unit) => unit.team === PLAYER_TEAM);
+  const pilots = new Set<string>();
+  const mechs = new Set<string>();
+  for (const [index, pair] of lance.entries()) {
+    const unit = units[index];
+    if (pilots.has(pair.pilot.id) || mechs.has(pair.mech.id)) throw new Error('duplicate deployment identity');
+    pilots.add(pair.pilot.id);
+    mechs.add(pair.mech.id);
+    // Legacy callers used company pilot IDs; live simulation uses the template ID.
+    const pilotMatches = unit?.pilotId === pair.pilot.templateId || unit?.pilotId === pair.pilot.id;
+    if (findMech(state, pair.mech.id) !== pair.mech || findPilot(state, pair.pilot.id) !== pair.pilot ||
+      unit === undefined || !pilotMatches || unit.designId !== pair.mech.design.id) {
+      throw new Error('battle does not match the deployed company');
+    }
+  }
+}
+
 export function resolveMission(
   catalog: Catalog,
   state: CampaignState,
   battle: BattleResult,
   lance: DeployablePair[],
+  restDayEvents = true,
 ): MissionRun {
   const contract = state.contract;
   if (contract === null) throw new Error('no active contract');
 
+  if (battle.missionId !== contract.missionId) throw new Error('battle does not match the active contract');
+  validateSettlement(state, battle, lance);
   const won = battle.missionStatus === 'success';
+  const participants = Math.min(lance.length, battle.units.filter((unit) => unit.team === PLAYER_TEAM).length);
+  const grants = earnedCampaignRewards(catalog, state, contract, battle, participants);
+  validateRewardGrants(catalog, grants);
+  const sharedXp = awardSharedMissionXp(catalog, state, contract, battle, participants);
   const casualties: string[] = [];
   const mechsLost: string[] = [];
   const pilotReports: PilotReport[] = [];
+
+  // Only a resolved company deployment spends an infirmary mission. New
+  // casualties are applied afterward so this battle cannot heal its own wounds.
+  recoverRestingCrew(state);
 
   battle.units
     .filter((unit) => unit.team === PLAYER_TEAM)
@@ -246,7 +221,8 @@ export function resolveMission(
         mechsLost.push(pair.mech.design.name);
       }
 
-      const xp = awardXp(catalog, { pilot: pair.pilot, unit }, won);
+      const xp = awardXp(catalog, { pilot: pair.pilot, unit }, won) + sharedXp;
+      pair.pilot.xp += sharedXp;
 
       const casualty = withCampaignRng(state, (rng) =>
         resolveCasualty(catalog, rng, pair.pilot, unit, state.day),
@@ -254,7 +230,7 @@ export function resolveMission(
 
       if (casualty.died) casualties.push(`${pair.pilot.name} (killed)`);
       else if (casualty.injuredDays > 0) {
-        casualties.push(`${pair.pilot.name} (out ${casualty.injuredDays} days)`);
+        casualties.push(`${pair.pilot.name} (misses the next mission)`);
       }
 
       // Banking the award leaves the commander a real training decision; the
@@ -263,10 +239,14 @@ export function resolveMission(
         pilotId: pair.pilot.id,
         name: pair.pilot.name,
         mech: pair.mech.design.name,
+        mechId: pair.mech.id,
+        chassisId: pair.mech.design.chassisId,
         kills: unit.kills,
         damage: Math.round(unit.damageDealt),
         xp,
         xpBanked: availableXp(pair.pilot),
+        sharedXp,
+        serviceNotes: missionServiceNotes(catalog, battle, unit),
         promotions: [],
         fate: casualty.died ? 'killed' : casualty.injuredDays > 0 ? 'injured' : 'returned',
       });
@@ -296,6 +276,7 @@ export function resolveMission(
     if (!isSideContract(contract.nodeId)) state.completedNodes.push(contract.nodeId);
   }
 
+  const campaignRewards = applyCampaignRewards(catalog, state, grants);
   const outcome: MissionOutcome = {
     nodeId: contract.nodeId,
     missionId: contract.missionId,
@@ -315,6 +296,8 @@ export function resolveMission(
     pilotCasualties: casualties,
     mechsLost,
     pilotReports,
+    campaignRewards,
+    objectiveReports: battle.objectives.map(({ id, label, required, status }) => ({ id, label, required, status })),
   };
 
   state.history.push(outcome);
@@ -329,17 +312,34 @@ export function resolveMission(
   );
 
   const campaign = campaignOf(catalog, state);
-  if (won && isVictoryNode(campaign, contract.nodeId)) {
+  const route = campaignRouteOf(catalog, state);
+  if (won && isRouteVictory(route, contract.nodeId)) {
     state.finished = true;
     state.won = true;
     logCampaign(state, `${campaign.name} won.`);
   }
 
-  advanceDays(catalog, state, 1 + (failure?.recoveryDays ?? 0));
+  advanceDays(catalog, state, 1 + (failure?.recoveryDays ?? 0), restDayEvents);
   return { outcome, battle, salvage };
 }
 
-export function advanceDays(catalog: Catalog, state: CampaignState, days: number): void {
+export function standDownCampaign(catalog: Catalog, state: CampaignState): { ok: boolean; reason: string } {
+  const contract = state.contract;
+  if (contract === null) return { ok: false, reason: 'Accept a real contract to forfeit first.' };
+  if (!needsCrewStandDown(catalog, state)) {
+    return { ok: false, reason: 'Stand-down is reserved for an entirely wounded crew without affordable relief.' };
+  }
+  resolveMission(catalog, state, {
+    seed: `${state.seed}:${contract.nodeId}:stand-down`, missionId: contract.missionId,
+    missionStatus: 'failure', missionReason: 'objectives-failed', objectives: [],
+    ticks: 0, durationSeconds: 0, winner: null, decided: true, units: [], weapons: [],
+  }, [], false);
+  const reason = 'Contract forfeited. No XP, payout or salvage earned; the crew has missed a mission and can return to duty.';
+  logCampaign(state, reason);
+  return { ok: true, reason };
+}
+
+export function advanceDays(catalog: Catalog, state: CampaignState, days: number, restDayEvents = true): void {
   let remaining = days;
   let payrollPaid = 0;
 
@@ -367,7 +367,7 @@ export function advanceDays(catalog: Catalog, state: CampaignState, days: number
       remaining += failure.recoveryDays;
     }
 
-    if (!state.finished) {
+    if (!state.finished && restDayEvents) {
       withCampaignRng(state, (rng) => {
         applyRestDayEvent(catalog, state, rng.fork(`rest-day:${state.day}`));
       });
@@ -391,7 +391,7 @@ export function advanceDays(catalog: Catalog, state: CampaignState, days: number
   // asking whether anything at all is on offer would never be false again.
   if (campaignNodes(catalog, state).length === 0 && state.contract === null) {
     state.finished = true;
-    state.won = completedVictory(campaignOf(catalog, state), state.completedNodes);
+    state.won = hasCompletedRouteVictory(campaignRouteOf(catalog, state), state.completedNodes);
     logCampaign(state, state.won ? 'Campaign won.' : 'No contracts remain. Campaign over.');
   }
 }

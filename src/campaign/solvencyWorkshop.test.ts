@@ -9,7 +9,10 @@ import { assessSolvency, retireCompany } from './solvency';
 import { addToStore, type CampaignState, type MechRecord } from './types';
 
 function campaign(seed: string): CampaignState {
-  return startCampaign(catalog, 'border_dispute', seed);
+  const state = startCampaign(catalog, 'border_dispute', seed);
+  // These recovery scenarios model a company that has used its demo stock.
+  state.store = [];
+  return state;
 }
 
 function imported(state: CampaignState): CampaignState {

@@ -1,0 +1,55 @@
+> wreckright@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v8.2.1 building client environment for production...
+
+transforming...✓ 985 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                        1.95 kB │ gzip:   0.87 kB
+dist/assets/wisp_wsp1-D1KHfoMf.webp                    6.45 kB
+dist/assets/redoubt_rdt1-C_kH08cJ.webp                 6.77 kB
+dist/assets/votive_vtv2-g2-QRE-5.webp                  6.90 kB
+dist/assets/courser_crs1-EPd_6eX4.webp                 7.85 kB
+dist/assets/falchion_fal2-2_xrvYU7.webp                8.17 kB
+dist/assets/drover_dvr2-Da5Pyh31.webp                  8.44 kB
+dist/assets/obsequy_obq3-BhOKTT1A.webp                 8.66 kB
+dist/assets/pallvault_plv1-CYG7XV9w.webp               8.74 kB
+dist/assets/sentinel_snl2-XXMa6bop.webp                9.15 kB
+dist/assets/prybar_pry1-Bw8cU_1s.webp                  9.32 kB
+dist/assets/halberd_hlb4-DLgmpsw5.webp                 9.68 kB
+dist/assets/rampart_rmp4-rD1b7oiy.webp                 9.69 kB
+dist/assets/hornet_hnt2-B4HzYEJP.webp                 10.29 kB
+dist/assets/warden_wrd5-DEQ92Uy6.webp                 10.60 kB
+dist/assets/trestle_trs1-DOxC0h2D.webp                11.02 kB
+dist/assets/cairn_crn3-DuAFvXR8.webp                  11.34 kB
+dist/assets/rivet_rvt1-DZyqC-0U.webp                  12.27 kB
+dist/assets/colossus_cls1-DLQ8VbT7.webp               12.57 kB
+dist/assets/bulwark_bwk3-CEOBLwtq.webp                13.30 kB
+dist/assets/BarlowCondensed-SemiBold-B7YG4rBL.ttf    109.42 kB
+dist/assets/BarlowCondensed-Bold-v1X23fbx.ttf        109.91 kB
+dist/assets/DMSans-Variable-OkNhvBry.ttf             240.16 kB
+dist/assets/tessell-crossing-menu-CLXo2tGO.webp      242.29 kB
+dist/assets/carry-the-dawn-ironwork-C36Ljg_B.ogg     632.68 kB
+dist/assets/carry-the-dawn-monolith-CWfkTIdO.ogg     691.87 kB
+dist/assets/carry-the-dawn-core-DXUow8pz.ogg       1,331.41 kB
+dist/assets/scene-_SB6kN0u.css                         1.30 kB │ gzip:   0.50 kB
+dist/assets/shelfFit-Fb9pUHpg.css                      8.56 kB │ gzip:   2.11 kB
+dist/assets/Mechbay-tt_s0-oE.css                      62.94 kB │ gzip:  11.01 kB
+dist/assets/index-ecg73t08.css                       283.47 kB │ gzip:  54.09 kB
+dist/assets/rolldown-runtime-CbXtAM7H.js               0.58 kB │ gzip:   0.36 kB
+dist/assets/missionTerrainImage-BORni-K_.js            1.59 kB │ gzip:   0.95 kB
+dist/assets/terrain-B9lNJdJz.js                       19.42 kB │ gzip:   7.73 kB
+dist/assets/Mechbay-h0FpvsJ6.js                       99.78 kB │ gzip:  29.83 kB
+dist/assets/scene-PjJySxKR.js                        155.35 kB │ gzip:  48.24 kB
+dist/assets/startupLights-Dzcx2FPR.js                180.07 kB │ gzip:  49.10 kB
+dist/assets/shelfFit-CnD-xXNV.js                     408.10 kB │ gzip: 109.31 kB
+dist/assets/renderResolution-Cm_Z47l0.js             568.91 kB │ gzip: 144.55 kB
+dist/assets/index-BJYH9yEN.js                        841.45 kB │ gzip: 259.65 kB
+
+✓ built in 299ms
+[plugin builtin:vite-reporter]
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.

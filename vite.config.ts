@@ -6,6 +6,9 @@ export default defineConfig({
   // project subpath on GitHub Pages, and opened straight off a disk.
   base: './',
   plugins: [react()],
+  define: {
+    __WRECKRIGHT_VERSION__: JSON.stringify(process.env.npm_package_version ?? 'development'),
+  },
   test: {
     environment: 'node',
     include: ['src/**/*.test.ts', 'tests/**/*.test.ts'],

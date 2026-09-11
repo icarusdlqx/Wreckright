@@ -134,6 +134,9 @@ describe('campaign contracts', () => {
       'depot', 'pipeline', 'quartermaster',
     ]) {
       const candidate = start(seed);
+      // This pipeline remains a compatibility check for companies whose next
+      // stage was First Attestation before rescue joined the main route.
+      candidate.campaignContentRevision = 1;
       fightNode(candidate, 'militia_raid');
       if (candidate.history[0]?.won !== true) continue;
 
@@ -222,6 +225,8 @@ describe('campaign contracts', () => {
 
     const route = [
       'militia_raid',
+      'recovery_window',
+      'workshop_defence',
       'pass_skirmish',
       'foundry_sweep_node',
       'shale_overwatch_node',
@@ -243,11 +248,11 @@ describe('campaign contracts', () => {
       run.historyArchive.employers,
     );
     expect(employers.find((record) => record.id === 'halloran_freight')).toMatchObject({
-      completed: 4,
+      completed: 5,
       failed: 1,
     });
     expect(employers.find((record) => record.id === 'sarn_foundry')).toMatchObject({
-      completed: 1,
+      completed: 2,
       failed: 0,
     });
     expect(employers.find((record) => record.id === 'ridgeward_assembly')).toMatchObject({
@@ -275,6 +280,8 @@ describe('campaign contracts', () => {
     const run = start('victory');
     const route = [
       'militia_raid',
+      'recovery_window',
+      'workshop_defence',
       'pass_skirmish',
       'foundry_sweep_node',
       'shale_overwatch_node',

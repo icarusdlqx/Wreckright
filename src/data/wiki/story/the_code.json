@@ -1,0 +1,10 @@
+{
+  "id": "the_code",
+  "category": "world",
+  "sourceLoreId": "the_code",
+  "related": [
+    { "kind": "story", "id": "the_refit" },
+    { "kind": "story", "id": "the_line" },
+    { "kind": "story", "id": "the_employers" }
+  ]
+}

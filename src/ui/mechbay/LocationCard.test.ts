@@ -6,7 +6,8 @@ import {
 } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
-import { catalog } from '../../../tests/support';
+import { catalog, legacySentinelDesign } from '../../../tests/support';
+import { FittedPart } from './FittedPart';
 import { computeLoadout } from '../../sim/loadout';
 import {
   LocationCard,
@@ -31,6 +32,7 @@ interface TestButtonProps {
 function descendants(node: ReactNode): ReactElement<TestButtonProps>[] {
   if (Array.isArray(node)) return node.flatMap(descendants);
   if (!isValidElement<TestButtonProps>(node)) return [];
+  if (node.type === FittedPart) return descendants(FittedPart(node.props as Parameters<typeof FittedPart>[0]));
   return [node, ...descendants(node.props.children)];
 }
 
@@ -38,7 +40,7 @@ function fixtureProps(
   location: 'left_arm' | 'right_arm' | 'right_torso',
   overrides: Partial<CardProps> = {},
 ): CardProps {
-  const design = catalog.designs.get('sentinel_brawler');
+  const design = legacySentinelDesign;
   const chassis = catalog.chassis.get('sentinel_snl2');
   if (design === undefined || chassis === undefined) throw new Error('missing Sentinel fixture');
   const loadout = computeLoadout(catalog, design);
@@ -103,7 +105,7 @@ describe('location workbench card', () => {
   });
 
   it('reads an explicit design front and rear allocation', () => {
-    const design = catalog.designs.get('sentinel_brawler');
+    const design = legacySentinelDesign;
     const chassis = catalog.chassis.get('sentinel_snl2');
     if (design === undefined || chassis === undefined) throw new Error('missing Sentinel fixture');
     const exact = structuredClone(design);
@@ -126,14 +128,17 @@ describe('location workbench card', () => {
     expect(html).toContain('aria-label="Armour: 47 front, 5 rear, 52 of 52 total"');
   });
 
-  it('keeps the resting card to its name, rack, and compressed armour line', () => {
+  it('keeps mount requirements and free box capacity visible before picking a part', () => {
     const html = renderToStaticMarkup(createElement(LocationCard, fixtureProps('right_torso')));
 
     expect(html).toContain('aria-label="Right Torso location, 2 of 6 slots used');
     expect(html).toContain('data-testid="slots-grid-right_torso"');
     expect(html).toContain('bay-armour-compact');
     expect(html).not.toContain('class="bay-slots');
-    expect(html).not.toContain('class="bay-hardpoints"');
+    expect(html).toContain('class="bay-hardpoints"');
+    expect(html).toContain('Energy 2 free');
+    expect(html).toContain('Up to medium');
+    expect(html).toContain('4 of 6 boxes free');
     expect(html).not.toContain('class="bay-location-flags"');
     expect(html).not.toContain('bay-location-refusal');
   });
@@ -184,7 +189,7 @@ describe('location workbench card', () => {
     control('inspect-equipment-0').props.onClick?.(event);
 
     expect(onInspect.mock.calls).toEqual([
-      [{ kind: 'weapon', id: 'ac5' }],
+      [{ kind: 'weapon', id: 'ac5', sourceIndex: 0 }],
       [{ kind: 'ammo', id: 'ac5' }],
       [{ kind: 'equipment', id: 'case' }],
     ]);
@@ -206,7 +211,7 @@ describe('location workbench card', () => {
   });
 
   it('labels compatible, blocked, selected, and invalid states in text', () => {
-    const design = catalog.designs.get('sentinel_brawler');
+    const design = legacySentinelDesign;
     if (design === undefined) throw new Error('missing Sentinel fixture');
     const broken = structuredClone(design);
     broken.mounts.push({ weaponId: 'ac20', location: 'left_arm' });

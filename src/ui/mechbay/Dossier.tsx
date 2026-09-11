@@ -3,6 +3,7 @@ import type { Catalog } from '../../schema/load';
 import type { Weapon } from '../../schema/weapon';
 import { weaponSize, weaponSizeLabel } from '../../sim/loadout';
 import { equipmentEffectLines } from './equipmentPresentation';
+import { weaponFittingTradeoffs } from './fittingTradeoffs';
 import {
   foreignComponentPresentation,
   machineCulturePresentation,
@@ -22,11 +23,15 @@ import {
 export interface Inspected {
   kind: 'weapon' | 'ammo' | 'equipment';
   id: string;
+  /** Identifies an installed weapon when inspecting its anatomical tile. */
+  sourceIndex?: number;
 }
 
 export interface InspectorFit {
   ok: boolean;
   reason: string | null;
+  label?: 'Installed' | 'No spare' | 'Replace';
+  replacementOnly?: boolean;
 }
 
 /** Heat one sink carries away per second, given the sink the design is using. */
@@ -43,11 +48,11 @@ function FitStatus({ fit }: { fit: InspectorFit | null }) {
   if (fit === null) return null;
   return (
     <div
-      className={`dossier-fit ${fit.ok ? 'is-fit' : 'is-blocked'}`}
+      className={`dossier-fit ${fit.ok ? 'is-fit' : 'is-blocked'}${fit.label === 'Installed' || fit.label === 'No spare' ? ' is-stock-empty' : ''}`}
       data-testid="dossier-fit"
       role="note"
     >
-      <strong>{fit.ok ? 'Fit' : "Doesn't fit"}</strong>
+      <strong>{fit.label ?? (fit.ok ? 'Fit' : "Doesn't fit")}</strong>
       <span>{fit.reason ?? 'Ready to place.'}</span>
     </div>
   );
@@ -169,6 +174,7 @@ export function Dossier({
   const heatPerSecond = weapon.heat / weapon.cooldown;
   const sinks = Math.ceil(heatPerSecond / dissipationPerSink(catalog, heatSinkId));
   const traits = weaponTraitLines(catalog, weapon);
+  const tradeoffs = weaponFittingTradeoffs(catalog, weapon, chassisFaction, heatSinkId);
   // A ton of ammunition, spent as fast as the weapon will fire it.
   const seconds = weapon.ammoPerTon === null ? null : weapon.ammoPerTon * weapon.cooldown;
 
@@ -191,6 +197,12 @@ export function Dossier({
       <CultureLine faction={weapon.faction} chassisFaction={chassisFaction} />
       <FitStatus fit={fit} />
       <WeaponMeters catalog={catalog} weapon={weapon} />
+      <div className="dossier-integration" data-testid="weapon-fitting-tradeoffs">
+        <p>{tradeoffs.integration}</p>
+        <details><summary>Running costs &amp; spares</summary>
+          <p>{tradeoffs.operation}</p><p>{tradeoffs.source}</p>
+        </details>
+      </div>
 
       <dl className="dossier-stats">
         <div>

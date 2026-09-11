@@ -7,5 +7,45 @@
   "traits": [
     "marksman"
   ],
-  "bio": "Sarn foundry security before the Recall Authority sealed the west yard. Vale shoots the way she was taught to inspect castings: slowly, once, and at the flaw."
+  "bio": "Sarn foundry security before the Recall Authority sealed the west yard. Vale shoots the way she was taught to inspect castings: slowly, once, and at the flaw.",
+  "portrait": {
+    "skin": "#be8861",
+    "hair": "#342b29",
+    "jacket": "#476162",
+    "accent": "#efaa65",
+    "style": "sweep",
+    "face": "angular",
+    "detail": "scar",
+    "expression": "resolute",
+    "kit": "workcoat",
+    "accessory": "none",
+    "age": "mature"
+  },
+  "personality": {
+    "label": "Patient inspector",
+    "description": "Speaks sparingly and notices every flaw. More comfortable with foundry workers than flattering officers.",
+    "lines": {
+      "move": [
+        "Ground looks sound. Moving.",
+        "Taking the next station."
+      ],
+      "attack": [
+        "Found the flaw. One careful shot.",
+        "Same as a casting. Look, line up, break."
+      ],
+      "guard": [
+        "Inspection line held. Nothing through unchecked."
+      ],
+      "hold_fire": [
+        "Leave it standing. I will keep watching."
+      ],
+      "investigate": [
+        "I will inspect it before we make assumptions."
+      ],
+      "heavy_fire": [
+        "Plate is failing inspection. Need cover.",
+        "A lot of impacts on this side. Shift the pressure off me."
+      ]
+    }
+  }
 }

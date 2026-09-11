@@ -3,7 +3,8 @@ import type { Catalog } from '../schema/load';
 import { LazyMechbay } from './mechbay/LazyMechbay';
 import type { BayCommission } from './mechbay/Mechbay';
 import type { AudioDirector } from './audio';
-import { berthDesign, type SkirmishBerth } from './lance';
+import { berthDesign, type SkirmishBerth, type SkirmishFaction } from './lance';
+import { skirmishDesignAllowed, skirmishFactionName } from './skirmishFaction';
 import { useDialogFocus } from './useDialogFocus';
 
 interface IsolatedState {
@@ -50,21 +51,31 @@ export function createBattleOutfitBay(
   berthIndex: number | null,
   setLance: (lance: SkirmishBerth[]) => void,
   onClose: () => void,
+  side: 'player' | 'enemy' = 'player',
+  faction: SkirmishFaction = 'mixed',
 ): BayCommission | null {
   if (berthIndex === null) return null;
   const berth = lance[berthIndex];
   if (berth === undefined) return null;
-  const design = berthDesign(catalog, berth) ?? catalog.designs.get('sentinel_brawler');
+  const starter = faction === 'mixed' ? catalog.designs.get('sentinel_brawler') : [...catalog.designs.values()]
+    .filter((candidate) => skirmishDesignAllowed(catalog, candidate, faction))
+    .sort((left, right) => (catalog.chassis.get(left.chassisId)?.tonnage ?? 0)
+      - (catalog.chassis.get(right.chassisId)?.tonnage ?? 0) || left.id.localeCompare(right.id))[0];
+  const design = berthDesign(catalog, berth) ?? starter;
   if (design === undefined) return null;
   return {
-    title: `Berth ${berthIndex + 1}`,
+    title: `${side === 'enemy' ? 'Enemy berth' : 'Berth'} ${berthIndex + 1}`,
     cancelLabel: 'Back to briefing',
     design,
     onCancel: onClose,
     onCommit: (committedDesign) => {
+      if (!skirmishDesignAllowed(catalog, committedDesign, faction)) {
+        return { ok: false, reason: `Choose a ${skirmishFactionName(faction)} mech, or select Mixed company in the briefing.` };
+      }
       const next = lance.map((entry) => ({ ...entry }));
       const target = next[berthIndex];
       if (target === undefined) return { ok: false, reason: 'no such berth' };
+      delete target.empty;
       target.designId = null;
       target.design = committedDesign;
       setLance(next);
@@ -90,7 +101,7 @@ export function OutfitBayDialog({
   // Register isolation first so its cleanup restores the trigger before the
   // focus hook returns focus to it.
   useModalBackgroundIsolation(backdropRef);
-  useDialogFocus(dialogRef, dialogRef, onClose);
+  useDialogFocus(dialogRef, dialogRef);
 
   return (
     <div ref={backdropRef} className="manifest-backdrop" data-testid="outfit-bay">

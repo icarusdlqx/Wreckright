@@ -33,13 +33,17 @@ export function useDialogFocus(
     initialFocus?.focus();
 
     const onKeyDown = (event: KeyboardEvent): void => {
+      // A foreground archive may preserve a refit dialog beneath an inert layer.
+      if (dialogRef.current?.closest('[inert]') !== null) return;
       const escape = escapeRef.current;
       if (event.key === 'Escape' && escape !== undefined) {
         event.preventDefault();
+        event.stopPropagation();
         escape();
         return;
       }
       if (event.key !== 'Tab' || dialogRef.current === null) return;
+      event.stopPropagation();
 
       const focusable = focusableWithin(dialogRef.current);
       const first = focusable[0];

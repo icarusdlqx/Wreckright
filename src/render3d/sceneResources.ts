@@ -10,6 +10,7 @@ import {
   type Object3D,
   type WebGLRenderer,
 } from 'three';
+import { renderPixelRatio } from './renderResolution';
 
 export interface RendererStats {
   calls: number;
@@ -39,8 +40,9 @@ export function configureRenderer(
   renderer: WebGLRenderer,
   lowFx: boolean,
   devicePixelRatio: number,
+  viewport?: { width: number; height: number },
 ): void {
-  renderer.setPixelRatio(lowFx ? 1 : Math.min(1.5, devicePixelRatio));
+  renderer.setPixelRatio(renderPixelRatio(devicePixelRatio, lowFx, viewport?.width, viewport?.height));
   renderer.shadowMap.enabled = !lowFx;
   renderer.shadowMap.type = PCFShadowMap;
   renderer.outputColorSpace = SRGBColorSpace;

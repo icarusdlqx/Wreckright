@@ -1,0 +1,10 @@
+{
+  "id": "the_employers",
+  "category": "factions",
+  "sourceLoreId": "the_employers",
+  "related": [
+    { "kind": "story", "id": "tessell" },
+    { "kind": "story", "id": "the_code" },
+    { "kind": "story", "id": "places_on_the_line" }
+  ]
+}

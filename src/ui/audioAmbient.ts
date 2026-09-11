@@ -15,6 +15,13 @@ interface AmbientProfile {
   level: number;
 }
 
+export interface LocationSoundProfile {
+  family: 'workshop' | 'tender' | 'archive';
+  machineHz: number;
+  pulseHz: number;
+  voice: OscillatorType;
+}
+
 /** Loud enough to end the silence, quiet enough never to fight a weapon. */
 const AMBIENT_LEVEL = 0.055;
 
@@ -30,8 +37,21 @@ const AMBIENT_PROFILES: Readonly<Record<string, AmbientProfile>> = {
   industrial_smog: { windHz: 340, gustHz: 0.03, droneHz: 82, level: 0.9 },
 };
 
+const LOCATION_PROFILES: Readonly<Record<string, LocationSoundProfile>> = {
+  line_workshop_belt: { family: 'workshop', machineHz: 64, pulseHz: 0.72, voice: 'square' },
+  line_recovery_cut: { family: 'workshop', machineHz: 48, pulseHz: 0.36, voice: 'triangle' },
+  aurelian_landing_apron: { family: 'tender', machineHz: 118, pulseHz: 1.4, voice: 'sine' },
+  aurelian_service_terraces: { family: 'tender', machineHz: 142, pulseHz: 0.92, voice: 'sine' },
+  aurelian_civic_exchange: { family: 'tender', machineHz: 105, pulseHz: 1.08, voice: 'sine' },
+  barrow_archive: { family: 'archive', machineHz: 74, pulseHz: 0.5, voice: 'triangle' },
+};
+
+export function locationSoundProfile(mapId: string | undefined): LocationSoundProfile | null {
+  return mapId === undefined ? null : LOCATION_PROFILES[mapId] ?? null;
+}
+
 /** Builds the battlefield's standing sound and returns its entire lifetime. */
-export function startAmbient(bus: AmbientBus, atmosphereId: string): AmbientHandle {
+export function startAmbient(bus: AmbientBus, atmosphereId: string, mapId?: string): AmbientHandle {
   const profile = AMBIENT_PROFILES[atmosphereId] ?? AMBIENT_PROFILES['overcast_day'];
   if (profile === undefined) return { stop: () => undefined };
 
@@ -71,6 +91,25 @@ export function startAmbient(bus: AmbientBus, atmosphereId: string): AmbientHand
     drone.connect(droneLevel).connect(level);
     drone.start();
     sources.push(drone);
+  }
+
+  const location = locationSoundProfile(mapId);
+  if (location !== null) {
+    const machine = bus.context.createOscillator();
+    machine.type = location.voice;
+    machine.frequency.value = location.machineHz;
+    const machineLevel = bus.context.createGain();
+    machineLevel.gain.value = location.family === 'workshop' ? 0.095 : 0.06;
+    const pulse = bus.context.createOscillator();
+    pulse.type = 'sine';
+    pulse.frequency.value = location.pulseHz;
+    const pulseDepth = bus.context.createGain();
+    pulseDepth.gain.value = location.family === 'tender' ? 0.022 : 0.04;
+    pulse.connect(pulseDepth).connect(machineLevel.gain);
+    machine.connect(machineLevel).connect(level);
+    machine.start();
+    pulse.start();
+    sources.push(machine, pulse);
   }
 
   let stopped = false;

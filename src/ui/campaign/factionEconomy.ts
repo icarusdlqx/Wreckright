@@ -4,7 +4,7 @@ import type { Catalog } from '../../schema/load';
 
 const FACTION_LABELS: Record<Faction, string> = {
   linewrought: 'Linewrought',
-  aurelian: 'Aurelian Stock (Sealed)',
+  aurelian: 'Aurelian Stock',
 };
 
 function listLabels(factions: readonly Faction[]): string {
@@ -22,7 +22,7 @@ export function factionLabel(faction: Faction): string {
 export function workshopFactionLine(catalog: Catalog, faction: Faction): string {
   const factors = catalog.rules.economy.repair.factionFactors[faction];
   const marketSupported = catalog.rules.economy.market.availableFactions.includes(faction);
-  return `${factionLabel(faction)} · ${factor(factors.cost)}× workshop cost · ${factor(factors.days)}× workshop time · ${marketSupported ? 'local repair supply' : 'replacement parts salvage-only'}`;
+  return `${factionLabel(faction)} · ${factor(factors.cost)}× workshop cost · ${factor(factors.days)}× workshop time · ${marketSupported ? 'local repair supply' : 'replacement weapons and equipment salvage-only'}`;
 }
 
 export function yardStockLine(catalog: Catalog): string {
@@ -32,5 +32,5 @@ export function yardStockLine(catalog: Catalog): string {
   const salvageOnly = FactionSchema.options.filter((faction) => !available.includes(faction));
   const stock = `Yard stock: ${listLabels(available)} machines only.`;
   if (salvageOnly.length === 0) return stock;
-  return `${stock} ${listLabels(salvageOnly)} machines and replacement parts are salvage-only.`;
+  return `${stock} ${listLabels(salvageOnly)} machines and replacement parts are salvage-only. Recovered weapons fit either faction where mount type, size, boxes and tonnage allow.`;
 }

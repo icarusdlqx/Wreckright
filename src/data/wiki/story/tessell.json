@@ -1,0 +1,34 @@
+{
+  "id": "tessell",
+  "category": "world",
+  "title": "Tessell",
+  "summary": "A working world of freight roads, farm towns and repair yards. Its old walkers carry more claims than their armour shows.",
+  "sections": [
+    {
+      "heading": "What keeps moving",
+      "body": [
+        "Ore must reach the works. Food must reach the towns. A repair hall without power leaves somebody's working machine on a gantry. Tessell's disputes follow those connections: a road, a breaker or a freight register can matter to settlements well beyond the ground a lance can see.",
+        "The Aurelian Compact left nearly a century ago. The people who remained maintained its useful machinery and replaced much of the rest. Tessell makes plate, guns, ammunition, limbs and tracked carriers. It cannot make a walker root. The distinction is visible in a yard full of new parts waiting for one old machine."
+      ]
+    },
+    {
+      "heading": "A company among neighbours",
+      "body": [
+        "Kestrel holds titles. Halloran moves freight. The Ridgeward Assembly speaks for farm towns, while Sarn keeps machines working and records what their owners owe. These powers hire free companies when a claim needs an armed presence. Their interests cross, and a company may be paid to guard a road it fought over the month before.",
+        "Linewrought and Aurelian Stock describe machine cultures, not two populations or two complete armies. A hull can change hands, and a company can operate both. The repair marks and weapons show how a machine has been kept in service; they do not settle who has a right to it."
+      ]
+    },
+    {
+      "heading": "What the Recall claims",
+      "body": [
+        "The returning Continuance claims the roots, not Tessell itself. That narrow wording reaches into company bays, freight accounts and workshop liens. Its settlements need the surviving machines too. The Authority brings records and a finite guard; local people bring a century of repairs and the fact that the machines are already here. Wreckright begins where those answers meet on the same ground."
+      ]
+    }
+  ],
+  "related": [
+    { "kind": "story", "id": "the_line" },
+    { "kind": "story", "id": "the_employers" },
+    { "kind": "story", "id": "the_foundry_winter" },
+    { "kind": "story", "id": "places_on_the_line" }
+  ]
+}

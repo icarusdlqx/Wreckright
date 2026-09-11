@@ -13,8 +13,9 @@ import { isMechAvailable, type CampaignState } from '../../campaign/types';
 import { cbills } from './Panels';
 import { ContractBriefing } from './ContractBriefing';
 import { workshopFactionLine } from './factionEconomy';
-import { authoredDesignName, designIdentityLabel } from '../designLabel';
+import { authoredDesignName } from '../designLabel';
 import { useDialogFocus } from '../useDialogFocus';
+import { MachineIdentity, PreparationSteps, RepairReadout } from './MachineIdentity';
 
 interface Props {
   catalog: Catalog;
@@ -52,7 +53,7 @@ export function Hangar({ catalog, state, mutate, onRefit, onContinue, onCancel }
   return (
     <div className="manifest-backdrop" data-testid="hangar-stage">
       <section
-        className="manifest hangar"
+        className="manifest hangar exp-prep"
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
@@ -60,22 +61,25 @@ export function Hangar({ catalog, state, mutate, onRefit, onContinue, onCancel }
         tabIndex={-1}
       >
         <header>
+          <PreparationSteps stage="bay" />
           <h3 id="hangar-title">Mechbay — prepare the machines</h3>
           <p>
             {mission?.name ?? 'Contract'}
-            {employer === null ? '' : ` — ${employer}.`} Repair what is broken, refit
-            what is mis-armed, then move on to the drop manifest.
+            {employer === null ? '' : ` — ${employer}.`} Check condition and equipment,
+            then choose the machines and pilots for the drop.
           </p>
           {contract === null ? null : (
-            <ContractBriefing
-              catalog={catalog}
-              state={state}
-              missionId={contract.missionId}
-              deadlineDay={contract.deadlineDay}
-              nodeId={contract.nodeId}
-              terms={contract}
-            />
+            <details className="exp-prep-contract">
+              <summary>Mission orders &amp; signed terms</summary>
+              <ContractBriefing catalog={catalog} state={state} missionId={contract.missionId}
+                deadlineDay={contract.deadlineDay} nodeId={contract.nodeId} terms={contract} />
+            </details>
           )}
+          <dl className="exp-prep-summary">
+            <div><dt>Fieldable machines</dt><dd>{state.mechs.filter((mech) => isMechAvailable(state, mech) && mech.status !== 'hulk' && mech.design.mounts.length > 0).length}</dd></div>
+            <div><dt>Workshop bookings</dt><dd>{queue.length}</dd></div>
+            <div><dt>Today</dt><dd>Day {state.day}</dd></div>
+          </dl>
         </header>
 
         <ul className="manifest-list">
@@ -110,16 +114,17 @@ export function Hangar({ catalog, state, mutate, onRefit, onContinue, onCancel }
             return (
               <li key={mech.id} className="manifest-row" data-testid={`hangar-${mech.id}`}>
                 <div className="manifest-pilot">
-                  <span className="pilot-name">{designIdentityLabel(catalog, mech.design)}</span>
+                  <MachineIdentity catalog={catalog} design={mech.design} />
                   {chassis === undefined ? null : (
                     <small className="faction-economy" data-faction={chassis.faction}>
                       {workshopFactionLine(catalog, chassis.faction)}
                     </small>
                   )}
-                  <small className="manifest-status">{status}</small>
                 </div>
 
                 <div className="manifest-mech">
+                  <RepairReadout catalog={catalog} state={state} mech={mech} estimate={estimate}
+                    projected={projected} booking={booking} ready={ready} status={status} />
                   <div
                     className="manifest-health"
                     title={`${Math.round(health * 100)}% intact · ${integrity.current}/${integrity.maximum} armour and structure`}

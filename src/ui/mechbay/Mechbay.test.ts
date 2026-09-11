@@ -2,13 +2,13 @@ import { readFileSync } from 'node:fs';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { catalog } from '../../../tests/support';
+import { catalog, legacySentinelDesign } from '../../../tests/support';
 import { beginDesignHistory } from './designHistory';
 import { Mechbay } from './Mechbay';
 
 describe('campaign cooling inventory', () => {
   it('shows an unavailable heat-sink type without allowing it to be selected', () => {
-    const design = catalog.designs.get('sentinel_brawler');
+    const design = legacySentinelDesign;
     if (design === undefined) throw new Error('missing Sentinel design');
 
     const html = renderToStaticMarkup(
@@ -72,7 +72,8 @@ describe('mechbay presentation', () => {
     const html = renderToStaticMarkup(createElement(Mechbay, { onExit: () => undefined }));
 
     expect(html).not.toContain('data-targeting="true"');
-    expect(html).not.toContain('class="bay-hardpoints"');
+    expect(html).toContain('class="bay-hardpoints"');
+    expect(html).not.toContain('rack-drop-preview');
   });
 
   it('renders the live preview, selectable locations, and compact inspected catalog', () => {
@@ -87,9 +88,9 @@ describe('mechbay presentation', () => {
     expect(html).toContain('Lasers');
     expect(html).toContain('data-testid="machine-culture-primary"');
     expect(html).toContain('data-testid="machine-culture-shelf"');
-    expect(html).toContain('Aurelian Stock — Sealed');
-    expect(html).toContain('Mixed-pattern fit installed');
-    expect(html).toContain('Culture is informational; mount, slots, tonnage, and stock decide fit.');
+    expect(html).toContain('Aurelian Stock');
+    expect(html).not.toContain('Mixed refit installed');
+    expect(html).toContain('Both origins can be mixed. Mount type, size, boxes, weight and stock decide fit; cooling and ammunition decide how it fights.');
     expect(html).toContain('Linewrought');
     expect(html).toContain('data-testid="shelf-search"');
     expect(html).toContain('data-testid="shelf-family"');
@@ -122,7 +123,7 @@ describe('mechbay presentation', () => {
 
     expect(replaceStart).toBeGreaterThan(-1);
     expect(replaceEnd).toBeGreaterThan(replaceStart);
-    expect(source).toContain('onDesignPick={replace}');
+    expect(source).toContain('onDesignPick={(next) => draftExit.requestAction(() => replace(next))}');
     expect(replaceBlock).toContain('setSelectedLocation(null)');
     expect(replaceBlock).toContain('setHoveredLocation(null)');
     expect(replaceBlock).toContain('setArmed(null)');
@@ -166,10 +167,10 @@ describe('mechbay presentation', () => {
 
     expect(
       html.match(
-        /<span class="machine-culture__badge">Linewrought — Workshop<\/span>/g,
+        /<span class="machine-culture__badge">Linewrought<\/span>/g,
       ),
     ).toHaveLength(2);
-    expect(html).toContain('aria-label="Machine culture: Linewrought — Workshop"');
+    expect(html).toContain('aria-label="Machine culture: Linewrought"');
     expect(html).toContain('data-faction="linewrought"');
   });
 });

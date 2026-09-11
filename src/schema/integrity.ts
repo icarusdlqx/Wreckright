@@ -1,3 +1,4 @@
+import { checkCampaignRewards } from './campaignRewards';
 import { validateDesign } from './designValidation';
 import type { Catalog, ContentIssue } from './load';
 import type { Deployment } from './mission';
@@ -101,6 +102,8 @@ function checkMissions(catalog: Catalog, push: Push): void {
           effect.units.forEach((unit, unitIndex) =>
             checkDeployment(unit, `${path}.units.${unitIndex}`),
           );
+        } else if (effect.type === 'message' && effect.speakerPilotId !== undefined && !catalog.pilots.has(effect.speakerPilotId)) {
+          push(file, `${path}.speakerPilotId`, `unknown pilot "${effect.speakerPilotId}"`);
         } else if (effect.type === 'reveal' && (effect.x >= extentX || effect.y >= extentY)) {
           push(
             file,
@@ -186,6 +189,15 @@ function checkCampaigns(catalog: Catalog, push: Push): void {
   for (const campaign of catalog.campaigns.values()) {
     const file = `campaigns/${campaign.id}.json`;
 
+    const supplied = new Set<string>();
+    for (const [index, item] of (campaign.demoSupplies?.items ?? []).entries()) {
+      const source = item.kind === 'weapon' ? catalog.weapons : catalog.equipment;
+      if (!source.has(item.itemId)) push(file, `demoSupplies.items.${index}.itemId`, `unknown ${item.kind} "${item.itemId}"`);
+      const key = `${item.kind}/${item.itemId}`;
+      if (supplied.has(key)) push(file, `demoSupplies.items.${index}`, 'duplicate demo supply; use its count');
+      supplied.add(key);
+    }
+
     for (const node of campaign.nodes) {
       if (!catalog.missions.has(node.missionId)) {
         push(file, `nodes.${node.id}`, `unknown mission "${node.missionId}"`);
@@ -220,4 +232,5 @@ export function checkIntegrity(catalog: Catalog, issues: ContentIssue[]): void {
   checkAiFireModes(catalog, push);
   checkTerrainFire(catalog, push);
   checkCampaigns(catalog, push);
+  checkCampaignRewards(catalog, push);
 }

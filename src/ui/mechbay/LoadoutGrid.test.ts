@@ -37,6 +37,8 @@ function render(options: {
     onCancelArmed: () => undefined,
     onGuideExpandedChange: () => undefined,
     onAutoFit: () => undefined,
+    onReplace: () => undefined,
+    replacements: new Map(),
     onDrop: () => undefined,
     onRemoveMount: () => undefined,
     onRemoveAmmo: () => undefined,
@@ -51,13 +53,14 @@ describe('loadout fitting guide', () => {
   it('keeps the guide neutral until it can observe a held part', () => {
     const html = render();
 
-    expect(html).toContain('Fit parts in three steps');
+    expect(html).toContain('Match the boxes. Drop to fit.');
+    expect(html).toContain('1 box = 1 slot');
     expect(html).toContain('Ready to fit or review');
     expect(html).toContain('<span>1</span><strong>Pick</strong>');
     expect(html).toContain('<span>3</span><strong>Review</strong>');
     expect(html).not.toContain('aria-current="step"');
     expect(html.match(/data-testid="bay-location-/g)).toHaveLength(8);
-    expect(html).not.toContain('class="bay-hardpoints"');
+    expect(html.match(/class="bay-hardpoints"/g)).toHaveLength(8);
     expect(html).not.toContain('class="bay-slots');
   });
 
@@ -97,7 +100,7 @@ describe('loadout fitting guide', () => {
     const css = readFileSync(new URL('./locationWorkbench.css', import.meta.url), 'utf8');
 
     expect(css).toMatch(/\.location-overview\s*\{[^}]*repeat\(2, minmax\(0, 1fr\)\)/s);
-    expect(css).toMatch(/@media \(max-width: 640px\), \(pointer: coarse\) and \(max-width: 1100px\)/);
+    expect(css).toMatch(/@media \(max-width: 900px\), \(pointer: coarse\) and \(max-width: 1100px\)/);
     expect(css).toMatch(/\.location-overview \.slot-block,[\s\S]*?min-height: 44px;/);
     expect(css).toMatch(/\.location-overview \.slot-block__remove \{[\s\S]*?min-width: 58px;/);
   });

@@ -7,6 +7,7 @@ import type { EmployerHistory } from '../../campaign/employers';
 import type { Catalog } from '../../schema/load';
 import { EmployerLedger, employerHistoryText } from './EmployerLedger';
 import { ContractBriefing } from './ContractBriefing';
+import { CompanyEpilogue } from './CompanyEpilogue';
 import { SalvageTerms } from './SalvageTerms';
 
 function cbills(value: number): string {
@@ -119,7 +120,8 @@ export function ContractPanel({
           </div>
         </>
       ) : node === null ? (
-        <p>No contracts on offer. {finished ? (won ? 'Campaign won.' : 'Campaign over.') : ''}</p>
+        <><p>No contracts on offer. {finished ? (won ? 'Campaign won.' : 'Campaign over.') : ''}</p>
+          <CompanyEpilogue catalog={catalog} state={state} /></>
       ) : (
         <>
           <h3>{node.name}</h3>
@@ -176,6 +178,7 @@ export function ContractPanel({
           <button
             type="button"
             disabled={selected === null}
+            title={selected === null ? 'Choose contract terms before signing.' : `Sign ${selected.name} and proceed to outfit the company.`}
             onClick={() => {
               if (selected !== null) onAccept(selected.id);
             }}

@@ -3,17 +3,17 @@
   "name": "Pallvault",
   "chassisId": "pallvault_plv1",
   "armour": {
-    "head": 29,
-    "centre_torso": 175,
-    "left_torso": 119,
-    "right_torso": 119,
-    "left_arm": 46,
-    "right_arm": 46,
-    "left_leg": 83,
-    "right_leg": 83
+    "head": 30,
+    "centre_torso": 200,
+    "left_torso": 132,
+    "right_torso": 132,
+    "left_arm": 68,
+    "right_arm": 68,
+    "left_leg": 85,
+    "right_leg": 85
   },
-  "heatSinkId": "heat_sink",
-  "heatSinks": 27,
+  "heatSinkId": "double_heat_sink",
+  "heatSinks": 24,
   "mounts": [
     {
       "weaponId": "large_pulse_laser",
@@ -30,6 +30,10 @@
     {
       "weaponId": "medium_pulse_laser",
       "location": "right_arm"
+    },
+    {
+      "weaponId": "plasma_rifle",
+      "location": "centre_torso"
     }
   ],
   "ammo": [],

@@ -21,8 +21,9 @@ import type { Chassis } from '../../schema/chassis';
 import type { Design } from '../../schema/design';
 import { radiusFor } from '../../render/shape';
 import type { Catalog } from '../../schema/load';
-import { buildPreviewModel, previewModelKey, setPreviewHighlights, type PreviewHighlights, type PreviewModel } from './previewModel';
+import { buildPreviewModel, previewModelKey, setPreviewHighlights, type PreviewCondition, type PreviewHighlights, type PreviewModel } from './previewModel';
 import { PreviewLoop } from './previewLoop';
+import { renderPixelRatio } from '../../render3d/renderResolution';
 
 export interface MechPreviewCallbacks {
   onHoverLocation?: (location: MechLocation | null) => void;
@@ -71,6 +72,7 @@ export class MechPreviewRenderer {
     private readonly host: HTMLElement,
     private readonly catalog: Catalog,
     reducedMotion: boolean,
+    private readonly fitToMachine = false,
   ) {
     let heaviest = 50;
     for (const chassis of catalog.chassis.values()) {
@@ -87,7 +89,7 @@ export class MechPreviewRenderer {
     });
     try {
       this.renderer.setClearColor(new Color(0x000000), 0);
-      this.renderer.setPixelRatio(Math.min(1.5, globalThis.devicePixelRatio ?? 1));
+      this.renderer.setPixelRatio(renderPixelRatio(globalThis.devicePixelRatio ?? 1, false, this.host.clientWidth, this.host.clientHeight));
       this.renderer.outputColorSpace = SRGBColorSpace;
       this.renderer.toneMapping = ACESFilmicToneMapping;
       this.renderer.toneMappingExposure = 1.08;
@@ -122,11 +124,11 @@ export class MechPreviewRenderer {
     }
   }
 
-  setMachine(chassis: Chassis, design: Design): void {
-    const key = previewModelKey(chassis, design);
+  setMachine(chassis: Chassis, design: Design, condition?: PreviewCondition): void {
+    const key = previewModelKey(chassis, design, condition);
     if (key === this.current?.key) return;
 
-    const next = buildPreviewModel(this.catalog, chassis, design);
+    const next = buildPreviewModel(this.catalog, chassis, design, condition);
     try {
       this.bounds.setFromObject(next.model.root);
       this.bounds.getCenter(next.model.root.position).multiplyScalar(-1);
@@ -235,6 +237,7 @@ export class MechPreviewRenderer {
     try {
       const width = Math.max(1, this.host.clientWidth);
       const height = Math.max(1, this.host.clientHeight);
+      this.renderer.setPixelRatio(renderPixelRatio(globalThis.devicePixelRatio ?? 1, false, width, height));
       this.renderer.setSize(width, height, false);
       this.camera.aspect = width / height;
       this.fitCamera();
@@ -251,8 +254,8 @@ export class MechPreviewRenderer {
     // A machine may still outgrow the reference frame — a long-gunned build's
     // bounding sphere can beat the heaviest bare hull — so the frame gives
     // ground only when it must, and a light stays honestly small in it.
-    const framed = Math.max(this.referenceRadius, this.radius);
-    const distance = (framed / Math.sin(halfFov)) * 1.12;
+    const framed = this.fitToMachine ? this.radius : Math.max(this.referenceRadius, this.radius);
+    const distance = (framed / Math.sin(halfFov)) * (this.fitToMachine ? 1.02 : 1.12);
     this.camera.position.copy(CAMERA_DIRECTION).multiplyScalar(distance);
     this.camera.near = Math.max(0.1, distance - framed * 1.6);
     this.camera.far = distance + framed * 3;

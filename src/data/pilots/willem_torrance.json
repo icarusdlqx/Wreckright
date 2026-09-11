@@ -7,5 +7,45 @@
   "traits": [
     "snap_shot"
   ],
-  "bio": "Torrance fires on the move because standing still is what killed the man who trained him. It should not work as well as it does."
+  "bio": "Torrance fires on the move because standing still is what killed the man who trained him. It should not work as well as it does.",
+  "portrait": {
+    "skin": "#d0a488",
+    "hair": "#a59481",
+    "jacket": "#526577",
+    "accent": "#87d4c5",
+    "style": "sweep",
+    "face": "angular",
+    "detail": "scar",
+    "expression": "resolute",
+    "kit": "officer",
+    "accessory": "none",
+    "age": "veteran"
+  },
+  "personality": {
+    "label": "Driven outrider",
+    "description": "Never quite settles at rest. Watches the rookies\u2019 spacing with a mentor\u2019s fierce protectiveness.",
+    "lines": {
+      "move": [
+        "Keep your feet. Keep your distance.",
+        "Move now. Do not give them a still target."
+      ],
+      "attack": [
+        "Guns tracking. Keep moving through it.",
+        "Hit them from the stride."
+      ],
+      "guard": [
+        "Holding. Keep an escape lane open."
+      ],
+      "hold_fire": [
+        "Hold the shot. Keep the machine moving."
+      ],
+      "investigate": [
+        "I will get eyes on it. Keep your spacing."
+      ],
+      "heavy_fire": [
+        "They have my pace. I need a new lane.",
+        "Too many hits. Cover the turn."
+      ]
+    }
+  }
 }

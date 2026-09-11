@@ -1,0 +1,168 @@
+{
+  "id": "custody_survey",
+  "name": "Survey — The Unbroken Chain",
+  "type": "recon",
+  "mapId": "aurelian_service_terraces",
+  "briefing": "Take one machine up to 50 tonnes and key the lower and crown service readers in sequence. The patrol guards the central ramp. Contact is optional; the dispatch ledger on the east platform is useful.",
+  "maxDurationSeconds": 240,
+  "startingResourcePoints": 200,
+  "dropTonnage": 50,
+  "maxPlayerUnits": 1,
+  "lances": [
+    {
+      "team": 0,
+      "name": "Aurelian Custody Detail",
+      "units": [
+        {
+          "designId": "votive_picket",
+          "pilotId": "petra_lindqvist",
+          "spawn": {
+            "x": 900,
+            "y": 1092
+          },
+          "facingDegrees": -90
+        }
+      ]
+    },
+    {
+      "team": 1,
+      "name": "Terrace Road Patrol",
+      "units": [
+        {
+          "designId": "courser_patrol",
+          "pilotId": "kessa_vale",
+          "spawn": {
+            "x": 540,
+            "y": 564
+          },
+          "facingDegrees": 90
+        },
+        {
+          "designId": "hornet_spotter",
+          "pilotId": "dorn_hess",
+          "spawn": {
+            "x": 876,
+            "y": 228
+          },
+          "facingDegrees": 135
+        }
+      ]
+    }
+  ],
+  "zones": [
+    {
+      "id": "west_service_post",
+      "name": "Lower Service Reader",
+      "x": 540,
+      "y": 948,
+      "radius": 48,
+      "owner": null,
+      "captureSeconds": 8,
+      "resourcePoints": 0
+    },
+    {
+      "id": "upper_service_post",
+      "name": "Relay Crown Reader",
+      "x": 252,
+      "y": 228,
+      "radius": 48,
+      "owner": null,
+      "captureSeconds": 8,
+      "resourcePoints": 0
+    },
+    {
+      "id": "dispatch_ledger",
+      "name": "Optional Dispatch Ledger",
+      "x": 876,
+      "y": 228,
+      "radius": 44,
+      "owner": null,
+      "captureSeconds": 8,
+      "resourcePoints": 0
+    },
+    {
+      "id": "road_watch",
+      "name": "Central Ramp Patrol",
+      "x": 540,
+      "y": 564,
+      "radius": 55,
+      "owner": 1,
+      "captureSeconds": 12,
+      "resourcePoints": 0
+    }
+  ],
+  "objectives": [
+    {
+      "id": "record_chain",
+      "label": "Key both service readers",
+      "type": "capture_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": [
+        "west_service_post",
+        "upper_service_post"
+      ]
+    },
+    {
+      "id": "copy_dispatch_ledger",
+      "label": "Optional: copy the dispatch ledger",
+      "type": "capture_zones",
+      "team": 0,
+      "required": false,
+      "zoneIds": [
+        "dispatch_ledger"
+      ]
+    },
+    {
+      "id": "surveyor_survives",
+      "label": "Keep the survey machine operational",
+      "type": "survive",
+      "team": 0,
+      "required": true
+    }
+  ],
+  "enemyDirectives": [
+    {
+      "id": "ramp_watch",
+      "team": 1,
+      "zoneId": "road_watch",
+      "behavior": "defend",
+      "units": 2,
+      "pursuitRadius": 190
+    }
+  ],
+  "triggers": [
+    {
+      "id": "survey_warrant",
+      "when": {
+        "type": "elapsed",
+        "seconds": 2
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Tender: lower reader, then relay crown. The centre patrol need not be engaged.",
+          "speakerPilotId": "silas_okonkwo"
+        }
+      ]
+    },
+    {
+      "id": "lower_read",
+      "when": {
+        "type": "zone_captured",
+        "zoneId": "west_service_post",
+        "team": 0
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Lower reader keyed. East switchback reaches the crown outside the patrol’s usual circuit.",
+          "speakerPilotId": "teodor_krysa"
+        }
+      ]
+    }
+  ],
+  "atmosphereId": "moonlit_night"
+}

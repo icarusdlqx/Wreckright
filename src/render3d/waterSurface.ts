@@ -27,15 +27,17 @@ interface WaterTile {
  */
 export class WaterSurface extends Mesh<BufferGeometry, MeshBasicMaterial> {
   private lowFx = false;
+  readonly flowTime = { value: 0 };
 
   setLowFx(lowFx: boolean): void {
     this.lowFx = lowFx;
-    if (lowFx) this.material.opacity = STATIC_OPACITY;
+    if (lowFx) { this.material.opacity = STATIC_OPACITY; this.flowTime.value = 0; }
   }
 
   setTime(seconds: number): void {
     if (this.lowFx || !Number.isFinite(seconds)) return;
     const time = Math.max(0, seconds);
+    this.flowTime.value = time;
     this.material.opacity =
       0.17 + Math.sin(time * 1.7) * 0.03 + Math.sin(time * 3.1 + 0.8) * 0.02;
   }
@@ -91,7 +93,7 @@ export function buildWaterSurface(
   const size = grid.tileSize;
 
   for (const tile of tiles) {
-    const baseAngle = hash(tile.column, tile.row, 151) * Math.PI;
+    const baseAngle = .13 + hash(tile.column, tile.row, 151) * .18;
     const directionX = Math.cos(baseAngle);
     const directionY = Math.sin(baseAngle);
     const normalX = -directionY;
@@ -143,6 +145,15 @@ export function buildWaterSurface(
   );
   surface.name = 'water-surface';
   surface.renderOrder = 1;
+  surface.material.onBeforeCompile = (shader) => {
+    shader.uniforms.waterFlowTime = surface.flowTime;
+    shader.vertexShader = 'varying vec2 vWaterPoint;\n' + shader.vertexShader;
+    shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvWaterPoint = position.xz;');
+    shader.fragmentShader = 'uniform float waterFlowTime; varying vec2 vWaterPoint;\n' + shader.fragmentShader;
+    shader.fragmentShader = shader.fragmentShader.replace('#include <color_fragment>',
+      '#include <color_fragment>\nfloat wave = sin(vWaterPoint.x * .071 + vWaterPoint.y * .043 - waterFlowTime * 1.4);\ndiffuseColor.a *= .66 + .34 * wave;');
+  };
+  surface.material.customProgramCacheKey = () => 'flowing-water-glints';
   return surface;
 }
 

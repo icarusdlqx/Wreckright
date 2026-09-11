@@ -2,7 +2,7 @@ import { Group, Vector3 } from 'three';
 import type { Weapon } from '../schema/weapon';
 import type { Vec2 } from '../sim/types';
 import { disposeObjectResources } from './sceneResources';
-import { ShotBurstPool, type ShotBurstKind } from './shotBurstPool';
+import { ShotBurstPool, type ImpactFamily, type ShotBurstKind } from './shotBurstPool';
 import {
   InstantShotPool,
   ProjectileShotPool,
@@ -67,13 +67,23 @@ export class TracerLayer {
   constructor() {
     this.group.add(
       this.bursts.mesh,
+      this.bursts.shapes.flare,
+      this.bursts.shapes.blast,
+      this.bursts.shapes.plates,
       this.beam.mesh,
+      this.beam.detail,
       this.pulse.mesh,
+      this.pulse.detail,
       this.bolt.mesh,
+      this.bolt.detail,
       this.flame.mesh,
+      this.flame.detail,
       this.shell.mesh,
+      this.shell.wake.mesh,
       this.slug.mesh,
+      this.slug.wake.mesh,
       this.missile.mesh,
+      this.missile.wake.mesh,
       this.smoke.mesh,
     );
   }
@@ -82,6 +92,11 @@ export class TracerLayer {
     if (this.disposed) return;
     this.lowFx = lowFx;
     this.reducedMotion = reducedMotion;
+    this.bursts.shapes.flare.visible = !lowFx;
+    this.bursts.shapes.blast.visible = !lowFx;
+    this.bursts.shapes.plates.visible = !lowFx && !reducedMotion;
+    for (const pool of [this.shell, this.slug, this.missile]) pool.wake.setEnabled(!lowFx && !reducedMotion);
+    for (const pool of [this.beam, this.pulse, this.bolt, this.flame]) pool.setDetailEnabled(!lowFx);
   }
 
   fire(
@@ -113,27 +128,27 @@ export class TracerLayer {
     }
 
     if (visual.style === 'beam') {
-      this.beam.spawn(from, to.x, endY, to.y, colour, visual.width, BEAM_LIFE * lifeScale, 1);
+      this.beam.spawn(from, to.x, endY, to.y, colour, visual.width, BEAM_LIFE * lifeScale, 1, engagement);
       return;
     }
     if (visual.style === 'pulse') {
       this.pulse.spawn(
         from, to.x, endY, to.y, colour, visual.width,
-        BEAM_LIFE * 1.35 * lifeScale, detailScale,
+        BEAM_LIFE * 1.35 * lifeScale, detailScale, engagement,
       );
       return;
     }
     if (visual.style === 'bolt') {
       this.bolt.spawn(
         from, to.x, endY, to.y, colour, visual.width,
-        BEAM_LIFE * 1.15 * lifeScale, detailScale,
+        BEAM_LIFE * 1.15 * lifeScale, detailScale, engagement,
       );
       return;
     }
     if (visual.style === 'flame') {
       this.flame.spawn(
         from, to.x, endY, to.y, colour, visual.width,
-        FLASH_LIFE * lifeScale, detailScale,
+        FLASH_LIFE * lifeScale, detailScale, engagement,
       );
       return;
     }
@@ -181,6 +196,9 @@ export class TracerLayer {
     kind: ShotBurstKind,
     colour: number,
     scale = 1,
+    family: ImpactFamily = 'generic',
+    bearing = 0,
+    floor = ground,
   ): void {
     if (this.disposed) return;
     this.bursts.spawn(
@@ -191,7 +209,25 @@ export class TracerLayer {
       scale,
       this.lifeScale(),
       this.detailScale(),
+      this.lowFx ? 'generic' : family,
+      bearing,
+      this.reducedMotion ? 0 : 1,
+      floor,
     );
+    if (family === 'missile' && !this.lowFx && !this.reducedMotion) {
+      this.smoke.blast(at, ground + IMPACT_HEIGHT, scale);
+    }
+  }
+
+  footfall(at: Vec2, height: number, terrain: string, scale: number): void {
+    if (this.disposed || this.lowFx || this.reducedMotion) return;
+    if (terrain === 'water') this.bursts.ripple(at, height, scale);
+    else if (terrain !== 'road' && terrain !== 'building') this.smoke.dust(at, height, scale);
+  }
+
+  ventSteam(at: Vector3): void {
+    if (this.disposed || this.lowFx || this.reducedMotion) return;
+    this.smoke.steam(at);
   }
 
   spawnSmoke(at: Vec2, ground: number): void {
@@ -214,7 +250,11 @@ export class TracerLayer {
 
   resolveProjectile(engagement: ProjectileEngagement, endpoint: Vector3): boolean {
     if (this.disposed) return false;
-    return this.shell.resolve(engagement, endpoint)
+    return this.beam.resolve(engagement, endpoint)
+      || this.pulse.resolve(engagement, endpoint)
+      || this.bolt.resolve(engagement, endpoint)
+      || this.flame.resolve(engagement, endpoint)
+      || this.shell.resolve(engagement, endpoint)
       || this.slug.resolve(engagement, endpoint)
       || this.missile.resolve(engagement, endpoint);
   }

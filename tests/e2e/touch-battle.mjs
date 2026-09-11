@@ -1,3 +1,5 @@
+import { verifyMobileStatusLayout } from './mobile-battle-layout.mjs';
+
 function same(left, right) {
   return JSON.stringify(left) === JSON.stringify(right);
 }
@@ -105,12 +107,18 @@ async function minimapGesturePoints(page) {
       x: bounds.left + bounds.width * x,
       y: bounds.top + bounds.height * y,
     });
-    return {
+    const points = {
       dragFrom: point(0.25, 0.25),
       dragTo: point(0.7, 0.6),
       cancelFrom: point(0.35, 0.7),
       recovery: point(0.75, 0.3),
     };
+    for (const [name, point] of Object.entries(points)) {
+      const recipient = document.elementFromPoint(point.x, point.y);
+      if (recipient !== canvas) throw new Error(`Minimap ${name} is covered: ${JSON.stringify({ point,
+        recipient: recipient?.getAttribute('data-testid') ?? recipient?.className ?? null })}`);
+    }
+    return points;
   });
 }
 
@@ -199,7 +207,12 @@ async function battlefieldPoint(page, point) {
       engine.renderer.viewport,
       height,
     );
-    return { x: bounds.left + screen.x, y: bounds.top + screen.y };
+    const point = { x: bounds.left + screen.x, y: bounds.top + screen.y };
+    const recipient = document.elementFromPoint(point.x, point.y);
+    return { ...point, isCanvas: recipient === canvas,
+      recipient: { tag: recipient?.tagName, testid: recipient?.getAttribute('data-testid'), text: recipient?.textContent?.slice(0, 160) },
+      coach: document.querySelector('[data-testid="training-coach"]')?.getBoundingClientRect(),
+      dock: document.querySelector('[data-testid="mobile-dock"]')?.getBoundingClientRect() };
   }, point);
 }
 
@@ -332,6 +345,7 @@ export async function verifyTouchNavigation({ page, check, prefix }) {
         centred.tolerance,
   );
 
+  await verifyMobileStatusLayout({ page, check, prefix });
   const beforeMinimap = await orderSnapshot(page);
   const minimapDrag = await dragMinimapLive(page);
   check(
@@ -378,10 +392,15 @@ export async function verifyTouchNavigation({ page, check, prefix }) {
   );
 }
 
-export async function verifyTouchOrders({ page, check, prefix }) {
+export async function verifyTouchOrders({ page, check, prefix, shots }) {
   if (!(await page.evaluate(() => globalThis.__wreckright.useGame.getState().paused))) {
     await page.locator('[data-testid="pause-button"]').tap();
   }
+  // The layout exercise leaves the range coach expanded. Close it through the
+  // same control a player uses before testing a tap on the ground beneath it.
+  const coach = page.locator('[data-testid="training-coach"]');
+  if (await coach.evaluate(element => element.open)) await coach.locator('summary').tap();
+  await page.waitForFunction(() => !document.querySelector('[data-testid="training-coach"]')?.open);
   const firstLance = page.locator('[data-testid="lance-bar"] button').first();
   await firstLance.tap();
   const gate = await page.evaluate(() => {
@@ -393,11 +412,16 @@ export async function verifyTouchOrders({ page, check, prefix }) {
   await page.locator('[data-testid="command-move"]').tap();
   const beforeMove = await orderSnapshot(page);
   const gateScreen = await battlefieldPoint(page, gate);
-  await page.touchscreen.tap(gateScreen.x, gateScreen.y);
+  check(`${prefix} projected move destination is exposed battlefield`, gateScreen.isCanvas, JSON.stringify(gateScreen));
+  if (!gateScreen.isCanvas && shots) await page.screenshot({ path: `${shots}/${prefix.replaceAll(' ', '-')}-move-covered.png` });
+  if (gateScreen.isCanvas) await page.touchscreen.tap(gateScreen.x, gateScreen.y);
   const afterMove = await orderSnapshot(page);
+  const moved = !same(afterMove, beforeMove) && afterMove.orders.some((entry) => entry.move !== null);
+  if (!moved && shots) await page.screenshot({ path: `${shots}/${prefix.replaceAll(' ', '-')}-move-failed.png` });
   check(
     `${prefix} battlefield tap issues a move order`,
-    !same(afterMove, beforeMove) && afterMove.orders.some((entry) => entry.move !== null),
+    moved,
+    JSON.stringify({ gate, gateScreen, beforeMove, afterMove }),
   );
 
   while ((await page.locator('[data-testid="mobile-speed"]').innerText()) !== '4×') {

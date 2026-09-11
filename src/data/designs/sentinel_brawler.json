@@ -12,46 +12,30 @@
     "left_leg": 46,
     "right_leg": 46
   },
-  "heatSinkId": "heat_sink",
-  "heatSinks": 10,
+  "heatSinkId": "double_heat_sink",
+  "heatSinks": 14,
   "mounts": [
     {
-      "weaponId": "ac5",
-      "location": "right_arm"
-    },
-    {
-      "weaponId": "medium_laser",
+      "weaponId": "medium_pulse_laser",
       "location": "left_arm"
     },
     {
-      "weaponId": "medium_laser",
+      "weaponId": "medium_pulse_laser",
       "location": "left_arm"
+    },
+    {
+      "weaponId": "plasma_rifle",
+      "location": "right_torso"
+    },
+    {
+      "weaponId": "er_medium_laser",
+      "location": "right_torso"
     },
     {
       "weaponId": "medium_laser",
       "location": "centre_torso"
-    },
-    {
-      "weaponId": "srm6",
-      "location": "left_torso"
     }
   ],
-  "ammo": [
-    {
-      "weaponId": "ac5",
-      "location": "right_torso",
-      "tons": 1
-    },
-    {
-      "weaponId": "srm6",
-      "location": "left_torso",
-      "tons": 1
-    }
-  ],
-  "equipment": [
-    {
-      "equipmentId": "case",
-      "location": "right_torso"
-    }
-  ]
+  "ammo": [],
+  "equipment": []
 }
