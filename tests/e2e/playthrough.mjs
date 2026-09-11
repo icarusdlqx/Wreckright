@@ -751,19 +751,22 @@ async function main() {
     check('own armour is an inspection view, not a called-shot control',
       await page.locator('[data-testid="doll-left_leg"]').isDisabled());
     // A controlled optical fixture lets this input test inspect a real hostile body section.
+    // Patch the paused world's vision directly instead of advancing a combat tick: on a slow
+    // CI runner, a projectile already in flight could otherwise destroy the chosen target in
+    // that one forced step and leave the hostile picker without its expected option.
     const aimFixture = await page.evaluateHandle(() => {
-      const { engine, world } = globalThis.__wreckright;
+      const { world, useGame } = globalThis.__wreckright;
       const enemy = world.entities.find(entity => entity.team !== world.playerTeam && !entity.destroyed);
-      const reveal = { kind: 'optical', team: world.playerTeam, x: enemy.pos.x, y: enemy.pos.y,
-        radius: 260, expiresTick: world.tick + 400 };
-      world.reveals.push(reveal);
-      return { engine, world, reveal, targetId: enemy.id };
+      const wasVisible = world.vision.visible.has(enemy.id);
+      const wasIdentified = world.vision.identified.has(enemy.id);
+      world.vision.visible.add(enemy.id);
+      world.vision.identified.add(enemy.id);
+      // A fresh array marks the paused HUD dirty; its next frame publishes the updated vision.
+      useGame.getState().setSelection([...useGame.getState().selection]);
+      return { world, useGame, targetId: enemy.id, wasVisible, wasIdentified };
     });
     try {
-      const aimTarget = await aimFixture.evaluate(({ engine, targetId }) => {
-        engine.forceStep();
-        return targetId;
-      });
+      const aimTarget = await aimFixture.evaluate(({ targetId }) => targetId);
       await page.locator('[data-testid="command-called_shot"]').click();
       await page.locator('[data-testid="called-shot-hostile"]').selectOption(String(aimTarget));
       await page.locator('[data-testid="called-shot-target"] [data-testid="doll-left_leg"]').click();
@@ -776,12 +779,11 @@ async function main() {
       await page.locator('[data-testid="called-shot-target"] button').filter({ hasText: 'Done' }).click();
     } finally {
       try {
-        await aimFixture.evaluate(async ({ world, reveal }, url) => {
-          const index = world.reveals.indexOf(reveal);
-          if (index >= 0) world.reveals.splice(index, 1);
-          const { updateTeamVisions } = await import(new globalThis.URL('src/sim/sensors.ts', url).href);
-          updateTeamVisions(world);
-        }, URL);
+        await aimFixture.evaluate(({ world, useGame, targetId, wasVisible, wasIdentified }) => {
+          if (!wasVisible) world.vision.visible.delete(targetId);
+          if (!wasIdentified) world.vision.identified.delete(targetId);
+          useGame.getState().setSelection([...useGame.getState().selection]);
+        });
       } finally {
         await aimFixture.dispose();
       }
