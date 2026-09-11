@@ -93,13 +93,54 @@
 
 .playtest-rating,
 .playtest-choices,
-.playtest-confusion {
+.playtest-confusion,
+.playtest-bug-report {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
   margin: 15px 0;
   padding: 12px;
   border: 1px solid var(--edge);
+}
+
+.playtest-bug-report h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.playtest-bug-report {
+  display: block;
+}
+
+.playtest-bug-report > p {
+  margin: 5px 0 10px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.playtest-bug-report > label:not(.playtest-context-choice) {
+  display: grid;
+  gap: 5px;
+  margin-top: 9px;
+  font-size: 12px;
+}
+
+.playtest-bug-report textarea {
+  resize: vertical;
+  padding: 8px;
+  border: 1px solid var(--edge);
+  border-radius: 4px;
+  background: rgba(5, 8, 11, 0.9);
+  color: var(--text);
+}
+
+.playtest-context-choice {
+  display: flex;
+  gap: 7px;
+  align-items: flex-start;
+  margin-top: 11px;
+  color: var(--muted);
+  font-size: 11px;
 }
 
 .playtest-rating legend,

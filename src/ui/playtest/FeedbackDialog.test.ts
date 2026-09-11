@@ -37,8 +37,11 @@ describe('the local feedback experience', () => {
     expect(markup).toContain('aria-modal="true"');
     expect(markup).toContain('Nothing is sent automatically');
     expect(markup).toContain('maxLength="500"');
-    expect(markup).toContain('Download report');
-    expect(markup).toContain('Copy report');
+    expect(markup).toContain('Report a bug');
+    expect(markup).toContain('What did you expect?');
+    expect(markup).toContain('Download structured report');
+    expect(markup).toContain('Copy readable report');
+    expect(markup).toContain('Include build, mission, faction, difficulty and equipped weapons');
     expect(markup).not.toContain('href=');
     expect(markup).not.toContain('github.com');
   });
@@ -51,7 +54,7 @@ describe('the local feedback experience', () => {
 
     expect(markup).toContain('No local report is active');
     expect(markup).toContain('Enable local report');
-    expect(markup).not.toContain('Download report');
+    expect(markup).not.toContain('Download structured report');
   });
 
   it('offers an explicit reset without overwriting malformed stored bytes', () => {

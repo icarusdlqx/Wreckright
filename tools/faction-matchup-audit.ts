@@ -10,6 +10,7 @@ const catalog = loadCatalog();
 const suite = process.env.FACTION_AUDIT_SUITE ?? 'reported';
 const seeds = Number(process.env.FACTION_AUDIT_SEEDS ?? 6);
 const output = process.env.FACTION_AUDIT_OUT ?? `reports/faction-balance/${suite}-current.json`;
+const reportOutput = process.env.FACTION_AUDIT_REPORT ?? `docs/review/release-audit/faction-${suite}.md`;
 if (!Number.isInteger(seeds) || seeds < 2 || seeds % 2 !== 0) {
   throw new Error('Use an even seed count of at least two so both spawn sides are represented.');
 }
@@ -106,3 +107,20 @@ for (const match of matches) for (const arena of arenas) {
 }
 mkdirSync(dirname(output), { recursive: true });
 writeFileSync(output, JSON.stringify({ suite, seeds, controller: 'regular tactical both sides', supportPoints: 0, summaries }, null, 2) + '\n');
+const rows = summaries.map((summary) =>
+  `| ${summary.match.label} | ${summary.arena} | ${summary.lineWins} | ${summary.aurelianWins} | ${summary.draws} | ${summary.timeouts} |`);
+const totalLine = summaries.reduce((sum, summary) => sum + summary.lineWins, 0);
+const totalAurelian = summaries.reduce((sum, summary) => sum + summary.aurelianWins, 0);
+const totalDecided = totalLine + totalAurelian;
+const report = [
+  `# Faction balance audit — ${suite}`, '',
+  `Both sides use the same regular pilot, regular tactical controller and zero support points. Spawn sides alternate across ${seeds} deterministic seeds per arena.`, '',
+  '| Match | Arena | Linewrought | Aurelian | Draws | Timeouts |',
+  '| --- | --- | ---: | ---: | ---: | ---: |', ...rows, '',
+  `Across decided battles: **Linewrought ${totalLine}**, **Aurelian ${totalAurelian}**` +
+    `${totalDecided === 0 ? '' : ` (${Math.round(totalAurelian / totalDecided * 100)}% Aurelian)`}.`, '',
+  'The raw JSON contains every seed and side swap for repeatable diagnosis. A single suite is evidence for an outlier, not a reason to flatten faction identity; review all three suites before changing live statistics.', '',
+].join('\n');
+mkdirSync(dirname(reportOutput), { recursive: true });
+writeFileSync(reportOutput, report);
+console.log(reportOutput);

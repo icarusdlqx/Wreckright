@@ -33,6 +33,24 @@ export type PerformanceRead = z.infer<typeof PerformanceReadSchema>;
 export const ContinueIntentSchema = z.enum(['yes', 'maybe', 'no']);
 export type ContinueIntent = z.infer<typeof ContinueIntentSchema>;
 
+const ReproductionUnitSchema = z.strictObject({
+  mech: z.string().min(1).max(80),
+  pilot: z.string().min(1).max(80),
+  loadout: z.array(z.string().min(1).max(100)).max(24),
+});
+
+export const ReproductionContextSchema = z.strictObject({
+  build: z.string().min(1).max(40),
+  mode: z.enum(['home', 'campaign', 'mechbay', 'battle']),
+  mission: z.string().max(100),
+  faction: z.string().max(80),
+  difficulty: z.string().max(40),
+  day: z.number().int().min(0).max(99_999).nullable(),
+  companyFunds: z.number().int().nullable(),
+  lance: z.array(ReproductionUnitSchema).max(5),
+});
+export type ReproductionContext = z.infer<typeof ReproductionContextSchema>;
+
 export const ConfusionAreaSchema = z.enum([
   'front_door',
   'briefing',
@@ -111,6 +129,10 @@ export const PlaytestSurveySchema = z.strictObject({
   performance: PerformanceReadSchema.nullable(),
   continueIntent: ContinueIntentSchema.nullable(),
   confusion: confusionSchema,
+  expected: z.string().max(500).default(''),
+  observed: z.string().max(500).default(''),
+  reproductionSteps: z.string().max(1_000).default(''),
+  includeContext: z.boolean().default(true),
 });
 
 export type PlaytestSurvey = z.infer<typeof PlaytestSurveySchema>;
@@ -122,6 +144,10 @@ export const EMPTY_PLAYTEST_SURVEY: PlaytestSurvey = {
   performance: null,
   continueIntent: null,
   confusion: [],
+  expected: '',
+  observed: '',
+  reproductionSteps: '',
+  includeContext: true,
 };
 
 export const PlaytestReportSchema = z
@@ -132,6 +158,7 @@ export const PlaytestReportSchema = z
     truncated: z.boolean(),
     events: z.array(FirstRunEventSchema).max(MAX_PLAYTEST_EVENTS),
     survey: PlaytestSurveySchema,
+    context: ReproductionContextSchema.nullable().default(null),
   })
   .superRefine((report, context) => {
     let prior = -1;
@@ -171,6 +198,7 @@ export function emptyPlaytestReport(): PlaytestReport {
     truncated: false,
     events: [],
     survey: { ...EMPTY_PLAYTEST_SURVEY, confusion: [] },
+    context: null,
   };
 }
 
