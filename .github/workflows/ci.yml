@@ -79,8 +79,10 @@ jobs:
     name: Browser playthrough
     runs-on: ubuntu-latest
     # Software rendering plus desktop, phone, reward and ending journeys needs
-    # bounded headroom for the expanded regression and browser cleanup.
-    timeout-minutes: 45
+    # bounded headroom for the expanded regression and browser cleanup. The
+    # complete 1,300-check suite now exceeds 45 minutes on GitHub's software
+    # renderer while remaining substantially faster on development hardware.
+    timeout-minutes: 75
     steps:
       - name: Check out source
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
