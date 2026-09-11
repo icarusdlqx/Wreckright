@@ -1,6 +1,6 @@
 {
   "id": "depot_take",
-  "name": "Manifest \u2014 Take",
+  "name": "Manifest — Take",
   "type": "assault",
   "mapId": "barrow_archive",
   "briefing": "Preserve the manifest. Secure the archive reader and freight loading court, then hold both while Halloran copies the record. Attacks are announced; surviving contractors do not block completion.",
@@ -148,7 +148,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Barrow reader is intact. Freight access must stay open for the full copy."
+          "text": "Barrow reader is intact. Freight access must stay open for the full copy.",
+          "speakerPilotId": "marek_sud"
         }
       ]
     },
@@ -162,7 +163,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Cooling lane: contractor section inbound."
+          "text": "Cooling lane: contractor section inbound.",
+          "speakerPilotId": "dorn_hess"
         },
         {
           "type": "spawn",
@@ -207,7 +209,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Manifest copy complete. The archive and its century of maintenance records remain in operation."
+          "text": "Manifest copy complete. The archive and its century of maintenance records remain in operation.",
+          "speakerPilotId": "kessa_vale"
         }
       ]
     }

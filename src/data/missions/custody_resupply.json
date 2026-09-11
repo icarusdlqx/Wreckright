@@ -1,6 +1,6 @@
 {
   "id": "custody_resupply",
-  "name": "Recovery \u2014 Under Civil Seal",
+  "name": "Recovery — Under Civil Seal",
   "type": "defend",
   "mapId": "aurelian_landing_apron",
   "briefing": "Protect the tender loading stand, secure cargo control and hold both for a 30-second transfer. Bring up to three machines and 135 tonnes. The seal cabinet is optional; surviving claimants do not block the transfer.",
@@ -169,7 +169,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Tender: cargo control closes the transfer. Keep the loading stand occupied; the seal cabinet is optional."
+          "text": "Tender: cargo control closes the transfer. Keep the loading stand occupied; the seal cabinet is optional.",
+          "speakerPilotId": "petra_lindqvist"
         }
       ]
     },
@@ -184,7 +185,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Cargo control accepted. Thirty seconds on both positions completes the transfer."
+          "text": "Cargo control accepted. Thirty seconds on both positions completes the transfer.",
+          "speakerPilotId": "teodor_krysa"
         }
       ]
     }

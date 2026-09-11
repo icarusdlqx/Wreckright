@@ -1,9 +1,9 @@
 {
   "id": "depot_road",
-  "name": "Hold \u2014 Manifest Key",
+  "name": "Hold — Manifest Key",
   "type": "defend",
   "mapId": "barrow_archive",
-  "briefing": "Open Barrow\u2019s service access. A scout can take the west reader by the short cooling lane while heavier machines push through the freight court. Hold the key long enough to resolve both archive doors.",
+  "briefing": "Open Barrow’s service access. A scout can take the west reader by the short cooling lane while heavier machines push through the freight court. Hold the key long enough to resolve both archive doors.",
   "maxDurationSeconds": 390,
   "startingResourcePoints": 650,
   "lances": [
@@ -137,7 +137,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Freight gate: two sealed contacts are moving on the reader."
+          "text": "Freight gate: two sealed contacts are moving on the reader.",
+          "speakerPilotId": "dorn_hess"
         },
         {
           "type": "spawn",
@@ -182,7 +183,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Both archive doors resolve. The manifest can be preserved or purged; the choice is now yours."
+          "text": "Both archive doors resolve. The manifest can be preserved or purged; the choice is now yours.",
+          "speakerPilotId": "marek_sud"
         }
       ]
     }

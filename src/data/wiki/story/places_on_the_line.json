@@ -2,43 +2,57 @@
   "id": "places_on_the_line",
   "category": "places",
   "title": "Places of the Recall",
-  "summary": "Passes, yards and service routes where freight, power and disputed records meet.",
+  "summary": "Workshop belts, service terraces and Barrow’s archive make the Recall a dispute over lived-in places as well as records.",
   "sections": [
     {
-      "heading": "Ridge Pass",
+      "heading": "Sarn Workshop Belt",
       "body": [
-        "Road traffic passes beneath ground that a small guard can hold. Freight companies need the route open; a compliance detail needs only to make stopping cheaper than arguing. The Marker Eleven registry records the roots moving through this district. Its cabinets can bring a company into a dispute before any of its pilots has met the claimant."
+        "Warm gantry lights, drainage lanes and patched service streets mark the yards that continued Tessell’s machines. Marker Eleven stands at the north end of the belt. The same district later bears the scars of a broken recovery code, so returning commanders can read what changed."
       ]
     },
     {
-      "heading": "Cutbank Exchange",
+      "heading": "Western Recovery Cut",
       "body": [
-        "Custody posts and service readers turn physical movements into entries in a book. The freight hoist lifts ordinary cargo while clerks decide which name should stand beside a walker serial. Holding Cutbank does not give anyone control of a distant cockpit. It gives them access to the records that other people may later enforce."
+        "A dismantling basin follows shallow channels west of Sarn. Scrap screens hide the lower winch approach while the road gives heavier machines a direct line to the recovery cradle. Its machinery was built to bring crews and roots home, not to hold an army."
       ]
     },
     {
-      "heading": "Blackglass Quarry",
+      "heading": "Continuance Landing Apron",
       "body": [
-        "Lift cabinets, a weigh ledger and a serial punch make Blackglass useful to both workshops and claimants. The quarry handles castings and the paperwork attached to them. A new plate can replace a broken one; it cannot create the inherited root beneath it. The floor holds the machinery and records, while the rim overlooks the work."
+        "Numbered hardstands, pale cargo blocks and a disciplined deployment lane surround the Custody Tender. Lateral ravines break the formal line of fire. The clean installation is temporary expedition infrastructure on Tessell, supplied from finite holds."
       ]
     },
     {
-      "heading": "Sarn's repair yards",
+      "heading": "Service Terraces",
       "body": [
-        "Sarn's gantries carry machines whose names are older than their current armour. Repair halls share power trunks, suppliers and yard books. Cutting a trunk can stop several crews at once without touching the roots above their work pits. Neutrality does not keep the lights on; switches, guards and somebody willing to pay do."
+        "Relay equipment climbs above the valley on three connected platforms. The main ramps expose a detachment to long sightlines; an eastern switchback and lower maintenance track provide slower, screened movement. Readers here trace records but do not command machines."
       ]
     },
     {
-      "heading": "The Causeway and Shale Steps",
+      "heading": "Sarn Civic Exchange",
       "body": [
-        "The Causeway crosses a drowned valley on one raised road, with a hardstand at mid-span. A root yard on the far bank makes the crossing an inventory question as much as a route. There is little room to treat either purpose separately.",
-        "Shale Steps offers terraces, broken sightlines and the ground around a working breaker. Power transferred there can return distant gantries to service. Like many places on Tessell, its value is easier to understand from a repair queue than from a map."
+        "The formal avenue meets workshop access streets, gardens and two surviving custody posts. Aurelian occupation adds measured barriers and clean signals to infrastructure that residents still use. The conflicting post records lead directly back to working people at Sarn."
+      ]
+    },
+    {
+      "heading": "Barrow Archive",
+      "body": [
+        "Barrow keeps the master warrant beside a local maintenance compact. Its public forecourt, cooling plant, freight court and separate roads remain the same place whichever company reaches it. The documents support export or recorded local stewardship; the ground makes either decision something a company must defend."
       ]
     }
   ],
   "related": [
-    { "kind": "story", "id": "tessell" },
-    { "kind": "story", "id": "the_employers" },
-    { "kind": "story", "id": "the_code" }
+    {
+      "kind": "story",
+      "id": "tessell"
+    },
+    {
+      "kind": "story",
+      "id": "the_employers"
+    },
+    {
+      "kind": "story",
+      "id": "the_code"
+    }
   ]
 }

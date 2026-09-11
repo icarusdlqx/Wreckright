@@ -143,7 +143,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Halloran survey desk: west marker, then upper reader. Stay off the watched road. Hold Fire leaves your Move order in charge."
+          "text": "Halloran survey desk: west marker, then upper reader. Stay off the watched road. Hold Fire leaves your Move order in charge.",
+          "speakerPilotId": "marek_sud"
         }
       ]
     },
@@ -158,7 +159,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Survey desk: first mark copied. The upper reader completes the contract. If you want the optional road ledger, copy it before reading that last post."
+          "text": "Survey desk: first mark copied. The upper reader completes the contract. If you want the optional road ledger, copy it before reading that last post.",
+          "speakerPilotId": "marek_sud"
         }
       ]
     },
@@ -172,7 +174,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Survey desk: the road ledger is extra work. Copy it before the upper reader if you want it; the two western records are enough to get paid."
+          "text": "Survey desk: the road ledger is extra work. Copy it before the upper reader if you want it; the two western records are enough to get paid.",
+          "speakerPilotId": "marek_sud"
         }
       ]
     },
@@ -186,8 +189,8 @@
       "effects": [
         {
           "type": "message",
-          "speakerPilotId": "corin_dast",
-          "text": "Road watch: the registry road is closed under compliance order. Keep that survey machine on the western slope."
+          "text": "Road watch: the registry road is closed under compliance order. Keep that survey machine on the western slope.",
+          "speakerPilotId": "ilse_brant"
         }
       ]
     }

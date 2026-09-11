@@ -1,9 +1,9 @@
 {
   "id": "workshop_defence",
-  "name": "Defence \u2014 Keep the Gantries",
+  "name": "Defence — Keep the Gantries",
   "type": "defend",
   "mapId": "line_workshop_belt",
-  "briefing": "Keep Sarn\u2019s repair gantry working through the announced north and east attacks. A scout can secure the stores cabinet while the main lance holds the yard.",
+  "briefing": "Keep Sarn’s repair gantry working through the announced north and east attacks. A scout can secure the stores cabinet while the main lance holds the yard.",
   "maxDurationSeconds": 210,
   "startingResourcePoints": 500,
   "dropTonnage": 205,
@@ -151,7 +151,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Sarn foreman: first approach is the north freight gate. East service gate follows."
+          "text": "Sarn foreman: first approach is the north freight gate. East service gate follows.",
+          "speakerPilotId": "kessa_vale"
         }
       ]
     },
@@ -165,7 +166,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "North freight gate: two contacts inbound."
+          "text": "North freight gate: two contacts inbound.",
+          "speakerPilotId": "dorn_hess"
         },
         {
           "type": "spawn",
@@ -210,7 +212,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "East service gate: second section inbound."
+          "text": "East service gate: second section inbound.",
+          "speakerPilotId": "marek_sud"
         },
         {
           "type": "spawn",
@@ -255,7 +258,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Final carrier on the north road. Keep the gantry moving."
+          "text": "Final carrier on the north road. Keep the gantry moving.",
+          "speakerPilotId": "ilse_brant"
         },
         {
           "type": "spawn",

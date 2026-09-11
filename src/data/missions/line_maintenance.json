@@ -1,9 +1,9 @@
 {
   "id": "line_maintenance",
-  "name": "Recovery \u2014 First Notice",
+  "name": "Recovery — First Notice",
   "type": "skirmish",
   "mapId": "line_workshop_belt",
-  "briefing": "Break Kestrel\u2019s cordon, then secure Marker Eleven long enough for Halloran to copy the root rolls. The central freight road is covered; the west drainage lane and east workshop street reach their flanks. Keep at least one machine working.",
+  "briefing": "Break Kestrel’s cordon, then secure Marker Eleven long enough for Halloran to copy the root rolls. The central freight road is covered; the west drainage lane and east workshop street reach their flanks. Keep at least one machine working.",
   "maxDurationSeconds": 330,
   "startingResourcePoints": 400,
   "lances": [
@@ -121,7 +121,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Halloran: the freight road is covered. The west drain and east workshop street both reach Marker Eleven."
+          "text": "Halloran: the freight road is covered. The west drain and east workshop street both reach Marker Eleven.",
+          "speakerPilotId": "marek_sud"
         },
         {
           "type": "reveal",
@@ -143,7 +144,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Marker Eleven is copying. These rolls name workshops and people, not just serials."
+          "text": "Marker Eleven is copying. These rolls name workshops and people, not just serials.",
+          "speakerPilotId": "kessa_vale"
         }
       ]
     }

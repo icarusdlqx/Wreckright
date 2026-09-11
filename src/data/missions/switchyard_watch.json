@@ -1,6 +1,6 @@
 {
   "id": "switchyard_watch",
-  "name": "Warrant \u2014 Sarn Inventory",
+  "name": "Warrant — Sarn Inventory",
   "type": "defend",
   "mapId": "aurelian_civic_exchange",
   "briefing": "Protect the Sarn registry through a short custody transfer. Defenders will use both workshop access streets. The record, not enemy destruction, is the objective.",
@@ -118,7 +118,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Tender: registry transfer in progress. West garden contact first; east workshop street follows."
+          "text": "Tender: registry transfer in progress. West garden contact first; east workshop street follows.",
+          "speakerPilotId": "silas_okonkwo"
         }
       ]
     },
@@ -132,7 +133,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "West garden lane: two defenders inbound."
+          "text": "West garden lane: two defenders inbound.",
+          "speakerPilotId": "petra_lindqvist"
         },
         {
           "type": "spawn",
@@ -177,7 +179,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "East workshop street: second section inbound."
+          "text": "East workshop street: second section inbound.",
+          "speakerPilotId": "teodor_krysa"
         },
         {
           "type": "spawn",

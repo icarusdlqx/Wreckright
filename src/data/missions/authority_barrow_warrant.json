@@ -1,9 +1,9 @@
 {
   "id": "authority_barrow_warrant",
-  "name": "Warrant \u2014 Barrow Archive",
+  "name": "Warrant — Barrow Archive",
   "type": "assault",
   "mapId": "barrow_archive",
-  "briefing": "Secure Barrow\u2019s archive forecourt and protect the record room through the contractor counterattack. Keep the archive intact; the warrant and maintenance compact support different lawful dispositions.",
+  "briefing": "Secure Barrow’s archive forecourt and protect the record room through the contractor counterattack. Keep the archive intact; the warrant and maintenance compact support different lawful dispositions.",
   "maxDurationSeconds": 420,
   "startingResourcePoints": 750,
   "dropTonnage": 240,
@@ -159,7 +159,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Tender: secure the forecourt and keep the record room intact. Both legal readings are inside."
+          "text": "Tender: secure the forecourt and keep the record room intact. Both legal readings are inside.",
+          "speakerPilotId": "petra_lindqvist"
         }
       ]
     },
@@ -174,7 +175,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Contractor markings at the north freight gate. No Tender channel; they want the archive before disposition."
+          "text": "Contractor markings at the north freight gate. No Tender channel; they want the archive before disposition.",
+          "speakerPilotId": "teodor_krysa"
         },
         {
           "type": "spawn",
@@ -219,7 +221,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Barrow is secure. Export and countersigned stewardship are both lawful; command must choose which cost to own."
+          "text": "Barrow is secure. Export and countersigned stewardship are both lawful; command must choose which cost to own.",
+          "speakerPilotId": "silas_okonkwo"
         }
       ]
     }

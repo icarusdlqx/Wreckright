@@ -1,6 +1,6 @@
 {
   "id": "custody_survey",
-  "name": "Survey \u2014 The Unbroken Chain",
+  "name": "Survey — The Unbroken Chain",
   "type": "recon",
   "mapId": "aurelian_service_terraces",
   "briefing": "Take one machine up to 50 tonnes and key the lower and crown service readers in sequence. The patrol guards the central ramp. Contact is optional; the dispatch ledger on the east platform is useful.",
@@ -142,7 +142,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Tender: lower reader, then relay crown. The centre patrol need not be engaged."
+          "text": "Tender: lower reader, then relay crown. The centre patrol need not be engaged.",
+          "speakerPilotId": "silas_okonkwo"
         }
       ]
     },
@@ -157,7 +158,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Lower reader keyed. East switchback reaches the crown outside the patrol\u2019s usual circuit."
+          "text": "Lower reader keyed. East switchback reaches the crown outside the patrol’s usual circuit.",
+          "speakerPilotId": "teodor_krysa"
         }
       ]
     }

@@ -1,6 +1,6 @@
 {
   "id": "sealed_contact",
-  "name": "Contact \u2014 First Attestation",
+  "name": "Contact — First Attestation",
   "type": "ambush",
   "mapId": "ridge_pass",
   "briefing": "An Aurelian claim detail holds the exposed freight approach. Its range and armour favour the centre lane; break its escorts from the flank, then hold the field long enough to copy the attestation.",
@@ -119,7 +119,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Halloran: the white hull answered the checkpoint reader. Aurelian root serial, Continuance attestation. The reader identified it; it did not move it."
+          "text": "Halloran: the white hull answered the checkpoint reader. Aurelian root serial, Continuance attestation. The reader identified it; it did not move it.",
+          "speakerPilotId": "ilse_brant"
         },
         {
           "type": "reveal",
@@ -141,7 +142,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Halloran: hold the field at dusk. Authority seal or not, wreckright gives the white hull to whoever is still standing around it."
+          "text": "Halloran: hold the field at dusk. Authority seal or not, wreckright gives the white hull to whoever is still standing around it.",
+          "speakerPilotId": "dorn_hess"
         }
       ]
     }

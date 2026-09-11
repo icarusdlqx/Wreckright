@@ -1,6 +1,6 @@
 {
   "id": "recovery_window",
-  "name": "Recovery \u2014 The Quiet Claim",
+  "name": "Recovery — The Quiet Claim",
   "type": "extraction",
   "mapId": "line_recovery_cut",
   "briefing": "Get the fitters out. Secure the road-junction winch and protect the recovery cradle while the lift runs. Bring no more than three machines and 140 tonnes. Surviving guards do not block extraction.",
@@ -170,7 +170,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Recovery desk: winch first, then cover the cradle for twenty-five seconds. The west cabinet is optional."
+          "text": "Recovery desk: winch first, then cover the cradle for twenty-five seconds. The west cabinet is optional.",
+          "speakerPilotId": "kessa_vale"
         }
       ]
     },
@@ -185,7 +186,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Winch live. Kestrel movement on the west shelf; keep the cradle covered."
+          "text": "Winch live. Kestrel movement on the west shelf; keep the cradle covered.",
+          "speakerPilotId": "marek_sud"
         },
         {
           "type": "reveal",

@@ -1,6 +1,6 @@
 {
   "id": "authority_root_exchange",
-  "name": "Attestation \u2014 Root Exchange",
+  "name": "Attestation — Root Exchange",
   "type": "recon",
   "mapId": "aurelian_service_terraces",
   "briefing": "Take a two-machine verification detail between the lower, middle and crown readers. Key them in route order. Patrols guard their assigned terraces; completion does not require destroying them.",
@@ -131,7 +131,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Tender: lower, middle, crown. The east switchback bypasses the central patrol."
+          "text": "Tender: lower, middle, crown. The east switchback bypasses the central patrol.",
+          "speakerPilotId": "petra_lindqvist"
         }
       ]
     },
@@ -146,7 +147,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Lower reader verified. Continue to the middle terrace."
+          "text": "Lower reader verified. Continue to the middle terrace.",
+          "speakerPilotId": "teodor_krysa"
         }
       ]
     },
@@ -161,7 +163,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Middle exchange verified. Crown reader is the last required stop."
+          "text": "Middle exchange verified. Crown reader is the last required stop.",
+          "speakerPilotId": "silas_okonkwo"
         }
       ]
     },
@@ -176,7 +179,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "All readers agree: one service identity has been loaned across several surviving machines."
+          "text": "All readers agree: one service identity has been loaned across several surviving machines.",
+          "speakerPilotId": "silas_okonkwo"
         }
       ]
     }

@@ -14,8 +14,8 @@
       "afterNodeId": "militia_raid",
       "title": "The workshops answer",
       "body": [
-        "The Marker Eleven records are copied. They describe serials, but your fitters recognise the workshop names beside them. Kestrel, a local company enforcing the Recall, is helping the Authority turn those records into seizures. Halloran now offers work against its custody posts; a quieter service trail may lead to people and parts worth bringing home.",
-        "Your small company cannot answer every posting at once. The survey, rescue and workshop contracts are optional ways to build strength. The attestation route remains open when you are ready to meet the Aurelian claim directly."
+        "Marker Eleven is copied. The rolls describe serials, but the margins hold workshop names, repair dates and the people who kept those machines running. One fresh reader entry points to a recovery cut west of Sarn. A crew there has stopped answering. The company can reach them before Kestrel does.",
+        "Halloran also posts local work that can provide parts and proof. Those notices remain optional; The Quiet Claim is the next main operation."
       ]
     },
     {
@@ -57,19 +57,25 @@
       "afterNodeId": "ridge_hold",
       "title": "Behind the depot doors",
       "body": [
-        "The depot approach is resolved. Two final contracts are open. Burn the master manifest and deny the Authority its strongest proof, at the cost of irreplaceable service records. Take it intact and your company becomes keeper of evidence both sides need. Halloran can get you through the doors; it cannot make this decision for you.",
-        "These are alternative endings to this campaign. Choose the final contract whose consequences your company is willing to carry."
+        "Barrow is open. The master manifest can be held intact, giving Tessell evidence and making the company its keeper. It can be burned, denying the Authority its strongest seizure record while destroying a century of service history with it. Halloran got the company through the door. It cannot choose what the company is willing to carry.",
+        "These are alternative endings. Either concludes the campaign without requiring every optional posting."
       ]
     },
     {
       "afterNodeId": "depot_burn",
       "title": "A claim without a ledger",
-      "body": ["The manifest is gone. The workshops keep their working roots, but certified service and the shared history of those machines are harder to recover. Your company has won room for Tessell to decide its own future. It leaves the depot responsible for the proof it chose to destroy."]
+      "body": [
+        "The master manifest burns. The Recall loses its strongest seizure record, and Tessell’s workshops gain time to decide their own future. The same fire takes certified service histories, witness chains and proof that could have supported local stewardship.",
+        "Sarn’s gantries remain lit, but every future claim will be argued from scattered copies and living memory. The company leaves Barrow as the force that made the choice. Its victory is real and its responsibility permanent."
+      ]
     },
     {
       "afterNodeId": "depot_take",
       "title": "Keepers of the record",
-      "body": ["The manifest survives under your company seal. A copied serial cannot steer a machine or choose its owner, but it can keep a history from being erased. The workshops retain an advocate with evidence, and the Authority must deal with a company it first counted as inventory."]
+      "body": [
+        "The manifest survives under the company’s seal. Tessell has evidence that its workshops maintained the roots the Continuance abandoned, and the Authority must negotiate with people it first counted as inventory. The record does not erase copied serials or the shortages beyond Tessell. It prevents either side from erasing the other.",
+        "Sarn’s gantries remain lit. The rescued fitters return machines to service, including captured Stock when the parts can be made to fit. The company leaves Barrow stronger and answerable for what the record is used to justify."
+      ]
     }
   ]
 }

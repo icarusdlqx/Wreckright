@@ -1,6 +1,6 @@
 {
   "id": "authority_local_stewardship",
-  "name": "Disposition \u2014 Local Stewardship",
+  "name": "Disposition — Local Stewardship",
   "type": "assault",
   "mapId": "barrow_archive",
   "briefing": "Secure the public verification desk and service reader, then protect the local handover while the Tender countersigns it. The positions are separated; move as a formation. The contractors oppose the disposition.",
@@ -169,7 +169,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Tender: verify the public desk and service reader, then return to cover the handover."
+          "text": "Tender: verify the public desk and service reader, then return to cover the handover.",
+          "speakerPilotId": "silas_okonkwo"
         }
       ]
     },
@@ -183,7 +184,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Freight road: seizure contractors moving to force an export before countersignature."
+          "text": "Freight road: seizure contractors moving to force an export before countersignature.",
+          "speakerPilotId": "teodor_krysa"
         },
         {
           "type": "spawn",
@@ -228,7 +230,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Local stewardship countersigned. The roots remain under named maintenance obligations."
+          "text": "Local stewardship countersigned. The roots remain under named maintenance obligations.",
+          "speakerPilotId": "petra_lindqvist"
         }
       ]
     }

@@ -1,6 +1,6 @@
 {
   "id": "authority_quarry_receipt",
-  "name": "Seizure \u2014 Casting Receipts",
+  "name": "Seizure — Casting Receipts",
   "type": "base_capture",
   "mapId": "blackglass_quarry",
   "briefing": "Recover the essential weigh ledger. The exposed serial punch is optional and provides fuller proof and supplies. Cover the long quarry approach, but expect local flankers if the lance remains static.",
@@ -168,7 +168,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Tender: weigh ledger is essential. The serial punch across the quarry is useful, exposed and optional."
+          "text": "Tender: weigh ledger is essential. The serial punch across the quarry is useful, exposed and optional.",
+          "speakerPilotId": "silas_okonkwo"
         }
       ]
     },
@@ -183,7 +184,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Ledger connected. Hold this position while the custody image completes."
+          "text": "Ledger connected. Hold this position while the custody image completes.",
+          "speakerPilotId": "petra_lindqvist"
         }
       ]
     },
@@ -197,7 +199,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Local flankers moving on the ledger from the east shelf."
+          "text": "Local flankers moving on the ledger from the east shelf.",
+          "speakerPilotId": "teodor_krysa"
         },
         {
           "type": "spawn",
@@ -242,7 +245,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Essential receipt copied. Remaining contacts do not block withdrawal."
+          "text": "Essential receipt copied. Remaining contacts do not block withdrawal.",
+          "speakerPilotId": "petra_lindqvist"
         }
       ]
     }

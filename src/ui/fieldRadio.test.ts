@@ -40,13 +40,25 @@ describe('field radio presentation', () => {
     expect(readRadioMessage()).toBeNull();
   });
 
-  it('resolves authored speakers from the catalog without exposing live hostile state', () => {
+  it('uses an authored speaker only while that pilot is deployed, alive and operational', () => {
     const world = playerWorld('radio-speaker');
     beginFieldRadio(world);
-    const speaker = [...world.catalog.pilots.values()][0]!;
-    observeFieldRadio(world, [{ type: 'mission_message', tick: 0, text: 'Public transmission.', speakerPilotId: speaker.id }]);
-    expect(readRadioMessage()).toMatchObject({ speaker: speaker.name, pilot: { id: speaker.id }, priority: 'story' });
+    const deployed = unitOf(world, 'bulwark_assault');
+    observeFieldRadio(world, [{ type: 'mission_message', tick: 0, text: 'Public transmission.', speakerPilotId: deployed.pilot.id }]);
+    expect(readRadioMessage()).toMatchObject({ speaker: deployed.pilot.name, pilot: { id: deployed.pilot.id }, priority: 'story' });
     expect(pilotOrder(world, unitOf(world, 'bulwark_assault'), 'move')).toBeUndefined();
+  });
+
+  it('falls back to the command channel when an authored pilot is absent or out of action', () => {
+    const world = playerWorld('radio-speaker-fallback');
+    const deployed = unitOf(world, 'bulwark_assault');
+    beginFieldRadio(world);
+    observeFieldRadio(world, [{ type: 'mission_message', tick: 0, text: 'Absent report.', speakerPilotId: 'petra_lindqvist' }]);
+    expect(readRadioMessage()).toMatchObject({ speaker: 'Command channel', pilot: null });
+    dismissRadio(readRadioMessage()!.id);
+    deployed.pilot.dead = true;
+    observeFieldRadio(world, [{ type: 'mission_message', tick: 0, text: 'Casualty report.', speakerPilotId: deployed.pilot.id }]);
+    expect(readRadioMessage()).toMatchObject({ speaker: 'Command channel', pilot: null });
   });
 
   it('isolates old fields and leaves simulation randomness, orders and history untouched', () => {

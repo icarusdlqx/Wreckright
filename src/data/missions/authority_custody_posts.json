@@ -1,9 +1,9 @@
 {
   "id": "authority_custody_posts",
-  "name": "Warrant \u2014 Custody Posts",
+  "name": "Warrant — Custody Posts",
   "type": "base_capture",
   "mapId": "aurelian_civic_exchange",
-  "briefing": "Secure the west and east custody posts along Sarn\u2019s main avenue. Local defenders use the garden lanes and workshop streets to reach your flanks. Advance together; the obvious centre is a firing lane.",
+  "briefing": "Secure the west and east custody posts along Sarn’s main avenue. Local defenders use the garden lanes and workshop streets to reach your flanks. Advance together; the obvious centre is a firing lane.",
   "maxDurationSeconds": 390,
   "startingResourcePoints": 500,
   "lances": [
@@ -137,7 +137,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Tender: two posts on the avenue. Garden lanes on both sides are unsurveyed approach routes."
+          "text": "Tender: two posts on the avenue. Garden lanes on both sides are unsurveyed approach routes.",
+          "speakerPilotId": "petra_lindqvist"
         }
       ]
     },
@@ -152,7 +153,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "West post secured. Local counterattack moving through the east workshop street."
+          "text": "West post secured. Local counterattack moving through the east workshop street.",
+          "speakerPilotId": "teodor_krysa"
         },
         {
           "type": "spawn",

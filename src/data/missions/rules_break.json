@@ -1,6 +1,6 @@
 {
   "id": "rules_break",
-  "name": "Sweep \u2014 Broken Wreckright",
+  "name": "Sweep — Broken Wreckright",
   "type": "assault",
   "mapId": "line_workshop_belt",
   "briefing": "A seizure contractor violated wreckright and left a pilot in a burning freight sector. Secure the pickup perimeter and keep it safe until recovery arrives. The attacker can withdraw; the pilot matters more than extermination.",
@@ -124,7 +124,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Sarn control: the camera shows a live ejection. Secure the freight pickup; do not chase the withdrawing guns."
+          "text": "Sarn control: the camera shows a live ejection. Secure the freight pickup; do not chase the withdrawing guns.",
+          "speakerPilotId": "kessa_vale"
         }
       ]
     },
@@ -138,7 +139,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "East workshop street: contractor reserve inbound."
+          "text": "East workshop street: contractor reserve inbound.",
+          "speakerPilotId": "ilse_brant"
         },
         {
           "type": "spawn",

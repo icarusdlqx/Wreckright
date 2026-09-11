@@ -1,6 +1,6 @@
 {
   "id": "authority_continuance_export",
-  "name": "Disposition \u2014 Continuance Export",
+  "name": "Disposition — Continuance Export",
   "type": "assault",
   "mapId": "barrow_archive",
   "briefing": "Hold the archive freight corridor while the export register closes and the first root is loaded. Attacks come through announced freight and cooling approaches. Keep the loading stand operational; pursuit is unnecessary.",
@@ -138,7 +138,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Tender: freight approach first, cooling lane second. Keep the stand open until the register seals."
+          "text": "Tender: freight approach first, cooling lane second. Keep the stand open until the register seals.",
+          "speakerPilotId": "arne_gedde"
         }
       ]
     },
@@ -152,7 +153,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "North freight gate: contractor section inbound."
+          "text": "North freight gate: contractor section inbound.",
+          "speakerPilotId": "teodor_krysa"
         },
         {
           "type": "spawn",
@@ -197,7 +199,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "East cooling lane: final scheduled attack."
+          "text": "East cooling lane: final scheduled attack.",
+          "speakerPilotId": "petra_lindqvist"
         },
         {
           "type": "spawn",
@@ -233,7 +236,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Export register sealed. The shipment is lawful and the local closure list remains attached."
+          "text": "Export register sealed. The shipment is lawful and the local closure list remains attached.",
+          "speakerPilotId": "silas_okonkwo"
         }
       ]
     }

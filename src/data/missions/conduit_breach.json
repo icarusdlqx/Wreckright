@@ -1,6 +1,6 @@
 {
   "id": "conduit_breach",
-  "name": "Hold \u2014 The Cold Yards",
+  "name": "Hold — The Cold Yards",
   "type": "defend",
   "mapId": "shale_steps",
   "briefing": "Restore the east switching position, then hold it through the response while Sarn restarts the cold yards. The capture starts the counterattack; keeping the breaker is the contract.",
@@ -155,7 +155,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Assembly: take the east breaker. The pale service road is exposed; the lower shale route reaches its side."
+          "text": "Assembly: take the east breaker. The pale service road is exposed; the lower shale route reaches its side.",
+          "speakerPilotId": "dorn_hess"
         },
         {
           "type": "reveal",
@@ -176,7 +177,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Breaker restored. Aurelian response climbing from the western trunk; hold for restart."
+          "text": "Breaker restored. Aurelian response climbing from the western trunk; hold for restart.",
+          "speakerPilotId": "ilse_brant"
         },
         {
           "type": "spawn",
@@ -221,7 +223,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "The yard lights are returning. Sarn has power and a record of who tried to cut it."
+          "text": "The yard lights are returning. Sarn has power and a record of who tried to cut it.",
+          "speakerPilotId": "marek_sud"
         }
       ]
     }

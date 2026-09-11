@@ -1,6 +1,6 @@
 {
   "id": "authority_conduit_injunction",
-  "name": "Injunction \u2014 Cold Conduit",
+  "name": "Injunction — Cold Conduit",
   "type": "base_capture",
   "mapId": "aurelian_service_terraces",
   "briefing": "Secure the main conduit isolator and hold it through verification. The workshop bypass is optional; keeping it in custody preserves the local service block in the record.",
@@ -167,7 +167,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Custody clerk: main isolator is required. Workshop bypass is optional and changes the closure record."
+          "text": "Custody clerk: main isolator is required. Workshop bypass is optional and changes the closure record.",
+          "speakerPilotId": "petra_lindqvist"
         }
       ]
     },
@@ -182,7 +183,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Verification started. Counterclaim machines climbing the east switchback."
+          "text": "Verification started. Counterclaim machines climbing the east switchback.",
+          "speakerPilotId": "silas_okonkwo"
         },
         {
           "type": "spawn",
@@ -227,7 +229,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Conduit verified. Barrow holds the final warrant and the maintenance compact beside it."
+          "text": "Conduit verified. Barrow holds the final warrant and the maintenance compact beside it.",
+          "speakerPilotId": "arne_gedde"
         }
       ]
     }

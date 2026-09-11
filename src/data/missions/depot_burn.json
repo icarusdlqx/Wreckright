@@ -1,6 +1,6 @@
 {
   "id": "depot_burn",
-  "name": "Manifest \u2014 Burn",
+  "name": "Manifest — Burn",
   "type": "assault",
   "mapId": "barrow_archive",
   "briefing": "Purge the manifest. Take the public and freight purge controls, then hold the freight bank while deletion runs. Commitment brings a stronger response. The purge also destroys local maintenance history.",
@@ -147,7 +147,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Two purge controls. Arm both; the freight bank must remain held while deletion runs."
+          "text": "Two purge controls. Arm both; the freight bank must remain held while deletion runs.",
+          "speakerPilotId": "ilse_brant"
         }
       ]
     },
@@ -161,7 +162,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Purge committed. Heavy contractor response from the north freight gate."
+          "text": "Purge committed. Heavy contractor response from the north freight gate.",
+          "speakerPilotId": "dorn_hess"
         },
         {
           "type": "spawn",
@@ -206,7 +208,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "The manifest and the maintenance history tied to it are gone. Barrow\u2019s record room is dark."
+          "text": "The manifest and the maintenance history tied to it are gone. Barrow’s record room is dark.",
+          "speakerPilotId": "kessa_vale"
         }
       ]
     }

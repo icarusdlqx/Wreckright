@@ -1,6 +1,6 @@
 {
   "id": "raid_ridge",
-  "name": "Warrant \u2014 First Warrant",
+  "name": "Warrant — First Warrant",
   "type": "skirmish",
   "mapId": "aurelian_landing_apron",
   "maxDurationSeconds": 330,
@@ -81,7 +81,7 @@
       ]
     }
   ],
-  "briefing": "Clear the tender approach with coordinated fire. The centre deployment lane favours Aurelian range; lateral ravines reach the cordon\u2019s sides. Preserve the detachment because every repair stays on its account.",
+  "briefing": "Clear the tender approach with coordinated fire. The centre deployment lane favours Aurelian range; lateral ravines reach the cordon’s sides. Preserve the detachment because every repair stays on its account.",
   "startingResourcePoints": 450,
   "objectives": [
     {
@@ -113,7 +113,8 @@
       "effects": [
         {
           "type": "message",
-          "text": "Tender: centre lane is surveyed. Side ravines are slower, but they break the cordon\u2019s firing line."
+          "text": "Tender: centre lane is surveyed. Side ravines are slower, but they break the cordon’s firing line.",
+          "speakerPilotId": "petra_lindqvist"
         },
         {
           "type": "reveal",

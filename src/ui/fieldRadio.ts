@@ -107,7 +107,14 @@ export function observeFieldRadio(world: World, events: readonly SimEvent[]): vo
   };
   for (const event of events) {
     if (event.type === 'mission_message') {
-      const speaker = event.speakerPilotId === undefined ? null : world.catalog.pilots.get(event.speakerPilotId) ?? null;
+      const speakerEntity = event.speakerPilotId === undefined ? undefined : world.entities.find((entity) =>
+        entity.team === world.playerTeam
+        && entity.pilot.id === event.speakerPilotId
+        && isOperational(entity)
+        && !entity.pilot.dead
+        && !entity.pilot.ejected,
+      );
+      const speaker = speakerEntity?.pilot ?? null;
       say(world, speaker, event.text, 'story'); continue;
     }
     if (event.type === 'zone_captured' && event.team === world.playerTeam) {
