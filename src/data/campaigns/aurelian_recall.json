@@ -124,7 +124,7 @@
       "name": "First Warrant",
       "missionId": "raid_ridge",
       "employerId": "continuance_tender",
-      "brief": "Clear the ridge supply route for the Recall Authority, the Aurelian body ordering this repossession. Destroy the Linewrought militia walker and two escort vehicles so the custody tender convoy can advance. Your precision weapons give you an edge; repairs stay on the company account.",
+      "brief": "Clear the surveyed lane across the Continuance landing apron so the Custody Tender can advance. The local cordon has a rebuilt walker and vehicle escorts. Use superior reach and coordinated fire; side ravines break the obvious firing line. Repairs stay on the company account.",
       "requires": [],
       "basePayout": 650000,
       "maxSalvageShare": 0.1,
@@ -171,7 +171,7 @@
       "name": "Under Civil Seal",
       "missionId": "custody_resupply",
       "employerId": "continuance_tender",
-      "brief": "The survey locates a stranded tender beside the causeway. Protect its loading stand, secure the causeway relay, and hold both for a 30-second transfer. Bring up to 135 tonnes and three machines. The optional seal cabinet supplies field support; surviving claimants do not block completion.",
+      "brief": "The survey locates a stranded tender on the landing supply perimeter. Protect its loading stand, secure cargo control and hold both through the transfer with up to 135 tonnes and three machines. The optional seal cabinet releases specialist stock.",
       "requires": [
         "custody_survey"
       ],
@@ -280,7 +280,7 @@
       "name": "Root Exchange",
       "missionId": "authority_root_exchange",
       "employerId": "continuance_tender",
-      "brief": "Sarn's records reveal foundries sharing service-reader identities. Key all four readers and hold them while the Authority follows the copied serials. Destroying the patrol alone will not complete the warrant. Each record may stand for several different surviving machines.",
+      "brief": "Take a two-machine verification detail between the lower, middle and crown readers on the service terraces. Key them along the route; patrols guard their assigned platforms and may be bypassed. Completion does not require destroying them.",
       "requires": [
         "sarn_inventory"
       ],
@@ -297,7 +297,7 @@
       "name": "Quarry Receipt",
       "missionId": "authority_quarry_receipt",
       "employerId": "continuance_tender",
-      "brief": "Blackglass cut matching serial plates for the borrowed records. Capture the weigh ledger, lift manifest and serial punch; preserve all three long enough to copy the evidence. Your crews expected a counterfeit operation. The receipts also name the workshops that depended on it.",
+      "brief": "Blackglass cut matching plates for the borrowed records. Secure the essential weigh ledger and preserve it through the copy. The exposed lift manifest and serial punch are optional evidence that also release escort equipment. Local flankers know the quarry shortcuts.",
       "requires": [
         "root_exchange"
       ],
@@ -328,7 +328,7 @@
       "name": "Conduit Injunction",
       "missionId": "authority_conduit_injunction",
       "employerId": "continuance_tender",
-      "brief": "The receipts lead to a live power conduit serving the disputed repair yards. Take both isolators and hold them while the clerks check which machines the records cover. The line must go cold without destroying its machines. Whether those working roots should leave Tessell remains undecided.",
+      "brief": "Secure the main isolator and hold it while clerks verify the live conduit serving the disputed yards. A side bypass is optional and records whether the workshop block keeps power. Expect one counterattack after verification begins.",
       "requires": [
         "quarry_receipt"
       ],
@@ -345,7 +345,7 @@
       "name": "Barrow Warrant",
       "missionId": "authority_barrow_warrant",
       "employerId": "continuance_tender",
-      "brief": "Barrow Yard holds the master warrant beside a century of witnessed local repairs. Secure the archive intact and hold for the final attestation. It can support either export or local stewardship. Your next contract will decide which responsibility the detachment accepts.",
+      "brief": "Secure Barrow’s archive forecourt and protect the record room through the contractor counterattack. Keep the archive intact. The warrant supports export; the maintenance compact supports local stewardship. The commander must choose which cost to own.",
       "requires": [
         "conduit_injunction"
       ],
@@ -362,7 +362,7 @@
       "name": "Export Under Seal",
       "missionId": "authority_continuance_export",
       "employerId": "continuance_tender",
-      "brief": "Final operation: export. Take the disposition stand and hold it while the Tender closes the register. Clear the guard without destroying the records. The inherited roots will reinforce failing Continuance machines; Tessell's workshops will lose the same working stock. This ends the campaign.",
+      "brief": "Final operation: export. Hold Barrow’s freight corridor and keep the loading stand operational until the register seals. Contractor attacks arrive through announced freight and cooling approaches. The roots leave Tessell under a lawful chain of custody.",
       "requires": [
         "barrow_warrant"
       ],
@@ -386,7 +386,7 @@
       "name": "Countersign Stewardship",
       "missionId": "authority_local_stewardship",
       "employerId": "continuance_tender",
-      "brief": "Final operation: local stewardship. Take the disposition stand and hold it while the Tender countersigns the workshops' service history. Clear the guard and preserve the records. The roots stay on Tessell under a recorded duty of care. This ends the campaign.",
+      "brief": "Final operation: local stewardship. Secure Barrow’s public desk and service reader, then protect the local handover while the Tender countersigns it. Seizure contractors oppose the recorded disposition. The roots remain on Tessell under named obligations.",
       "requires": [
         "barrow_warrant"
       ],

@@ -240,12 +240,20 @@
   "atmosphereId": "ash_dusk",
   "enemyDirectives": [
     {
-      "id": "handover_attack",
+      "id": "public_record_guard",
       "team": 1,
-      "zoneId": "local_handover",
-      "behavior": "retake",
-      "units": 5,
-      "pursuitRadius": 720
+      "zoneId": "public_desk",
+      "behavior": "defend",
+      "units": 2,
+      "pursuitRadius": 260
+    },
+    {
+      "id": "service_record_guard",
+      "team": 1,
+      "zoneId": "service_reader",
+      "behavior": "defend",
+      "units": 1,
+      "pursuitRadius": 240
     }
   ]
 }

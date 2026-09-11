@@ -6,29 +6,99 @@
     {
       "revision": 1,
       "victoryNodeId": "depot_burn",
-      "alternateVictoryNodeIds": ["depot_take"],
+      "alternateVictoryNodeIds": [
+        "depot_take"
+      ],
       "nodes": [
-        { "id": "militia_raid", "requires": [] },
-        { "id": "marker_survey", "requires": ["militia_raid"] },
-        { "id": "recovery_window", "requires": ["marker_survey"] },
-        { "id": "workshop_defence", "requires": ["recovery_window"] },
-        { "id": "pass_skirmish", "requires": ["militia_raid"] },
-        { "id": "supply_line", "requires": ["militia_raid"] },
-        { "id": "ridge_hold", "requires": ["shale_overwatch_node"] },
-        { "id": "causeway_push", "requires": ["supply_line"] },
-        { "id": "foundry_sweep_node", "requires": ["pass_skirmish"] },
-        { "id": "shale_overwatch_node", "requires": ["foundry_sweep_node"] },
-        { "id": "depot_burn", "requires": ["ridge_hold"] },
-        { "id": "depot_take", "requires": ["ridge_hold"] },
-        { "id": "cutbank_register", "requires": ["supply_line"] },
-        { "id": "blackglass_receipt", "requires": ["foundry_sweep_node"] }
+        {
+          "id": "militia_raid",
+          "requires": []
+        },
+        {
+          "id": "marker_survey",
+          "requires": [
+            "militia_raid"
+          ]
+        },
+        {
+          "id": "recovery_window",
+          "requires": [
+            "marker_survey"
+          ]
+        },
+        {
+          "id": "workshop_defence",
+          "requires": [
+            "recovery_window"
+          ]
+        },
+        {
+          "id": "pass_skirmish",
+          "requires": [
+            "militia_raid"
+          ]
+        },
+        {
+          "id": "supply_line",
+          "requires": [
+            "militia_raid"
+          ]
+        },
+        {
+          "id": "ridge_hold",
+          "requires": [
+            "shale_overwatch_node"
+          ]
+        },
+        {
+          "id": "causeway_push",
+          "requires": [
+            "supply_line"
+          ]
+        },
+        {
+          "id": "foundry_sweep_node",
+          "requires": [
+            "pass_skirmish"
+          ]
+        },
+        {
+          "id": "shale_overwatch_node",
+          "requires": [
+            "foundry_sweep_node"
+          ]
+        },
+        {
+          "id": "depot_burn",
+          "requires": [
+            "ridge_hold"
+          ]
+        },
+        {
+          "id": "depot_take",
+          "requires": [
+            "ridge_hold"
+          ]
+        },
+        {
+          "id": "cutbank_register",
+          "requires": [
+            "supply_line"
+          ]
+        },
+        {
+          "id": "blackglass_receipt",
+          "requires": [
+            "foundry_sweep_node"
+          ]
+        }
       ]
     }
   ],
   "presentation": {
     "faction": "linewrought",
     "title": "Linewrought",
-    "premise": "The Recall lists your four patched walkers as someone else\u2019s property. Defend Tessell\u2019s workshops, bring crews home and build a company strong enough to decide what happens to the record.",
+    "premise": "The Recall lists your four patched walkers as someone else’s property. Defend Tessell’s workshops, bring crews home and build a company strong enough to decide what happens to the record.",
     "strength": "Practical guns, locally supplied parts and generous salvage opportunities. Optional rescue and workshop contracts help you rebuild before taking on the Recall.",
     "tradeoff": "Ammunition and older weapons demand teamwork. Captured Aurelian emitters fit compatible mounts, but need cooling and a source of rare replacements."
   },
@@ -137,7 +207,7 @@
       "name": "The Missing Trail",
       "missionId": "marker_survey",
       "employerId": "halloran_freight",
-      "brief": "A page in the Marker Eleven copy points to two western service readers. The old survey terrace takes one 45-tonne lift; the company transport cannot land. Send a Gadfly, read the trail and avoid the road guard. This optional survey opens a recovery claim without delaying the original attestation route.",
+      "brief": "Two old readers overlook the western service road. Send one machine no heavier than 45 tonnes, read both sites and avoid the watched road. This optional survey adds advance warning and two ammunition isolation cases; The Quiet Claim remains available if it is skipped.",
       "requires": [
         "militia_raid"
       ],
@@ -169,7 +239,7 @@
       "name": "The Quiet Claim",
       "missionId": "recovery_window",
       "employerId": "halloran_freight",
-      "brief": "The survey has found a repair crew trapped in a foundry service yard. Protect their cradle, secure the road-junction winch, then hold both for a 25-second lift. Bring up to 140 tonnes and three machines. The optional service cabinet supplies field support. You are paid to get the crew out.",
+      "brief": "A repair crew is trapped beside an unclaimed walker cradle in the western recovery cut. Secure the winch and protect the cradle through the lift with up to 140 tonnes and three machines. The optional service cabinet holds useful stock. Surviving guards do not block extraction.",
       "requires": [
         "militia_raid"
       ],
@@ -212,7 +282,7 @@
       "name": "Keep the Gantries",
       "missionId": "workshop_defence",
       "employerId": "sarn_foundry",
-      "brief": "The service trail has led Kestrel to a working Sarn repair hall. Defend gantry control for 150 seconds with up to 205 tonnes. A scout can secure the stores cabinet while the main lance holds the workshop. This optional contract pays for the company to prepare before the Recall grows.",
+      "brief": "Kestrel traced the recovered crew to a working Sarn repair hall. Defend gantry control against the announced north and east approaches with up to 205 tonnes. A forward service position can blunt the second wave. Keeping the workshop alive opens the main route to First Attestation.",
       "requires": [
         "recovery_window"
       ],
@@ -296,7 +366,7 @@
       "name": "Manifest Key",
       "missionId": "depot_road",
       "employerId": "halloran_freight",
-      "brief": "A Sarn title fragment carries an Aurelian service address. Kestrel has the same fragment and a rearguard above its reader. Hold the attestation key long enough for Halloran to resolve the depot approach.",
+      "brief": "Barrow’s archive is sealed behind a contractor checkpoint. Open the service access and hold the key. A scout can use the short cooling lane; heavier machines can push through freight cover. Optional evidence explains the two endings, but the key alone opens both.",
       "requires": [
         "shale_overwatch_node"
       ],
@@ -416,7 +486,7 @@
       "name": "Take the Manifest",
       "missionId": "depot_take",
       "employerId": "halloran_freight",
-      "brief": "Halloran's contract gets the company through the doors. What happens behind them is your account. Take the attestation key intact, clear Kestrel's guard, and put the root manifest under your own seal. The key proves custody; it commands no cockpit.",
+      "brief": "Keep Barrow’s master manifest intact. Secure the archive reader and freight access, then hold both while the record is copied into company custody. Kestrel attacks the loading lane after transfer begins. The record, not a body count, completes the campaign.",
       "requires": [
         "ridge_hold"
       ],
