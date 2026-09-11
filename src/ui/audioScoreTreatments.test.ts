@@ -14,8 +14,9 @@ describe('strategic score treatments', () => {
     const home = STRATEGIC_SCORE_TREATMENTS.home;
     const campaign = STRATEGIC_SCORE_TREATMENTS.campaign;
     const mechbay = STRATEGIC_SCORE_TREATMENTS.mechbay;
-    expect(campaign).toEqual({ intensity: 0, level: 0.6 });
-    expect(mechbay).toEqual({ intensity: 0.3, level: 0.72 });
+    expect(home).toEqual({ intensity: 0.58, level: 0.86 });
+    expect(campaign).toEqual({ intensity: 0.06, level: 0.54 });
+    expect(mechbay).toEqual({ intensity: 0.34, level: 0.68 });
     expect(mechbay.intensity).toBeGreaterThan(campaign.intensity);
     expect(home.level).toBeGreaterThan(campaign.level);
     expect(home.intensity).toBeGreaterThan(campaign.intensity);

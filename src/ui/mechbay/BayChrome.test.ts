@@ -34,6 +34,7 @@ function renderHistory(
       onToggleMuted: () => undefined,
       onExit: () => undefined,
       onSave: () => undefined,
+      onSaveAs: () => undefined,
       onExport: () => undefined,
       onImport: () => undefined,
       onLoad: () => undefined,
@@ -87,7 +88,8 @@ describe('mechbay history controls', () => {
 
     expect(standalone).toContain('aria-label="Design name"');
     expect(standalone).toContain('aria-label="Stock design"');
-    expect(standalone).toContain('Save loadout');
+    expect(standalone).toContain('Save changes');
+    expect(standalone).toContain('Save as new…');
     expect(standalone).toContain('aria-label="Saved loadouts"');
     expect(standalone).not.toContain('Build Linewrought');
     expect(standalone).not.toContain('shopbuilt');

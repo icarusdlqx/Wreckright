@@ -82,16 +82,16 @@
   letter-spacing: -.035em;
 }
 .contemporary-home .home-kicker { margin: 0; color: var(--home-cream); font-size: clamp(13px, 1.2vw, 16px); line-height: 1.4; letter-spacing: .025em; text-transform: none; }
-.contemporary-home .home-premise { margin: 14px 0 0; color: var(--home-muted); font-size: 12px; line-height: 1.6; }
-.contemporary-home .home-routes { display: grid; grid-template-columns: 1fr; gap: 6px; width: min(430px, 100%); margin-top: 34px; }
+.contemporary-home .home-premise { margin: 14px 0 0; color: var(--home-muted); font-size: 14px; line-height: 1.6; letter-spacing: .025em; }
+.contemporary-home .home-routes { display: grid; grid-template-columns: 1fr; gap: 5px; width: min(430px, 100%); margin-top: 28px; }
 .contemporary-home .home-route {
   width: 100%;
-  min-height: 78px;
+  min-height: 68px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  padding: 13px 18px;
+  padding: 11px 18px;
   border: 1px solid transparent;
   border-bottom-color: #fff2d82b;
   border-radius: 2px;
@@ -140,9 +140,9 @@
   .contemporary-home h1 { font-size: clamp(48px, 16.6vw, 88px); margin-top: 12px; margin-bottom: 12px; }
   .contemporary-home .home-kicker { font-size: 12px; }
   .contemporary-home .home-premise { margin-top: 8px; font-size: 10px; }
-  .contemporary-home .home-routes { width: 100%; margin-top: 25px; gap: 6px; }
-  .contemporary-home .home-route { min-height: 72px; padding: 12px 15px; }
-  .contemporary-home .home-route strong { font-size: 19px; }
+  .contemporary-home .home-routes { width: 100%; margin-top: 20px; gap: 4px; }
+  .contemporary-home .home-route { min-height: 58px; padding: 9px 15px; }
+  .contemporary-home .home-route strong { font-size: 17px; }
   .contemporary-home .home-route-copy > span { font-size: 10px; }
   .contemporary-home .home-field-note { gap: 10px; padding-top: 12px; }
   .contemporary-home .home-field-note p { max-width: 31ch; font-size: 9px; }

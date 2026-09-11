@@ -13,8 +13,8 @@ import {
 } from './audio-probe.mjs';
 
 const SCORE_SOURCE_COUNT = 3;
-const CAMPAIGN_LEVEL = .8 * .6;
-const MECHBAY_LEVEL = .8 * .72;
+const CAMPAIGN_LEVEL = .8 * .54;
+const MECHBAY_LEVEL = .8 * .68;
 
 function watchPage(page) {
   const errors = [];
@@ -151,7 +151,7 @@ async function checkCampaignAndNestedRefit({ browser, url, check }) {
     await advanceAudioClock(page);
     await page.waitForFunction(() => {
       const active = globalThis.__audioProbe.snapshot().findLast(context => context.state !== 'closed');
-      return active?.gains.some(gain => Math.abs(gain.value - .8 * .9) < .0001);
+      return active?.gains.some(gain => Math.abs(gain.value - .8 * .86) < .0001);
     });
     const home = activeAudioContext(await audioProbe(page));
     check('campaign return reuses its strategic sources for the home theme',

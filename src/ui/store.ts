@@ -222,6 +222,8 @@ export function storeDifficulty(tier: string): void {
 
 export interface GameState {
   screen: Screen;
+  /** The standalone workshop can be entered from either front door. */
+  mechbayReturn: 'home' | 'battle';
   campaignPending: boolean;
   ready: boolean;
   error: string | null;
@@ -326,6 +328,7 @@ export function battleRemountState() {
 
 export const useGame = create<GameState & GameActions>((set) => ({
   screen: 'home',
+  mechbayReturn: 'battle',
   campaignPending: false,
   ready: false,
   error: null,

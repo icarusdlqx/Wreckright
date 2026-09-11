@@ -39,7 +39,7 @@ afterEach(() => {
 });
 
 describe('home screen', () => {
-  it('offers four native choices and settings without mounting a battle or 3D theatre', () => {
+  it('offers five native choices and settings without mounting a battle or 3D theatre', () => {
     const html = markup();
 
     expect(html).toContain('data-testid="home-screen"');
@@ -48,12 +48,14 @@ describe('home screen', () => {
     expect(html).toContain('data-testid="home-load-game"');
     expect(html).toContain('data-testid="home-new-campaign"');
     expect(html).toContain('data-testid="home-skirmish"');
+    expect(html).toContain('data-testid="home-mechbay"');
     expect(routeTag(html, 'home-wiki')).toContain('href="#wiki"');
     expect(html).toContain('Wiki <span class="home-wiki-subtitle">· Story &amp; mechs</span>');
     expect(html).toContain('aria-label="Game settings"');
     expect(html).toContain('data-testid="audio-music"');
     expect(html).toContain('WRECKRIGHT');
-    expect(html).toContain('No new machines. Only new owners.');
+    expect(html).toContain('Your company. Your mechs. Your next move.');
+    expect(html).not.toContain('No new machines. Only new owners.');
     expect(html).toContain('Learn Command');
     expect(html).toContain('The Aurelian Continuance has returned to Tessell');
     expect(html).not.toContain('IRONLINE');
@@ -69,7 +71,7 @@ describe('home screen', () => {
   it('recommends Learn Command to a new player while keeping every other choice available', () => {
     const html = markup();
     expect(routeTag(html, 'home-learn')).toContain('class="home-route primary"');
-    for (const id of ['home-campaign', 'home-skirmish', 'home-wiki']) {
+    for (const id of ['home-campaign', 'home-mechbay', 'home-skirmish', 'home-wiki']) {
       expect(routeTag(html, id)).not.toContain('primary');
       expect(routeTag(html, id)).not.toContain('disabled');
     }
@@ -108,7 +110,7 @@ describe('home screen', () => {
   it('keeps all routes available when browser storage cannot be read', () => {
     vi.stubGlobal('localStorage', { getItem: () => { throw new Error('Storage unavailable'); } });
     const html = markup();
-    for (const id of ['home-learn', 'home-campaign', 'home-skirmish', 'home-wiki']) {
+    for (const id of ['home-learn', 'home-campaign', 'home-mechbay', 'home-skirmish', 'home-wiki']) {
       expect(routeTag(html, id)).not.toContain('disabled');
     }
     expect(html).toContain('Start Campaign');

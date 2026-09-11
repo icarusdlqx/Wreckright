@@ -25,7 +25,8 @@ describe('fixed authored score graph', () => {
     expect(context.sources.every(source => source.starts.length === 0)).toBe(true);
     expect(await handle.ready).toBe(true);
     const sources = context.sources as FakeBufferSource[];
-    expect(sources.every(source => source.loop && source.loopEnd > 73 && source.starts[0] === 5.025)).toBe(true);
+    expect(sources.every(source => source.loop && source.loopEnd > 66 && source.loopEnd < 67
+      && source.starts[0] === 5.025)).toBe(true);
     expect(sources.map(source => source.buffer?.numberOfChannels)).toEqual([2, 1, 1]);
     const rates = sources.map(source => source.playbackRate.value);
     context.currentTime = 10;
