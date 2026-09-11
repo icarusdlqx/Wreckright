@@ -186,6 +186,7 @@ export function LocationCard({
         >
           {locationName}{selected ? <span className="location-selection-label">Selected</span> : null}
         </button>
+        <span className="bay-location-capacity" aria-hidden="true">{filled}/{usage.slotsAvailable} boxes</span>
       </header>
 
       <div className="bay-location-feedback" aria-hidden={target === null || undefined}>

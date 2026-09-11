@@ -1,0 +1,142 @@
+.bay.bay--workspace {
+  --panel: #102c34;
+  --edge: #56736c;
+  --accent: #ee9858;
+  --text: #f3ecdc;
+  --muted: #aebdb4;
+  --warn: #f0bd72;
+  --warning: #f0bd72;
+  --danger: #ff9475;
+  --ok: #96d3a0;
+  --catalog-fit: #96d3a0;
+  background:
+    linear-gradient(90deg, transparent 49.9%, #b5c5b511 50%, transparent 50.1%),
+    linear-gradient(#071b22, #0b242b 45%, #071b22);
+  color: var(--text);
+}
+
+.bay.bay--workspace .bay-top,
+.bay.bay--workspace .bay-actions,
+.bay.bay--workspace .bay-workspace-tabs {
+  border-color: #6a8076;
+  background: #0d2931;
+  box-shadow: 0 5px 18px #020b0e66;
+}
+.bay.bay--workspace .bay-top { border-top-color: var(--accent); }
+.bay.bay--workspace .bay-name,
+.bay.bay--workspace :is(.bay-top, .bay-actions) :is(button, select),
+.bay.bay--workspace .bay-import {
+  border-color: #607970;
+  background: #173741;
+  color: var(--text);
+}
+.bay.bay--workspace :is(.bay-top, .bay-actions) :is(button, select):hover {
+  border-color: #e4aa73;
+  background: #204650;
+}
+.bay.bay--workspace .bay-name { border-left: 4px solid var(--accent); background: #f1eadb; color: #18323a; }
+.bay.bay--workspace .bay-workspace-tabs { padding: 4px; }
+.bay.bay--workspace .bay-workspace-tabs__tab { color: #aebdb4; }
+.bay.bay--workspace .bay-workspace-tabs__tab.is-active {
+  border-color: var(--accent);
+  background: #183a42;
+  color: #fff2dd;
+  box-shadow: inset 0 -3px var(--accent);
+}
+.bay.bay--workspace .bay-workspace-tabs__count { background: #071d24; color: #f3ecdc; }
+
+.bay.bay--workspace :is(.bay-machine, .bay-side, .bay-location,
+  .bay-dossier, .bay-dossier-card, .cooling-bank, .armour-workbench,
+  .build-review, .build-compare, .location-workbench__guide) {
+  border-color: #526f68;
+  background: #102f37;
+  color: var(--text);
+  box-shadow: 0 4px 14px #020b0e52;
+}
+.bay.bay--workspace .location-workbench__guide { background: #15363d; }
+.bay.bay--workspace .location-workbench__guide h3,
+.bay.bay--workspace .bay-location-name,
+.bay.bay--workspace .bay-gauge .gauge-value { color: #f8efdc; }
+.bay.bay--workspace .location-fit-steps li { border-color: #60786f; color: #b8c6bc; }
+.bay.bay--workspace .location-fit-steps li.current { border-color: var(--accent); background: #543823; color: #ffd1a2; }
+.bay.bay--workspace .location-fit-steps li.complete { color: var(--ok); }
+.bay.bay--workspace .location-workbench__disclosure { border-color: #6f8a80; background: #173a43; color: #f3ecdc; }
+
+.bay.bay--workspace .location-overview.anatomical-layout {
+  border: 1px solid #34545a;
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 50% 49%, #234851 0 9%, transparent 36%),
+    linear-gradient(90deg, transparent 49.85%, #78918822 50%, transparent 50.15%),
+    linear-gradient(#09242c, #0d2c34);
+  box-shadow: inset 0 0 60px #020b0e8c;
+}
+.bay.bay--workspace .anatomical-backdrop { stroke: #92aaa0; opacity: .35; filter: drop-shadow(0 0 9px #79a6983d); }
+.bay.bay--workspace .anatomical-backdrop__body { fill: #49766f; fill-opacity: .15; }
+.bay.bay--workspace .anatomical-layout > .bay-location {
+  border-color: #668078;
+  background: #f1ebdd;
+  color: #18343b;
+  box-shadow: 0 5px 16px #0006;
+}
+.bay.bay--workspace .anatomical-layout .bay-location-name { color: #15363e; }
+.bay.bay--workspace .anatomical-layout .bay-location-capacity { color: #57716a; }
+.bay.bay--workspace .bay-location.selected { border-color: var(--accent); background: #fff2df; box-shadow: inset 0 3px var(--accent), 0 5px 16px #0007; }
+.bay.bay--workspace .bay-location.hovered:not(.selected) { border-color: #8ba49a; background: #f8f2e7; }
+.bay.bay--workspace .bay-location.compatible { border-color: #6fa77d; box-shadow: inset 0 0 0 2px #6fa77d, 0 5px 16px #0006; }
+.bay.bay--workspace .anatomical-layout .slot-block { box-shadow: none; }
+.bay.bay--workspace .anatomical-layout .slot-block.empty { background: #e4e5d8; border-color: #89a094; }
+.bay.bay--workspace .anatomical-layout .bay-armour-read { color: #5a7069; }
+.bay.bay--workspace .anatomical-layout .bay-armour-read strong { color: #17363e; }
+.bay.bay--workspace .anatomical-layout .rack-capacity { --box-size: 8px; gap: 2px; }
+.bay.bay--workspace .anatomical-layout .rack-capacity .rack-cell { border-width: 1px; font-size: 6px; }
+.bay.bay--workspace .anatomical-layout .rack-capacity__free { color: #68847a; }
+.bay.bay--workspace .anatomical-layout .rack-free-count { color: #4e6860; font-weight: 600; }
+.bay.bay--workspace .anatomical-notes { color: #aebdb4; }
+.bay.bay--workspace .anatomical-notes b { color: #f3ecdc; }
+.bay.bay--workspace .anatomical-stance { color: #f1a05f; }
+
+.bay.bay--workspace .anatomical-profile .mech-preview {
+  border: 1px solid #69877c;
+  background: radial-gradient(ellipse at 50% 65%, #42625c, #102932 72%);
+  box-shadow: inset 0 0 30px #020b0e8c, 0 4px 12px #0005;
+}
+.bay.bay--workspace .anatomical-profile .bay-machine > h3,
+.bay.bay--workspace .anatomical-profile .bay-role,
+.bay.bay--workspace .anatomical-profile .gauge-value { color: #f3ecdc; }
+.bay.bay--workspace .anatomical-profile .dossier-class,
+.bay.bay--workspace .anatomical-profile .gauge-label { color: #aebdb4; }
+.bay.bay--workspace .anatomical-profile .machine-wiki-link { border-color: #637d74; background: #173841; color: #f2a365; }
+
+.bay.bay--workspace .bay-side { background: #0e2b33; }
+.bay.bay--workspace :is(.bay-catalog-search input, .bay-catalog-family select) { border-color: #627b72; background: #09242b; color: #f3ecdc; }
+.bay.bay--workspace .weapon-card { background: #f0eadc; color: #17343b; border-color: #80958c; }
+.bay.bay--workspace .weapon-card.faction-aurelian { background: #e3eee8; }
+.bay.bay--workspace .weapon-card--compact.is-inspected { background: #fff3df; }
+.bay.bay--workspace .weapon-card--compact.is-unavailable { background: #263b3d; color: #b2bdb6; }
+.bay.bay--workspace .weapon-card__identity strong { color: #19343b; }
+.bay.bay--workspace .weapon-card--compact.is-unavailable .weapon-card__identity strong { color: #d1dbd3; }
+.bay.bay--workspace .weapon-card__category,
+.bay.bay--workspace .weapon-card__quick-stats,
+.bay.bay--workspace .weapon-card__fit > span,
+.bay.bay--workspace .weapon-card__ammunition { color: #536b64; }
+.bay.bay--workspace .weapon-card--compact.is-unavailable :is(.weapon-card__category, .weapon-card__quick-stats, .weapon-card__fit > span, .weapon-card__ammunition) { color: #a9b5ae; }
+.bay.bay--workspace :is(.bay-catalog-inspector, .bay-dossier-card, .dossier-stats) { border-color: #5c756d; background: #f0eadc; color: #17343b; }
+.bay.bay--workspace .bay-dossier-card :is(h4, strong) { color: #17343b; }
+.bay.bay--workspace .bay-dossier-card p { color: #536b64; }
+
+.bay.bay--workspace .bay-actions [data-testid='bay-save']:not(:disabled) { background: #2d665f; color: #fff3df; border-color: #77a49a; }
+.bay.bay--workspace .bay-actions .bay-save-as:not(:disabled) { background: var(--accent); color: #163239; border-color: #ffc18b; font-weight: 700; }
+.bay.bay--workspace .bay-status--ok { color: #a7d8ad; }
+
+@media (max-width: 1059px), (pointer: coarse) {
+  .bay.bay--workspace .anatomical-navigator button { border-color: #6b8178; background: #15343c; color: #f3ecdc; }
+  .bay.bay--workspace .anatomical-navigator button[aria-pressed='true'],
+  .bay.bay--workspace .anatomical-navigator button[data-fit='true'] { border-color: var(--accent); background: #533823; }
+  .bay.bay--workspace .location-overview.anatomical-layout { border: 0; background: transparent; box-shadow: none; }
+}
+
+@media (forced-colors: active) {
+  .bay.bay--workspace { background: Canvas; }
+  .bay.bay--workspace .location-overview.anatomical-layout { background: Canvas; box-shadow: none; }
+}

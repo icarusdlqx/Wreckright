@@ -1,9 +1,9 @@
-import coreUrl from '../assets/audio/carry-the-dawn-core.ogg';
-import ironworkUrl from '../assets/audio/carry-the-dawn-ironwork.ogg';
-import monolithUrl from '../assets/audio/carry-the-dawn-monolith.ogg';
+import coreUrl from '../assets/audio/roads-we-keep-core.ogg';
+import ironworkUrl from '../assets/audio/roads-we-keep-ironwork.ogg';
+import monolithUrl from '../assets/audio/roads-we-keep-monolith.ogg';
 
 export const SCORE_ASSET_URLS = [coreUrl, ironworkUrl, monolithUrl] as const;
-export const SCORE_LOOP_SECONDS = 32 * 4 * 60 / 104;
+export const SCORE_LOOP_SECONDS = 32 * 4 * 60 / 116;
 export type ScoreBuffers = readonly [AudioBuffer, AudioBuffer, AudioBuffer];
 export type ScoreBufferLoader = (context: AudioContext, signal: AbortSignal) => Promise<ScoreBuffers>;
 

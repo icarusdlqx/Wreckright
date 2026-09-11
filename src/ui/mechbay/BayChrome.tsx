@@ -17,6 +17,7 @@ interface Props {
   design: Design;
   commissionTitle?: string;
   commissionCancelLabel?: string;
+  exitLabel?: string;
   stored: readonly StoredLoadoutOption[];
   saveable: boolean;
   status: BayStatus | null;
@@ -31,6 +32,7 @@ interface Props {
   onToggleMuted: () => void;
   onExit: () => void;
   onSave: () => void;
+  onSaveAs: () => void;
   onExport: () => void;
   onImport: (file: File) => void;
   onLoad: (id: string) => void;
@@ -41,6 +43,7 @@ export function BayChrome({
   design,
   commissionTitle,
   commissionCancelLabel,
+  exitLabel,
   stored,
   saveable,
   status,
@@ -55,6 +58,7 @@ export function BayChrome({
   onToggleMuted,
   onExit,
   onSave,
+  onSaveAs,
   onExport,
   onImport,
   onLoad,
@@ -135,7 +139,7 @@ export function BayChrome({
           {muted ? 'Unmute all' : 'Mute all'}
         </button>
         <button type="button" onClick={onExit} data-testid="bay-exit">
-          {commissioned ? commissionCancelLabel ?? 'Back to manifest' : 'Back to skirmish'}
+          {commissioned ? commissionCancelLabel ?? 'Back to manifest' : exitLabel ?? 'Back to skirmish'}
         </button>
       </header>
 
@@ -147,11 +151,14 @@ export function BayChrome({
           title={saveable ? 'Save this loadout' : 'Fix the loadout before saving'}
           data-testid="bay-save"
         >
-          {commissioned ? 'Commit refit' : 'Save loadout'}
+          {commissioned ? 'Commit refit' : 'Save changes'}
         </button>
 
         {commissioned ? null : (
           <>
+            <button type="button" onClick={onSaveAs} disabled={!saveable} className="bay-save-as" data-testid="bay-save-as">
+              Save as new…
+            </button>
             <button type="button" onClick={onExport} disabled={!saveable} data-testid="bay-export">
               Export JSON
             </button>
