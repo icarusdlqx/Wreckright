@@ -1,103 +1,129 @@
 {
   "id": "raid_ridge",
-  "name": "Raid — Ridge Pass",
+  "name": "Warrant \u2014 First Warrant",
   "type": "skirmish",
-  "mapId": "ridge_pass",
-  "maxDurationSeconds": 300,
+  "mapId": "aurelian_landing_apron",
+  "maxDurationSeconds": 330,
   "lances": [
     {
       "team": 0,
-      "name": "Company Lance",
+      "name": "Aurelian Custody Detail",
       "units": [
         {
-          "designId": "hornet_spotter",
-          "pilotId": "kessa_vale",
+          "designId": "votive_picket",
+          "pilotId": "petra_lindqvist",
           "spawn": {
-            "x": 108,
-            "y": 852
+            "x": 540,
+            "y": 1068
           },
-          "facingDegrees": -45
+          "facingDegrees": -90
         },
         {
-          "designId": "bulwark_assault",
-          "pilotId": "dorn_hess",
+          "designId": "sentinel_brawler",
+          "pilotId": "silas_okonkwo",
           "spawn": {
-            "x": 156,
-            "y": 876
+            "x": 612,
+            "y": 1068
           },
-          "facingDegrees": -45
+          "facingDegrees": -90
         },
         {
-          "designId": "hornet_spotter",
-          "pilotId": "marek_sud",
+          "designId": "falchion_duellist",
+          "pilotId": "teodor_krysa",
           "spawn": {
-            "x": 204,
-            "y": 828
+            "x": 540,
+            "y": 996
           },
-          "facingDegrees": -45
+          "facingDegrees": -90
         },
         {
-          "designId": "cairn_battery",
-          "pilotId": "ilse_brant",
+          "designId": "halberd_prime",
+          "pilotId": "arne_gedde",
           "spawn": {
-            "x": 132,
-            "y": 780
+            "x": 612,
+            "y": 996
           },
-          "facingDegrees": -45
+          "facingDegrees": -90
         }
       ]
     },
     {
       "team": 1,
-      "name": "Ridge Militia",
+      "name": "Landing Claim Cordon",
       "units": [
         {
-          "designId": "courser_patrol",
-          "pilotId": "leda_morcant",
-          "spawn": {
-            "x": 852,
-            "y": 108
-          },
-          "facingDegrees": 135
-        },
-        {
           "designId": "hornet_spotter",
-          "pilotId": "corin_dast",
+          "pilotId": "kessa_vale",
           "spawn": {
-            "x": 804,
-            "y": 132
+            "x": 540,
+            "y": 252
           },
-          "facingDegrees": 135
+          "facingDegrees": 90
         },
         {
-          "designId": "drover_carrier",
-          "pilotId": "tomas_arvel",
+          "designId": "prybar_courier",
+          "pilotId": "dorn_hess",
           "spawn": {
-            "x": 876,
-            "y": 180
+            "x": 324,
+            "y": 300
+          },
+          "facingDegrees": 45
+        },
+        {
+          "designId": "courser_patrol",
+          "pilotId": "marek_sud",
+          "spawn": {
+            "x": 948,
+            "y": 300
           },
           "facingDegrees": 135
         }
       ]
     }
   ],
-  "briefing": "Militia irregulars are dug in at the pass. Break them and withdraw.",
-  "startingResourcePoints": 600,
+  "briefing": "Clear the tender approach with coordinated fire. The centre deployment lane favours Aurelian range; lateral ravines reach the cordon\u2019s sides. Preserve the detachment because every repair stays on its account.",
+  "startingResourcePoints": 450,
   "objectives": [
     {
-      "id": "wipe_them_out",
-      "label": "Destroy the opposing lance",
+      "id": "clear_tender_approach",
+      "label": "Clear the custody tender approach",
       "type": "destroy_all",
       "team": 0,
       "required": true
     },
     {
       "id": "lance_survives",
-      "label": "Keep at least one mech operational",
+      "label": "Keep at least one machine operational",
       "type": "survive",
       "team": 0,
       "required": true
     }
   ],
-  "dropTonnage": 215
+  "dropTonnage": 215,
+  "maxPlayerUnits": 4,
+  "atmosphereId": "hard_noon",
+  "triggers": [
+    {
+      "id": "first_warrant_order",
+      "when": {
+        "type": "elapsed",
+        "seconds": 3
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Tender: centre lane is surveyed. Side ravines are slower, but they break the cordon\u2019s firing line."
+        },
+        {
+          "type": "reveal",
+          "x": 540,
+          "y": 252,
+          "radius": 260,
+          "seconds": 28
+        }
+      ]
+    }
+  ],
+  "enemyDirectives": []
 }

@@ -6,19 +6,74 @@
     {
       "revision": 1,
       "victoryNodeId": "continuance_export",
-      "alternateVictoryNodeIds": ["local_stewardship"],
+      "alternateVictoryNodeIds": [
+        "local_stewardship"
+      ],
       "nodes": [
-        { "id": "first_warrant", "requires": [] },
-        { "id": "custody_survey", "requires": ["first_warrant"] },
-        { "id": "custody_resupply", "requires": ["custody_survey"] },
-        { "id": "cutbank_attestation", "requires": ["first_warrant"] },
-        { "id": "sarn_inventory", "requires": ["cutbank_attestation"] },
-        { "id": "root_exchange", "requires": ["sarn_inventory"] },
-        { "id": "quarry_receipt", "requires": ["root_exchange"] },
-        { "id": "conduit_injunction", "requires": ["quarry_receipt"] },
-        { "id": "barrow_warrant", "requires": ["conduit_injunction"] },
-        { "id": "continuance_export", "requires": ["barrow_warrant"] },
-        { "id": "local_stewardship", "requires": ["barrow_warrant"] }
+        {
+          "id": "first_warrant",
+          "requires": []
+        },
+        {
+          "id": "custody_survey",
+          "requires": [
+            "first_warrant"
+          ]
+        },
+        {
+          "id": "custody_resupply",
+          "requires": [
+            "custody_survey"
+          ]
+        },
+        {
+          "id": "cutbank_attestation",
+          "requires": [
+            "first_warrant"
+          ]
+        },
+        {
+          "id": "sarn_inventory",
+          "requires": [
+            "cutbank_attestation"
+          ]
+        },
+        {
+          "id": "root_exchange",
+          "requires": [
+            "sarn_inventory"
+          ]
+        },
+        {
+          "id": "quarry_receipt",
+          "requires": [
+            "root_exchange"
+          ]
+        },
+        {
+          "id": "conduit_injunction",
+          "requires": [
+            "quarry_receipt"
+          ]
+        },
+        {
+          "id": "barrow_warrant",
+          "requires": [
+            "conduit_injunction"
+          ]
+        },
+        {
+          "id": "continuance_export",
+          "requires": [
+            "barrow_warrant"
+          ]
+        },
+        {
+          "id": "local_stewardship",
+          "requires": [
+            "barrow_warrant"
+          ]
+        }
       ]
     }
   ],
@@ -161,7 +216,7 @@
     {
       "id": "cutbank_attestation",
       "name": "Custody Posts",
-      "missionId": "base_capture_ridge",
+      "missionId": "authority_custody_posts",
       "employerId": "continuance_tender",
       "brief": "Cutbank's two custody posts disagree with the old archive. Take both intact and hold them while the Authority copies their records. The local garrison has called in workshop rebuilds. Keep your machines together; the detachment pays for every repair.",
       "requires": [

@@ -1,24 +1,24 @@
 {
   "id": "custody_resupply",
-  "name": "Recovery — Under Civil Seal",
+  "name": "Recovery \u2014 Under Civil Seal",
   "type": "defend",
-  "mapId": "causeway",
-  "briefing": "A stranded custody tender needs its loading stand linked to the causeway relay. Protect the stand, secure the relay, then hold both for a 30-second transfer. That completes the contract even if claimants survive. Bring up to 135 tonnes and three machines. A scout can take the relay while heavier machines cover the stand. The optional seal cabinet supplies field support. Hold Fire after disabling both enemy legs to preserve a recovery chance.",
-  "maxDurationSeconds": 180,
+  "mapId": "aurelian_landing_apron",
+  "briefing": "Protect the tender loading stand, secure cargo control and hold both for a 30-second transfer. Bring up to three machines and 135 tonnes. The seal cabinet is optional; surviving claimants do not block the transfer.",
+  "maxDurationSeconds": 240,
   "startingResourcePoints": 350,
   "dropTonnage": 135,
   "maxPlayerUnits": 3,
   "lances": [
     {
       "team": 0,
-      "name": "Civil Transfer Detail",
+      "name": "Aurelian Custody Detail",
       "units": [
         {
           "designId": "votive_picket",
           "pilotId": "petra_lindqvist",
           "spawn": {
-            "x": 588,
-            "y": 780
+            "x": 540,
+            "y": 996
           },
           "facingDegrees": -90
         },
@@ -26,8 +26,8 @@
           "designId": "sentinel_brawler",
           "pilotId": "silas_okonkwo",
           "spawn": {
-            "x": 636,
-            "y": 828
+            "x": 588,
+            "y": 996
           },
           "facingDegrees": -90
         },
@@ -35,8 +35,8 @@
           "designId": "falchion_duellist",
           "pilotId": "teodor_krysa",
           "spawn": {
-            "x": 684,
-            "y": 780
+            "x": 636,
+            "y": 996
           },
           "facingDegrees": -90
         }
@@ -44,14 +44,14 @@
     },
     {
       "team": 1,
-      "name": "Foundry Counterclaim",
+      "name": "Tender Claimants",
       "units": [
         {
           "designId": "hornet_spotter",
           "pilotId": "kessa_vale",
           "spawn": {
-            "x": 732,
-            "y": 468
+            "x": 540,
+            "y": 612
           },
           "facingDegrees": 90
         },
@@ -59,10 +59,10 @@
           "designId": "prybar_courier",
           "pilotId": "dorn_hess",
           "spawn": {
-            "x": 828,
-            "y": 444
+            "x": 900,
+            "y": 612
           },
-          "facingDegrees": 90
+          "facingDegrees": 135
         }
       ]
     }
@@ -70,30 +70,30 @@
   "zones": [
     {
       "id": "loading_stand",
-      "name": "Civil Loading Stand",
-      "x": 636,
-      "y": 780,
-      "radius": 78,
+      "name": "Tender Loading Stand",
+      "x": 588,
+      "y": 996,
+      "radius": 76,
       "owner": 0,
-      "captureSeconds": 14,
+      "captureSeconds": 12,
       "resourcePoints": 0
     },
     {
       "id": "seal_cabinet",
       "name": "Optional Seal Cabinet",
-      "x": 732,
-      "y": 492,
+      "x": 900,
+      "y": 780,
       "radius": 44,
       "owner": null,
       "captureSeconds": 8,
-      "resourcePoints": 200
+      "resourcePoints": 150
     },
     {
       "id": "transfer_relay",
-      "name": "Causeway Transfer Relay",
-      "x": 420,
-      "y": 660,
-      "radius": 44,
+      "name": "Cargo Transfer Control",
+      "x": 588,
+      "y": 708,
+      "radius": 48,
       "owner": null,
       "captureSeconds": 8,
       "resourcePoints": 0
@@ -102,7 +102,7 @@
   "objectives": [
     {
       "id": "keep_loading_stand",
-      "label": "Protect the civil loading stand",
+      "label": "Protect the tender loading stand",
       "type": "protect_zones",
       "team": 0,
       "required": true,
@@ -112,7 +112,7 @@
     },
     {
       "id": "complete_civil_transfer",
-      "label": "Complete transfer: hold stand and relay for 30 seconds",
+      "label": "Hold stand and cargo control for 30 seconds",
       "type": "hold_zones",
       "team": 0,
       "required": true,
@@ -124,18 +124,17 @@
     },
     {
       "id": "recover_sealed_stock",
-      "label": "Optional: secure the tender seal cabinet",
+      "label": "Optional: secure the seal cabinet",
       "type": "capture_zones",
       "team": 0,
       "required": false,
       "zoneIds": [
         "seal_cabinet"
-      ],
-      "resourcePoints": 150
+      ]
     },
     {
       "id": "custodian_survives",
-      "label": "Keep a transfer Custodian operational",
+      "label": "Keep a custody machine operational",
       "type": "survive",
       "team": 0,
       "required": true
@@ -143,15 +142,15 @@
   ],
   "enemyDirectives": [
     {
-      "id": "loading_counterclaim",
+      "id": "loading_claim",
       "team": 1,
       "zoneId": "loading_stand",
       "behavior": "retake",
       "units": 1,
-      "pursuitRadius": 420
+      "pursuitRadius": 390
     },
     {
-      "id": "seal_watch",
+      "id": "cabinet_claim",
       "team": 1,
       "zoneId": "seal_cabinet",
       "behavior": "defend",
@@ -170,36 +169,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Custody clerk: the loading stand needs a live causeway relay. Secure both for a thirty-second transfer; keep the stand under our seal."
-        }
-      ]
-    },
-    {
-      "id": "preserve_roots",
-      "when": {
-        "type": "elapsed",
-        "seconds": 24
-      },
-      "once": true,
-      "effects": [
-        {
-          "type": "message",
-          "text": "Custody clerk: disable both legs, then Hold Fire to preserve a hull. Do not lose the loading stand while chasing a claim."
-        }
-      ]
-    },
-    {
-      "id": "seal_taken",
-      "when": {
-        "type": "zone_captured",
-        "zoneId": "seal_cabinet",
-        "team": 0
-      },
-      "once": true,
-      "effects": [
-        {
-          "type": "message",
-          "text": "Custody clerk: seal cabinet recorded. The tender has released its field-support allocation."
+          "text": "Tender: cargo control closes the transfer. Keep the loading stand occupied; the seal cabinet is optional."
         }
       ]
     },
@@ -214,24 +184,10 @@
       "effects": [
         {
           "type": "message",
-          "text": "Custody clerk: relay linked. Keep the stand and relay for the transfer cycle shown in Objectives. The seal cabinet is optional."
-        }
-      ]
-    },
-    {
-      "id": "claimant_warning",
-      "when": {
-        "type": "elapsed",
-        "seconds": 6
-      },
-      "once": true,
-      "effects": [
-        {
-          "type": "message",
-          "speakerPilotId": "dorn_hess",
-          "text": "Foundry watch: a polished shell does not make those stores yours. We are coming for the loading stand."
+          "text": "Cargo control accepted. Thirty seconds on both positions completes the transfer."
         }
       ]
     }
-  ]
+  ],
+  "atmosphereId": "hard_noon"
 }

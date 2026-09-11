@@ -1,70 +1,67 @@
 {
   "id": "authority_root_exchange",
-  "name": "Attestation — Root Exchange",
+  "name": "Attestation \u2014 Root Exchange",
   "type": "recon",
-  "mapId": "ridge_pass",
-  "briefing": "Sarn's sealed inventory exposed a swap: service readers on this exchange carry roots already entered into Authority custody, while matching records run back toward the rebuild yards. Key the intake reader, west splice, exchange root and north reader, then hold all four while the Tender proves the substitution. The machines guarding the record are evidence, but the record itself is the warrant.",
-  "maxDurationSeconds": 420,
-  "startingResourcePoints": 500,
-  "dropTonnage": 205,
+  "mapId": "aurelian_service_terraces",
+  "briefing": "Take a two-machine verification detail between the lower, middle and crown readers. Key them in route order. Patrols guard their assigned terraces; completion does not require destroying them.",
+  "maxDurationSeconds": 360,
+  "startingResourcePoints": 400,
+  "dropTonnage": 100,
   "lances": [
     {
       "team": 0,
-      "name": "Root Audit Detail",
+      "name": "Aurelian Custody Detail",
       "units": [
         {
           "designId": "votive_picket",
           "pilotId": "petra_lindqvist",
-          "spawn": { "x": 444, "y": 924 },
+          "spawn": {
+            "x": 900,
+            "y": 1092
+          },
           "facingDegrees": -90
         },
         {
           "designId": "sentinel_brawler",
           "pilotId": "silas_okonkwo",
-          "spawn": { "x": 492, "y": 900 },
-          "facingDegrees": -90
-        },
-        {
-          "designId": "falchion_duellist",
-          "pilotId": "teodor_krysa",
-          "spawn": { "x": 540, "y": 924 },
-          "facingDegrees": -90
-        },
-        {
-          "designId": "halberd_prime",
-          "pilotId": "arne_gedde",
-          "spawn": { "x": 492, "y": 852 },
+          "spawn": {
+            "x": 828,
+            "y": 1092
+          },
           "facingDegrees": -90
         }
       ]
     },
     {
       "team": 1,
-      "name": "Exchange Scrub Detail",
+      "name": "Service Reader Patrol",
       "units": [
         {
           "designId": "hornet_spotter",
           "pilotId": "marek_sud",
-          "spawn": { "x": 492, "y": 684 },
+          "spawn": {
+            "x": 540,
+            "y": 900
+          },
           "facingDegrees": 90
         },
         {
           "designId": "courser_patrol",
           "pilotId": "roz_havel",
-          "spawn": { "x": 156, "y": 492 },
-          "facingDegrees": 0
+          "spawn": {
+            "x": 540,
+            "y": 564
+          },
+          "facingDegrees": 90
         },
         {
           "designId": "drover_carrier",
           "pilotId": "ilse_brant",
-          "spawn": { "x": 492, "y": 228 },
+          "spawn": {
+            "x": 540,
+            "y": 228
+          },
           "facingDegrees": 90
-        },
-        {
-          "designId": "courser_patrol",
-          "pilotId": "willem_torrance",
-          "spawn": { "x": 756, "y": 444 },
-          "facingDegrees": 180
         }
       ]
     }
@@ -72,79 +69,52 @@
   "reserves": [],
   "zones": [
     {
-      "id": "intake_reader",
-      "name": "Intake Reader",
-      "x": 492,
-      "y": 732,
-      "radius": 54,
-      "owner": 1,
-      "captureSeconds": 7,
-      "resourcePoints": 55
-    },
-    {
-      "id": "west_splice",
-      "name": "West Splice",
-      "x": 252,
-      "y": 492,
-      "radius": 54,
+      "id": "lower_reader",
+      "name": "Lower Service Reader",
+      "x": 540,
+      "y": 948,
+      "radius": 48,
       "owner": 1,
       "captureSeconds": 8,
-      "resourcePoints": 55
+      "resourcePoints": 0
     },
     {
-      "id": "exchange_root",
-      "name": "Exchange Root",
-      "x": 492,
-      "y": 492,
-      "radius": 62,
+      "id": "middle_reader",
+      "name": "Middle Exchange Reader",
+      "x": 540,
+      "y": 564,
+      "radius": 48,
       "owner": 1,
-      "captureSeconds": 11,
-      "resourcePoints": 80
+      "captureSeconds": 8,
+      "resourcePoints": 0
     },
     {
-      "id": "north_reader",
-      "name": "North Reader",
-      "x": 492,
-      "y": 156,
-      "radius": 54,
+      "id": "crown_reader",
+      "name": "Relay Crown Reader",
+      "x": 540,
+      "y": 228,
+      "radius": 48,
       "owner": 1,
-      "captureSeconds": 7,
-      "resourcePoints": 55
+      "captureSeconds": 8,
+      "resourcePoints": 0
     }
   ],
   "objectives": [
     {
       "id": "key_readers",
-      "label": "Key all four service readers",
+      "label": "Key all three service readers",
       "type": "capture_zones",
       "team": 0,
       "required": true,
       "zoneIds": [
-        "intake_reader",
-        "west_splice",
-        "exchange_root",
-        "north_reader"
-      ],
-      "resourcePoints": 175
-    },
-    {
-      "id": "prove_swap",
-      "label": "Hold all four readers for 22 seconds",
-      "type": "hold_zones",
-      "team": 0,
-      "required": true,
-      "zoneIds": [
-        "intake_reader",
-        "west_splice",
-        "exchange_root",
-        "north_reader"
-      ],
-      "holdSeconds": 22,
-      "resourcePoints": 175
+        "lower_reader",
+        "middle_reader",
+        "crown_reader"
+      ]
     },
     {
       "id": "audit_survives",
-      "label": "Keep at least one Custodian operational",
+      "label": "Keep a verification machine operational",
       "type": "survive",
       "team": 0,
       "required": true
@@ -153,138 +123,90 @@
   "triggers": [
     {
       "id": "reader_order",
-      "when": { "type": "elapsed", "seconds": 3 },
+      "when": {
+        "type": "elapsed",
+        "seconds": 3
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Four readers make the exchange record. Key intake, west, root and north before the scrub detail can split the chain."
-        },
-        {
-          "type": "reveal",
-          "x": 492,
-          "y": 492,
-          "radius": 310,
-          "seconds": 26
+          "text": "Tender: lower, middle, crown. The east switchback bypasses the central patrol."
         }
       ]
     },
     {
-      "id": "intake_keyed",
-      "when": { "type": "zone_captured", "zoneId": "intake_reader", "team": 0 },
+      "id": "lower_keyed",
+      "when": {
+        "type": "zone_captured",
+        "zoneId": "lower_reader",
+        "team": 0
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Intake keyed. Its service marks resolve to machines already sealed at Sarn."
+          "text": "Lower reader verified. Continue to the middle terrace."
         }
       ]
     },
     {
-      "id": "west_keyed",
-      "when": { "type": "zone_captured", "zoneId": "west_splice", "team": 0 },
+      "id": "middle_keyed",
+      "when": {
+        "type": "zone_captured",
+        "zoneId": "middle_reader",
+        "team": 0
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "West splice keyed. That branch carries the copied roots back toward Cutbank."
+          "text": "Middle exchange verified. Crown reader is the last required stop."
         }
       ]
     },
     {
-      "id": "root_keyed",
-      "when": { "type": "zone_captured", "zoneId": "exchange_root", "team": 0 },
+      "id": "crown_keyed",
+      "when": {
+        "type": "zone_captured",
+        "zoneId": "crown_reader",
+        "team": 0
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Exchange root keyed. Duplicate service histories are aligning against the custody roll."
-        }
-      ]
-    },
-    {
-      "id": "north_keyed",
-      "when": { "type": "zone_captured", "zoneId": "north_reader", "team": 0 },
-      "once": true,
-      "effects": [
-        {
-          "type": "message",
-          "text": "North reader keyed. Keep every terminal in hand while the Tender proves the swap."
-        }
-      ]
-    },
-    {
-      "id": "scrub_reserve",
-      "when": { "type": "objective_complete", "objectiveId": "key_readers" },
-      "once": true,
-      "effects": [
-        {
-          "type": "message",
-          "text": "The false roots have resolved. A scrub reserve is entering from the north-east to break the comparison."
-        },
-        {
-          "type": "spawn",
-          "team": 1,
-          "units": [
-            {
-              "designId": "bulwark_assault",
-              "pilotId": "mira_solvang",
-              "spawn": { "x": 852, "y": 108 },
-              "facingDegrees": 135
-            },
-            {
-              "designId": "hornet_spotter",
-              "pilotId": "suri_kell",
-              "spawn": { "x": 804, "y": 156 },
-              "facingDegrees": 135
-            }
-          ]
-        },
-        {
-          "type": "reveal",
-          "x": 828,
-          "y": 132,
-          "radius": 190,
-          "seconds": 22
-        }
-      ]
-    },
-    {
-      "id": "swap_proved",
-      "when": { "type": "objective_complete", "objectiveId": "prove_swap" },
-      "once": true,
-      "effects": [
-        {
-          "type": "message",
-          "text": "Substitution proved. The exchange record points to casting receipts and serial plates at Blackglass."
+          "text": "All readers agree: one service identity has been loaned across several surviving machines."
         }
       ]
     }
   ],
   "enemyDirectives": [
     {
-      "id": "north_reader_guard",
+      "id": "lower_patrol",
       "team": 1,
-      "zoneId": "north_reader",
+      "zoneId": "lower_reader",
       "behavior": "defend",
       "units": 1,
-      "pursuitRadius": 230
+      "pursuitRadius": 170
     },
     {
-      "id": "west_splice_patrol",
+      "id": "middle_patrol",
       "team": 1,
-      "zoneId": "west_splice",
-      "behavior": "intercept",
+      "zoneId": "middle_reader",
+      "behavior": "defend",
       "units": 1,
-      "pursuitRadius": 260
+      "pursuitRadius": 170
     },
     {
-      "id": "exchange_counterclaim",
+      "id": "crown_patrol",
       "team": 1,
-      "zoneId": "exchange_root",
-      "behavior": "retake",
-      "units": 4,
-      "pursuitRadius": 340
+      "zoneId": "crown_reader",
+      "behavior": "defend",
+      "units": 1,
+      "pursuitRadius": 170
     }
-  ]
+  ],
+  "maxPlayerUnits": 2,
+  "atmosphereId": "moonlit_night"
 }

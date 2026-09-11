@@ -6,7 +6,7 @@ import { createWorld, stepWorld } from './world';
 
 const RECOVERY = [
   ['recovery_window', 'winch_controls', 'line_recovery_cut'],
-  ['custody_resupply', 'transfer_relay', 'causeway'],
+  ['custody_resupply', 'transfer_relay', 'aurelian_landing_apron'],
 ] as const;
 
 describe('opening recovery work', () => {

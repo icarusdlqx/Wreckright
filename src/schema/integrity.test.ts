@@ -199,15 +199,15 @@ describe('campaign content integrity', () => {
       }),
       expect.objectContaining({
         file: 'missions/switchyard_watch.json',
-        message: 'spawn (2000, 2000) is outside the 960×960m map',
+        message: 'spawn (2000, 2000) is outside the 1152×1152m map',
       }),
       expect.objectContaining({
         file: 'missions/switchyard_watch.json',
-        message: 'zone (2000, 492) is outside the 960×960m map',
+        message: 'zone (2000, 372) is outside the 1152×1152m map',
       }),
       expect.objectContaining({
         file: 'missions/switchyard_watch.json',
-        message: 'reveal (2000, 2000) is outside the 960×960m map',
+        message: 'reveal (2000, 2000) is outside the 1152×1152m map',
       }),
     ]));
   });

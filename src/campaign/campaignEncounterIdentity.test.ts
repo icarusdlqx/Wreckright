@@ -13,12 +13,42 @@ const lineMain = [
   ['depot_burn', 'barrow_archive', 255, 5],
 ] as const;
 
+
+const aurelianMain = [
+  ['raid_ridge', 'aurelian_landing_apron', 215, 4],
+  ['authority_custody_posts', 'aurelian_civic_exchange', 210, 5],
+  ['switchyard_watch', 'aurelian_civic_exchange', 220, 5],
+  ['authority_root_exchange', 'aurelian_service_terraces', 100, 2],
+  ['authority_quarry_receipt', 'blackglass_quarry', 225, 5],
+  ['authority_conduit_injunction', 'aurelian_service_terraces', 230, 5],
+  ['authority_barrow_warrant', 'barrow_archive', 240, 5],
+  ['authority_continuance_export', 'barrow_archive', 250, 5],
+  ['authority_local_stewardship', 'barrow_archive', 250, 5],
+] as const;
+
 describe('campaign encounter identity', () => {
   it.each(lineMain)('%s uses its authored place and deployment profile', (id, mapId, tonnes, units) => {
     const mission = catalog.missions.get(id)!;
     expect(mission.mapId).toBe(mapId);
     expect(mission.dropTonnage).toBe(tonnes);
     expect(mission.maxPlayerUnits).toBe(units);
+  });
+
+  it.each(aurelianMain)('%s uses its distinct Aurelian operation profile', (id, mapId, tonnes, units) => {
+    const mission = catalog.missions.get(id)!;
+    expect(mission.mapId).toBe(mapId);
+    expect(mission.dropTonnage).toBe(tonnes);
+    expect(mission.maxPlayerUnits).toBe(units);
+  });
+
+  it('keeps Aurelian recon, transfer and endings objective-led', () => {
+    for (const id of ['custody_survey', 'custody_resupply', 'authority_root_exchange',
+      'authority_quarry_receipt', 'authority_continuance_export', 'authority_local_stewardship']) {
+      expect(catalog.missions.get(id)?.objectives.some(objective => objective.type === 'destroy_all'), id).toBe(false);
+    }
+    expect(catalog.missions.get('authority_root_exchange')?.maxPlayerUnits).toBe(2);
+    expect(catalog.missions.get('authority_continuance_export')?.objectives.flatMap(o => o.zoneIds))
+      .not.toEqual(catalog.missions.get('authority_local_stewardship')?.objectives.flatMap(o => o.zoneIds));
   });
 
   it('gives the Linewrought finales different plans without mandatory extermination', () => {

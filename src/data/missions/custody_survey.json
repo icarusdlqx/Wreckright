@@ -1,9 +1,9 @@
 {
   "id": "custody_survey",
-  "name": "Survey — The Unbroken Chain",
+  "name": "Survey \u2014 The Unbroken Chain",
   "type": "recon",
-  "mapId": "ridge_pass",
-  "briefing": "The first warrant leaves a gap between two civil service readers. Record both western posts without opening a new battle. The Tender's heavy transport cannot land on the survey terrace; a single lift allows one machine up to 50 tonnes. A stock Votive can make the trip with Hold Fire. Foundry patrols guard the central road. The optional dispatch ledger is closer to their station; copy it before the second required reader completes the survey.",
+  "mapId": "aurelian_service_terraces",
+  "briefing": "Take one machine up to 50 tonnes and key the lower and crown service readers in sequence. The patrol guards the central ramp. Contact is optional; the dispatch ledger on the east platform is useful.",
   "maxDurationSeconds": 240,
   "startingResourcePoints": 200,
   "dropTonnage": 50,
@@ -11,14 +11,14 @@
   "lances": [
     {
       "team": 0,
-      "name": "Tender Survey Detail",
+      "name": "Aurelian Custody Detail",
       "units": [
         {
           "designId": "votive_picket",
           "pilotId": "petra_lindqvist",
           "spawn": {
-            "x": 108,
-            "y": 852
+            "x": 900,
+            "y": 1092
           },
           "facingDegrees": -90
         }
@@ -26,25 +26,25 @@
     },
     {
       "team": 1,
-      "name": "Foundry Road Watch",
+      "name": "Terrace Road Patrol",
       "units": [
         {
           "designId": "courser_patrol",
           "pilotId": "kessa_vale",
           "spawn": {
-            "x": 708,
-            "y": 300
+            "x": 540,
+            "y": 564
           },
-          "facingDegrees": 180
+          "facingDegrees": 90
         },
         {
           "designId": "hornet_spotter",
           "pilotId": "dorn_hess",
           "spawn": {
-            "x": 756,
-            "y": 276
+            "x": 876,
+            "y": 228
           },
-          "facingDegrees": 180
+          "facingDegrees": 135
         }
       ]
     }
@@ -52,20 +52,20 @@
   "zones": [
     {
       "id": "west_service_post",
-      "name": "West Civil Service Post",
-      "x": 132,
-      "y": 540,
-      "radius": 54,
+      "name": "Lower Service Reader",
+      "x": 540,
+      "y": 948,
+      "radius": 48,
       "owner": null,
       "captureSeconds": 8,
       "resourcePoints": 0
     },
     {
       "id": "upper_service_post",
-      "name": "Upper Post · Completes contract",
-      "x": 228,
-      "y": 252,
-      "radius": 54,
+      "name": "Relay Crown Reader",
+      "x": 252,
+      "y": 228,
+      "radius": 48,
       "owner": null,
       "captureSeconds": 8,
       "resourcePoints": 0
@@ -73,19 +73,19 @@
     {
       "id": "dispatch_ledger",
       "name": "Optional Dispatch Ledger",
-      "x": 516,
-      "y": 396,
+      "x": 876,
+      "y": 228,
       "radius": 44,
       "owner": null,
       "captureSeconds": 8,
-      "resourcePoints": 200
+      "resourcePoints": 0
     },
     {
       "id": "road_watch",
-      "name": "Foundry Road Station",
-      "x": 732,
-      "y": 300,
-      "radius": 70,
+      "name": "Central Ramp Patrol",
+      "x": 540,
+      "y": 564,
+      "radius": 55,
       "owner": 1,
       "captureSeconds": 12,
       "resourcePoints": 0
@@ -94,7 +94,7 @@
   "objectives": [
     {
       "id": "record_chain",
-      "label": "Record both western service posts",
+      "label": "Key both service readers",
       "type": "capture_zones",
       "team": 0,
       "required": true,
@@ -105,18 +105,17 @@
     },
     {
       "id": "copy_dispatch_ledger",
-      "label": "Optional: copy the dispatch ledger before the final post",
+      "label": "Optional: copy the dispatch ledger",
       "type": "capture_zones",
       "team": 0,
       "required": false,
       "zoneIds": [
         "dispatch_ledger"
-      ],
-      "resourcePoints": 150
+      ]
     },
     {
       "id": "surveyor_survives",
-      "label": "Keep the survey Custodian operational",
+      "label": "Keep the survey machine operational",
       "type": "survive",
       "team": 0,
       "required": true
@@ -124,12 +123,12 @@
   ],
   "enemyDirectives": [
     {
-      "id": "road_custody",
+      "id": "ramp_watch",
       "team": 1,
       "zoneId": "road_watch",
       "behavior": "defend",
       "units": 2,
-      "pursuitRadius": 260
+      "pursuitRadius": 190
     }
   ],
   "triggers": [
@@ -143,12 +142,12 @@
       "effects": [
         {
           "type": "message",
-          "text": "Custody clerk: the western readers close the gap. Read them in person; neither patrol machine needs to be destroyed."
+          "text": "Tender: lower reader, then relay crown. The centre patrol need not be engaged."
         }
       ]
     },
     {
-      "id": "west_read",
+      "id": "lower_read",
       "when": {
         "type": "zone_captured",
         "zoneId": "west_service_post",
@@ -158,38 +157,10 @@
       "effects": [
         {
           "type": "message",
-          "text": "Custody clerk: first mark accepted. The upper post completes this warrant. Record the optional dispatch ledger before taking that final reading."
-        }
-      ]
-    },
-    {
-      "id": "dispatch_choice",
-      "when": {
-        "type": "elapsed",
-        "seconds": 12
-      },
-      "once": true,
-      "effects": [
-        {
-          "type": "message",
-          "text": "Custody clerk: the dispatch ledger is optional. Record it before the final western post if the route is safe."
-        }
-      ]
-    },
-    {
-      "id": "road_watch_reply",
-      "when": {
-        "type": "elapsed",
-        "seconds": 6
-      },
-      "once": true,
-      "effects": [
-        {
-          "type": "message",
-          "speakerPilotId": "dorn_hess",
-          "text": "Foundry road watch: our civil marks are on the western posts. Read them if you must. The road stays under our guard."
+          "text": "Lower reader keyed. East switchback reaches the crown outside the patrol\u2019s usual circuit."
         }
       ]
     }
-  ]
+  ],
+  "atmosphereId": "moonlit_night"
 }

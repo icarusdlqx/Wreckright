@@ -1,0 +1,212 @@
+{
+  "id": "authority_custody_posts",
+  "name": "Warrant \u2014 Custody Posts",
+  "type": "base_capture",
+  "mapId": "aurelian_civic_exchange",
+  "briefing": "Secure the west and east custody posts along Sarn\u2019s main avenue. Local defenders use the garden lanes and workshop streets to reach your flanks. Advance together; the obvious centre is a firing lane.",
+  "maxDurationSeconds": 390,
+  "startingResourcePoints": 500,
+  "lances": [
+    {
+      "team": 0,
+      "name": "Aurelian Custody Detail",
+      "units": [
+        {
+          "designId": "votive_picket",
+          "pilotId": "petra_lindqvist",
+          "spawn": {
+            "x": 540,
+            "y": 1068
+          },
+          "facingDegrees": -90
+        },
+        {
+          "designId": "sentinel_brawler",
+          "pilotId": "silas_okonkwo",
+          "spawn": {
+            "x": 612,
+            "y": 1068
+          },
+          "facingDegrees": -90
+        },
+        {
+          "designId": "falchion_duellist",
+          "pilotId": "teodor_krysa",
+          "spawn": {
+            "x": 540,
+            "y": 996
+          },
+          "facingDegrees": -90
+        },
+        {
+          "designId": "halberd_prime",
+          "pilotId": "arne_gedde",
+          "spawn": {
+            "x": 612,
+            "y": 996
+          },
+          "facingDegrees": -90
+        }
+      ]
+    },
+    {
+      "team": 1,
+      "name": "Sarn Custody Defence",
+      "units": [
+        {
+          "designId": "hornet_spotter",
+          "pilotId": "kessa_vale",
+          "spawn": {
+            "x": 132,
+            "y": 252
+          },
+          "facingDegrees": 90
+        },
+        {
+          "designId": "cairn_battery",
+          "pilotId": "ilse_brant",
+          "spawn": {
+            "x": 900,
+            "y": 252
+          },
+          "facingDegrees": 90
+        },
+        {
+          "designId": "redoubt_emplacement",
+          "pilotId": "dorn_hess",
+          "spawn": {
+            "x": 756,
+            "y": 612
+          },
+          "facingDegrees": 180
+        }
+      ]
+    }
+  ],
+  "reserves": [],
+  "zones": [
+    {
+      "id": "west_post",
+      "name": "West Custody Post",
+      "x": 132,
+      "y": 252,
+      "radius": 62,
+      "owner": 1,
+      "captureSeconds": 10,
+      "resourcePoints": 0
+    },
+    {
+      "id": "east_post",
+      "name": "East Custody Post",
+      "x": 900,
+      "y": 252,
+      "radius": 62,
+      "owner": 1,
+      "captureSeconds": 10,
+      "resourcePoints": 0
+    }
+  ],
+  "objectives": [
+    {
+      "id": "take_posts",
+      "label": "Secure both custody posts",
+      "type": "capture_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": [
+        "west_post",
+        "east_post"
+      ]
+    },
+    {
+      "id": "lance_survives",
+      "label": "Keep at least one machine operational",
+      "type": "survive",
+      "team": 0,
+      "required": true
+    }
+  ],
+  "triggers": [
+    {
+      "id": "opening_orders",
+      "when": {
+        "type": "elapsed",
+        "seconds": 2
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "Tender: two posts on the avenue. Garden lanes on both sides are unsurveyed approach routes."
+        }
+      ]
+    },
+    {
+      "id": "service_counterattack",
+      "when": {
+        "type": "zone_captured",
+        "zoneId": "west_post",
+        "team": 0
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "message",
+          "text": "West post secured. Local counterattack moving through the east workshop street."
+        },
+        {
+          "type": "spawn",
+          "team": 1,
+          "units": [
+            {
+              "designId": "courser_patrol",
+              "pilotId": "roz_havel",
+              "spawn": {
+                "x": 1092,
+                "y": 708
+              },
+              "facingDegrees": 180
+            },
+            {
+              "designId": "prybar_courier",
+              "pilotId": "suri_kell",
+              "spawn": {
+                "x": 1092,
+                "y": 780
+              },
+              "facingDegrees": 180
+            }
+          ]
+        },
+        {
+          "type": "reveal",
+          "x": 1092,
+          "y": 744,
+          "radius": 220,
+          "seconds": 25
+        }
+      ]
+    }
+  ],
+  "dropTonnage": 210,
+  "enemyDirectives": [
+    {
+      "id": "west_defence",
+      "team": 1,
+      "zoneId": "west_post",
+      "behavior": "defend",
+      "units": 2,
+      "pursuitRadius": 330
+    },
+    {
+      "id": "east_retake",
+      "team": 1,
+      "zoneId": "east_post",
+      "behavior": "retake",
+      "units": 3,
+      "pursuitRadius": 460
+    }
+  ],
+  "maxPlayerUnits": 5,
+  "atmosphereId": "hard_noon"
+}

@@ -1,70 +1,85 @@
 {
   "id": "authority_local_stewardship",
-  "name": "Disposition — Local Stewardship",
+  "name": "Disposition \u2014 Local Stewardship",
   "type": "assault",
-  "mapId": "causeway",
-  "briefing": "Sarn's registrars have answered Barrow Reach's warrant with a local countersign. Carry it to the disposition stand, clear the Linewrought nullity guard, and ratify the order in the field. Once countersigned, the restored roots remain in Tessell under registered local stewardship.",
+  "mapId": "barrow_archive",
+  "briefing": "Secure the public verification desk and service reader, then protect the local handover while the Tender countersigns it. The positions are separated; move as a formation. The contractors oppose the disposition.",
   "maxDurationSeconds": 480,
-  "startingResourcePoints": 750,
-  "dropTonnage": 205,
+  "startingResourcePoints": 800,
+  "dropTonnage": 250,
   "lances": [
     {
       "team": 0,
-      "name": "Countersign Stewardship Detail",
+      "name": "Aurelian Custody Detail",
       "units": [
         {
           "designId": "votive_picket",
           "pilotId": "petra_lindqvist",
-          "spawn": { "x": 36, "y": 636 },
-          "facingDegrees": -45
+          "spawn": {
+            "x": 1092,
+            "y": 1212
+          },
+          "facingDegrees": -135
         },
         {
           "designId": "sentinel_brawler",
           "pilotId": "silas_okonkwo",
-          "spawn": { "x": 108, "y": 636 },
-          "facingDegrees": -45
+          "spawn": {
+            "x": 1116,
+            "y": 1212
+          },
+          "facingDegrees": -135
         },
         {
           "designId": "falchion_duellist",
           "pilotId": "teodor_krysa",
-          "spawn": { "x": 180, "y": 636 },
-          "facingDegrees": -45
+          "spawn": {
+            "x": 1140,
+            "y": 1212
+          },
+          "facingDegrees": -135
         },
         {
           "designId": "halberd_prime",
           "pilotId": "arne_gedde",
-          "spawn": { "x": 36, "y": 708 },
-          "facingDegrees": -45
+          "spawn": {
+            "x": 1092,
+            "y": 1140
+          },
+          "facingDegrees": -135
         }
       ]
     },
     {
       "team": 1,
-      "name": "Stewardship Nullity Guard",
+      "name": "Armed Seizure Contractors",
       "units": [
         {
           "designId": "bulwark_assault",
           "pilotId": "kessa_vale",
-          "spawn": { "x": 756, "y": 36 },
-          "facingDegrees": 135
+          "spawn": {
+            "x": 228,
+            "y": 324
+          },
+          "facingDegrees": 45
+        },
+        {
+          "designId": "courser_patrol",
+          "pilotId": "dorn_hess",
+          "spawn": {
+            "x": 300,
+            "y": 324
+          },
+          "facingDegrees": 45
         },
         {
           "designId": "hornet_spotter",
           "pilotId": "marek_sud",
-          "spawn": { "x": 732, "y": 108 },
-          "facingDegrees": 135
-        },
-        {
-          "designId": "courser_patrol",
-          "pilotId": "roz_havel",
-          "spawn": { "x": 924, "y": 108 },
-          "facingDegrees": 135
-        },
-        {
-          "designId": "drover_carrier",
-          "pilotId": "suri_kell",
-          "spawn": { "x": 684, "y": 156 },
-          "facingDegrees": 135
+          "spawn": {
+            "x": 228,
+            "y": 396
+          },
+          "facingDegrees": 45
         }
       ]
     }
@@ -72,32 +87,68 @@
   "reserves": [],
   "zones": [
     {
-      "id": "disposition_stand",
-      "name": "Sarn Countersign Stand",
-      "x": 480,
-      "y": 480,
-      "radius": 65,
+      "id": "public_desk",
+      "name": "Public Verification Desk",
+      "x": 444,
+      "y": 732,
+      "radius": 58,
       "owner": 1,
-      "captureSeconds": 12,
-      "resourcePoints": 250
+      "captureSeconds": 10,
+      "resourcePoints": 0
+    },
+    {
+      "id": "service_reader",
+      "name": "Archive Service Reader",
+      "x": 876,
+      "y": 444,
+      "radius": 58,
+      "owner": 1,
+      "captureSeconds": 10,
+      "resourcePoints": 0
+    },
+    {
+      "id": "local_handover",
+      "name": "Local Handover Court",
+      "x": 660,
+      "y": 660,
+      "radius": 70,
+      "owner": 0,
+      "captureSeconds": 10,
+      "resourcePoints": 0
     }
   ],
   "objectives": [
     {
-      "id": "ratify_disposition",
-      "label": "Affix Sarn's stewardship countersign",
+      "id": "verify_stewardship",
+      "label": "Secure both verification positions",
       "type": "capture_zones",
       "team": 0,
       "required": true,
-      "zoneIds": ["disposition_stand"],
-      "resourcePoints": 250
+      "zoneIds": [
+        "public_desk",
+        "service_reader"
+      ]
     },
     {
-      "id": "clear_nullity_guard",
-      "label": "Clear the stewardship nullity guard",
-      "type": "destroy_all",
+      "id": "protect_handover",
+      "label": "Protect the local handover",
+      "type": "protect_zones",
       "team": 0,
-      "required": true
+      "required": true,
+      "zoneIds": [
+        "local_handover"
+      ]
+    },
+    {
+      "id": "countersign_handover",
+      "label": "Hold the handover while it is countersigned",
+      "type": "hold_zones",
+      "team": 0,
+      "required": true,
+      "zoneIds": [
+        "local_handover"
+      ],
+      "holdSeconds": 58
     },
     {
       "id": "lance_survives",
@@ -109,37 +160,89 @@
   ],
   "triggers": [
     {
-      "id": "disposition_order",
-      "when": { "type": "elapsed", "seconds": 4 },
+      "id": "stewardship_order",
+      "when": {
+        "type": "elapsed",
+        "seconds": 3
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Sarn registrar: carry our countersign to the stand. Ratification keeps every restored root in Tessell under registered stewardship."
+          "text": "Tender: verify the public desk and service reader, then return to cover the handover."
         }
       ]
     },
     {
-      "id": "disposition_ratified",
-      "when": { "type": "zone_captured", "zoneId": "disposition_stand", "team": 0 },
+      "id": "handover_attack",
+      "when": {
+        "type": "objective_complete",
+        "objectiveId": "verify_stewardship"
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "Sarn countersign accepted. The restored roots remain in Tessell under registered local stewardship."
+          "text": "Freight road: seizure contractors moving to force an export before countersignature."
+        },
+        {
+          "type": "spawn",
+          "team": 1,
+          "units": [
+            {
+              "designId": "redoubt_emplacement",
+              "pilotId": "mira_solvang",
+              "spawn": {
+                "x": 660,
+                "y": 60
+              },
+              "facingDegrees": 90
+            },
+            {
+              "designId": "drover_carrier",
+              "pilotId": "roz_havel",
+              "spawn": {
+                "x": 732,
+                "y": 60
+              },
+              "facingDegrees": 90
+            }
+          ]
+        },
+        {
+          "type": "reveal",
+          "x": 696,
+          "y": 60,
+          "radius": 240,
+          "seconds": 28
         }
       ]
     },
     {
-      "id": "guard_accounted",
-      "when": { "type": "objective_complete", "objectiveId": "clear_nullity_guard" },
+      "id": "stewardship_signed",
+      "when": {
+        "type": "objective_complete",
+        "objectiveId": "countersign_handover"
+      },
       "once": true,
       "effects": [
         {
           "type": "message",
-          "text": "The nullity guard is accounted for. No field objection remains against Sarn's stewardship order."
+          "text": "Local stewardship countersigned. The roots remain under named maintenance obligations."
         }
       ]
+    }
+  ],
+  "maxPlayerUnits": 5,
+  "atmosphereId": "ash_dusk",
+  "enemyDirectives": [
+    {
+      "id": "handover_attack",
+      "team": 1,
+      "zoneId": "local_handover",
+      "behavior": "retake",
+      "units": 5,
+      "pursuitRadius": 720
     }
   ]
 }
