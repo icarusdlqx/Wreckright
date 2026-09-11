@@ -129,6 +129,7 @@ export function LanceManifest({ catalog, state, mutate, onLaunch, onCancel, onRe
                   </>}
                 </p>
                 <button type="button" className="prep-primary" data-testid="prep-assign-pilot" disabled={seat.mechId === null || pilot.id === seat.pilotId || !isPilotAvailable(state, pilot)}
+                  title={seat.mechId === null ? 'Choose a machine for this seat first.' : !isPilotAvailable(state, pilot) ? 'This pilot must miss the next mission.' : pilot.id === seat.pilotId ? 'This pilot is already assigned.' : `Assign ${pilot.name} to seat ${selected + 1}.`}
                   onClick={() => assignPilot(selected, pilot.id)}>{pilot.id === seat.pilotId ? 'Pilot assigned' : `Assign ${pilot.name}`}</button>
                 {!isPilotAvailable(state, pilot) ? <p className="prep-warning">Injured pilots miss the next mission.</p> : null}
               </>}
@@ -136,6 +137,7 @@ export function LanceManifest({ catalog, state, mutate, onLaunch, onCancel, onRe
                 onClick={() => change((draft) => clearPreparationSeat(draft, selected, true))}>Return pilot to reserves</button>}
               {seat.mechId === null ? null : <button type="button" data-testid={`manifest-refit-${seat.pilotId ?? 'empty'}`}
                 disabled={state.mechs.find((entry) => entry.id === seat.mechId)?.status !== 'ready'}
+                title={state.mechs.find((entry) => entry.id === seat.mechId)?.status !== 'ready' ? 'Only a ready machine can enter the refit bay.' : 'Open this machine in the refit bay.'}
                 onClick={() => { if (seat.mechId !== null) refit(seat.mechId); }}>Refit assigned machine</button>}
             </>}
             {seat.mechId === null && seat.pilotId === null ? null : <button type="button" data-testid="prep-remove-seat" onClick={() => change((draft) => clearPreparationSeat(draft, selected))}>Remove from deployment</button>}
@@ -146,11 +148,14 @@ export function LanceManifest({ catalog, state, mutate, onLaunch, onCancel, onRe
         <div className="prep-feedback" role="status" data-testid="prep-feedback">
           {notice === null ? null : <span>{notice}</span>}
           {!persistent ? <strong className="prep-warning">Changes are memory-only. Return to the company to recover saving.</strong> : null}
-          {plan.issues.length === 0 ? <strong>{persistent ? 'Team ready · preparation saved' : 'Team ready · save required before deployment'}</strong> : <details data-testid="manifest-issues"><summary>{plan.issues[0]}{plan.issues.length > 1 ? ` (+${plan.issues.length - 1})` : ''}</summary><ul>{plan.issues.map((issue, index) => <li key={`${index}:${issue}`}>{issue}</li>)}</ul></details>}
+          {plan.issues.length === 0 ? <strong>{persistent ? 'Team ready · preparation saved' : 'Team ready · save required before deployment'}</strong> : <details data-testid="manifest-issues"><summary id="manifest-issue-summary">{plan.issues[0]}{plan.issues.length > 1 ? ` (+${plan.issues.length - 1})` : ''}</summary><ul>{plan.issues.map((issue, index) => <li key={`${index}:${issue}`}>{issue}</li>)}</ul></details>}
         </div>
         <button type="button" onClick={() => change((draft) => { autoFillDeployment(catalog, draft, contract.missionId); return 'Available pilots and machines selected within the mission allowance.'; })} data-testid="prep-autofill">Autofill</button>
         <button type="button" onClick={onCancel} data-testid="manifest-cancel">Back to company</button>
-        <button type="button" className="prep-primary" onClick={onLaunch} disabled={plan.issues.length > 0} data-testid="manifest-launch">Review field briefing →</button>
+        <button type="button" className="prep-primary" onClick={onLaunch} disabled={plan.issues.length > 0}
+          aria-describedby={plan.issues.length > 0 ? 'manifest-issue-summary' : undefined}
+          title={plan.issues.length > 0 ? plan.issues.join(' ') : 'Review the mission map and final orders.'}
+          data-testid="manifest-launch">Review field briefing →</button>
       </footer>
     </section>
   </div>;

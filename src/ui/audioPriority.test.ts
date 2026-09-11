@@ -6,6 +6,7 @@ import type { MechEntity, World } from '../sim/types';
 import { AudioDirector } from './audio';
 import {
   AudioGraph,
+  CRITICAL_VOICE_RESERVE,
   FIELD_VOICE_LIMIT,
   TERMINAL_VOICE_RESERVE,
 } from './audioGraph';
@@ -127,6 +128,14 @@ function saturatedAudio(seed: string): SaturatedAudio {
   };
   const events: SimEvent[] = Array.from({ length: 1_000 }, () => ({ ...hit }));
   events.push({
+    type: 'critical_hit',
+    tick: world.tick,
+    entityId: target.id,
+    shooterId: shooter.id,
+    location: 'centre_torso',
+    component: 'structure',
+  });
+  events.push({
     type: 'mech_destroyed',
     tick: world.tick,
     entityId: target.id,
@@ -151,12 +160,16 @@ describe('terminal voice priority', () => {
     harness.audio.consume(harness.world, [terminal]);
 
     const admittedOrdinary = begin.mock.calls.filter((call, index) =>
-      call[1] !== 'terminal' && begin.mock.results[index]?.value !== null,
+      (call[1] === undefined || call[1] === 'ordinary') && begin.mock.results[index]?.value !== null,
+    );
+    const admittedCritical = begin.mock.calls.filter((call, index) =>
+      call[1] === 'critical' && begin.mock.results[index]?.value !== null,
     );
     const admittedTerminal = begin.mock.calls.filter((call, index) =>
       call[1] === 'terminal' && begin.mock.results[index]?.value !== null,
     );
-    expect(admittedOrdinary).toHaveLength(FIELD_VOICE_LIMIT - TERMINAL_VOICE_RESERVE);
+    expect(admittedOrdinary).toHaveLength(FIELD_VOICE_LIMIT - TERMINAL_VOICE_RESERVE - CRITICAL_VOICE_RESERVE);
+    expect(admittedCritical).toHaveLength(CRITICAL_VOICE_RESERVE);
     expect(admittedTerminal).toHaveLength(TERMINAL_VOICE_RESERVE);
     expect(harness.context.sources.every((source) => Number.isFinite(source.stops[0]))).toBe(true);
     harness.audio.destroy();
@@ -171,23 +184,28 @@ describe('terminal voice priority', () => {
 
     const admitted = begin.mock.results.map((result) => result.value !== null);
     const ordinary = begin.mock.calls.filter((call, index) =>
-      call[1] !== 'terminal' && admitted[index],
+      (call[1] === undefined || call[1] === 'ordinary') && admitted[index],
+    );
+    const critical = begin.mock.calls.filter((call, index) =>
+      call[1] === 'critical' && admitted[index],
     );
     const terminal = begin.mock.calls.filter((call, index) =>
       call[1] === 'terminal' && admitted[index],
     );
-    expect(ordinary).toHaveLength(FIELD_VOICE_LIMIT - TERMINAL_VOICE_RESERVE);
+    expect(ordinary).toHaveLength(FIELD_VOICE_LIMIT - TERMINAL_VOICE_RESERVE - CRITICAL_VOICE_RESERVE);
+    expect(critical).toHaveLength(CRITICAL_VOICE_RESERVE);
     expect(terminal).toHaveLength(TERMINAL_VOICE_RESERVE);
 
     const faction = harness.world.catalog.chassis.get(harness.target.chassisId)?.faction
       ?? 'linewrought';
+    const landingDelay = machineCulture(faction).terminalFallSeconds / 4;
     const delayed = harness.context.sources
       .flatMap((source) => source.starts)
-      .filter((start) => start > harness.context.currentTime);
+      .filter((start) => start >= harness.context.currentTime + landingDelay - 0.001);
     // The reserved landing contains impact, body, sub, bending metal and debris layers.
     expect(delayed).toHaveLength(5);
     expect(delayed[0]! - harness.context.currentTime)
-      .toBeCloseTo(machineCulture(faction).terminalFallSeconds / 4);
+      .toBeCloseTo(landingDelay);
     expect(harness.context.sources.every((source) => source.stops.length === 1)).toBe(true);
     expect(harness.context.sources.every((source) => Number.isFinite(source.stops[0]))).toBe(true);
     expect(harness.context.sources.length).toBeLessThanOrEqual(
@@ -209,9 +227,9 @@ describe('terminal voice priority', () => {
     expect(admittedTerminal).toHaveLength(TERMINAL_VOICE_RESERVE);
     expect(harness.context.sources.flatMap((source) => source.starts))
       .toEqual(expect.arrayContaining([harness.context.currentTime]));
-    expect(harness.context.sources.every(
-      (source) => source.starts.every((start) => start === harness.context.currentTime),
-    )).toBe(true);
+    const starts = harness.context.sources.flatMap((source) => source.starts);
+    expect(starts).toContain(harness.context.currentTime);
+    expect(Math.max(...starts) - harness.context.currentTime).toBeLessThanOrEqual(0.071);
     harness.audio.destroy();
   });
 

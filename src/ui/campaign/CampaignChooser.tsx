@@ -89,8 +89,9 @@ export function CampaignChooser({ campaigns, currentId, onClose, onStart,
           <button
             type="button"
             disabled={!newRun && ((isCurrent && !initial) || resumable || damagedSlot)}
-            onClick={() => onStart(selectedId, selectedDifficulty)}
             data-testid="campaign-choice-start"
+            title={!newRun && isCurrent && !initial ? 'This company is already open.' : !newRun && resumable ? 'Resume or explicitly choose New run.' : !newRun && damagedSlot ? 'Export the preserved save, then choose New run.' : 'Start a new company with this faction and difficulty.'}
+            onClick={() => onStart(selectedId, selectedDifficulty)}
           >
             {resumable ? 'Resume the saved company first' : 'Start selected campaign'}
           </button>

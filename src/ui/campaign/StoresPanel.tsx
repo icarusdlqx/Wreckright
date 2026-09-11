@@ -26,6 +26,7 @@ export function StoresPanel({ state, mutate, onRefitPart }: PanelProps & { onRef
                 <SupplyPartCard catalog={catalog} state={state} part={part} count={item.count}>
                   <select value="" disabled={state.finished || candidates.length === 0 || onRefitPart === undefined}
                     aria-label={`Open refit with ${catalog.weapons.get(item.itemId)?.name ?? catalog.equipment.get(item.itemId)?.name ?? item.itemId}`}
+                    title={state.finished ? 'This campaign has ended.' : onRefitPart === undefined ? 'Refitting is unavailable here.' : candidates.length === 0 ? 'No ready company machine has a compatible bay for this part.' : 'Choose a compatible machine and open its refit bay.'}
                     onChange={(event) => { if (event.target.value !== '') onRefitPart?.(event.target.value, part); }}
                     data-testid={`camp-fit-${item.itemId}`}>
                     <option value="">Choose machine &amp; fit…</option>

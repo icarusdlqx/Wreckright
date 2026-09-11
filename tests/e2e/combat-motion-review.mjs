@@ -139,6 +139,62 @@ async function install({ base, settings }) {
     if (flight === 0) hit();
     return advance(Math.min(.0667, flight || .0333));
   }
+  function weaponFamilies() {
+    return [...new Set(subject.weapons.map((entry) => catalog.weapons.get(entry.weaponId)?.type).filter(Boolean))];
+  }
+  function crowdedVolley() {
+    reset({ id: 'bulwark_bwk3' });
+    const pilotId = catalog.pilots.keys().next().value;
+    const actors = [
+      [1, 0, 'bulwark_assault', -55, 38, 30],
+      [2, 0, 'sentinel_brawler', -58, -28, 25],
+      [3, 0, 'hornet_spotter', -2, -58, 55],
+      [4, 1, 'sentinel_brawler', 54, 35, 205],
+      [5, 1, 'bulwark_assault', 58, -32, 210],
+    ];
+    world.entities = actors.map(([id, team, designId, x, y, facingDegrees]) => createMech(
+      catalog, catalog.rules, { id, team, designId, pilotId, spawn: { x, y }, facingDegrees },
+    ));
+    subject = world.entities[0];
+    pose(0);
+    const events = world.entities.map((entity) => {
+      const target = world.entities.find(candidate => candidate.team !== entity.team);
+      const desired = entity.id === 1 ? 'ballistic' : entity.id === 3 || entity.id === 5 ? 'missile' : 'energy';
+      const mount = entity.weapons.find(entry => catalog.weapons.get(entry.weaponId)?.type === desired)
+        ?? entity.weapons.find(entry => !entry.destroyed);
+      return { type: 'weapon_fired', tick: world.tick, shooterId: entity.id, targetId: target.id, weaponId: mount.weaponId };
+    });
+    units.consumeEvents(world, events); effects.consume(world, events);
+    return advance(.0667);
+  }
+  function crowdedImpact() {
+    const events = world.entities.map((entity) => {
+      const target = world.entities.find(candidate => candidate.team !== entity.team);
+      const desired = entity.id === 1 ? 'ballistic' : entity.id === 3 || entity.id === 5 ? 'missile' : 'energy';
+      const mount = entity.weapons.find(entry => catalog.weapons.get(entry.weaponId)?.type === desired)
+        ?? entity.weapons.find(entry => !entry.destroyed);
+      const weapon = catalog.weapons.get(mount.weaponId);
+      return { type: 'projectile_hit', tick: world.tick, shooterId: entity.id, targetId: target.id,
+        weaponId: mount.weaponId, location: 'centre_torso', damage: weapon.damage, arc: 'front' };
+    });
+    units.consumeEvents(world, events); effects.consume(world, events);
+    return advance(.05);
+  }
+  function crowdedDamage() {
+    const torn = world.entities.find(entity => entity.id === 4);
+    const wreck = world.entities.find(entity => entity.id === 5);
+    torn.locations.left_arm.destroyed = true; torn.locations.left_arm.armour = 0; torn.locations.left_arm.internal = 0;
+    wreck.destroyed = true; wreck.locations.centre_torso.destroyed = true;
+    locomotion.authorizeTerminalFall(wreck.id);
+    const events = [
+      { type: 'location_destroyed', tick: world.tick, entityId: torn.id, shooterId: 1, location: 'left_arm' },
+      { type: 'ammo_explosion', tick: world.tick, entityId: torn.id, location: 'right_torso', damage: 44 },
+      { type: 'mech_destroyed', tick: world.tick, entityId: wreck.id, method: 'centre_torso' },
+    ];
+    units.consumeEvents(world, events); effects.consume(world, events);
+    const view = units.viewFor(world, wreck); view.model.terminalFallAxis = { pitch: .65, roll: .55 };
+    return advance(.12);
+  }
   function hit() {
     const weapon = catalog.weapons.get(shot.weaponId);
     const event = { type: 'projectile_hit', tick: world.tick, shooterId: 1, targetId: 2,
@@ -219,7 +275,8 @@ async function install({ base, settings }) {
         geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures } };
   }
   function dispose() { effects?.destroy(); units?.dispose(); resources.disposeObjectResources(scene); resources.disposeRenderer(renderer); renderer.domElement.remove(); scene.clear(); }
-  globalThis.__motionReview = { reset, advance, walk, fire, impact, heat, damage, terminal, jump, inspect, dispose };
+  globalThis.__motionReview = { reset, advance, walk, fire, weaponFamilies, crowdedVolley, crowdedImpact, crowdedDamage,
+    impact, heat, damage, terminal, jump, inspect, dispose };
   return { models: ['bulwark_bwk3', 'sentinel_snl2', 'hornet_hnt2'].map((id) => ({ id, name: catalog.chassis.get(id)?.name })),
     note: 'Scripted presentation states through real UnitViews/buildMechModel, Locomotion and BattleEffects. No simulation advancement, audio, saved state or UI.' };
 }
@@ -259,7 +316,8 @@ try {
     await capture('Walking / stride loading', await invoke('walk'));
     await capture('Walking / next sole contact', await invoke('advance', [.9, true]));
     await capture('Walking / opposite sole contact', await invoke('advance', [.9, true]));
-    for (const family of ['ballistic', 'energy', 'missile']) {
+    const families = await invoke('weaponFamilies');
+    for (const family of families) {
       await invoke('reset', [{ id, duel: true }]);
       await capture(`${family} / discharge`, await invoke('fire', [family]));
       await capture(`${family} / contact`, await invoke('impact'));
@@ -289,7 +347,9 @@ try {
   // Retain the original 44 frame names. These views expose the struck side and
   // later cue development without changing lighting, scale or camera direction.
   for (const id of ['bulwark_bwk3', 'sentinel_snl2']) {
-    for (const family of ['ballistic', 'energy', 'missile']) {
+    await invoke('reset', [{ id }]);
+    const families = await invoke('weaponFamilies');
+    for (const family of families) {
       await invoke('reset', [{ id, duel: true, faceContact: true }]); await invoke('fire', [family]);
       await capture(`${family} / facing contact`, await invoke('impact'));
       await capture(`${family} / facing contact residual`, await invoke('advance', [.15]));
@@ -305,6 +365,10 @@ try {
   await invoke('reset', [{ id: 'hornet_hnt2', groundType: 'water' }]);
   await invoke('walk'); await invoke('advance', [.9, true]);
   await capture('Water / ripple spreading from sole', await invoke('advance', [.18]));
+  await capture('Five-mech engagement / simultaneous discharge', await invoke('crowdedVolley'));
+  await capture('Five-mech engagement / distinct impacts', await invoke('crowdedImpact'));
+  await capture('Five-mech engagement / part loss, ammunition rupture and wreck', await invoke('crowdedDamage'));
+  await capture('Five-mech engagement / accelerated effects remain separated', await invoke('advance', [.2]));
   await invoke('dispose');
   if (errors.length) throw new Error(`${errors.length} browser/render errors; inspect review.json`);
 } catch (error) { errors.push(String(error)); process.exitCode = 1; }

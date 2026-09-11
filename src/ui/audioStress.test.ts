@@ -5,6 +5,7 @@ import type { MechEntity, World } from '../sim/types';
 import { AudioDirector } from './audio';
 import {
   AudioGraph,
+  CRITICAL_VOICE_RESERVE,
   FIELD_VOICE_LIMIT,
   FIELD_VOICE_WINDOW_MS,
   TERMINAL_VOICE_RESERVE,
@@ -283,7 +284,11 @@ describe('field voice admission', () => {
       if (graph.begin({ level: 1, distance: 20 }) !== null) admitted += 1;
     }
 
-    expect(admitted).toBe(FIELD_VOICE_LIMIT - TERMINAL_VOICE_RESERVE);
+    expect(admitted).toBe(FIELD_VOICE_LIMIT - TERMINAL_VOICE_RESERVE - CRITICAL_VOICE_RESERVE);
+    for (let offer = 0; offer < CRITICAL_VOICE_RESERVE; offer += 1) {
+      expect(graph.begin({ level: 1, distance: 20 }, 'critical')).not.toBeNull();
+    }
+    expect(graph.begin({ level: 1, distance: 20 }, 'critical')).toBeNull();
     for (let offer = 0; offer < TERMINAL_VOICE_RESERVE; offer += 1) {
       expect(graph.begin({ level: 1, distance: 20 }, 'terminal')).not.toBeNull();
     }
@@ -317,7 +322,7 @@ describe('field voice admission', () => {
     const context = FakeContext.instances.at(-1);
     expect(context).toBeDefined();
     if (context === undefined) return;
-    expect(context.sources.length).toBeLessThanOrEqual(baseline + (FIELD_VOICE_LIMIT - TERMINAL_VOICE_RESERVE) * 17);
+    expect(context.sources.length).toBeLessThanOrEqual(baseline + (FIELD_VOICE_LIMIT - TERMINAL_VOICE_RESERVE - CRITICAL_VOICE_RESERVE) * 17);
     expect(context.sources.slice(baseline).every((source) => source.stops.length === 1)).toBe(true);
     expect(context.sources.slice(baseline).every((source) => Number.isFinite(source.stops[0]))).toBe(true);
     audio.destroy();

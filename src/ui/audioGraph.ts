@@ -17,7 +17,7 @@ export interface VoiceFrame {
   random(): number;
 }
 
-export type VoicePriority = 'ordinary' | 'terminal';
+export type VoicePriority = 'ordinary' | 'critical' | 'terminal';
 
 export interface VoiceBus {
   begin(placement: VoicePlacement, priority?: VoicePriority): VoiceFrame | null;
@@ -32,6 +32,8 @@ export interface AmbientBus {
 
 export const FIELD_VOICE_LIMIT = 8;
 export const FIELD_VOICE_WINDOW_MS = 100;
+/** One torn location or ammunition rupture remains audible through a full lance volley. */
+export const CRITICAL_VOICE_RESERVE = 1;
 /** A terminal blast and its landing must survive an already saturated volley. */
 export const TERMINAL_VOICE_RESERVE = 2;
 /** Restart storms may leave at most two contexts finishing their short fade. */
@@ -47,7 +49,7 @@ const pendingAudioCloses: PendingAudioClose[] = [];
 
 /** The shared graph and the admission control in front of every one-shot. */
 export class AudioGraph implements VoiceBus, AmbientBus {
-  private readonly window = { at: 0, ordinary: 0, terminal: 0 };
+  private readonly window = { at: 0, ordinary: 0, critical: 0, terminal: 0 };
   private seed = 0x9e3779b9;
   private closed = false;
   readonly mixer: AudioMixer;
@@ -139,18 +141,26 @@ export class AudioGraph implements VoiceBus, AmbientBus {
       if (now - this.window.at > FIELD_VOICE_WINDOW_MS) {
         this.window.at = now;
         this.window.ordinary = 0;
+        this.window.critical = 0;
         this.window.terminal = 0;
       }
       if (priority === 'terminal') {
         if (
           this.window.terminal >= TERMINAL_VOICE_RESERVE
-          || this.window.ordinary + this.window.terminal >= FIELD_VOICE_LIMIT
+          || this.window.ordinary + this.window.critical + this.window.terminal >= FIELD_VOICE_LIMIT
         ) return null;
         this.window.terminal += 1;
+      } else if (priority === 'critical') {
+        if (
+          this.window.critical >= CRITICAL_VOICE_RESERVE
+          || this.window.ordinary + this.window.critical >= FIELD_VOICE_LIMIT - TERMINAL_VOICE_RESERVE
+          || this.window.ordinary + this.window.critical + this.window.terminal >= FIELD_VOICE_LIMIT
+        ) return null;
+        this.window.critical += 1;
       } else {
         if (
-          this.window.ordinary >= FIELD_VOICE_LIMIT - TERMINAL_VOICE_RESERVE
-          || this.window.ordinary + this.window.terminal >= FIELD_VOICE_LIMIT
+          this.window.ordinary >= FIELD_VOICE_LIMIT - TERMINAL_VOICE_RESERVE - CRITICAL_VOICE_RESERVE
+          || this.window.ordinary + this.window.critical + this.window.terminal >= FIELD_VOICE_LIMIT
         ) return null;
         this.window.ordinary += 1;
       }

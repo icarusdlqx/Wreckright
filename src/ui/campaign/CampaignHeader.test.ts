@@ -42,6 +42,8 @@ describe('campaign command header', () => {
     expect(markup).toContain('data-testid="camp-cbills">240,000 C-bills');
     expect(files).not.toContain('camp-advance');
     expect(markup).toContain('data-testid="camp-next-mission"');
+    expect(markup).toContain('data-testid="camp-save-state"');
+    expect(markup).toContain('Saved locally');
     expect(markup).not.toContain('Advance a day');
     expect(markup).not.toContain('data-testid="camp-restart-dialog"');
   });
@@ -52,6 +54,7 @@ describe('campaign command header', () => {
     });
     expect(markup.indexOf('data-testid="camp-recovery"')).toBeGreaterThan(markup.indexOf('</details>'));
     expect(markup).toContain('data-testid="camp-recovery-export"');
+    expect(markup).toContain('Session only');
   });
 
   it('explains that restarting keeps the current company and offers cancellation first', () => {

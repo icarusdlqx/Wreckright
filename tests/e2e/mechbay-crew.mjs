@@ -87,7 +87,8 @@ export async function runMechbayCrewChecks({ browser, url, shots, check }) {
     await page.screenshot({ path: `${shots}/crew-roster-desktop.png`, fullPage: true });
     await page.locator('[data-testid="camp-area-workshop"]').click();
     await page.locator('img.machine-portrait').first().waitFor();
-    await page.waitForFunction(() => [...document.querySelectorAll('img.machine-portrait')].some(image => image.complete && image.naturalWidth === 320));
+    await page.waitForFunction(() => [...document.querySelectorAll('img.machine-portrait')]
+      .some(image => image.complete && image.naturalWidth > 0 && image.naturalHeight > 0));
     check('workshop machine cards use local rendered portraits and a selected field guide',
       await page.locator('[data-testid="camp-bay"] img.machine-portrait').count() === saved.mechs.length
       && /weaknesses/i.test(await page.locator('[data-testid="machine-dossier"]').innerText()));

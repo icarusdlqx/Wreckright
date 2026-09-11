@@ -44,6 +44,31 @@
 .camp-command-header .camp-company-status > div { display: grid; gap: 4px; white-space: nowrap; }
 .camp-command-header .camp-stat-label { color: var(--exp-muted); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; }
 .camp-command-header .camp-company-status strong { color: var(--exp-ink); font: 600 17px/1.25 var(--font-mono); }
+.camp-command-header .camp-company-status .camp-save-state {
+  display: flex;
+  grid-template-columns: none;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--exp-line);
+  border-radius: 4px;
+  background: #edf1e6;
+}
+.camp-command-header .camp-save-state > span:last-child { display: grid; gap: 2px; }
+.camp-command-header .camp-save-state strong { font-size: 11px; }
+.camp-command-header .camp-save-state.is-session { border-color: #b26a42; background: #faedce; }
+.camp-command-header .camp-save-glyph {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--exp-positive);
+  color: #fffdf5;
+  font: 700 11px/1 var(--font-body);
+}
+.camp-command-header .camp-save-state.is-session .camp-save-glyph { background: var(--exp-orange-ink); }
 
 .camp .camp-command-header button,
 .camp .camp-command-header summary,
@@ -181,6 +206,7 @@
 @media (max-width: 860px) {
   .camp-command-header .camp-command-main { grid-template-columns: minmax(0, 1fr) auto; gap: 18px; }
   .camp-command-header .camp-company-identity { grid-column: 1 / -1; }
+  .camp-command-header .camp-company-status { flex-wrap: wrap; }
 }
 @media (max-width: 580px) {
   .camp .camp-top.camp-command-header { padding: 16px; }

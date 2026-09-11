@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TacticalCamera } from '../render3d/camera';
 import { AudioDirector } from './audio';
-import { AudioGraph, FIELD_VOICE_LIMIT, TERMINAL_VOICE_RESERVE, oscillator } from './audioGraph';
+import { AudioGraph, CRITICAL_VOICE_RESERVE, FIELD_VOICE_LIMIT, TERMINAL_VOICE_RESERVE, oscillator } from './audioGraph';
 import { fieldPlacement } from './audioPlacement';
 import { writeAudioPreferences } from './audioPreference';
 import { FakeContext, FakeNode, cultureWorld, sensorDetect } from './audioScoreGraphTestSupport';
@@ -106,12 +106,17 @@ describe('camera-relative sound placement', () => {
     for (let index = 0; index < 1000; index += 1) {
       playPowerSweep(graph, 360, 50, 0.9, { level: 1, distance: 30, pan: 0.4 });
     }
-    const ordinaryCount = FIELD_VOICE_LIMIT - TERMINAL_VOICE_RESERVE;
+    const ordinaryCount = FIELD_VOICE_LIMIT - TERMINAL_VOICE_RESERVE - CRITICAL_VOICE_RESERVE;
     expect(context.sources).toHaveLength(ordinaryCount);
     expect(context.panners).toHaveLength(ordinaryCount);
     const before = nodeCounts(context);
     playPowerSweep(graph, 360, 50, 0.9, { level: 1, distance: 30 });
     expect(nodeCounts(context)).toEqual(before);
+    for (let index = 0; index < CRITICAL_VOICE_RESERVE; index += 1) {
+      const frame = graph.begin({ level: 1, distance: 30, pan: 0.2 }, 'critical');
+      expect(frame).not.toBeNull();
+      oscillator(frame!, frame!.now, 0.2, 180, 60, 0.2, 'triangle');
+    }
     for (let index = 0; index < TERMINAL_VOICE_RESERVE; index += 1) {
       const frame = graph.begin({ level: 1, distance: 30, pan: -0.4 }, 'terminal');
       expect(frame).not.toBeNull();

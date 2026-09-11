@@ -79,7 +79,7 @@ export function playImpact(
 
 /** Structure failing: the tear first, then the weight of it coming apart. */
 export function playCrunch(bus: VoiceBus, placement: VoicePlacement): void {
-  const frame = bus.begin(placement);
+  const frame = bus.begin(placement, 'critical');
   if (frame === null) return;
   crack(frame, frame.now, 0.45, 1200);
   body(frame, frame.now, 0.28, 3000, 200, 0.4, 1.1);
@@ -94,7 +94,7 @@ export function playDestruction(
   profile: DestructionVoiceProfile,
   placement: VoicePlacement,
 ): void {
-  const frame = bus.begin(placement, profile.kind === 'terminal' ? 'terminal' : 'ordinary');
+  const frame = bus.begin(placement, profile.kind === 'terminal' ? 'terminal' : 'critical');
   if (frame === null) return;
   if (profile.kind === 'ammo') {
     const size = bounded(profile.damage / 60, 0.2, 1.25);

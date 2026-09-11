@@ -100,9 +100,21 @@ export function CampaignHeader({
               <span className="camp-stat-label">Treasury</span>
               <strong data-testid="camp-cbills">{balance}</strong>
             </div>
+            <div className={`camp-save-state ${persistence.mode === 'persistent' ? 'is-saved' : 'is-session'}`}
+              role="status" aria-live="polite" data-testid="camp-save-state"
+              title={persistence.mode === 'persistent'
+                ? 'Company changes autosave in this browser.'
+                : 'Recent changes exist only in this tab. Use the recovery instructions below before closing it.'}>
+              <span className="camp-save-glyph" aria-hidden="true">{persistence.mode === 'persistent' ? '✓' : '!'}</span>
+              <span>
+                <span className="camp-stat-label">Campaign save</span>
+                <strong>{persistence.mode === 'persistent' ? 'Saved locally' : 'Session only'}</strong>
+              </span>
+            </div>
           </div>
           <button type="button" className="camp-next-button" onClick={onNext}
-            disabled={nextDisabled} data-testid="camp-next-mission">
+            disabled={nextDisabled} data-testid="camp-next-mission"
+            title={nextDisabled ? 'This campaign has ended. Review the Journal or start another campaign.' : nextLabel}>
             {nextLabel} →
           </button>
         </div>

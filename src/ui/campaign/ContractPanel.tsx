@@ -178,6 +178,7 @@ export function ContractPanel({
           <button
             type="button"
             disabled={selected === null}
+            title={selected === null ? 'Choose contract terms before signing.' : `Sign ${selected.name} and proceed to outfit the company.`}
             onClick={() => {
               if (selected !== null) onAccept(selected.id);
             }}

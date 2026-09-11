@@ -36,8 +36,11 @@ export function PreparationMachine({ catalog, state, mech, mutate, onRefit }: Pr
       <span style={{ width: `${integrity.fraction * 100}%` }} />
     </div>
     <div className="prep-machine-actions">
-      <button type="button" onClick={() => onRefit(mech.id)} disabled={!ready} data-testid={`hangar-refit-${mech.id}`}>Refit loadout</button>
+      <button type="button" onClick={() => onRefit(mech.id)} disabled={!ready}
+        title={ready ? 'Change this machine’s installed equipment.' : 'Finish workshop work or rebuild this machine before refitting.'}
+        data-testid={`hangar-refit-${mech.id}`}>Refit loadout</button>
       <button type="button" disabled={mech.status !== 'hulk' && (!ready || estimate.days === 0)}
+        title={mech.status === 'hulk' ? 'Book a full chassis rebuild.' : !ready ? 'This machine already has workshop work booked.' : estimate.days === 0 ? 'This machine does not need repairs.' : `Book ${estimate.days} day${estimate.days === 1 ? '' : 's'} of workshop work.`}
         data-testid={`hangar-${mech.status === 'hulk' ? 'rebuild' : 'repair'}-${mech.id}`}
         onClick={() => mutate((draft) => {
           const target = draft.mechs.find((entry) => entry.id === mech.id);

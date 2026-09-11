@@ -17,6 +17,8 @@
     "test:watch": "vitest",
     "sim": "vite-node src/headless/cli.ts --",
     "verify:ui": "node tests/e2e/playthrough.mjs",
+    "verify:interface": "node tests/e2e/interface-consistency.mjs",
+    "verify:campaign": "node tests/e2e/campaign-release-journey.mjs",
     "verify:worker": "wrangler deploy --dry-run",
     "verify:deploy": "node tools/verify-deployment.mjs",
     "sbom": "node tools/generate-sbom.mjs",

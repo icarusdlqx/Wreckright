@@ -62,8 +62,10 @@ export function LanceCard({ catalog, state, pilot, mech, aboard, position, refus
       <PilotAssessment pilot={pilot} />
       <div className="manifest-buttons">
         <button type="button" disabled={!aboard && refusal !== null} onClick={onToggle}
+          title={!aboard && refusal !== null ? refusal : aboard ? `Move ${pilot.name} to reserve` : `Put ${pilot.name} aboard`}
           data-testid={`manifest-bench-${pilot.id}`}>{aboard ? 'Move to reserve' : 'Put aboard'}</button>
         <button type="button" disabled={mech === null || mech.status !== 'ready'}
+          title={mech === null ? 'Assign a machine before refitting.' : mech.status !== 'ready' ? status : `Refit ${authoredDesignName(catalog, mech.design)}`}
           onClick={() => { if (mech !== null) onRefit(mech.id); }} data-testid={`manifest-refit-${pilot.id}`}>Refit</button>
       </div>
       {!aboard && refusal !== null ? <small className="lance-refusal">{refusal}</small> : null}

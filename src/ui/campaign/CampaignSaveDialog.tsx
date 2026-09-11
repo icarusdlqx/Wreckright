@@ -53,7 +53,9 @@ export function CampaignSaveDialog({ mode, catalog, current, onClose, onSaved, o
       <p className="campaign-saves-intro">Your company autosaves between missions. Named checkpoints keep your company between missions, not a battle in progress. Saves stay in this browser; export a copy to keep elsewhere.</p>
       {mode === 'save' ? <form className="campaign-save-name" onSubmit={(event) => { event.preventDefault(); save(); }}>
         <label htmlFor="campaign-save-name">Checkpoint name<input id="campaign-save-name" data-testid="save-name" value={name} maxLength={60} onChange={event => { setName(event.target.value); setConfirmation(null); }} /></label>
-        <button type="submit" className="campaign-save-primary" disabled={current === undefined || name.trim() === '' || listing.library.error !== null} data-testid="save-new-checkpoint">Save new checkpoint</button>
+        <button type="submit" className="campaign-save-primary" disabled={current === undefined || name.trim() === '' || listing.library.error !== null}
+          title={current === undefined ? 'Open a campaign before making a checkpoint.' : name.trim() === '' ? 'Enter a checkpoint name.' : listing.library.error ?? 'Keep this named copy in the current browser.'}
+          data-testid="save-new-checkpoint">Save new checkpoint</button>
       </form> : null}
       {listing.library.error === null ? null : <div className="campaign-save-warning" role="alert"><p>{listing.library.error}</p>{listing.library.recoveryRaw === null ? null : <button type="button" data-testid="save-export-library-recovery" onClick={() => exportRaw(listing.library.recoveryRaw!, 'wreckright-save-library-recovery.json')}>Export original library</button>}</div>}
       <div className="campaign-saves-workspace">
@@ -80,7 +82,9 @@ export function CampaignSaveDialog({ mode, catalog, current, onClose, onSaved, o
             <div className="campaign-save-tools">
               <button type="button" data-testid="save-export-selected" onClick={() => exportRaw(selected.raw, `wreckright-${selected.id.replace(/[^a-z0-9-]/gi, '-')}.json`)}>Export selected</button>
               {editable ? <button type="button" data-testid="save-delete-selected" onClick={() => setConfirmation('delete')}>Delete</button> : null}
-              {mode === 'save' && editable ? <button type="button" data-testid="save-overwrite-selected" disabled={name.trim() === '' || listing.library.error !== null} onClick={() => setConfirmation('overwrite')}>Overwrite selected</button> : null}
+              {mode === 'save' && editable ? <button type="button" data-testid="save-overwrite-selected" disabled={name.trim() === '' || listing.library.error !== null}
+                title={name.trim() === '' ? 'Enter a checkpoint name.' : listing.library.error ?? 'Replace only this named checkpoint.'}
+                onClick={() => setConfirmation('overwrite')}>Overwrite selected</button> : null}
             </div>
           </>}
         </aside>
@@ -96,7 +100,9 @@ export function CampaignSaveDialog({ mode, catalog, current, onClose, onSaved, o
           if (file !== undefined) void file.text().then(raw => setNotice(onImport(raw))).catch(() => setNotice('That file could not be read. Your current company is unchanged.'));
         }} /></label>
         <span>{mode === 'load' ? 'Your current company is kept before loading another save.' : `${listing.library.entries.length} / 24 saved records`}</span>
-        {mode !== 'load' ? null : <button type="button" className="campaign-save-primary" disabled={selected?.state === null || selected === undefined} data-testid="save-load-selected" onClick={() => { if (selected !== undefined) setNotice(onLoad(selected)); }}>{selected?.kind === 'current' ? 'Continue current company' : 'Load selected save'}</button>}
+        {mode !== 'load' ? null : <button type="button" className="campaign-save-primary" disabled={selected?.state === null || selected === undefined}
+          title={selected === undefined ? 'Select a saved campaign first.' : selected.state === null ? 'This record must be exported or recovered before it can be loaded.' : 'Your current company is kept automatically before switching.'}
+          data-testid="save-load-selected" onClick={() => { if (selected !== undefined) setNotice(onLoad(selected)); }}>{selected?.kind === 'current' ? 'Continue current company' : 'Load selected save'}</button>}
       </footer>
     </section>
   </div>;
