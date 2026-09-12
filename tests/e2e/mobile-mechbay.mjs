@@ -48,9 +48,9 @@ export async function runMobileMechbayJourney({
   const stockOptions = await stockPicker.locator('option').allInnerTexts();
   check(
     `${prefix} stock picker carries complete machine identity without serial designations`,
-    stockIdentity === 'Sentinel — 45t Medium · Plasma brawler · Aurelian Stock' &&
+    stockIdentity === 'Sentinel — 45t Medium · Plasma brawler · Aurelian Stock · Prime' &&
       stockOptions.every((label) => !/\b[A-Z]{3}-\d+\b/.test(label)) &&
-      stockOptions.every((label) => label.includes(' — ') && label.split(' · ').length === 3),
+      stockOptions.every((label) => label.includes(' — ') && label.split(' · ').length === 4 && label.endsWith(' · Prime')),
     stockOptions.join(' | '),
   );
   await stockPicker.scrollIntoViewIfNeeded();

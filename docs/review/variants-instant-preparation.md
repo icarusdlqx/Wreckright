@@ -22,6 +22,8 @@ Variants are local to the browser and origin. Import/export remains available fo
 - Native pointer fitting checks cover moving installed weapons, illegal drops, undo, shelf placement, automatic ammunition, keyboard placement, exact save/reload and phone touch targets.
 - Anatomy checks inspect every authored chassis at 1280×720; additional geometric checks cover 1600, 1280, 1024 and 390 pixel widths, centred head, left/right parts and no page overflow.
 - Dedicated sensor checks verify paused activation, fog-preserving tracked red dots and probe expiry. No sensor simulation change was needed.
+- The full browser run completed 1,282 checks: 1,279 passed, with three old mobile label assertions rejecting the new Prime suffix. After correcting those test expectations, the complete mobile module passed all 245 checks. No gameplay failure remained from that run.
+- The final balance and campaign acceptance gate passed all 25 checks.
 - Production and self-contained builds pass. The usual local preview at port 5220 was checked for named-variant save and reload without browser errors.
 
 ![MechBay with inline weapon meters](variants-instant-preparation/mechbay.png)
