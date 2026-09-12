@@ -161,24 +161,24 @@ export async function runLoreWikiChecks({ browser, url, shots, check }) {
     await page.locator('[data-testid="briefing-deploy"]').click();
     await page.locator('[data-testid="lance-bar"]').waitFor();
     // The shipped build has no diagnostic handle; the full development runner also checks live pause ownership.
-    if (await page.evaluate(() => Boolean(globalThis.__wreckright))) {
-      await page.evaluate(() => globalThis.__wreckright.engine.setPaused(false));
-      await page.waitForFunction(() => globalThis.__wreckright?.world.tick > 2);
+    if (await page.evaluate(() => Boolean(globalThis.__ironmuster))) {
+      await page.evaluate(() => globalThis.__ironmuster.engine.setPaused(false));
+      await page.waitForFunction(() => globalThis.__ironmuster?.world.tick > 2);
       await page.evaluate(() => { location.hash = '#wiki/mech/prybar_pry1'; });
       await page.locator('[data-testid="wiki-article"]').waitFor();
       await page.locator('.wiki-article h1').focus();
-      const before = await page.evaluate(() => ({ tick: globalThis.__wreckright.world.tick, order: globalThis.__wreckright.useGame.getState().orderMode }));
+      const before = await page.evaluate(() => ({ tick: globalThis.__ironmuster.world.tick, order: globalThis.__ironmuster.useGame.getState().orderMode }));
       await page.keyboard.press('Space'); await page.keyboard.press('m');
       await page.evaluate(() => new Promise(resolve => { let frames = 0; const next = () => ++frames < 12 ? requestAnimationFrame(next) : resolve(); requestAnimationFrame(next); }));
-      const paused = await page.evaluate(() => ({ tick: globalThis.__wreckright.world.tick, order: globalThis.__wreckright.useGame.getState().orderMode, paused: globalThis.__wreckright.useGame.getState().paused }));
+      const paused = await page.evaluate(() => ({ tick: globalThis.__ironmuster.world.tick, order: globalThis.__ironmuster.useGame.getState().orderMode, paused: globalThis.__ironmuster.useGame.getState().paused }));
       check('archive pauses a live battle and blocks field shortcuts', paused.tick === before.tick && paused.order === before.order && paused.paused, JSON.stringify({ before, paused }));
       await page.keyboard.press('Escape');
-      await page.waitForFunction(tick => globalThis.__wreckright?.world.tick > tick, before.tick);
-      check('closing the archive resumes a battle that was running', await page.evaluate(() => !globalThis.__wreckright.useGame.getState().paused));
-      await page.evaluate(() => { globalThis.__wreckright.engine.setPaused(true); location.hash = '#wiki'; });
+      await page.waitForFunction(tick => globalThis.__ironmuster?.world.tick > tick, before.tick);
+      check('closing the archive resumes a battle that was running', await page.evaluate(() => !globalThis.__ironmuster.useGame.getState().paused));
+      await page.evaluate(() => { globalThis.__ironmuster.engine.setPaused(true); location.hash = '#wiki'; });
       await page.locator('[data-testid="wiki"]').waitFor();
       await page.keyboard.press('Escape');
-      check('closing the archive preserves an already paused battle', await page.evaluate(() => globalThis.__wreckright.useGame.getState().paused));
+      check('closing the archive preserves an already paused battle', await page.evaluate(() => globalThis.__ironmuster.useGame.getState().paused));
     }
     check('wiki journey has no browser errors', errors.length === 0, errors.join('\n'));
   } catch (error) { await shot('error').catch(() => {}); throw error; }

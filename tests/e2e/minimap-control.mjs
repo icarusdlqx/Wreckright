@@ -65,7 +65,7 @@ export async function runMinimapControlChecks({ page, check, shots }) {
   await closeDesktopBattleMenu(page);
   const minimap = page.locator('[data-testid="minimap"]');
   const initial = await page.evaluate(() => {
-    const { engine, useGame, world } = globalThis.__wreckright;
+    const { engine, useGame, world } = globalThis.__ironmuster;
     const paused = useGame.getState().paused;
     if (!paused) engine.togglePause();
     return {
@@ -81,7 +81,7 @@ export async function runMinimapControlChecks({ page, check, shots }) {
         })),
     };
   });
-  await page.waitForFunction(() => globalThis.__wreckright.useGame.getState().paused);
+  await page.waitForFunction(() => globalThis.__ironmuster.useGame.getState().paused);
 
   check(
     'minimap exposes one keyboard-reachable canvas control',
@@ -103,7 +103,7 @@ export async function runMinimapControlChecks({ page, check, shots }) {
   const box = await minimap.boundingBox();
   if (box === null) throw new Error('minimap has no bounds');
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-  const centred = await page.evaluate(() => ({ ...globalThis.__wreckright.engine.renderer.camera.target }));
+  const centred = await page.evaluate(() => ({ ...globalThis.__ironmuster.engine.renderer.camera.target }));
   check(
     'clicking the minimap jumps the field camera',
     closePoint(centred, { x: 480, y: 480 }),
@@ -113,7 +113,7 @@ export async function runMinimapControlChecks({ page, check, shots }) {
   await page.mouse.move(box.x + box.width * 0.25, box.y + box.height * 0.25);
   await page.mouse.down();
   await page.mouse.move(box.x + box.width * 0.6, box.y + box.height * 0.55, { steps: 3 });
-  const liveDrag = await page.evaluate(() => ({ ...globalThis.__wreckright.engine.renderer.camera.target }));
+  const liveDrag = await page.evaluate(() => ({ ...globalThis.__ironmuster.engine.renderer.camera.target }));
   check(
     'dragging the minimap pans live before pointer release',
     liveDrag.x > centred.x && liveDrag.y > centred.y,
@@ -123,11 +123,11 @@ export async function runMinimapControlChecks({ page, check, shots }) {
     await minimap.evaluate((canvas) => canvas.hasPointerCapture(1) && canvas.classList.contains('dragging')),
   );
   await page.mouse.move(box.x + box.width + 70, box.y + box.height * 0.7, { steps: 2 });
-  const captured = await page.evaluate(() => ({ ...globalThis.__wreckright.engine.renderer.camera.target }));
+  const captured = await page.evaluate(() => ({ ...globalThis.__ironmuster.engine.renderer.camera.target }));
   await page.mouse.up();
   await page.mouse.move(box.x - 60, box.y - 40);
   await sleep(80);
-  const released = await page.evaluate(() => ({ ...globalThis.__wreckright.engine.renderer.camera.target }));
+  const released = await page.evaluate(() => ({ ...globalThis.__ironmuster.engine.renderer.camera.target }));
   check(
     'captured drag reaches outside the canvas and ends cleanly',
     captured.x > liveDrag.x && closePoint(captured, released) &&
@@ -135,13 +135,13 @@ export async function runMinimapControlChecks({ page, check, shots }) {
   );
 
   await minimap.focus();
-  await page.evaluate(() => globalThis.__wreckright.engine.renderer.camera.centreOn({ x: 480, y: 480 }));
+  await page.evaluate(() => globalThis.__ironmuster.engine.renderer.camera.centreOn({ x: 480, y: 480 }));
   const scrollBefore = await page.evaluate(() => scrollY);
   await page.keyboard.down('ArrowRight');
   await sleep(220);
   await page.keyboard.up('ArrowRight');
   const keyed = await page.evaluate(() => ({
-    target: { ...globalThis.__wreckright.engine.renderer.camera.target },
+    target: { ...globalThis.__ironmuster.engine.renderer.camera.target },
     scroll: scrollY,
   }));
   check(
@@ -183,7 +183,7 @@ export async function runMinimapControlChecks({ page, check, shots }) {
       CanvasRenderingContext2D.prototype.arc = originalArc;
     };
 
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     const vision = world.vision;
     const hostile = world.entities.find((entity) => entity.team !== world.playerTeam);
     const south = world.zones.find((zone) => zone.id === 'south_post');
@@ -218,7 +218,7 @@ export async function runMinimapControlChecks({ page, check, shots }) {
   try {
     await sleep(220);
     await page.evaluate(() => {
-      const { world } = globalThis.__wreckright;
+      const { world } = globalThis.__ironmuster;
       const vision = world.vision;
       const restore = globalThis.__minimapVisualRestore;
       if (vision === null || restore === undefined) throw new Error('minimap contact fixture was lost');
@@ -247,7 +247,7 @@ export async function runMinimapControlChecks({ page, check, shots }) {
     );
   } finally {
     await page.evaluate((restoreCamera) => {
-      const { engine, world } = globalThis.__wreckright;
+      const { engine, world } = globalThis.__ironmuster;
       const vision = world.vision;
       const restore = globalThis.__minimapVisualRestore;
       const south = world.zones.find((zone) => zone.id === 'south_post');
@@ -269,13 +269,13 @@ export async function runMinimapControlChecks({ page, check, shots }) {
     // Let the removed synthetic pulse expire before later visual fixtures run.
     await sleep(1_450);
     if (!initial.paused) {
-      await page.evaluate(() => globalThis.__wreckright.engine.togglePause());
-      await page.waitForFunction(() => !globalThis.__wreckright.useGame.getState().paused);
+      await page.evaluate(() => globalThis.__ironmuster.engine.togglePause());
+      await page.waitForFunction(() => !globalThis.__ironmuster.useGame.getState().paused);
     }
   }
 
   const unchanged = await page.evaluate(() => {
-    const { useGame, world } = globalThis.__wreckright;
+    const { useGame, world } = globalThis.__ironmuster;
     return {
       selection: [...useGame.getState().selection],
       orders: world.entities

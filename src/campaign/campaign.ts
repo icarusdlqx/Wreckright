@@ -25,6 +25,7 @@ import {
 } from './campaignRoute';
 import { applyRestDayEvent } from './events';
 import { needsCrewStandDown, recoverRestingCrew } from './crewRecovery';
+import { weaponLayoutIdentity } from './pilotContinuity';
 import {
   findMech, findPilot, type CampaignState, type MissionOutcome, type PilotReport,
 } from './types';
@@ -241,6 +242,8 @@ export function resolveMission(
         mech: pair.mech.design.name,
         mechId: pair.mech.id,
         chassisId: pair.mech.design.chassisId,
+        weaponLayout: weaponLayoutIdentity(pair.mech.design),
+        weaponIds: [...new Set(pair.mech.design.mounts.map((mount) => mount.weaponId))],
         kills: unit.kills,
         damage: Math.round(unit.damageDealt),
         xp,

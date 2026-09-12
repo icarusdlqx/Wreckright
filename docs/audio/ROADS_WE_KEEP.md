@@ -1,12 +1,12 @@
 # Roads We Keep
 
-Original Wreckright theme, composed and synthesized for the September 2026 command-deck and MechBay update.
+Original Ironmuster theme, composed and synthesized for the September 2026 command-deck and MechBay update.
 
 [Listen to the standalone mix](Roads-We-Keep.mp3).
 
 ## Musical design
 
-The score is built around a short original company call and answer over a driving E-minor road rhythm. A picked, overdriven synth-guitar voice and live-feeling drums give it forward motion; a clean pulse layer gives Aurelian scenes their engineered precision. The melody, harmony, rhythm programming and instruments were created for Wreckright. No notes, recordings or samples were taken from the film track cited as a mood reference.
+The score is built around a short original company call and answer over a driving E-minor road rhythm. A picked, overdriven synth-guitar voice and live-feeling drums give it forward motion; a clean pulse layer gives Aurelian scenes their engineered precision. The melody, harmony, rhythm programming and instruments were created for Ironmuster. No notes, recordings or samples were taken from the film track cited as a mood reference.
 
 - E minor, 116 beats per minute, four beats per bar.
 - Thirty-two bars, approximately 66.207 seconds per loop.

@@ -121,6 +121,10 @@ describe('campaign debrief recovery ledger', () => {
     expect(html).not.toContain('not eligible');
     expect(html).toContain('Head destroyed');
     expect(html).toContain('22.5%');
+    expect(html).toContain('10% chance');
+    expect(html).toContain('The recovery roll failed; no hull was added');
+    expect(html).toContain('This vehicle cannot be rebuilt as a company mech');
+    expect(html).toContain('Percentages include your contract share');
     expect(html).toContain('hull recovered');
     expect(html).toContain('Field source: Sentinel, left arm');
     expect(html).toContain('Sentinel, centre torso');

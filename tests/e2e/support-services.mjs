@@ -10,35 +10,35 @@ export async function runSupportServicesChecks({ browser, url, shots, check }) {
     const button = page.locator(`[data-testid="support-${call}"]`);
     if (!(await button.isVisible())) await page.locator('[data-testid="support-toggle"]').click();
     await button.click();
-    await page.waitForFunction(call => globalThis.__wreckright.useGame.getState().supportMode === call, call);
+    await page.waitForFunction(call => globalThis.__ironmuster.useGame.getState().supportMode === call, call);
     check(`${call} arms through its actual button before field placement`,
       await page.locator('[data-testid="support-targeting"]').isVisible());
   };
   const groundClick = async point => {
     const at = await page.evaluate(point => {
-      const renderer = globalThis.__wreckright.engine.renderer;
+      const renderer = globalThis.__ironmuster.engine.renderer;
       const at = renderer.camera.worldToScreen(point, renderer.viewport, renderer.terrain.heightAt(point.x, point.y));
       const rect = renderer.canvas.getBoundingClientRect(); return { x: at.x + rect.x, y: at.y + rect.y };
     }, point);
     await page.mouse.click(at.x, at.y);
   };
-  const advance = steps => page.evaluate(steps => { for (let i = 0; i < steps; i++) globalThis.__wreckright.engine.forceStep(); }, steps);
+  const advance = steps => page.evaluate(steps => { for (let i = 0; i < steps; i++) globalThis.__ironmuster.engine.forceStep(); }, steps);
   const visible = name => page.evaluate(name => {
-    const object = globalThis.__wreckright.engine.renderer.scene.getObjectByName(name);
+    const object = globalThis.__ironmuster.engine.renderer.scene.getObjectByName(name);
     for (let node = object; node; node = node.parent) if (!node.visible) return false;
     return object !== undefined;
   }, name);
   const waitVisible = name => page.waitForFunction(name => {
-    const object = globalThis.__wreckright.engine.renderer.scene.getObjectByName(name);
+    const object = globalThis.__ironmuster.engine.renderer.scene.getObjectByName(name);
     for (let node = object; node; node = node.parent) if (!node.visible) return false;
     return object !== undefined;
   }, name);
   try {
     await page.goto(url); await page.locator('[data-testid="home-skirmish"]').click();
     await page.locator('[data-testid="briefing-deploy"]').click();
-    await page.waitForFunction(() => Boolean(globalThis.__wreckright));
+    await page.waitForFunction(() => Boolean(globalThis.__ironmuster));
     const fixture = await page.evaluate(() => {
-      const { engine, world, useGame } = globalThis.__wreckright;
+      const { engine, world, useGame } = globalThis.__ironmuster;
       engine.setPaused(true);
       for (const entity of world.entities) {
         entity.controller = 'orders'; entity.orders.move = null; entity.orders.attack = null;
@@ -62,19 +62,19 @@ export async function runSupportServicesChecks({ browser, url, shots, check }) {
     await open('repair_truck'); await groundClick(fixture.at);
     await page.locator('[data-testid="support-status"]').waitFor();
     check('repair UI accepts one real target and explains paused dispatch', await page.evaluate(cost => {
-      const { world } = globalThis.__wreckright;
+      const { world } = globalThis.__ironmuster;
       return world.support.pending.filter(call => call.call === 'repair_truck').length === 1 && world.resources.get(0) === 5000 - cost;
     }, fixture.truckCost) && /Paused — resume to dispatch/.test(await page.locator('[data-testid="support-status"]').innerText()));
     await shot('repair-queued');
     await advance(fixture.truckDelay - Math.round(.65 / fixture.dt));
     await waitVisible('repair-airlift-0');
     check('truck arrives visibly before healing begins', await visible('repair-airlift-0')
-      && await page.evaluate(() => globalThis.__wreckright.world.support.trucks.length === 0));
+      && await page.evaluate(() => globalThis.__ironmuster.world.support.trucks.length === 0));
     await shot('repair-arrival');
     await advance(Math.round(.65 / fixture.dt) + 22);
-    await page.waitForFunction(() => globalThis.__wreckright.engine.renderer.scene.getObjectByName('support-repair-link-0-0')?.visible);
+    await page.waitForFunction(() => globalThis.__ironmuster.engine.renderer.scene.getObjectByName('support-repair-link-0-0')?.visible);
     const active = await page.evaluate(id => {
-      const { engine, world } = globalThis.__wreckright;
+      const { engine, world } = globalThis.__ironmuster;
       const truck = world.support.trucks[0]; const vehicle = engine.renderer.scene.getObjectByName('repair-vehicle-0');
       return { armour: world.entities.find(entity => entity.id === id).locations.centre_torso.armour,
         restored: truck.repairedArmour, offset: Math.hypot(vehicle.position.x, vehicle.position.z), expires: truck.expiresTick };
@@ -90,34 +90,34 @@ export async function runSupportServicesChecks({ browser, url, shots, check }) {
       const rect = button.getBoundingClientRect(); return rect.width >= 44 && rect.height >= 44 && button.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
     }) && await page.locator('[data-testid="support-status"]').evaluate(element => element.scrollWidth <= element.clientWidth));
     await page.setViewportSize({ width: 1440, height: 1000 });
-    await page.evaluate(expires => { const { engine, world } = globalThis.__wreckright; while (world.tick < expires) engine.forceStep(); engine.renderer.supportEffects.draw(world, .3); }, active.expires);
+    await page.evaluate(expires => { const { engine, world } = globalThis.__ironmuster; while (world.tick < expires) engine.forceStep(); engine.renderer.supportEffects.draw(world, .3); }, active.expires);
     check('truck stops service and lifts away when its time expires', await visible('repair-airlift-0') && !(await visible('support-repair-link-0-0'))
-      && await page.evaluate(() => globalThis.__wreckright.world.support.trucks.length === 0));
+      && await page.evaluate(() => globalThis.__ironmuster.world.support.trucks.length === 0));
     await shot('repair-departure');
-    await page.evaluate(() => globalThis.__wreckright.engine.renderer.supportEffects.draw(globalThis.__wreckright.world, 1.3));
+    await page.evaluate(() => globalThis.__ironmuster.engine.renderer.supportEffects.draw(globalThis.__ironmuster.world, 1.3));
     check('departed service vehicle is removed from presentation', !(await visible('support-repair-truck-0')));
 
     const enemyBefore = await page.evaluate(({ id, point }) => {
-      const { engine, world } = globalThis.__wreckright;
+      const { engine, world } = globalThis.__ironmuster;
       engine.renderer.camera.centreOn(point); engine.renderer.camera.update(engine.renderer.viewport);
       const enemy = world.entities.find(entity => entity.id === id);
       return Object.values(enemy.locations).reduce((sum, location) => sum + location.armour + location.rearArmour, 0);
     }, { id: fixture.enemyId, point: fixture.airAt });
     await open('air_strike'); await groundClick(fixture.airAt);
-    await page.waitForFunction(() => globalThis.__wreckright.world.support.pending.some(call => call.call === 'air_strike'));
-    check('airstrike request spends once and shows an inbound ETA', await page.evaluate(({ truckCost, airCost }) => globalThis.__wreckright.world.resources.get(0) === 5000 - truckCost - airCost, fixture)
+    await page.waitForFunction(() => globalThis.__ironmuster.world.support.pending.some(call => call.call === 'air_strike'));
+    check('airstrike request spends once and shows an inbound ETA', await page.evaluate(({ truckCost, airCost }) => globalThis.__ironmuster.world.resources.get(0) === 5000 - truckCost - airCost, fixture)
       && /Air Strike.*to arrival/.test(await page.locator('[data-testid="support-status"]').innerText()));
     await advance(fixture.airDelay - Math.round(.75 / fixture.dt));
     await waitVisible('support-air-approach-0');
     check('aircraft approaches the marked lane before impact', await visible('support-air-approach-0'));
     await shot('air-approach');
     await advance(Math.round(.75 / fixture.dt) + 1);
-    await page.evaluate(() => globalThis.__wreckright.engine.renderer.supportEffects.draw(globalThis.__wreckright.world, .3));
-    const enemyAfter = await page.evaluate(id => Object.values(globalThis.__wreckright.world.entities.find(entity => entity.id === id).locations)
+    await page.evaluate(() => globalThis.__ironmuster.engine.renderer.supportEffects.draw(globalThis.__ironmuster.world, .3));
+    const enemyAfter = await page.evaluate(id => Object.values(globalThis.__ironmuster.world.entities.find(entity => entity.id === id).locations)
       .reduce((sum, location) => sum + location.armour + location.rearArmour, 0), fixture.enemyId);
     check('aircraft pass and impacts correspond to real strike damage', await visible('support-aircraft-0') && enemyAfter < enemyBefore, `${enemyBefore} → ${enemyAfter}`);
     await shot('air-impact');
-    await page.evaluate(() => globalThis.__wreckright.engine.renderer.supportEffects.draw(globalThis.__wreckright.world, 4));
+    await page.evaluate(() => globalThis.__ironmuster.engine.renderer.supportEffects.draw(globalThis.__ironmuster.world, 4));
     check('aircraft departs while bounded impact scars remain', !(await visible('support-aircraft-0')) && await visible('support-air-scar-0-0'));
     check('support service journey has no browser errors', errors.length === 0, errors.join('\n'));
   } catch (error) { await shot('error').catch(() => {}); throw error; }

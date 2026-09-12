@@ -1,6 +1,6 @@
 # Tessell field archive
 
-The archive gives Wreckright a browsable setting and a record for every walker.
+The archive gives Ironmuster a browsable setting and a record for every walker.
 It also connects the opening contracts to the people, machines and claims behind
 them. The command model, campaign rewards and fitting rules remain unchanged.
 
@@ -107,7 +107,7 @@ second campaign progression system.
 ## Offline and review
 
 `npm run build:single` embeds the archive, portraits and game in
-`dist-single/wreckright.html`. Article fragments work in that file, including
+`dist-single/ironmuster.html`. Article fragments work in that file, including
 direct reloads. A local file address is useful on the same computer; share the
 hosted address when sending an article to someone else.
 

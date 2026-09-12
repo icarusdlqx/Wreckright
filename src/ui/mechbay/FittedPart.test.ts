@@ -62,7 +62,7 @@ describe('occupied weapon replacement target', () => {
     const { part, onReplace, onRemove } = fixture('machine_gun', false);
     const native = {
       preventDefault: vi.fn(), stopPropagation: vi.fn(),
-      dataTransfer: { types: ['application/wreckright'], dropEffect: 'none' },
+      dataTransfer: { types: ['application/ironmuster'], dropEffect: 'none' },
     };
     const handlers = descendants(part)[0]?.props;
     handlers?.onDragOver?.(native);

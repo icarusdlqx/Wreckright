@@ -23,6 +23,7 @@ import { canPresentEntity } from './visibilityPresentation';
 import { fallbackFallAxis, impactFallAxis, modelDamageSignature,
   sealedTargetOffset, writeInterpolatedPose, type VisualPose } from './unitVisualState';
 import { createEntityView, disposeEntityView, type EntityView } from './unitViewFactory';
+import { advanceHitResponse, presentHitResponse } from './hitResponse';
 
 export type { EntityView } from './unitViewFactory';
 
@@ -79,6 +80,7 @@ export class UnitViews {
     this.placed.clear();
     for (const view of this.views.values()) {
       advanceHullRecoil(view.model.hullRecoil, deltaSeconds);
+      advanceHitResponse(view.model.hitResponse, deltaSeconds);
       if (view.model.root.visible) advanceStartupSequence(view.model, deltaSeconds, this.reducedMotion);
       for (const weapon of view.model.weapons) {
         if (weapon.slide.userData.disabledWeapon === true) continue;
@@ -115,6 +117,8 @@ export class UnitViews {
   consumeEvents(world: World, events: readonly SimEvent[]): void {
     for (const event of events) {
       if (event.type === 'projectile_hit') {
+        presentHitResponse(world, event, this.views.get(event.targetId)?.model,
+          this.canLocate(event.targetId), this.reducedMotion);
         if (
           canPresentEntity(world, event.targetId) &&
           canPresentEntity(world, event.shooterId)
@@ -305,6 +309,8 @@ export class UnitViews {
       disposeEntityView(existing);
     }
     const view = createEntityView(world, entity, this.detail, this.lowFx, this.fallAxes.get(entity.id));
+    if (existing !== undefined && !entity.destroyed)
+      Object.assign(view.model.hitResponse, existing.model.hitResponse);
     if (view.signature !== signature) throw new Error('entity view signature mismatch');
     this.scene.add(view.model.root, view.ring, view.hoverRing);
     this.views.set(entity.id, view);

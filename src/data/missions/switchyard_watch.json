@@ -3,7 +3,7 @@
   "name": "Warrant — Sarn Inventory",
   "type": "defend",
   "mapId": "aurelian_civic_exchange",
-  "briefing": "Protect the Sarn registry through a short custody transfer. Defenders will use both workshop access streets. The record, not enemy destruction, is the objective.",
+  "briefing": "Protect Len Saye's originals at Sarn Registry Court for the custody copy. The temporary loadway admits 175 tonnes, so choose the company's detail. Local defenders use both access streets. Space the emitters' fire and watch the flanks; the record, not enemy destruction, is the objective.",
   "maxDurationSeconds": 260,
   "startingResourcePoints": 550,
   "lances": [
@@ -11,15 +11,6 @@
       "team": 0,
       "name": "Aurelian Custody Detail",
       "units": [
-        {
-          "designId": "votive_picket",
-          "pilotId": "petra_lindqvist",
-          "spawn": {
-            "x": 540,
-            "y": 612
-          },
-          "facingDegrees": 0
-        },
         {
           "designId": "sentinel_brawler",
           "pilotId": "silas_okonkwo",
@@ -118,7 +109,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Tender: registry transfer in progress. West garden contact first; east workshop street follows.",
+          "text": "Saye has both originals at the court. West contact first, east street next. Cover the record, not every street in Sarn.",
           "speakerPilotId": "silas_okonkwo"
         }
       ]
@@ -216,7 +207,7 @@
       ]
     }
   ],
-  "dropTonnage": 220,
+  "dropTonnage": 175,
   "enemyDirectives": [
     {
       "id": "registry_counterattack",

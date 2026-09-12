@@ -8,6 +8,7 @@ import { authoredDesignName } from '../designLabel';
 import { WeaponGlyph } from '../mechbay/WeaponGlyph';
 import { formatWeaponNumber } from '../mechbay/weaponPresentation';
 import { MachineIdentity, RepairReadout } from './MachineIdentity';
+import { MachineServiceRecord } from './MachineServiceRecord';
 import type { CampaignChange } from './campaignSession';
 
 interface Props {
@@ -51,6 +52,7 @@ export function PreparationMachine({ catalog, state, mech, mutate, onRefit }: Pr
     </div>
     <RepairReadout catalog={catalog} state={state} mech={mech} estimate={estimate} projected={projected}
       booking={booking} ready={ready} status={ready ? 'Machine available' : 'Workshop work required'} />
+    <MachineServiceRecord catalog={catalog} state={state} mech={mech} />
     <h4>Installed weapons</h4>
     <ul className="prep-weapons">
       {weapons.map((id) => {

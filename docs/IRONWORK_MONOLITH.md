@@ -1,11 +1,11 @@
 # Ironwork & Monolith
 
-Wreckright keeps its real-time-with-pause combat, component damage, mission tonnage,
+Ironmuster keeps its real-time-with-pause combat, component damage, mission tonnage,
 fitting, salvage and company economy. This rebuild applies the chosen Ironwork and
 Monolith construction language to the actual shared 3D models, then carries the
 Graphic Expedition presentation into the campaign, workshop and battlefield.
-The comparison baseline is Wreckright `762de23440f6b08f4f9bca15034706d3984a227c`.
-This work retains Wreckright's six drop berths and campaign systems; it does not
+The comparison baseline is Ironmuster `762de23440f6b08f4f9bca15034706d3984a227c`.
+This work retains Ironmuster's six drop berths and campaign systems; it does not
 import The Long Crossing's separate game rules or campaign.
 
 ## Machine families

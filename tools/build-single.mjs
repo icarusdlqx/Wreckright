@@ -4,7 +4,7 @@
  *
  *   npm run build:single
  *
- * Writes dist-single/wreckright.html.
+ * Writes dist-single/ironmuster.html.
  */
 import { execFileSync } from 'node:child_process';
 import { readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -51,21 +51,21 @@ const page = [
   // mojibake. This has to sit inside the first 1024 bytes to be honoured.
   '<meta charset="utf-8">',
   '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">',
-  '<title>WRECKRIGHT</title>',
+  '<title>IRONMUSTER</title>',
   `<style>\n${pick('.css')}\n${fill}</style>`,
   '<div id="root"></div>',
   `<script type="application/octet-stream" id="third-party-notices" data-encoding="base64">${notices}</script>`,
   `<script type="module">\n${pick('.js')}\n</script>`,
 ].join('\n');
 
-const target = join(OUT_DIR, 'wreckright.html');
+const target = join(OUT_DIR, 'ironmuster.html');
 writeFileSync(target, page + '\n');
 
 // Everything the Vite step left behind is now inlined above. Leaving it in
 // place would double the upload and offer a second, unintended entry point
 // into the same build, so the directory holds exactly the one deliverable.
 for (const leftover of readdirSync(OUT_DIR)) {
-  if (leftover === 'wreckright.html') continue;
+  if (leftover === 'ironmuster.html') continue;
   rmSync(join(OUT_DIR, leftover), { recursive: true, force: true });
 }
 

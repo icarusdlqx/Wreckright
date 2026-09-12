@@ -49,7 +49,7 @@ as `generated-original-art-with-source-record`. This inventory entry records
 provenance without assigning the artwork a software licence.
 
 The three `roads-we-keep-*.ogg` files are synchronized layers of the original
-Wreckright theme. Their note, arrangement and instrument synthesis source is
+Ironmuster theme. Their note, arrangement and instrument synthesis source is
 retained in `tools/audio/`; the [music record](audio/ROADS_WE_KEEP.md) describes
 the composition and reproduction. They were rendered locally without any
 external recordings, samples, soundfonts or reference songs. Exact shipped

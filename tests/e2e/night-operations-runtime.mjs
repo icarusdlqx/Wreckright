@@ -79,7 +79,7 @@ export function resourceCounts(resources) {
 
 export async function inspectNightScene(page, fixture) {
   return page.evaluate(({ friendlyIds, enemyIds, prefixes }) => {
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     const renderer = engine.renderer;
     const nodeIds = [];
     const geometryIds = new Set();
@@ -167,7 +167,7 @@ export async function inspectNightScene(page, fixture) {
 
 export async function measureNightAlphaStrike(page, events) {
   return page.evaluate(async ({ volley, blockCount, targetFrameMs, validLimit }) => {
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     const perf = engine.perf;
     const emptySamples = { activation: [], following: [], setup: [] };
     if (perf === null) {
@@ -361,7 +361,7 @@ export async function measureNightAlphaStrike(page, events) {
 
 export async function repeatNightVolley(page, events, times) {
   await page.evaluate(({ volley, repeats }) => {
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     for (let repeat = 0; repeat < repeats; repeat += 1) {
       engine.renderer.consumeEvents(world, volley.map((event, index) => ({
         ...event,
@@ -374,7 +374,7 @@ export async function repeatNightVolley(page, events, times) {
 
 export async function lowFxNightVolley(page, events) {
   const result = await page.evaluate((volley) => {
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     engine.renderer.setLowFx(true);
     engine.renderer.consumeEvents(world, volley);
     const visiblePointLights = engine.renderer.scene.children.filter((node) => (

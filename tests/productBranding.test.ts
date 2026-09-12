@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const read = (...parts: string[]): string => readFileSync(join(ROOT, ...parts), 'utf8');
 
-describe('Wreckright product branding', () => {
+describe('Ironmuster product branding', () => {
   it('brands both web distributions and install metadata consistently', () => {
     const index = read('index.html');
     const manifest = JSON.parse(read('public', 'manifest.webmanifest')) as {
@@ -22,24 +22,24 @@ describe('Wreckright product branding', () => {
     const single = read('tools', 'build-single.mjs');
     const headers = read('public', '_headers');
 
-    expect(index).toContain('<title>WRECKRIGHT</title>');
-    expect(index).toContain('name="apple-mobile-web-app-title" content="WRECKRIGHT"');
+    expect(index).toContain('<title>IRONMUSTER</title>');
+    expect(index).toContain('name="apple-mobile-web-app-title" content="IRONMUSTER"');
     expect(index).not.toMatch(/\b(?:IRONLINE|Ironline)\b/);
     expect(manifest).toMatchObject({
-      name: 'WRECKRIGHT',
-      short_name: 'WRECKRIGHT',
-      description: 'No new machines. Only new owners. Command a mech company through the Great Recall.',
+      name: 'IRONMUSTER',
+      short_name: 'IRONMUSTER',
+      description: 'Your company. Your mechs. Your next move. Command a mech company through the Great Recall.',
     });
-    expect(packageManifest.name).toBe('wreckright');
-    expect(packageLock.name).toBe('wreckright');
-    expect(packageLock.packages['']?.name).toBe('wreckright');
-    expect(single).toContain('<title>WRECKRIGHT</title>');
-    expect(single).toContain("join(OUT_DIR, 'wreckright.html')");
+    expect(packageManifest.name).toBe('ironmuster');
+    expect(packageLock.name).toBe('ironmuster');
+    expect(packageLock.packages['']?.name).toBe('ironmuster');
+    expect(single).toContain('<title>IRONMUSTER</title>');
+    expect(single).toContain("join(OUT_DIR, 'ironmuster.html')");
     expect(single).not.toContain("join(OUT_DIR, 'ironline.html')");
-    expect(headers).toContain('/wreckright.html');
+    expect(headers).toContain('/ironmuster.html');
   });
 
-  it('uses Wreckright runtime, repository, and Worker identifiers while preserving save contracts', () => {
+  it('brands the runtime while preserving save and deployed infrastructure contracts', () => {
     const compatibilitySources = [
       read('src', 'campaign', 'storage.ts'),
       read('src', 'ui', 'store.ts'),
@@ -61,7 +61,7 @@ describe('Wreckright product branding', () => {
     ]) {
       expect(compatibilitySources).toContain(key);
     }
-    expect(read('src', 'ui', 'engineFactory.ts')).toContain('__wreckright');
+    expect(read('src', 'ui', 'engineFactory.ts')).toContain('__ironmuster');
     expect(wrangler.name).toBe('wreckright');
     expect(readme).toContain('icarusdlqx/Wreckright');
     expect(releasing).toContain('Workers Builds: wreckright');

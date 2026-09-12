@@ -99,10 +99,10 @@ async function waitForServer(url, timeoutMs = 60_000) {
   throw new Error(`dev server did not start at ${url}`);
 }
 
-const state = (page) => page.evaluate(() => globalThis.__wreckright.useGame.getState());
+const state = (page) => page.evaluate(() => globalThis.__ironmuster.useGame.getState());
 const sim = (page) =>
   page.evaluate(() => {
-    const { world } = globalThis.__wreckright;
+    const { world } = globalThis.__ironmuster;
     return {
       tick: world.tick,
       finished: world.finished,
@@ -128,7 +128,7 @@ const sim = (page) =>
 
 async function arrowCameraShift(page, key) {
   const before = await page.evaluate(() => {
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     const { camera, viewport } = engine.renderer;
     camera.centreOn({
       x: (world.terrain.width * world.terrain.tileSize) / 2,
@@ -144,7 +144,7 @@ async function arrowCameraShift(page, key) {
   await page.keyboard.up(key);
 
   return page.evaluate((previousTarget) => {
-    const { camera, viewport } = globalThis.__wreckright.engine.renderer;
+    const { camera, viewport } = globalThis.__ironmuster.engine.renderer;
     camera.update(viewport);
     const previousOnScreen = camera.worldToScreen(previousTarget, viewport);
     return {
@@ -165,7 +165,7 @@ async function freshHomePage(browser, url) {
 
 async function forceTrainingResult(page, status) {
   await page.evaluate((nextStatus) => {
-    const { useGame, world } = globalThis.__wreckright;
+    const { useGame, world } = globalThis.__ironmuster;
     const winner = nextStatus === 'success' ? useGame.getState().playerTeam : 1;
     world.finished = true;
     world.winner = winner;
@@ -231,9 +231,9 @@ async function freshCampaignFixture(browser, url) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
   await page.addInitScript(() => {
-    if (sessionStorage.getItem('wreckright.e2e.first-drop') !== null) return;
+    if (sessionStorage.getItem('ironmuster.e2e.first-drop') !== null) return;
     localStorage.clear();
-    sessionStorage.setItem('wreckright.e2e.first-drop', 'ready');
+    sessionStorage.setItem('ironmuster.e2e.first-drop', 'ready');
   });
   await page.goto(url);
   await page.waitForSelector('[data-testid="home-screen"]');
@@ -339,16 +339,16 @@ async function main() {
     });
 
     await page.addInitScript(() => {
-      if (sessionStorage.getItem('wreckright.e2e.initialised') !== null) return;
+      if (sessionStorage.getItem('ironmuster.e2e.initialised') !== null) return;
       localStorage.clear();
-      sessionStorage.setItem('wreckright.e2e.initialised', 'true');
+      sessionStorage.setItem('ironmuster.e2e.initialised', 'true');
     });
     await page.goto(URL);
     await page.waitForSelector('[data-testid="home-screen"]');
     check(
       'a fresh profile opens on Home without mounting the engine',
       (await page.locator('.viewport canvas').count()) === 0 &&
-        (await page.evaluate(() => globalThis.__wreckright === undefined)),
+        (await page.evaluate(() => globalThis.__ironmuster === undefined)),
     );
     check(
       'Home offers learn, campaign, MechBay, skirmish and the built-in wiki',
@@ -358,18 +358,18 @@ async function main() {
         (await page.locator('[data-testid="home-skirmish"]').count()) === 1 &&
         (await page.locator('[data-testid="home-wiki"]').getAttribute('href')) === '#wiki' &&
         (await page.locator('[data-testid="home-wiki"]').innerText()).includes('Wiki') &&
-        (await page.locator('#home-title').innerText()) === 'WRECKRIGHT' &&
+        (await page.locator('#home-title').innerText()) === 'IRONMUSTER' &&
         (await page.locator('.home-premise').textContent()) === 'Your company. Your mechs. Your next move.' &&
         (await page.locator('[data-testid="home-learn"] strong').textContent()) === 'Learn Command',
     );
     await page.locator('[data-testid="home-learn"]').click();
-    await page.waitForFunction(() => globalThis.__wreckright !== undefined, { timeout: 30_000 });
+    await page.waitForFunction(() => globalThis.__ironmuster !== undefined, { timeout: 30_000 });
     await page.waitForSelector('[data-testid="briefing"]');
     check(
       'Learn Command opens the authored training field',
-      (await page.evaluate(() => globalThis.__wreckright.world.mission.id)) === 'training_ground' &&
+      (await page.evaluate(() => globalThis.__ironmuster.world.mission.id)) === 'training_ground' &&
         (await page.evaluate(() =>
-          globalThis.__wreckright.world.entities.filter((entity) => entity.team === 0).length,
+          globalThis.__ironmuster.world.entities.filter((entity) => entity.team === 0).length,
         )) === 2,
     );
     const trainingBriefingText = await page.locator('[data-testid="briefing"]').innerText();
@@ -414,7 +414,7 @@ async function main() {
         (await page.locator('[data-testid="command-run"]').count()) === 0,
     );
     await page.evaluate(() => {
-      const { useGame } = globalThis.__wreckright;
+      const { useGame } = globalThis.__ironmuster;
       const current = useGame.getState();
       const selected = new Set(current.selection);
       current.patch({
@@ -459,7 +459,7 @@ async function main() {
     await page.waitForSelector('[data-testid="home-screen"]');
     await page.locator('[data-testid="home-skirmish"]').click();
     await page.waitForFunction(
-      () => globalThis.__wreckright?.world.mission.id === 'skirmish_ridge',
+      () => globalThis.__ironmuster?.world.mission.id === 'skirmish_ridge',
       { timeout: 30_000 },
     );
     await verifyAlternateTrainingRoutes(browser, URL);
@@ -509,7 +509,7 @@ async function main() {
     );
     await battleCode.fill('Ridge Touch 0000002A');
     await page.locator('[data-testid="briefing-deploy"]').click();
-    await page.waitForFunction((tick) => globalThis.__wreckright?.world.tick > tick,
+    await page.waitForFunction((tick) => globalThis.__ironmuster?.world.tick > tick,
       beforeBriefing, { timeout: 10_000 });
     const running = await sim(page);
     check('deploying starts the clock', running.tick > beforeBriefing, `${beforeBriefing} → ${running.tick}`);
@@ -523,7 +523,7 @@ async function main() {
     );
     check(
       'typing then tapping deploy locks the normalized Battle code',
-      (await page.evaluate(() => globalThis.__wreckright.useGame.getState().battleCode)) ===
+      (await page.evaluate(() => globalThis.__ironmuster.useGame.getState().battleCode)) ===
         'ridge-touch-0000002a',
     );
     await checkDeployedInputSafety({ page, check, state });
@@ -623,7 +623,7 @@ async function main() {
     // once became an empty box-select that cleared the selection, after which
     // the destination order that followed did nothing at all, silently.
     const wobbleTarget = await page.evaluate(() => {
-      const { engine, world, useGame } = globalThis.__wreckright;
+      const { engine, world, useGame } = globalThis.__ironmuster;
       const s = useGame.getState();
       s.setSelection([]);
       const mine = world.entities.filter((e) => e.team === s.playerTeam);
@@ -666,7 +666,7 @@ async function main() {
     process.stdout.write('\nformation move\n');
     await page.keyboard.press('Space');
     const formation = await page.evaluate(() => {
-      const { engine, world, useGame } = globalThis.__wreckright;
+      const { engine, world, useGame } = globalThis.__ironmuster;
       const ids = world.entities.filter((entity) => entity.team === 0 && !entity.destroyed).map((entity) => entity.id);
       const centre = ids.reduce((sum, id) => {
         const entity = world.entities.find((candidate) => candidate.id === id);
@@ -702,11 +702,11 @@ async function main() {
       JSON.stringify(formation),
     );
     await page.screenshot({ path: `${SHOTS}/03-formation-order.png` });
-    await page.evaluate((id) => globalThis.__wreckright.useGame.getState().setSelection([id]), selectedId);
+    await page.evaluate((id) => globalThis.__ironmuster.useGame.getState().setSelection([id]), selectedId);
     await page.keyboard.press('Space');
 
     process.stdout.write('\nweapon groups and hold fire\n');
-    const mountedGroup = await page.evaluate((id) => globalThis.__wreckright.world.entities
+    const mountedGroup = await page.evaluate((id) => globalThis.__ironmuster.world.entities
       .find(entity => entity.id === id).weapons[0].group, selectedId);
     await page.locator(`[data-testid="group-${mountedGroup}"]`).click();
     const toggled = await sim(page);
@@ -732,7 +732,7 @@ async function main() {
     // CI runner, a projectile already in flight could otherwise destroy the chosen target in
     // that one forced step and leave the hostile picker without its expected option.
     const aimFixture = await page.evaluateHandle(() => {
-      const { world, useGame } = globalThis.__wreckright;
+      const { world, useGame } = globalThis.__ironmuster;
       const enemy = world.entities.find(entity => entity.team !== world.playerTeam && !entity.destroyed);
       const wasVisible = world.vision.visible.has(enemy.id);
       const wasIdentified = world.vision.identified.has(enemy.id);
@@ -750,7 +750,7 @@ async function main() {
       check('called shot targets the chosen hostile section through its armour panel',
         (await state(page)).orderMode === 'called_shot' && (await state(page)).calledShotLocation === 'left_leg'
         && await page.evaluate(({ selectedId, aimTarget }) => {
-          const entity = globalThis.__wreckright.world.entities.find(entity => entity.id === selectedId);
+          const entity = globalThis.__ironmuster.world.entities.find(entity => entity.id === selectedId);
           return entity.orders.attack?.targetId === aimTarget && entity.orders.attack?.calledShot === 'left_leg';
         }, { selectedId, aimTarget }));
       await page.locator('[data-testid="called-shot-target"] button').filter({ hasText: 'Done' }).click();
@@ -769,7 +769,7 @@ async function main() {
     process.stdout.write('\ncamera\n');
     const zoomPointer = { x: box.width * 0.72, y: box.height * 0.46 };
     const before = await page.evaluate((screen) => {
-      const { renderer } = globalThis.__wreckright.engine;
+      const { renderer } = globalThis.__ironmuster.engine;
       return {
         target: { ...renderer.camera.target },
         distance: renderer.camera.distance,
@@ -783,7 +783,7 @@ async function main() {
     await page.mouse.move(box.x + zoomPointer.x, box.y + zoomPointer.y);
     await page.mouse.wheel(0, -600);
     const afterZoom = await page.evaluate((screen) => {
-      const { renderer } = globalThis.__wreckright.engine;
+      const { renderer } = globalThis.__ironmuster.engine;
       return {
         target: { ...renderer.camera.target },
         distance: renderer.camera.distance,
@@ -837,7 +837,7 @@ async function main() {
     // Keep camera dispatch separate from live combat and the map-edge clamp:
     // a correctly centred edge unit can legitimately remain off the target.
     const centreFixture = await page.evaluate(() => {
-      const { engine, useGame, world } = globalThis.__wreckright;
+      const { engine, useGame, world } = globalThis.__ironmuster;
       const state = useGame.getState();
       const unit = world.entities.find((entity) => entity.team === state.playerTeam &&
         !entity.destroyed && !entity.withdrawn && !entity.pilot.dead && !entity.pilot.ejected);
@@ -860,7 +860,7 @@ async function main() {
     try {
       await page.locator('[data-testid="centre-selection"]').click();
       const buttonCentre = await page.evaluate(({ expected }) => {
-        const { engine, world } = globalThis.__wreckright;
+        const { engine, world } = globalThis.__ironmuster;
         const target = { ...engine.renderer.camera.target };
         return { target, tick: world.tick, error: Math.hypot(target.x - expected.x, target.y - expected.y) };
       }, centreFixture);
@@ -871,7 +871,7 @@ async function main() {
         JSON.stringify({ fixture: centreFixture, result: buttonCentre }));
     } finally {
       await page.evaluate((saved) => {
-        const { engine, useGame, world } = globalThis.__wreckright;
+        const { engine, useGame, world } = globalThis.__ironmuster;
         const unit = world.entities.find((entity) => entity.id === saved.id);
         if (unit !== undefined) Object.assign(unit.pos, saved.pos);
         useGame.getState().setSelection(saved.selection);
@@ -892,7 +892,7 @@ async function main() {
     await openDesktopBattleMenu(page);
     await page.locator('[data-testid="feedback-link"]').focus();
     const outcome = await page.evaluate(async () => {
-      const { engine } = globalThis.__wreckright;
+      const { engine } = globalThis.__ironmuster;
       const deadline = Date.now() + 25_000;
       while (!engine.world.finished && Date.now() < deadline) {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -912,7 +912,7 @@ async function main() {
       await page.evaluate(() => document.activeElement?.classList.contains('battle-results')),
     );
     const debriefInputBefore = await page.evaluate(() => {
-      const { engine, useGame } = globalThis.__wreckright;
+      const { engine, useGame } = globalThis.__ironmuster;
       return {
         paused: useGame.getState().paused,
         orderMode: useGame.getState().orderMode,
@@ -924,7 +924,7 @@ async function main() {
     await sleep(120);
     await page.keyboard.up('ArrowRight');
     const debriefInputAfter = await page.evaluate(() => {
-      const { engine, useGame } = globalThis.__wreckright;
+      const { engine, useGame } = globalThis.__ironmuster;
       return {
         paused: useGame.getState().paused,
         orderMode: useGame.getState().orderMode,
@@ -985,7 +985,7 @@ async function main() {
     await page.waitForSelector('[data-testid="objective-list"]');
 
     const mission = await page.evaluate(() => {
-      const { world } = globalThis.__wreckright;
+      const { world } = globalThis.__ironmuster;
       return {
         id: world.mission.id,
         zones: world.zones.length,
@@ -1013,22 +1013,22 @@ async function main() {
         (await page.locator('[data-testid="difficulty-picker"]').isDisabled()),
     );
     await page.evaluate(() => {
-      globalThis.__setupEngine = globalThis.__wreckright.engine;
+      globalThis.__setupEngine = globalThis.__ironmuster.engine;
     });
     await openDesktopBattleMenu(page);
     await page.locator('[data-testid="restart-battle"]').click();
     await page.waitForFunction(() => {
-      const game = globalThis.__wreckright;
+      const game = globalThis.__ironmuster;
       return game !== undefined && game.engine !== globalThis.__setupEngine &&
         game.world.mission.id === 'base_capture_ridge';
     });
     await page.waitForFunction(() => {
-      const state = globalThis.__wreckright.useGame.getState();
+      const state = globalThis.__ironmuster.useGame.getState();
       return state.objectives.length >= 3 && state.zones.length === 2;
     });
     const restarted = await page.evaluate(() => {
       delete globalThis.__setupEngine;
-      const state = globalThis.__wreckright.useGame.getState();
+      const state = globalThis.__ironmuster.useGame.getState();
       return { briefingSeen: state.briefingSeen, paused: state.paused };
     });
     check(
@@ -1045,7 +1045,7 @@ async function main() {
     await runDesktopSupportChecks({ page, check, state, mission, shots: SHOTS });
 
     const triggered = await page.evaluate(async () => {
-      const { engine } = globalThis.__wreckright;
+      const { engine } = globalThis.__ironmuster;
       const world = engine.world;
       const zone = world.zones.find((z) => z.id === 'south_post');
       const relief = world.triggers.find((trigger) => trigger.id === 'relief_lance');
@@ -1064,7 +1064,7 @@ async function main() {
         enemiesBefore,
         enemiesAfter: world.entities.filter((e) => e.team === 1).length,
         reliefFired: relief?.fired ?? 0,
-        spawnLog: globalThis.__wreckright.useGame.getState().log.join(' | '),
+        spawnLog: globalThis.__ironmuster.useGame.getState().log.join(' | '),
       };
     });
     check('holding a comm post captures it', triggered.owner === 0);
@@ -1094,10 +1094,10 @@ async function main() {
     await page.locator('[data-testid="briefing-deploy"]').click();
     // A remount removes the old hook before the new field has finished loading.
     await page.waitForFunction(
-      () => globalThis.__wreckright?.world.mission.id === 'exchange_register',
+      () => globalThis.__ironmuster?.world.mission.id === 'exchange_register',
     );
     const largeField = await page.evaluate(() => {
-      const { engine, world } = globalThis.__wreckright;
+      const { engine, world } = globalThis.__ironmuster;
       const width = world.terrain.width * world.terrain.tileSize;
       const height = world.terrain.height * world.terrain.tileSize;
       engine.renderer.camera.panBy(-100_000, -100_000);
@@ -1144,13 +1144,13 @@ async function main() {
       (await page.locator('canvas.minimap').count()) === 1,
     );
     await page.screenshot({ path: `${SHOTS}/15-cutbank-large-field.png` });
-    await page.evaluate(() => globalThis.__wreckright.useGame.getState().pushLog('old field marker'));
+    await page.evaluate(() => globalThis.__ironmuster.useGame.getState().pushLog('old field marker'));
     await openDesktopBattleMenu(page);
     await page.locator('[data-testid="choose-mission"]').click();
     await page.waitForSelector('[data-testid="briefing"]');
     check(
       'choosing another field clears the previous mission log',
-      (await page.evaluate(() => globalThis.__wreckright.useGame.getState().log.length)) === 0,
+      (await page.evaluate(() => globalThis.__ironmuster.useGame.getState().log.length)) === 0,
     );
 
     process.stdout.write('\ncampaign\n');
@@ -1507,7 +1507,7 @@ async function main() {
     check('deploying launches the contracted mission', (await page.locator('.viewport canvas:not(.perf-overlay)').count()) === 1);
 
     const deployed = await page.evaluate(() => {
-      const { world } = globalThis.__wreckright;
+      const { world } = globalThis.__ironmuster;
       return {
         mission: world.mission.id,
         playerMechs: world.entities.filter((e) => e.team === 0).map((e) => e.name),
@@ -1523,7 +1523,7 @@ async function main() {
       && JSON.stringify(deployed.identities) === JSON.stringify(beforeDrop.expectedLance), JSON.stringify(deployed));
 
     await page.evaluate(async () => {
-      const { engine } = globalThis.__wreckright;
+      const { engine } = globalThis.__ironmuster;
       const deadline = Date.now() + 25_000;
       while (!engine.world.finished && Date.now() < deadline) {
         await new Promise((resolve) => setTimeout(resolve, 0));

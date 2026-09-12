@@ -1,6 +1,6 @@
 # Prepublication upgrade round
 
-This round follows the inspected Wreckright playthrough of 6 September 2026.
+This round follows the inspected Ironmuster playthrough of 6 September 2026.
 It continues the existing menu, lore and Ironwork/Monolith work on a review
 branch. It is not a public release or a change to the sixteen-machine roster.
 

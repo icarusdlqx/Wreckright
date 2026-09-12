@@ -26,7 +26,7 @@ async function openMenu(page) {
 }
 
 async function pause(page) {
-  if (!(await page.evaluate(() => globalThis.__wreckright.useGame.getState().paused))) {
+  if (!(await page.evaluate(() => globalThis.__ironmuster.useGame.getState().paused))) {
     await page.locator('[data-testid="pause-button"]').click();
   }
   await page.waitForSelector('[data-testid="paused-banner"]');
@@ -38,13 +38,13 @@ async function unlock(page) {
 
 async function restart(page) {
   const priorContextCount = (await audioProbe(page)).length;
-  await page.evaluate(() => { globalThis.__scorePreviousEngine = globalThis.__wreckright.engine; });
+  await page.evaluate(() => { globalThis.__scorePreviousEngine = globalThis.__ironmuster.engine; });
   await openMenu(page);
   await page.locator('[data-testid="restart-battle"]').click();
   await page.waitForFunction(() => (
-    globalThis.__wreckright !== undefined
-    && globalThis.__wreckright.engine !== globalThis.__scorePreviousEngine
-    && globalThis.__wreckright.useGame.getState().briefingSeen === true
+    globalThis.__ironmuster !== undefined
+    && globalThis.__ironmuster.engine !== globalThis.__scorePreviousEngine
+    && globalThis.__ironmuster.useGame.getState().briefingSeen === true
   ));
   await page.waitForFunction((count) => (
     globalThis.__audioProbe.snapshot().slice(0, count)
@@ -56,7 +56,7 @@ async function restart(page) {
 
 async function stageQuietBattle(page) {
   return page.evaluate(() => {
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     const playerTeam = world.playerTeam;
     const chassisFor = (faction) => [...world.catalog.chassis.values()]
       .find((chassis) => chassis.faction === faction)?.id;
@@ -98,7 +98,7 @@ async function stageQuietBattle(page) {
 
 async function setFaction(page, side, faction) {
   await page.evaluate(({ wantedSide, wantedFaction }) => {
-    const { world } = globalThis.__wreckright;
+    const { world } = globalThis.__ironmuster;
     const fixture = globalThis.__scoreFixture;
     const chassisId = fixture[wantedFaction];
     for (const entity of world.entities) {
@@ -112,7 +112,7 @@ async function setFaction(page, side, faction) {
 
 async function pushHiddenFire(page) {
   await page.evaluate(() => {
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     const fixture = globalThis.__scoreFixture;
     const shooter = world.entities.find((entity) => entity.team !== fixture.playerTeam);
     const target = world.entities.find((entity) => entity.team === fixture.playerTeam);
@@ -130,7 +130,7 @@ async function pushHiddenFire(page) {
 
 async function revealEnemies(page, kind) {
   return page.evaluate((revealKind) => {
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     const fixture = globalThis.__scoreFixture;
     world.reveals.length = 0;
     world.reveals.push({
@@ -174,15 +174,15 @@ export async function runAdaptiveScoreChecks({ browser, url, check }) {
     await page.waitForSelector('[data-testid="briefing"]');
     await page.locator('[data-testid="briefing-faction-picker"]').selectOption('linewrought');
     await page.waitForFunction(() => {
-      const wreckright = globalThis.__wreckright;
-      if (wreckright === undefined) return false;
-      const { useGame, world } = wreckright;
+      const ironmuster = globalThis.__ironmuster;
+      if (ironmuster === undefined) return false;
+      const { useGame, world } = ironmuster;
       return useGame.getState().ready === true && world.entities
         .filter((entity) => entity.team === world.playerTeam)
         .every((entity) => world.catalog.chassis.get(entity.chassisId)?.faction === 'linewrought');
     });
     await page.locator('[data-testid="briefing-deploy"]').click();
-    await page.waitForFunction(() => globalThis.__wreckright?.useGame.getState().briefingSeen === true);
+    await page.waitForFunction(() => globalThis.__ironmuster?.useGame.getState().briefingSeen === true);
     await pause(page);
     await unlock(page);
     await waitForScoreReady(page);
@@ -216,7 +216,7 @@ export async function runAdaptiveScoreChecks({ browser, url, check }) {
       JSON.stringify({ sensorState, sensorDelta, sensorCultureDelta }));
 
     await page.evaluate(() => {
-      const { engine, world } = globalThis.__wreckright;
+      const { engine, world } = globalThis.__ironmuster;
       world.reveals.length = 0;
       world.events.push({ type: 'battle_ended', tick: world.tick, winner: null });
       engine.forceStep();
@@ -227,8 +227,8 @@ export async function runAdaptiveScoreChecks({ browser, url, check }) {
     await pushHiddenFire(page);
     const hiddenAfter = activeAudioContext(await audioProbe(page));
     const hiddenState = await page.evaluate(() => ({
-      visible: globalThis.__wreckright.world.vision?.visible.size ?? 0,
-      detected: globalThis.__wreckright.world.vision?.detected.size ?? 0,
+      visible: globalThis.__ironmuster.world.vision?.visible.size ?? 0,
+      detected: globalThis.__ironmuster.world.vision?.detected.size ?? 0,
     }));
     const hiddenDelta = newTargets(hiddenBefore, hiddenAfter);
     const hiddenCultureDelta = cultureTargets(hiddenBefore, hiddenAfter);
@@ -240,7 +240,7 @@ export async function runAdaptiveScoreChecks({ browser, url, check }) {
     const seeded = hiddenAfter;
     await advanceAudioClock(page);
     await page.evaluate(() => {
-      const { engine, world } = globalThis.__wreckright;
+      const { engine, world } = globalThis.__ironmuster;
       world.events.push({
         type: 'support_called', tick: world.tick, team: world.playerTeam ?? 0,
         call: 'sensor_probe', x: 0, y: 0, cost: 0,
@@ -283,7 +283,7 @@ export async function runAdaptiveScoreChecks({ browser, url, check }) {
 
     await setFaction(page, 'all', 'aurelian');
     await advanceAudioClock(page);
-    await page.evaluate(() => globalThis.__wreckright.engine.forceStep());
+    await page.evaluate(() => globalThis.__ironmuster.engine.forceStep());
     const aurelian = activeAudioContext(await audioProbe(page));
     const aurelianVoice = cultureTargets(optical, aurelian);
     check('Aurelian roster reaches its authored Monolith arrangement',
@@ -292,7 +292,7 @@ export async function runAdaptiveScoreChecks({ browser, url, check }) {
 
     await setFaction(page, 'all', 'linewrought');
     await advanceAudioClock(page);
-    await page.evaluate(() => globalThis.__wreckright.engine.forceStep());
+    await page.evaluate(() => globalThis.__ironmuster.engine.forceStep());
     const linewrought = activeAudioContext(await audioProbe(page));
     const lineVoice = cultureTargets(aurelian, linewrought);
     check('Linewrought roster returns to its authored Ironwork arrangement',
@@ -304,7 +304,7 @@ export async function runAdaptiveScoreChecks({ browser, url, check }) {
     const mutedBefore = activeAudioContext(await audioProbe(page));
     await advanceAudioClock(page);
     await page.evaluate(() => {
-      const { engine, world } = globalThis.__wreckright;
+      const { engine, world } = globalThis.__ironmuster;
       const fixture = globalThis.__scoreFixture;
       const ally = world.entities.find((entity) => entity.team === fixture.playerTeam);
       const enemy = world.entities.find((entity) => entity.team !== fixture.playerTeam);
@@ -332,15 +332,15 @@ export async function runAdaptiveScoreChecks({ browser, url, check }) {
     check('unmute restores the shared master without restarting score sources',
       activeAudioContext(await audioProbe(page)).master === 0.5 && sameSourceIds(mutedAfter, activeAudioContext(await audioProbe(page))));
 
-    const pausedTick = await page.evaluate(() => globalThis.__wreckright.world.tick);
+    const pausedTick = await page.evaluate(() => globalThis.__ironmuster.world.tick);
     const pausedGraph = activeAudioContext(await audioProbe(page));
     await advanceAudioClock(page, 0.5);
     const heldGraph = activeAudioContext(await audioProbe(page));
     check('pause holds simulation intensity and the same score sources',
-      (await page.evaluate(() => globalThis.__wreckright.world.tick)) === pausedTick
+      (await page.evaluate(() => globalThis.__ironmuster.world.tick)) === pausedTick
         && heldGraph.targets === pausedGraph.targets && sameSourceIds(heldGraph, pausedGraph));
     await page.locator('[data-testid="pause-button"]').click();
-    await page.waitForFunction((tick) => globalThis.__wreckright.world.tick > tick, pausedTick);
+    await page.waitForFunction((tick) => globalThis.__ironmuster.world.tick > tick, pausedTick);
     await pause(page);
     check('resume keeps the score graph instead of rebuilding it',
       sameSourceIds(activeAudioContext(await audioProbe(page)), pausedGraph));

@@ -53,7 +53,7 @@ describe('home screen', () => {
     expect(html).toContain('Wiki <span class="home-wiki-subtitle">· Story &amp; mechs</span>');
     expect(html).toContain('aria-label="Game settings"');
     expect(html).toContain('data-testid="audio-music"');
-    expect(html).toContain('WRECKRIGHT');
+    expect(html).toContain('IRONMUSTER');
     expect(html).toContain('Your company. Your mechs. Your next move.');
     expect(html).not.toContain('No new machines. Only new owners.');
     expect(html).toContain('Learn Command');

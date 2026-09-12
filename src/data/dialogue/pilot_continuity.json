@@ -1,0 +1,163 @@
+{
+  "maxPerMission": 2,
+  "fallback": {
+    "linewrought": {
+      "return": "Back in the seat. Thanks for keeping it warm.",
+      "refit": "New fit checked. Let's see what the workshop gave us.",
+      "recovered_weapon": "Recovered gun is firing. Better on our side.",
+      "revisit": "We've worked this ground before. Keep an eye on the approaches."
+    },
+    "aurelian": {
+      "return": "Cleared for duty. Taking my station.",
+      "refit": "Revised weapon layout verified. Ready to test it.",
+      "recovered_weapon": "Recovered weapon operational. Custody has its advantages.",
+      "revisit": "Returning to familiar ground. Checking for changes."
+    }
+  },
+  "pilots": {
+    "kessa_vale": {
+      "return": "Doctor passed me. Now I inspect the work.",
+      "refit": "Different welds, different balance. The new fit passes inspection.",
+      "recovered_weapon": "Their workmanship. Our firing line. Inspection complete.",
+      "revisit": "I've inspected this ground before. Let's see what changed."
+    },
+    "dorn_hess": {
+      "return": "Doctor says I can get shot at again. Generous of them.",
+      "refit": "New guns. Same seat. I remain cautiously attached to the seat.",
+      "recovered_weapon": "Better on this side of the argument.",
+      "revisit": "Here again. I was hoping for somewhere less familiar to my knees."
+    },
+    "ilse_brant": {
+      "return": "Out of the infirmary. Never ask me to lie still again.",
+      "refit": "New fit, new balance. I'll find its corners.",
+      "recovered_weapon": "Their gun finally found a driver with somewhere to be.",
+      "revisit": "I know these turns. Taking a better line this time."
+    },
+    "marek_sud": {
+      "return": "Good to hear the reactor again. The ward was too quiet.",
+      "refit": "New mounts have a different hum. Listening for anything loose.",
+      "recovered_weapon": "I remember that sound from the other side. Prefer it here.",
+      "revisit": "Same ground. I'll listen for what wasn't here before."
+    },
+    "petra_lindqvist": {
+      "return": "Back. Save the welcome for when everyone comes home.",
+      "refit": "A different arrangement. I'll let the shots give their opinion.",
+      "recovered_weapon": "It appears the enemy did have something useful to contribute.",
+      "revisit": "Familiar ground. That doesn't make it safe ground."
+    },
+    "arne_gedde": {
+      "return": "Medical clearance confirmed. I intend to improve on the last result.",
+      "refit": "New layout calibrated. Precision survives a change of equipment.",
+      "recovered_weapon": "Recovered hardware. I will hold it to our standards.",
+      "revisit": "We have precedent here. This operation should be cleaner."
+    },
+    "yusra_demir": {
+      "return": "Back with a few new data points on cockpit protection.",
+      "refit": "New configuration logged. Curious to see the field results.",
+      "recovered_weapon": "Recovered weapon firing. Now we can measure it properly.",
+      "revisit": "We have an earlier survey. Looking for discrepancies."
+    },
+    "silas_okonkwo": {
+      "return": "Restored to duty. The paperwork was less survivable than the wound.",
+      "refit": "An amended specification. Let us hope the enemy appreciates revisions.",
+      "recovered_weapon": "A useful transfer of ownership. My compliments to recovery.",
+      "revisit": "Back on the same ground. A precedent, though hardly a guarantee."
+    },
+    "anja_verrin": {
+      "return": "Fit for duty. One step at a time still works.",
+      "refit": "New fit checked slowly. Ready when the company is.",
+      "recovered_weapon": "Recovered gun answered cleanly. Keeping it steady.",
+      "revisit": "We've been here. Take time to look again."
+    },
+    "bo_ferrant": {
+      "return": "Driver repaired. Try to keep this delivery upright.",
+      "refit": "Different cargo on the brackets. Mind the turning circle.",
+      "recovered_weapon": "Collection complete. Returning it express.",
+      "revisit": "Another delivery to this address. Hope somebody's signing."
+    },
+    "bram_nyen": {
+      "return": "Back on shift. Thanks for carrying the load.",
+      "refit": "The load sits differently now. I'll keep it level.",
+      "recovered_weapon": "Recovery hauled it home. Putting it to work.",
+      "revisit": "Know the haul through here. Watching the shoulders."
+    },
+    "cato_ferrin": {
+      "return": "Pilot repaired. Less conveniently than a pump, apparently.",
+      "refit": "That's the new mount under load. Workshop did good work.",
+      "recovered_weapon": "A little cleaning and it's earning its keep already.",
+      "revisit": "Back here. Still looking at everything as spare parts."
+    },
+    "corin_dast": {
+      "return": "Back. Had time to think about the wiring.",
+      "refit": "The new circuit is steady. That'll do nicely.",
+      "recovered_weapon": "Recovered trigger assembly is working. Small satisfaction.",
+      "revisit": "Remember this ground. Taking another careful look."
+    },
+    "dario_senn": {
+      "return": "Back in. I kept thinking about the people still out here.",
+      "refit": "New weapons checked. I hope they make this shorter.",
+      "recovered_weapon": "It was aimed at us. Hard to stop thinking about that.",
+      "revisit": "Here again. I wonder who stayed."
+    },
+    "juno_reyes": {
+      "return": "Enough bed rest. Point me at something worth the trip.",
+      "refit": "Oh, this fit has promise. Let's make some noise.",
+      "recovered_weapon": "You brought me a present. I'm sending a thank-you.",
+      "revisit": "Round two on familiar ground. Let's improve the finish."
+    },
+    "leda_morcant": {
+      "return": "Back at work. My survival remains excellent value.",
+      "refit": "New configuration. I expect an excellent return.",
+      "recovered_weapon": "No purchase price. Very satisfying performance.",
+      "revisit": "We've done business here. Let's improve the terms."
+    },
+    "mira_solvang": {
+      "return": "Medical release received. Returning to the task.",
+      "refit": "Revised loadout checked. No further adjustments needed.",
+      "recovered_weapon": "Recovered weapon tested under fire. Operational.",
+      "revisit": "Previous deployment noted. Reassessing current positions."
+    },
+    "nadia_ostrow": {
+      "return": "Still standing. Let's get the rest of them home too.",
+      "refit": "Guns change. Keep your spacing and the rest follows.",
+      "recovered_weapon": "Good recovery work. Somebody made this drop easier.",
+      "revisit": "Old ground. New fight. Don't confuse the two."
+    },
+    "oksana_valev": {
+      "return": "I'm back. That's all I want said about it.",
+      "refit": "New fit. Checked every fastening myself.",
+      "recovered_weapon": "It works. I'll decide if I trust it later.",
+      "revisit": "I remember this place. Keeping an exit in sight."
+    },
+    "roz_havel": {
+      "return": "Cleared for duty. I'll be more careful with the cockpit this time.",
+      "refit": "New layout memorised. I checked it twice.",
+      "recovered_weapon": "That's one we brought home! It actually works!",
+      "revisit": "I know this place now. I'll still check the map."
+    },
+    "suri_kell": {
+      "return": "They finally let me out. I have some catching up to do.",
+      "refit": "New fit? You shouldn't have. Let's try it properly.",
+      "recovered_weapon": "Finders keepers. Firing!",
+      "revisit": "Back for more. I know where I want to go this time."
+    },
+    "teodor_krysa": {
+      "return": "Patched up. Back in.",
+      "refit": "New fit checked. Good enough.",
+      "recovered_weapon": "Ours now. Works.",
+      "revisit": "Been here. Still watching."
+    },
+    "tomas_arvel": {
+      "return": "Back by popular demand. Mine, mostly.",
+      "refit": "New arrangement. Try to keep up with the demonstration.",
+      "recovered_weapon": "Recovered gun. Consider this its better debut.",
+      "revisit": "A return engagement. I do like a familiar stage."
+    },
+    "willem_torrance": {
+      "return": "Back at the front. I've lost enough ground already.",
+      "refit": "New fit ready. Let me put some distance on it.",
+      "recovered_weapon": "Recovery gave us another edge. Using it.",
+      "revisit": "We crossed this ground before. Pressing further this time."
+    }
+  }
+}

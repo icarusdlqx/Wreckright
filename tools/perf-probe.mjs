@@ -1,7 +1,7 @@
 /**
  * Repeatable render and lifecycle check for a real deployed skirmish.
  *
- * Run against Vite so the development-only __wreckright handle is available:
+ * Run against Vite so the development-only __ironmuster handle is available:
  *   npm run dev -- --host 127.0.0.1 --port 5199
  *   npm run perf:probe
  *
@@ -127,29 +127,29 @@ async function deploy(page) {
   await page.getByTestId('home-screen').waitFor();
   await page.getByTestId('home-skirmish').click();
   await page.getByTestId('briefing').waitFor();
-  await page.waitForFunction(() => globalThis.__wreckright?.useGame.getState().ready === true);
+  await page.waitForFunction(() => globalThis.__ironmuster?.useGame.getState().ready === true);
   const optionExists = await page.getByTestId('briefing-mission-picker').locator(`option[value="${missionId}"]`).count();
   if (optionExists !== 1) throw new Error(`Mission ${missionId} is not selectable from Skirmish`);
   if (await page.getByTestId('briefing-mission-picker').inputValue() !== missionId) {
     await page.getByTestId('briefing-mission-picker').selectOption(missionId);
   }
-  await page.waitForFunction((id) => globalThis.__wreckright?.world.mission.id === id
-    && globalThis.__wreckright.useGame.getState().ready === true, missionId);
+  await page.waitForFunction((id) => globalThis.__ironmuster?.world.mission.id === id
+    && globalThis.__ironmuster.useGame.getState().ready === true, missionId);
   await page.getByTestId('briefing-battle-code').fill(battleCode);
   await page.getByTestId('briefing-battle-code').press('Tab');
   if (!await page.getByTestId('briefing-deploy').isEnabled()) {
     throw new Error(`Deploy is disabled: ${await page.getByTestId('briefing').innerText()}`);
   }
   await page.getByTestId('briefing-deploy').click();
-  await page.waitForFunction((id) => globalThis.__wreckright?.world.mission.id === id
-    && globalThis.__wreckright.useGame.getState().briefingSeen === true, missionId);
+  await page.waitForFunction((id) => globalThis.__ironmuster?.world.mission.id === id
+    && globalThis.__ironmuster.useGame.getState().briefingSeen === true, missionId);
   await page.locator('.viewport canvas:not(.perf-overlay)').waitFor();
   await page.waitForTimeout(250);
 }
 
 async function stageCrowdedCombat(page) {
   return page.evaluate(() => {
-    const { engine, useGame, world } = globalThis.__wreckright;
+    const { engine, useGame, world } = globalThis.__ironmuster;
     const team = world.playerTeam ?? 0;
     const friendlies = world.entities.filter((entity) => entity.team === team && !entity.destroyed);
     const enemies = world.entities.filter((entity) => entity.team !== team && !entity.destroyed);
@@ -186,7 +186,7 @@ async function stageCrowdedCombat(page) {
 
 async function sampleFrames(page, milliseconds) {
   return page.evaluate((duration) => new Promise((resolveSample) => {
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     const started = performance.now();
     let previous = started;
     let frames = 0;
@@ -225,7 +225,7 @@ async function rendererSnapshot(page, cdp, label) {
   const client = await cdp.send('Performance.getMetrics');
   const metrics = Object.fromEntries(client.metrics.map(({ name, value }) => [name, value]));
   return page.evaluate(({ label, processMetrics }) => {
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     const geometries = new Set();
     const materials = new Set();
     const textures = new Set();
@@ -272,7 +272,7 @@ async function rendererSnapshot(page, cdp, label) {
 async function advanceSimulation(page, seconds) {
   const steps = seconds * 20;
   return page.evaluate(async (count) => {
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     const startedTick = world.tick;
     engine.setPaused(true);
     for (let advanced = 0; advanced < count && !world.finished; advanced += 10) {
@@ -287,16 +287,16 @@ async function advanceSimulation(page, seconds) {
 
 async function restart(page) {
   const previousId = await page.evaluate(() => {
-    globalThis.__perfPreviousEngine = globalThis.__wreckright.engine;
-    return globalThis.__wreckright.world.mission.id;
+    globalThis.__perfPreviousEngine = globalThis.__ironmuster.engine;
+    return globalThis.__ironmuster.world.mission.id;
   });
   const sheet = page.getByTestId('desktop-menu-sheet');
   if (!await sheet.isVisible()) await page.getByTestId('desktop-menu-toggle').click();
   await page.getByTestId('restart-battle').click();
-  await page.waitForFunction((id) => globalThis.__wreckright !== undefined
-    && globalThis.__wreckright.engine !== globalThis.__perfPreviousEngine
-    && globalThis.__wreckright.world.mission.id === id
-    && globalThis.__wreckright.useGame.getState().briefingSeen === true, previousId);
+  await page.waitForFunction((id) => globalThis.__ironmuster !== undefined
+    && globalThis.__ironmuster.engine !== globalThis.__perfPreviousEngine
+    && globalThis.__ironmuster.world.mission.id === id
+    && globalThis.__ironmuster.useGame.getState().briefingSeen === true, previousId);
   await page.evaluate(() => { delete globalThis.__perfPreviousEngine; });
   await page.waitForTimeout(1_100);
 }

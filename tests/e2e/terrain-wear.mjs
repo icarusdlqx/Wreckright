@@ -28,23 +28,23 @@ async function openTerrainBattle(page, url) {
   await page.waitForSelector('[data-testid="home-screen"]');
   await page.locator('[data-testid="home-skirmish"]').click();
   await page.waitForSelector('[data-testid="briefing"]');
-  await page.waitForFunction(() => globalThis.__wreckright?.useGame.getState().ready === true);
+  await page.waitForFunction(() => globalThis.__ironmuster?.useGame.getState().ready === true);
   await page.locator('[data-testid="briefing-mission-picker"]').selectOption('causeway_crossing');
   await page.waitForFunction(() => (
-    globalThis.__wreckright?.world.mission.id === 'causeway_crossing' &&
-    globalThis.__wreckright.useGame.getState().ready === true
+    globalThis.__ironmuster?.world.mission.id === 'causeway_crossing' &&
+    globalThis.__ironmuster.useGame.getState().ready === true
   ));
   await page.locator('[data-testid="briefing-deploy"]').click();
   await page.waitForFunction(() => (
-    globalThis.__wreckright?.world.mission.id === 'causeway_crossing' &&
-    globalThis.__wreckright.useGame.getState().briefingSeen === true
+    globalThis.__ironmuster?.world.mission.id === 'causeway_crossing' &&
+    globalThis.__ironmuster.useGame.getState().briefingSeen === true
   ));
   await page.waitForSelector('.viewport canvas:not(.perf-overlay)');
 }
 
 async function stageTerrainFixture(page, distance) {
   return page.evaluate((cameraDistance) => {
-    const { engine, useGame, world } = globalThis.__wreckright;
+    const { engine, useGame, world } = globalThis.__ironmuster;
     const { renderer } = engine;
     engine.setPaused(true);
     useGame.getState().setSelection([]);
@@ -80,7 +80,7 @@ async function stageTerrainFixture(page, distance) {
 async function inspectTerrainFixture(page) {
   await settle(page);
   return page.evaluate(() => {
-    const { engine, useGame, world } = globalThis.__wreckright;
+    const { engine, useGame, world } = globalThis.__ironmuster;
     const { renderer } = engine;
     const ground = renderer.groundMesh;
     const geometry = ground.geometry;
@@ -179,7 +179,7 @@ function validRoadWear(snapshot) {
 
 async function exerciseTerrainModes(page) {
   return page.evaluate(() => {
-    const { renderer } = globalThis.__wreckright.engine;
+    const { renderer } = globalThis.__ironmuster.engine;
     const resources = () => {
       const nodes = [];
       const geometries = new Set();
@@ -251,16 +251,16 @@ async function exerciseTerrainModes(page) {
 
 async function recordedLowFxBudget(page) {
   await page.evaluate(() => {
-    const { renderer } = globalThis.__wreckright.engine;
+    const { renderer } = globalThis.__ironmuster.engine;
     renderer.setLowFx(true);
     renderer.markers.group.visible = true;
   });
   await settle(page);
   const stats = await page.evaluate(() => ({
-    ...globalThis.__wreckright.engine.renderer.renderStats,
+    ...globalThis.__ironmuster.engine.renderer.renderStats,
   }));
   await page.evaluate(() => {
-    globalThis.__wreckright.engine.renderer.markers.group.visible = false;
+    globalThis.__ironmuster.engine.renderer.markers.group.visible = false;
   });
   return stats;
 }
@@ -340,13 +340,15 @@ export async function runTerrainWearChecks({ browser, url, shots, check }) {
     // Measure residency after the reconstructed machines and full-quality scenery
     // have rendered. Eight additional fixed effect batches remain resident;
     // the nine idle shot pools now submit no draws or hidden-instance triangles.
+    // Three fixed adapter geometries belong to Bulwark's foreign laser mounts;
+    // offscreen weapons remain resident without adding terrain draws or triangles.
     check(
       'low-FX Causeway retains its draw budget with bounded resident surface geometry',
       lowBudget.calls === 10 && lowBudget.triangles === 25_860 &&
-        lowBudget.geometries === 258 && lowBudget.textures === 3,
+        lowBudget.geometries === 261 && lowBudget.textures === 3,
       JSON.stringify(lowBudget),
     );
-    await page.evaluate(() => globalThis.__wreckright.engine.renderer.setLowFx(false));
+    await page.evaluate(() => globalThis.__ironmuster.engine.renderer.setLowFx(false));
     await settle(page);
     const repeatedLowBudget = await recordedLowFxBudget(page);
     check(
@@ -354,7 +356,7 @@ export async function runTerrainWearChecks({ browser, url, shots, check }) {
       JSON.stringify(repeatedLowBudget) === JSON.stringify(lowBudget),
       JSON.stringify({ first: lowBudget, repeated: repeatedLowBudget }),
     );
-    await page.evaluate(() => globalThis.__wreckright.engine.renderer.setLowFx(false));
+    await page.evaluate(() => globalThis.__ironmuster.engine.renderer.setLowFx(false));
     await canvasShot(page, `${shots}/18-terrain-wear.png`);
     check('desktop terrain fixture emits no browser errors', errors.length === 0, errors.join(' | '));
   } finally {

@@ -15,8 +15,8 @@ async function observeCamera(page) {
 
 async function ready(page) {
   await page.waitForFunction(() => {
-    const engine = globalThis.__wreckright?.engine;
-    if (!engine || !globalThis.__wreckright.useGame.getState().ready || engine.__previousCameraFixture) return false;
+    const engine = globalThis.__ironmuster?.engine;
+    if (!engine || !globalThis.__ironmuster.useGame.getState().ready || engine.__previousCameraFixture) return false;
     const observed = globalThis.__deploymentCamera;
     if (observed.engine !== engine) {
       observed.engine = engine;
@@ -30,7 +30,7 @@ async function ready(page) {
 
 async function markCurrentEngine(page) {
   await page.waitForFunction(() => {
-    const engine = globalThis.__wreckright?.engine;
+    const engine = globalThis.__ironmuster?.engine;
     if (!engine) return false;
     engine.__previousCameraFixture = true;
     return true;
@@ -51,9 +51,9 @@ export async function runDeploymentCameraChecks({ browser, url, shots, check }) 
     await page.getByTestId('home-skirmish').click();
     await ready(page);
     check('opening a skirmish briefing does not play the deployment camera move', await count() === 0);
-    const before = await page.evaluate(() => globalThis.__wreckright.engine.renderer.camera.camera.position.toArray());
+    const before = await page.evaluate(() => globalThis.__ironmuster.engine.renderer.camera.camera.position.toArray());
     await page.waitForTimeout(240);
-    const after = await page.evaluate(() => globalThis.__wreckright.engine.renderer.camera.camera.position.toArray());
+    const after = await page.evaluate(() => globalThis.__ironmuster.engine.renderer.camera.camera.position.toArray());
     check('the briefing camera stays stationary while choosing a force', before.every((value, i) => Math.abs(value - after[i]) < .01));
     if (shots) await page.screenshot({ path: `${shots}/camera-briefing.png` });
     for (const [picker, value] of [
@@ -70,16 +70,16 @@ export async function runDeploymentCameraChecks({ browser, url, shots, check }) 
     }
     await markCurrentEngine(page);
     await page.getByTestId('briefing-deploy').click();
-    await page.waitForFunction(() => globalThis.__wreckright?.useGame.getState().briefingSeen === true
-      && globalThis.__wreckright.engine.__previousCameraFixture !== true);
+    await page.waitForFunction(() => globalThis.__ironmuster?.useGame.getState().briefingSeen === true
+      && globalThis.__ironmuster.engine.__previousCameraFixture !== true);
     check('Deploy starts exactly one opening camera move', await count() === 1);
     const running = await page.evaluate(() => {
-      const camera = globalThis.__wreckright.engine.renderer.camera;
+      const camera = globalThis.__ironmuster.engine.renderer.camera;
       return camera.camera.position.y > Math.sin(camera.elevation) * camera.distance + 2;
     });
     check('the deployment camera actually starts above its tactical height', running);
     await page.waitForFunction(() => {
-      const camera = globalThis.__wreckright.engine.renderer.camera;
+      const camera = globalThis.__ironmuster.engine.renderer.camera;
       return Math.abs(camera.camera.position.y - Math.sin(camera.elevation) * camera.distance) < 1;
     });
     if (shots) await page.screenshot({ path: `${shots}/camera-deployed.png` });
@@ -90,8 +90,8 @@ export async function runDeploymentCameraChecks({ browser, url, shots, check }) 
     await openDesktopBattleMenu(page);
     await markCurrentEngine(page);
     await page.getByTestId('restart-battle').click();
-    await page.waitForFunction(() => globalThis.__wreckright?.useGame.getState().briefingSeen === true
-      && globalThis.__wreckright.engine.__previousCameraFixture !== true);
+    await page.waitForFunction(() => globalThis.__ironmuster?.useGame.getState().briefingSeen === true
+      && globalThis.__ironmuster.engine.__previousCameraFixture !== true);
     check('an actual battle restart starts one new opening move', await count() === 2);
     await openDesktopBattleMenu(page);
     await markCurrentEngine(page);
@@ -101,10 +101,10 @@ export async function runDeploymentCameraChecks({ browser, url, shots, check }) 
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await markCurrentEngine(page);
     await page.getByTestId('briefing-deploy').click();
-    await page.waitForFunction(() => globalThis.__wreckright?.useGame.getState().briefingSeen === true
-      && globalThis.__wreckright.engine.__previousCameraFixture !== true);
+    await page.waitForFunction(() => globalThis.__ironmuster?.useGame.getState().briefingSeen === true
+      && globalThis.__ironmuster.engine.__previousCameraFixture !== true);
     const reduced = await page.evaluate(() => {
-      const camera = globalThis.__wreckright.engine.renderer.camera;
+      const camera = globalThis.__ironmuster.engine.renderer.camera;
       return camera.reducedMotion && Math.abs(camera.camera.position.y - Math.sin(camera.elevation) * camera.distance) < 1;
     });
     check('reduced-motion deployment goes straight to the tactical view', reduced && await count() === 3);

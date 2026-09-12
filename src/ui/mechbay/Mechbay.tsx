@@ -224,7 +224,7 @@ export function Mechbay({
       data-workspace="unified"
       data-dirty={draftExit.dirty}
       onDragStart={(event) => quietBay.beginDrag(
-        event.dataTransfer.getData('application/wreckright'))}
+        event.dataTransfer.getData('application/ironmuster'))}
       onDragEnd={quietBay.clearDrag}
       onDrop={quietBay.clearDrag}
     >

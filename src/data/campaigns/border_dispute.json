@@ -192,7 +192,7 @@
       "name": "First Notice",
       "missionId": "line_maintenance",
       "employerId": "halloran_freight",
-      "brief": "The General Reversion Order names Halloran's walker roots and the company's own four. Kestrel locked the Marker Eleven registry under a compliance contract. Clear its guard so Halloran can copy the title rolls before the Recall Authority seals them.",
+      "brief": "The Recall Authority brings its General Reversion Order to Marker Eleven. Iona Venn is holding Marker Eleven's registry open while Kestrel closes the cordon. Its rolls name your four walkers; its locked cabinet holds an emitter she kept out of the seizure inventory. Break the cordon and secure the registry. Halloran releases the cabinet's Focused Medium Laser after a successful return.",
       "requires": [],
       "basePayout": 850000,
       "maxSalvageShare": 0.75,
@@ -200,7 +200,22 @@
       "position": {
         "x": 0.18,
         "y": 0.7
-      }
+      },
+      "rewards": [
+        {
+          "id": "marker_eleven_optic",
+          "label": "Venn’s cabinet: Focused Medium Laser",
+          "objectiveId": "copy_title_rolls",
+          "items": [
+            {
+              "kind": "weapon",
+              "itemId": "er_medium_laser",
+              "count": 1
+            }
+          ],
+          "afterword": "Iona Venn releases the crated optic from Marker Eleven, separate from rolled battlefield salvage. Try replacing a Gadfly’s left-arm Flamer: the emitter uses the same one tonne and one box, reaches farther, and has a hotter individual shot. Name the variant Lamplighter before taking it to Cut Nine; its saved loadout can be reused."
+        }
+      ]
     },
     {
       "id": "marker_survey",
@@ -239,7 +254,7 @@
       "name": "The Quiet Claim",
       "missionId": "recovery_window",
       "employerId": "halloran_freight",
-      "brief": "A repair crew is trapped beside an unclaimed walker cradle in the western recovery cut. Secure the winch and protect the cradle through the lift with up to 140 tonnes and three machines. The optional service cabinet holds useful stock. Surviving guards do not block extraction.",
+      "brief": "Fitter Nera Pell and her crew are trapped at Cut Nine's recovery cradle. Secure the winch and cover their lift with up to 140 tonnes and three machines. Venn's recovered optic can cover the winch from farther back than a Flamer. The west cabinet is optional; chasing its guards risks leaving Pell's cradle exposed.",
       "requires": [
         "militia_raid"
       ],
@@ -260,7 +275,7 @@
               "integrityFraction": 0.55
             }
           ],
-          "afterword": "The repair crew signs over an unclaimed Prybar cradle from a sealed workshop rack. It is a damaged hulk, distinct from the opposing machines recovered under your salvage terms; rebuilding still takes credits and bay time."
+          "afterword": "Nera Pell signs over Cut Nine's damaged Prybar cradle. It arrives without weapons, separate from rolled enemy salvage. Pay for its rebuild, fit weapons and ammunition, and assign a pilot before deployment. It gives you another option for the 205-tonne defence of Pell's home workshop."
         },
         {
           "id": "service_cannon",
@@ -282,7 +297,7 @@
       "name": "Keep the Gantries",
       "missionId": "workshop_defence",
       "employerId": "sarn_foundry",
-      "brief": "Kestrel traced the recovered crew to a working Sarn repair hall. Defend gantry control against the announced north and east approaches with up to 205 tonnes. A forward service position can blunt the second wave. Keeping the workshop alive opens the main route to First Attestation.",
+      "brief": "Pell's crew reaches Sarn's Gantry Three; Kestrel follows. Hold the working gantry through north and east attacks. The lift allows 205 tonnes: your original four fit exactly. A rebuilt, armed Prybar offers a faster stores runner, but needs a pilot. Keep enough guns at the gantry while another machine collects the optional west stock.",
       "requires": [
         "recovery_window"
       ],
@@ -397,10 +412,10 @@
     },
     {
       "id": "foundry_sweep_node",
-      "name": "Broken Wreckright",
+      "name": "Broken Code",
       "missionId": "rules_break",
       "employerId": "sarn_foundry",
-      "brief": "A Sarn yard camera recorded a Kestrel machine following an ejection seat with its guns. Kestrel came back for the recording and locked the outer works. Sarn wants the detachment removed and the proof of broken wreckright left standing.",
+      "brief": "A Sarn yard camera recorded a Kestrel machine following an ejection seat with its guns. Kestrel came back for the recording and locked the outer works. Sarn wants the detachment removed and the proof of a broken Ironmuster Code left standing.",
       "requires": [
         "pass_skirmish"
       ],
@@ -527,7 +542,7 @@
       "name": "Blackglass Attestation",
       "missionId": "quarry_brakes",
       "employerId": "sarn_foundry",
-      "brief": "A Sarn service plate shows Kestrel moved one white wreck through Blackglass under a number assigned to slag. Lock the three lift cabinets while Sarn copies the root attestation. The wreck is yours under wreckright; the register is not.",
+      "brief": "A Sarn service plate shows Kestrel moved one white wreck through Blackglass under a number assigned to slag. Lock the three lift cabinets while Sarn copies the root attestation. The wreck is yours under the Ironmuster Code; the register is not.",
       "requires": [
         "foundry_sweep_node"
       ],

@@ -29,8 +29,17 @@ export function openingRecommendation(
   if (route === undefined || campaign === undefined) return null;
   const completed = new Set(state.completedNodes);
   const openingIds = new Set(route.steps.map((step) => step.nodeId));
-  // Established companies need their chosen route, not a suggestion to return to the beginning.
-  if (campaign.nodes.some((node) => completed.has(node.id) && !openingIds.has(node.id))) return null;
+  // Optional surveys do not abandon the opening. Later main-route milestones
+  // still prevent an established or legacy company being sent backwards.
+  const beyondOpening = new Set([route.steps.at(-1)!.nodeId]);
+  let previousSize = 0;
+  while (previousSize !== beyondOpening.size) {
+    previousSize = beyondOpening.size;
+    for (const node of campaign.nodes) {
+      if (node.requires.some((id) => beyondOpening.has(id))) beyondOpening.add(node.id);
+    }
+  }
+  if (campaign.nodes.some((node) => completed.has(node.id) && !openingIds.has(node.id) && beyondOpening.has(node.id))) return null;
   const index = route.steps.findIndex((step) => !completed.has(step.nodeId));
   const step = route.steps[index];
   if (step === undefined) return null;

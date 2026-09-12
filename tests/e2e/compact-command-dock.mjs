@@ -2,11 +2,11 @@ async function deployFive(page, url) {
   await page.goto(url);
   await page.getByTestId('home-skirmish').click();
   await page.getByTestId('briefing-mission-picker').selectOption('skirmish_ridge');
-  await page.waitForFunction(() => globalThis.__wreckright?.useGame.getState().ready);
+  await page.waitForFunction(() => globalThis.__ironmuster?.useGame.getState().ready);
   await page.getByTestId('briefing-deploy').click();
   await page.getByTestId('briefing').waitFor({ state: 'hidden' });
   await page.evaluate(async url => {
-    const { engine, world, useGame } = globalThis.__wreckright;
+    const { engine, world, useGame } = globalThis.__ironmuster;
     engine.setPaused(true);
     const { createMech } = await import(new URL('src/sim/entity.ts', url).href);
     const friends = world.entities.filter(unit => unit.team === world.playerTeam);
@@ -26,13 +26,13 @@ async function clearReports(page, url) {
   await page.evaluate(async url => {
     const radio = await import(new URL('src/ui/fieldRadio.ts', url).href);
     const receipts = await import(new URL('src/ui/commandReceiptState.ts', url).href);
-    radio.beginFieldRadio(globalThis.__wreckright.world); receipts.clearCommandReceipt();
+    radio.beginFieldRadio(globalThis.__ironmuster.world); receipts.clearCommandReceipt();
   }, url);
 }
 
 async function report(page, url, long = false) {
   await page.evaluate(async ({ url, long }) => {
-    const { world } = globalThis.__wreckright;
+    const { world } = globalThis.__ironmuster;
     const radio = await import(new URL('src/ui/fieldRadio.ts', url).href);
     const receipts = await import(new URL('src/ui/commandReceiptState.ts', url).href);
     radio.observeFieldRadio(world, [{ type: 'mission_message', tick: world.tick,
@@ -98,7 +98,7 @@ async function stableReports(page, url, label, shots, check) {
   await page.getByTestId('field-radio').waitFor({ state: 'hidden' });
   check(`${label}: dismissing radio leaves the same controls in the same positions`, sameControls(quiet, await geometry(page)));
   await page.evaluate(() => {
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     world.support.pending.push({ call: 'repair_truck', team: world.playerTeam, target: { ...world.entities[0].pos },
       heading: 0, resolveTick: world.tick + Math.round(30 / world.dt) });
     engine.presentation.publish(null);
@@ -113,7 +113,7 @@ async function stableReports(page, url, label, shots, check) {
     }));
   await page.getByTestId('support-status').locator('summary').click();
   await page.evaluate(() => {
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     world.support.pending.length = 0; engine.presentation.publish(null);
   });
 }
@@ -134,13 +134,13 @@ export async function runCompactCommandDockChecks({ browser, url, shots, check }
       await stableReports(page, url, String(width), shots, check);
     }
     await page.setViewportSize({ width: 1280, height: 720 });
-    const fixtures = await page.evaluateHandle(() => [...globalThis.__wreckright.world.entities]);
-    const ids = await page.evaluate(() => globalThis.__wreckright.world.entities
-      .filter(unit => unit.team === globalThis.__wreckright.world.playerTeam).map(unit => unit.id));
+    const fixtures = await page.evaluateHandle(() => [...globalThis.__ironmuster.world.entities]);
+    const ids = await page.evaluate(() => globalThis.__ironmuster.world.entities
+      .filter(unit => unit.team === globalThis.__ironmuster.world.playerTeam).map(unit => unit.id));
     // Paused battlefield fixture varies the deployed count; no campaign is created or changed.
     for (const count of [1, 2, 3, 4, 5]) {
       await page.evaluate(({ count, entities }) => {
-        const { engine, world, useGame } = globalThis.__wreckright;
+        const { engine, world, useGame } = globalThis.__ironmuster;
         const friends = entities.filter(unit => unit.team === world.playerTeam).slice(0, count);
         world.entities.splice(0, world.entities.length, ...entities.filter(unit => unit.team !== world.playerTeam), ...friends);
         useGame.getState().setSelection(friends.map(unit => unit.id));

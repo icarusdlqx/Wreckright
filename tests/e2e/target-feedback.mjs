@@ -13,15 +13,15 @@ export async function runTargetFeedbackChecks({ browser, url, shots, check }) {
       await page.goto(url);
       await page.getByTestId('home-skirmish').click();
       await page.getByTestId('briefing-mission-picker').selectOption('skirmish_ridge');
-      await page.waitForFunction(() => globalThis.__wreckright?.world.mission.id === 'skirmish_ridge'
-        && globalThis.__wreckright.useGame.getState().ready);
+      await page.waitForFunction(() => globalThis.__ironmuster?.world.mission.id === 'skirmish_ridge'
+        && globalThis.__ironmuster.useGame.getState().ready);
       await page.getByTestId('briefing-deploy').click();
       await page.getByTestId('briefing').waitFor({ state: 'hidden' });
-      if (!await page.evaluate(() => globalThis.__wreckright.useGame.getState().paused)) {
+      if (!await page.evaluate(() => globalThis.__ironmuster.useGame.getState().paused)) {
         await page.getByTestId('pause-button').click();
       }
       const fixture = await page.evaluate(() => {
-        const { world, engine, useGame } = globalThis.__wreckright;
+        const { world, engine, useGame } = globalThis.__ironmuster;
         const friendly = world.entities.find(unit => unit.team === world.playerTeam);
         const enemy = world.entities.find(unit => unit.team !== world.playerTeam);
         friendly.pos = { x: 410, y: 500 }; enemy.pos = { x: 490, y: 500 };
@@ -40,17 +40,17 @@ export async function runTargetFeedbackChecks({ browser, url, shots, check }) {
       // Both interpolation samples already reflect the fixture; allow the renderer to place its body.
       await page.waitForFunction(id => !!document.querySelector(`.unit-health-bar[data-entity-id="${id}"]`), fixture.enemy);
       const targetPoint = await page.evaluate(id => {
-        const { engine, world } = globalThis.__wreckright;
+        const { engine, world } = globalThis.__ironmuster;
         const body = engine.renderer.screenBodyOf(world.entities.find(unit => unit.id === id));
         return { x: body.x, y: body.y };
       }, fixture.enemy);
       await canvas.click({ position: targetPoint });
-      await page.waitForFunction(id => globalThis.__wreckright.world.entities.find(unit => unit.id === id)?.orders.attack !== null, fixture.friendly);
+      await page.waitForFunction(id => globalThis.__ironmuster.world.entities.find(unit => unit.id === id)?.orders.attack !== null, fixture.friendly);
       await bracket.waitFor();
       check(`${width}: a paused field click confirms the target in the dock`,
         (await receipt.innerText()).includes(`Priority target: ${fixture.name}`)
         && await receipt.getAttribute('role') === 'status'
-        && await page.evaluate(tick => globalThis.__wreckright.world.tick === tick && globalThis.__wreckright.useGame.getState().paused, fixture.tick));
+        && await page.evaluate(tick => globalThis.__ironmuster.world.tick === tick && globalThis.__ironmuster.useGame.getState().paused, fixture.tick));
       const marker = await bracket.evaluate(element => ({
         corners: element.children.length, width: element.getBoundingClientRect().width,
         pointer: getComputedStyle(element).pointerEvents, focus: element.dataset.focus,
@@ -69,19 +69,19 @@ export async function runTargetFeedbackChecks({ browser, url, shots, check }) {
           && getComputedStyle(element).vectorEffect === 'non-scaling-stroke'
           && element.dataset.focus === 'priority'));
       // Clear only the selected order to verify the following visible Commander click sets it afresh.
-      await page.evaluate(id => { globalThis.__wreckright.world.entities.find(unit => unit.id === id).orders.attack = null; }, fixture.friendly);
+      await page.evaluate(id => { globalThis.__ironmuster.world.entities.find(unit => unit.id === id).orders.attack = null; }, fixture.friendly);
       await page.getByTestId(`commander-chit-${fixture.enemy}`).locator('.commander-chit-hit').click();
       check(`${width}: a paused Commander target click is acknowledged without losing friendly selection`,
         (await receipt.innerText()).includes(`Priority target: ${fixture.name}`)
         && await page.evaluate(f => {
-          const { world, useGame } = globalThis.__wreckright;
+          const { world, useGame } = globalThis.__ironmuster;
           return world.tick === f.tick && useGame.getState().selection[0] === f.friendly
             && world.entities.find(unit => unit.id === f.friendly).orders.attack?.targetId === f.enemy;
         }, fixture));
       await page.screenshot({ path: `${shots}/target-commander-${width}.png` });
 
       await page.evaluate(f => {
-        const { world, useGame } = globalThis.__wreckright;
+        const { world, useGame } = globalThis.__ironmuster;
         world.vision.visible.delete(f.enemy);
         world.vision.detected.add(f.enemy);
         const enemy = world.entities.find(unit => unit.id === f.enemy);
@@ -100,7 +100,7 @@ export async function runTargetFeedbackChecks({ browser, url, shots, check }) {
       await page.screenshot({ path: `${shots}/target-fog-${width}.png` });
 
       await page.evaluate(f => {
-        const { world, useGame } = globalThis.__wreckright;
+        const { world, useGame } = globalThis.__ironmuster;
         world.vision.visible.add(f.enemy);
         world.entities.find(unit => unit.id === f.enemy).pos = { x: 490, y: 500 };
         useGame.getState().patch({ selection: [], contacts: [], tick: useGame.getState().tick + 1 });
@@ -115,7 +115,7 @@ export async function runTargetFeedbackChecks({ browser, url, shots, check }) {
         await commander.getAttribute('data-focus') === 'inspection');
       await receipt.waitFor({ state: 'detached', timeout: 7_000 });
       check(`${width}: command receipt expires while simulation remains paused`,
-        await page.evaluate(tick => globalThis.__wreckright.world.tick === tick && globalThis.__wreckright.useGame.getState().paused, fixture.tick));
+        await page.evaluate(tick => globalThis.__ironmuster.world.tick === tick && globalThis.__ironmuster.useGame.getState().paused, fixture.tick));
       check(`${width}: targeting journey has no page errors`, errors.length === 0, errors.join('\n'));
     } finally { await context.close(); }
   }

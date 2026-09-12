@@ -51,7 +51,7 @@ async function freshPage(browser, url, viewport, mobile = false) {
 async function openFixtureBriefing(page) {
   await page.locator('[data-testid="home-skirmish"]').click();
   await page.waitForSelector('[data-testid="briefing"]');
-  await page.waitForFunction(() => globalThis.__wreckright?.useGame.getState().ready === true);
+  await page.waitForFunction(() => globalThis.__ironmuster?.useGame.getState().ready === true);
   await page.getByTestId('briefing-faction-picker').selectOption('linewrought');
   for (let index = 1; index < 4; index++) {
     await page.getByTestId(`briefing-berth-${index}`).click();
@@ -63,16 +63,16 @@ async function openFixtureBriefing(page) {
   await page.waitForFunction(
     () => document.querySelector('[data-testid="berth-design-0"]')?.value === 'custom',
   );
-  await page.waitForFunction(() => globalThis.__wreckright?.world.entities.some(entity => entity.designId === 'e2e_fire_modes_bulwark'));
+  await page.waitForFunction(() => globalThis.__ironmuster?.world.entities.some(entity => entity.designId === 'e2e_fire_modes_bulwark'));
 }
 
 async function prepareBattle(page) {
   await page.locator('[data-testid="briefing-deploy"]').click();
   await page.waitForFunction(
-    () => globalThis.__wreckright?.useGame.getState().briefingSeen === true,
+    () => globalThis.__ironmuster?.useGame.getState().briefingSeen === true,
   );
   return page.evaluate(() => {
-    const { engine, useGame, world } = globalThis.__wreckright;
+    const { engine, useGame, world } = globalThis.__ironmuster;
     const state = useGame.getState();
     const shooter = world.entities.find(
       (entity) => entity.designId === 'e2e_fire_modes_bulwark',
@@ -105,7 +105,7 @@ async function prepareBattle(page) {
 
 async function switchState(page, fixtureState) {
   return page.evaluate(({ shooterId, mountIndex }) => {
-    const { world } = globalThis.__wreckright;
+    const { world } = globalThis.__ironmuster;
     const shooter = world.entities.find((entity) => entity.id === shooterId);
     const mount = shooter?.weapons.find((entry) => entry.index === mountIndex);
     if (shooter === undefined || mount === undefined) throw new Error('fire-mode state missing');
@@ -126,7 +126,7 @@ export async function runFireModeStage2Checks({ browser, url, check }) {
     check('the fire-mode fixture is a legal, deployable Linewrought mech with cannon ammunition',
       await desktop.page.getByTestId('briefing-deploy').isEnabled()
       && await desktop.page.evaluate(() => {
-        const world = globalThis.__wreckright.world;
+        const world = globalThis.__ironmuster.world;
         const mech = world.entities.find(entity => entity.designId === 'e2e_fire_modes_bulwark');
         const chassis = world.catalog.chassis.get(mech?.chassisId);
         return chassis?.frame === 'mech' && chassis.faction === 'linewrought'
@@ -171,7 +171,7 @@ export async function runFireModeStage2Checks({ browser, url, check }) {
     await mode.press('Enter');
     await desktop.page.waitForFunction(
       ({ shooterId, mountIndex }) => {
-        const { world } = globalThis.__wreckright;
+        const { world } = globalThis.__ironmuster;
         return world.entities.find((entity) => entity.id === shooterId)
           ?.weapons.find((entry) => entry.index === mountIndex)?.modeId === 'slug';
       },
@@ -203,7 +203,7 @@ export async function runFireModeStage2Checks({ browser, url, check }) {
     );
 
     const presentation = await desktop.page.evaluate(({ shooterId, targetId }) => {
-      const { engine, world } = globalThis.__wreckright;
+      const { engine, world } = globalThis.__ironmuster;
       engine.renderer.consumeEvents(world, [{
         type: 'weapon_fired',
         tick: world.tick,

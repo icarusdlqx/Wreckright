@@ -12,6 +12,7 @@ import { FieldHints } from './FieldHints';
 import { CalledShotTarget } from './CalledShotTarget';
 import { PilotStats } from './PilotStats';
 import type { Ref } from 'react';
+import { SalvageIntent } from './SalvageIntent';
 
 
 /** A trait's painted name; the id only if the rules no longer know it. */
@@ -122,6 +123,7 @@ export function UnitPanel({ engine, compact = false, hidden = false, onClose, cl
               </div>
             )}
             <TacticalReadout unit={unit} friendly={unit.team === state.playerTeam} />
+            {unit.team === state.playerTeam ? null : <SalvageIntent catalog={getCatalog()} target={unit} />}
           </details>
         </>
       )}

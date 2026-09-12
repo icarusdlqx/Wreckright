@@ -124,7 +124,7 @@
       "name": "First Warrant",
       "missionId": "raid_ridge",
       "employerId": "continuance_tender",
-      "brief": "Clear the surveyed lane across the Continuance landing apron so the Custody Tender can advance. The local cordon has a rebuilt walker and vehicle escorts. Use superior reach and coordinated fire; side ravines break the obvious firing line. Repairs stay on the company account.",
+      "brief": "The Custody Tender's quartermaster Ada Rusk has a service cart stranded on Apron Seven behind a local cordon. Clear the Tender's approach and recover its crated Focused Large Laser. The warranty is useful only if Rusk can get it to your bay. Use superior reach; the ravines let lighter defenders reach your sides. Repairs remain on your account.",
       "requires": [],
       "basePayout": 650000,
       "maxSalvageShare": 0.1,
@@ -132,7 +132,22 @@
       "position": {
         "x": 0.18,
         "y": 0.78
-      }
+      },
+      "rewards": [
+        {
+          "id": "apron_seven_optic",
+          "label": "Rusk’s service cart: Focused Large Laser",
+          "objectiveId": "clear_tender_approach",
+          "items": [
+            {
+              "kind": "weapon",
+              "itemId": "er_large_laser",
+              "count": 1
+            }
+          ],
+          "afterword": "Ada Rusk delivers the recovered service-cart optic under signed custody, separate from enemy salvage. Swap one Halberd Large Laser for it: the same five tonnes and two boxes, longer reach, hotter shots and a slower cycle. Name the saved variant Long Watch. At Cutbank, use the extra reach without letting the whole lance overheat in the avenue."
+        }
+      ]
     },
     {
       "id": "custody_survey",
@@ -218,7 +233,7 @@
       "name": "Custody Posts",
       "missionId": "authority_custody_posts",
       "employerId": "continuance_tender",
-      "brief": "Cutbank's two custody posts disagree with the old archive. Take both intact and hold them while the Authority copies their records. The local garrison has called in workshop rebuilds. Keep your machines together; the detachment pays for every repair.",
+      "brief": "At Cutbank's posts on Sarn Avenue, registrar Len Saye refuses to leave the original repair rolls. Take both posts intact so the clerks can copy them. The fixed gun covers the centre; gardens and workshop streets reach its sides. Rusk's recovered optic can support from farther back, but it cannot fire through cover.",
       "requires": [
         "first_warrant"
       ],
@@ -249,7 +264,7 @@
       "name": "Sarn Inventory",
       "missionId": "switchyard_watch",
       "employerId": "continuance_tender",
-      "brief": "Sarn has called its district's working mechs to defend the root registry. Hold the registry under Tender control until the inventory is copied. Your orders value the record above salvage. Preserve enough of the detachment to carry it onward.",
+      "brief": "Len Saye carries the disputed signatures into Sarn Registry Court. Hold it for the custody copy while local crews attack from both access streets. The temporary loadway admits 175 tonnes: choose which of your four machines stays with the Tender. Take a heavy firing line or keep the Votive's fast eyes; heat and exposed sides remain liabilities.",
       "requires": [
         "cutbank_attestation"
       ],
@@ -401,7 +416,7 @@
         "title": "Countersigned Here",
         "body": [
           "The Tender countersigns a century of local service as stewardship. The archive keeps the roots and their history intact, while the named machines remain under the foundries that maintained them. The Recall ends here with a lawful local reading.",
-          "Stewardship is an obligation, not an erased debt. The workshops must keep their records, crews must honour wreckright, and your company leaves its own seal beside the countersignature. The surviving Custodians carry home proof that continuity can be defended without export."
+          "Stewardship is an obligation, not an erased debt. The workshops must keep their records, crews must honour the Ironmuster Code, and your company leaves its own seal beside the countersignature. The surviving Custodians carry home proof that continuity can be defended without export."
         ]
       }
     }

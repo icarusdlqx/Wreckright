@@ -6,7 +6,7 @@ function same(left, right) {
 
 async function orderSnapshot(page) {
   return page.evaluate(() => {
-    const { useGame, world } = globalThis.__wreckright;
+    const { useGame, world } = globalThis.__ironmuster;
     const state = useGame.getState();
     return {
       selection: [...state.selection],
@@ -23,7 +23,7 @@ async function orderSnapshot(page) {
 
 async function cameraSnapshot(page) {
   return page.evaluate(() => {
-    const camera = globalThis.__wreckright.engine.renderer.camera;
+    const camera = globalThis.__ironmuster.engine.renderer.camera;
     return { target: { ...camera.target }, distance: camera.distance };
   });
 }
@@ -182,7 +182,7 @@ async function cancelMinimapTouch(page) {
 async function tapMinimapAt(page, point) {
   const box = await page.locator('[data-testid="minimap"]').boundingBox();
   const size = await page.evaluate(() => {
-    const terrain = globalThis.__wreckright.world.terrain;
+    const terrain = globalThis.__ironmuster.world.terrain;
     return {
       width: terrain.width * terrain.tileSize,
       height: terrain.height * terrain.tileSize,
@@ -197,7 +197,7 @@ async function tapMinimapAt(page, point) {
 
 async function battlefieldPoint(page, point) {
   return page.evaluate((worldPoint) => {
-    const { engine } = globalThis.__wreckright;
+    const { engine } = globalThis.__ironmuster;
     const canvas = document.querySelector('.viewport canvas:not(.perf-overlay)');
     if (!(canvas instanceof HTMLCanvasElement)) throw new Error('battle canvas missing');
     const bounds = canvas.getBoundingClientRect();
@@ -218,7 +218,7 @@ async function battlefieldPoint(page, point) {
 
 async function entityPoint(page, id) {
   return page.evaluate((entityId) => {
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     const canvas = document.querySelector('.viewport canvas:not(.perf-overlay)');
     const entity = world.entities.find((candidate) => candidate.id === entityId);
     if (!(canvas instanceof HTMLCanvasElement) || entity === undefined) {
@@ -261,7 +261,7 @@ export async function verifyTouchDockControls({ page, check, prefix }) {
   await page.locator('[data-testid="command-move"]').tap();
   check(
     `${prefix} order palette arms a move and reveals route actions`,
-    (await page.evaluate(() => globalThis.__wreckright.useGame.getState().orderMode)) === 'move' &&
+    (await page.evaluate(() => globalThis.__ironmuster.useGame.getState().orderMode)) === 'move' &&
       (await page.locator('[data-testid="command-move"]').getAttribute('aria-pressed')) === 'true' &&
       (await page.locator('[data-testid="mobile-queue"]').isVisible()) &&
       (await page.locator('[data-testid="mobile-cancel"]').isVisible()),
@@ -269,13 +269,13 @@ export async function verifyTouchDockControls({ page, check, prefix }) {
   await page.locator('[data-testid="mobile-queue"]').tap();
   check(
     `${prefix} queue mode arms from the dock`,
-    await page.evaluate(() => globalThis.__wreckright.useGame.getState().queueOrders),
+    await page.evaluate(() => globalThis.__ironmuster.useGame.getState().queueOrders),
   );
   await page.locator('[data-testid="mobile-cancel"]').tap();
   check(
     `${prefix} cancel clears the route and hides transient actions`,
-    !(await page.evaluate(() => globalThis.__wreckright.useGame.getState().queueOrders)) &&
-      (await page.evaluate(() => globalThis.__wreckright.useGame.getState().orderMode)) === null &&
+    !(await page.evaluate(() => globalThis.__ironmuster.useGame.getState().queueOrders)) &&
+      (await page.evaluate(() => globalThis.__ironmuster.useGame.getState().orderMode)) === null &&
       (await page.locator('[data-testid="mobile-queue"]').count()) === 0 &&
       (await page.locator('[data-testid="mobile-cancel"]').count()) === 0,
   );
@@ -285,15 +285,15 @@ export async function verifyTouchDockControls({ page, check, prefix }) {
   await page.locator('[data-testid="command-attack"]').tap();
   check(
     `${prefix} switching to a target order clears queued routing`,
-    !(await page.evaluate(() => globalThis.__wreckright.useGame.getState().queueOrders)) &&
-      (await page.evaluate(() => globalThis.__wreckright.useGame.getState().orderMode)) === 'attack' &&
+    !(await page.evaluate(() => globalThis.__ironmuster.useGame.getState().queueOrders)) &&
+      (await page.evaluate(() => globalThis.__ironmuster.useGame.getState().orderMode)) === 'attack' &&
       (await page.locator('[data-testid="mobile-queue"]').count()) === 0 &&
       (await page.locator('[data-testid="mobile-cancel"]').isVisible()),
   );
   await page.locator('[data-testid="mobile-cancel"]').tap();
   check(
     `${prefix} cancel clears an armed order`,
-    (await page.evaluate(() => globalThis.__wreckright.useGame.getState().orderMode)) === null &&
+    (await page.evaluate(() => globalThis.__ironmuster.useGame.getState().orderMode)) === null &&
       (await page.locator('[data-testid="command-attack"]').getAttribute('aria-pressed')) === 'false' &&
       (await page.locator('[data-testid="mobile-queue"]').count()) === 0 &&
       (await page.locator('[data-testid="mobile-cancel"]').count()) === 0,
@@ -324,7 +324,7 @@ export async function verifyTouchNavigation({ page, check, prefix }) {
 
   await page.locator('[data-testid="centre-selection"]').tap();
   const centred = await page.evaluate(() => {
-    const { engine, useGame, world } = globalThis.__wreckright;
+    const { engine, useGame, world } = globalThis.__ironmuster;
     const selected = new Set(useGame.getState().selection);
     const units = world.entities.filter((entity) => selected.has(entity.id));
     const centre = units.reduce(
@@ -393,7 +393,7 @@ export async function verifyTouchNavigation({ page, check, prefix }) {
 }
 
 export async function verifyTouchOrders({ page, check, prefix, shots }) {
-  if (!(await page.evaluate(() => globalThis.__wreckright.useGame.getState().paused))) {
+  if (!(await page.evaluate(() => globalThis.__ironmuster.useGame.getState().paused))) {
     await page.locator('[data-testid="pause-button"]').tap();
   }
   // The layout exercise leaves the range coach expanded. Close it through the
@@ -404,7 +404,7 @@ export async function verifyTouchOrders({ page, check, prefix, shots }) {
   const firstLance = page.locator('[data-testid="lance-bar"] button').first();
   await firstLance.tap();
   const gate = await page.evaluate(() => {
-    const zone = globalThis.__wreckright.world.zones[0];
+    const zone = globalThis.__ironmuster.world.zones[0];
     if (zone === undefined) throw new Error('training gate missing');
     return { x: zone.x, y: zone.y };
   });
@@ -428,13 +428,13 @@ export async function verifyTouchOrders({ page, check, prefix, shots }) {
     await page.locator('[data-testid="mobile-speed"]').tap();
   }
   await page.waitForFunction(
-    () => globalThis.__wreckright.useGame.getState().enemies.some((enemy) => enemy.alive),
+    () => globalThis.__ironmuster.useGame.getState().enemies.some((enemy) => enemy.alive),
     { timeout: 20_000 },
   );
   await page.locator('[data-testid="pause-button"]').tap();
 
   const target = await page.evaluate(() => {
-    const { useGame, world } = globalThis.__wreckright;
+    const { useGame, world } = globalThis.__ironmuster;
     const targetId = useGame.getState().enemies.find((enemy) => enemy.alive)?.id;
     const entity = world.entities.find((candidate) => candidate.id === targetId);
     if (entity === undefined) throw new Error('visible target missing');

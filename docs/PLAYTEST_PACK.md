@@ -1,4 +1,4 @@
-# Wreckright: first-time player test
+# Ironmuster: first-time player test
 
 ## Invitation to share
 

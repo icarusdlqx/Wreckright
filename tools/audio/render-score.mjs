@@ -42,7 +42,7 @@ for (const [name, channels] of Object.entries(stems)) {
   await writeFile(wav, encodeWav(channels));
   execFileSync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', '-i', wav,
     '-c:a', 'libopus', '-b:a', channels.length === 2 ? '112k' : '64k', '-metadata', `title=Roads We Keep - ${name}`,
-    '-metadata', 'artist=Wreckright', resolve(assets, `roads-we-keep-${name}.ogg`)]);
+    '-metadata', 'artist=Ironmuster', resolve(assets, `roads-we-keep-${name}.ogg`)]);
   report[name] = { seconds: frames / RATE, channels: channels.length, peak: peak * trim,
     rms: Math.sqrt(energy / (frames * channels.length)) };
 }
@@ -54,10 +54,10 @@ for (const channel of master) for (let i = 0; i < frames; i++) {
   const fadeOut = Math.min(1, (frames - 1 - i) / (RATE * 2.5));
   channel[i] *= masterTrim * fadeIn * fadeOut;
 }
-const fullWav = resolve(review, 'Wreckright-Roads-We-Keep.wav');
+const fullWav = resolve(review, 'Ironmuster-Roads-We-Keep.wav');
 await writeFile(fullWav, encodeWav(master));
 execFileSync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', '-i', fullWav,
   '-c:a', 'libmp3lame', '-q:a', '2', '-metadata', 'title=Roads We Keep',
-  '-metadata', 'artist=Wreckright', resolve(review, 'Wreckright-Roads-We-Keep.mp3')]);
+  '-metadata', 'artist=Ironmuster', resolve(review, 'Ironmuster-Roads-We-Keep.mp3')]);
 await writeFile(resolve(review, 'score-render.json'), JSON.stringify(report, null, 2) + '\n');
 console.log(JSON.stringify(report, null, 2));

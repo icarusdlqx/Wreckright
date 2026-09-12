@@ -28,7 +28,7 @@ try {
   page.on('request', (request) => {
     if (/^https?:/.test(request.url())) external.push(request.url());
   });
-  await page.goto(pathToFileURL(resolve('dist-single/wreckright.html')).href);
+  await page.goto(pathToFileURL(resolve('dist-single/ironmuster.html')).href);
   // A decoded image is not screenshot-ready until React exposes it and its fade finishes.
   await page.waitForFunction(() => {
     const home = document.querySelector('[data-testid="home-screen"][data-artwork="ready"]');

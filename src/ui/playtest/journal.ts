@@ -202,7 +202,7 @@ class LocalPlaytestJournal implements PlaytestJournal {
     if (report === null) return null;
     const context = report.context;
     const lines = [
-      '# Wreckright playtest report', '',
+      '# Ironmuster playtest report', '',
       `Build: ${context?.build ?? 'context not included'}`,
       `Mode: ${context?.mode ?? 'context not included'}`,
       `Mission: ${context?.mission || 'not recorded'}`,

@@ -128,7 +128,7 @@ export function WeaponCard({
           }
           onInspect?.(weapon);
           event.dataTransfer.setData(
-            'application/wreckright',
+            'application/ironmuster',
             JSON.stringify({ kind: 'weapon', id: weapon.id }),
           );
           event.dataTransfer.effectAllowed = 'copy';

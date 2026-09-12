@@ -1,12 +1,12 @@
 async function renderedDot(page, id) {
   await page.waitForFunction(id => {
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     const marker = engine.renderer.scene.getObjectByName(`sensor-contact-${id}`);
     const track = world.vision.tracks.get(id);
     return marker?.visible && marker.userData.current && track && marker.position.x === track.pos.x && marker.position.z === track.pos.y;
   }, id);
   const position = await page.evaluate(id => {
-    const { engine } = globalThis.__wreckright;
+    const { engine } = globalThis.__ironmuster;
     const marker = engine.renderer.scene.getObjectByName(`sensor-contact-${id}`);
     const point = engine.renderer.camera.worldToScreen({ x: marker.position.x, y: marker.position.z }, engine.renderer.viewport, marker.position.y);
     return { ...point, current: marker.userData.current, dotVisible: marker.children[0].visible,
@@ -35,7 +35,7 @@ export async function checkSensorFieldTracking({ page, url, id, check, shot }) {
   const first = await renderedDot(page, id);
   check('sensor probe paints a red field dot above intact fog', first.dotVisible && first.colour === 0xff4655 && first.depthTest === false && first.redPixels > 2, JSON.stringify(first));
   const moved = await page.evaluate(async ({ url, id }) => {
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     const sensors = await import(new URL('src/sim/sensors.ts', url).href);
     const enemy = world.entities.find(entity => entity.id === id);
     const probe = world.reveals.find(reveal => reveal.kind === 'sensor' && reveal.team === world.playerTeam);
@@ -55,7 +55,7 @@ export async function checkSensorFieldTracking({ page, url, id, check, shot }) {
     && JSON.stringify(second.at) !== JSON.stringify(first.at), JSON.stringify({ moved, second }));
   await shot('tracked-outside-circle');
   const expiry = await page.evaluate(async ({ url, id }) => {
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     const sensors = await import(new URL('src/sim/sensors.ts', url).href);
     const probe = world.reveals.find(reveal => reveal.kind === 'sensor' && reveal.team === world.playerTeam);
     world.tick = probe.expiresTick - 1; sensors.updateTeamVisions(world);
@@ -68,7 +68,7 @@ export async function checkSensorFieldTracking({ page, url, id, check, shot }) {
       probes: world.reveals.filter(reveal => reveal.kind === 'sensor').length };
   }, { url, id });
   await page.waitForFunction(id => {
-    const marker = globalThis.__wreckright.engine.renderer.scene.getObjectByName(`sensor-contact-${id}`);
+    const marker = globalThis.__ironmuster.engine.renderer.scene.getObjectByName(`sensor-contact-${id}`);
     return marker?.visible && !marker.userData.current && !marker.children[0].visible;
   }, id);
   check('probe expiry removes the live dot and leaves a frozen hollow memory ring', !expiry.current && expiry.frozen && expiry.probes === 0, JSON.stringify(expiry));

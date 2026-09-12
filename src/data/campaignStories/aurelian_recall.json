@@ -5,17 +5,17 @@
   "opening": {
     "title": "An orderly return",
     "body": [
-      "Your detachment disembarks beside a modular Tender with four serviced walkers and a warrant. The Aurelian Continuance needs inherited roots to keep failing civil-defence machines alive elsewhere. Your first duty is to clear the landing apron and open its surveyed deployment lane.",
-      "You command Aurelian Stock: precise energy weapons, bright armour and crews accustomed to being the best-equipped unit on the field. Your contract pays for completed work, not replacement emitters. The Tender has finite supplies, and local yards cannot sell every component you need. Discipline means protecting the company as carefully as the evidence."
+      "Quartermaster Ada Rusk is on Apron Seven with a stalled service cart, a crated optic and a custody warrant that will not move either of them. Your four bright walkers have just left the Tender. Beyond the surveyed lane, local machines wait in the ravines with none of your calibration records and an excellent knowledge of the ground.",
+      "The Continuance needs inherited roots for failing civil-defence machines elsewhere. You command its best-equipped claim detail, but replacement optics are finite and repairs come out of the company account. Clear Rusk's approach, preserve what she is carrying and make a warrant useful to the people who must carry it through the next gate."
     ]
   },
   "chapters": [
     {
       "afterNodeId": "first_warrant",
-      "title": "Beyond the landing manifest",
+      "title": "Rusk’s long optic",
       "body": [
-        "The tender approach is open and the expedition advances on schedule. The local machine was inferior by specification and effective in cover, the first useful correction to the briefing. Cutbank’s two custody posts are the next main warrant.",
-        "A separate terrace survey can locate a stranded service tender and release scarce equipment. It is optional; an intact company will carry the warrant further than an immaculate one waiting for parts."
+        "Rusk brings the service cart aboard herself. Its Focused Large Laser enters your stores against a signed recovery receipt, not a claim on the defeated cordon. She sets it beside a Halberd's arm mounts: the same weight and fitting boxes as a Large Laser, more reach, more heat in each discharge and a slower cycle.",
+        "At Cutbank's two posts, a fixed gun watches Sarn Avenue while local crews move through the gardens. A saved Long Watch refit can use Rusk's optic to support the approach. The emitter cannot see through stone or protect an exposed side; the detachment still has to earn a firing position. An optional survey and tender recovery remain available for supplies."
       ]
     },
     {
@@ -27,16 +27,18 @@
     },
     {
       "afterNodeId": "cutbank_attestation",
-      "title": "Two books, one district",
+      "title": "Saye’s two signatures",
       "body": [
-        "Both Cutbank posts are under guard. Their root lists contradict the Compact archive, but the disputed entries include repair dates and names of people who can still be found at work. The Authority requests Sarn's registry next. Its instructions call the differences false claims; your company has yet to learn how they were made."
+        "Registrar Len Saye keeps the two original repair rolls flat under a sheet of glass while your clerks copy them. They carry different serials and the same fitter's signature. The difference is an offence in the warrant and a history of continued work in Saye's account. He insists on accompanying both copies to Sarn Registry Court.",
+        "Its temporary loadway admits 175 tonnes. All four of your opening machines total 205, so someone stays with the Tender. A heavy firing line and a lighter detail with fast eyes are both possible. The next order protects a record through a short transfer; it does not require hunting every defender into the workshops."
       ]
     },
     {
       "afterNodeId": "sarn_inventory",
       "title": "The cost of an inventory",
       "body": [
-        "Sarn's registry remains under Tender control. The foundry threw serviceable machines against your position because the list determines which of them may be taken away. The copied records reveal a route between service readers. Follow it to establish which serials belong to which surviving roots; destroying a patrol will not answer that question."
+        "Saye reaches the copied inventory with both originals still under glass. The workers who attacked the court have names in those rolls. Rusk notes which machines the company kept in reserve and what it spent protecting the copy. Superior equipment secured the ground; it did not make the decision free.",
+        "A route between the civil service readers can establish which serials belong to which roots. The next warrant asks for a small verification detail. Carry the evidence forward and leave the district enough witnesses to explain it."
       ]
     },
     {

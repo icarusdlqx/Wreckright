@@ -1,6 +1,6 @@
 # Command and campaign refinement
 
-This pass keeps Wreckright’s real-time command model and the Ironwork/Monolith visual language. Its focus is making orders, preparation and the consequences of a mission easier to understand.
+This pass keeps Ironmuster’s real-time command model and the Ironwork/Monolith visual language. Its focus is making orders, preparation and the consequences of a mission easier to understand.
 
 ## Field command
 

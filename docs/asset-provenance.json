@@ -193,7 +193,7 @@
       "path": "src/assets/art/tessell-crossing-menu.webp",
       "sha256": "2664fd482f95cd1ff08f27f046b63ad80b364c63bf9bb024bd4a3da843adac08",
       "introducedBy": "9f5bb01f54859d5bbffb73738e381efa3264cd3b",
-      "originEvidence": "Generated for Wreckright on 2026-09-06 with the built-in image generation tool from an original text prompt, with no image inputs. Full prompt and generation record: docs/art/TESSELL_CROSSING.md. The retained source master was converted to WebP locally with cwebp.",
+      "originEvidence": "Generated for Ironmuster on 2026-09-06 with the built-in image generation tool from an original text prompt, with no image inputs. Full prompt and generation record: docs/art/TESSELL_CROSSING.md. The retained source master was converted to WebP locally with cwebp.",
       "clearance": "generated-original-art-with-source-record"
     },
     {
@@ -201,7 +201,7 @@
       "sha256": "81af28ea8744a4d3b31a76d7a5b31178b10acd8da2ed3c2474a51a049c367421",
       "introducedBy": "c25c4e07375746b5bdd69495400ee48785701203",
       "name": "Roads We Keep - core",
-      "originEvidence": "Original Wreckright music composed and synthesized locally from the retained note, arrangement and instrument source in tools/audio/. No reference melody, external samples, soundfonts or recordings. Source and reproduction record: docs/audio/ROADS_WE_KEEP.md.",
+      "originEvidence": "Original Ironmuster music composed and synthesized locally from the retained note, arrangement and instrument source in tools/audio/. No reference melody, external samples, soundfonts or recordings. Source and reproduction record: docs/audio/ROADS_WE_KEEP.md.",
       "clearance": "synthesized-original-score-with-source-record"
     },
     {
@@ -209,7 +209,7 @@
       "sha256": "8fe426c78b73baba16c0a4533673e31cab4fd9591736f950d71d1b300b021fc1",
       "introducedBy": "c25c4e07375746b5bdd69495400ee48785701203",
       "name": "Roads We Keep - ironwork",
-      "originEvidence": "Original Wreckright music composed and synthesized locally from the retained note, arrangement and instrument source in tools/audio/. No reference melody, external samples, soundfonts or recordings. Source and reproduction record: docs/audio/ROADS_WE_KEEP.md.",
+      "originEvidence": "Original Ironmuster music composed and synthesized locally from the retained note, arrangement and instrument source in tools/audio/. No reference melody, external samples, soundfonts or recordings. Source and reproduction record: docs/audio/ROADS_WE_KEEP.md.",
       "clearance": "synthesized-original-score-with-source-record"
     },
     {
@@ -217,7 +217,7 @@
       "sha256": "1d28f29b5feb7b89f9210073bf5598c617139f8227fe13117b807c2b51583d5c",
       "introducedBy": "c25c4e07375746b5bdd69495400ee48785701203",
       "name": "Roads We Keep - monolith",
-      "originEvidence": "Original Wreckright music composed and synthesized locally from the retained note, arrangement and instrument source in tools/audio/. No reference melody, external samples, soundfonts or recordings. Source and reproduction record: docs/audio/ROADS_WE_KEEP.md.",
+      "originEvidence": "Original Ironmuster music composed and synthesized locally from the retained note, arrangement and instrument source in tools/audio/. No reference melody, external samples, soundfonts or recordings. Source and reproduction record: docs/audio/ROADS_WE_KEEP.md.",
       "clearance": "synthesized-original-score-with-source-record"
     }
   ]

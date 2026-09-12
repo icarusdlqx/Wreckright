@@ -1,4 +1,4 @@
-# The Wreckright faction rebuild
+# The Ironmuster faction rebuild
 
 A staged plan to give the game two distinct machine cultures, a weapon
 catalogue half its current size and twice its character, a campaign that earns
@@ -6,7 +6,7 @@ the salvage loop, and a mechbay a newcomer can read. Work the phases in order:
 each one depends on the one before it, and each ends at a gate.
 
 **Naming boundary.** The public game, repository, deployment and diagnostic
-namespace are **Wreckright**. Stable authored identifiers such as
+namespace are **Ironmuster**. Stable authored identifiers such as
 `border_dispute` and `line_maintenance`, plus the legacy `ironline.*` browser
 storage keys, remain unchanged for save and simulation compatibility. They are
 implementation details, not player-facing lore.
@@ -248,7 +248,7 @@ new systems.** Keep it that simple.
 2. **First Attestation.** Kestrel escorts a bone-white machine carrying a
    Continuance seal. The player takes their first Aurelian Stock and learns
    that a service reader proves identity without controlling the walker.
-3. **Broken wreckright.** Kestrel fires on an ejection seat and cuts power to
+3. **Broken code.** Kestrel fires on an ejection seat and cuts power to
    Sarn repair yards that refused an Authority inventory. Root title, shop
    liens, necessity and possession at dusk become an open claims war.
 4. **The manifest.** Reach the depot before Kestrel and the Recall Authority.

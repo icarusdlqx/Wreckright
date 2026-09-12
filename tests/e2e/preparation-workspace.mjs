@@ -84,9 +84,14 @@ export async function runPreparationWorkspaceChecks({ browser, url, shots, check
     await page.getByTestId('manifest-launch').click();
     await page.getByTestId('briefing-deploy').click();
     await page.getByTestId('lance-bar').waitFor();
-    const names = committed.deploymentSeats.filter(seat => seat.pilotId !== null && seat.mechId !== null).map(seat => committed.pilots.find(pilot => pilot.id === seat.pilotId).name);
-    const text = await page.getByTestId('lance-bar').innerText();
-    check('the prepared pilots arrive in the combat dock', names.every(name => text.includes(name)));
+    const seats = committed.deploymentSeats.filter(seat => seat.pilotId !== null && seat.mechId !== null);
+    const names = seats.map(seat => committed.pilots.find(pilot => pilot.id === seat.pilotId).name);
+    // The dock shell precedes the first simulation snapshot under a busy browser.
+    await page.waitForFunction(count => document.querySelectorAll('[data-testid="lance-bar"] .lance-card').length === count, seats.length);
+    const dock = await page.getByTestId('lance-bar').locator('.lance-card').evaluateAll(cards => cards.map(card => ({
+      pilotId: card.getAttribute('data-pilot-id'), name: card.querySelector('.lance-name')?.textContent,
+    })));
+    check('the prepared pilots arrive in the combat dock', isDeepStrictEqual(dock, seats.map((seat, i) => ({ pilotId: committed.pilots.find(pilot => pilot.id === seat.pilotId).templateId, name: names[i] }))), JSON.stringify({ names, dock }));
     check('preparation journey has no browser errors', errors.length === 0, errors.join('\n'));
   } catch (error) { await shot('error').catch(() => {}); throw error; }
   finally { await context.close(); }

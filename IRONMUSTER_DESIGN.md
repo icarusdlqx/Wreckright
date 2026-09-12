@@ -1,4 +1,4 @@
-# WRECKRIGHT — Design & Build Specification
+# IRONMUSTER — Design & Build Specification
 
 A real-time-with-pause tactical mech combat game about disputed machines,
 salvage law and the cost of keeping an irreplaceable company alive.
@@ -43,7 +43,7 @@ Aurelian roots. **Aurelian Stock** uses cleaner, more advanced machines with
 powerful equipment and costly workshop needs. The player's company grows through custody, purchase and battlefield
 salvage, never by creating a walker from a saved design.
 
-Tessell's field custom is **wreckright**: whoever holds a disabled machine at
+Tessell's field custom is **the Ironmuster Code**: whoever holds a disabled machine at
 dusk holds the wreck. The Recall Authority rejects that custom because state
 property cannot become lawful salvage. The campaign, **The Great Recall**, is
 the collision between those two answers to the same root serial.
@@ -435,7 +435,7 @@ products, but they are opposition rather than recoverable roster hulls.
    custody records before the Recall Authority seals them.
 2. **First Attestation.** The company brings down its first bone-white Aurelian
    Stock. A checkpoint reader proves the root's identity but never controls it.
-3. **Broken Wreckright.** Kestrel violates the pilot code and cuts power to
+3. **Broken Code.** Kestrel violates the pilot code and cuts power to
    Sarn's occupied repair yards as local title, shop liens and Continuance
    reversion claims become an open conflict.
 4. **The Manifest.** The final depot holds the master root register and scarce
@@ -580,7 +580,7 @@ Use original names for everything a player can read — chassis, weapons, equipm
 ## 14. Getting Started
 
 ```bash
-cd Wreckright
+cd Ironmuster
 npm install
 npm test
 ```

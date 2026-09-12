@@ -1,8 +1,8 @@
-# WRECKRIGHT
+# IRONMUSTER
 
-**No new machines. Only new owners.**
+**Your company. Your mechs. Your next move.**
 
-Real-time-with-pause tactical mech combat. See [`WRECKRIGHT_DESIGN.md`](WRECKRIGHT_DESIGN.md)
+Real-time-with-pause tactical mech combat. See [`IRONMUSTER_DESIGN.md`](IRONMUSTER_DESIGN.md)
 for the full design and build specification; [`CLAUDE.md`](CLAUDE.md) holds the
 agent working rules; [`docs/HOSTING.md`](docs/HOSTING.md) covers publishing it.
 
@@ -63,13 +63,14 @@ For review links that stay available after a coding session, build once and run
 ## Repository identity
 
 
-The product, source repository (`icarusdlqx/Wreckright`), Worker
-(`wreckright.ligand-ave.workers.dev`), diagnostic hook, downloads, and release
-tooling use the Wreckright name.
+The product, wiki, diagnostic hook, downloads and release artifacts use **Ironmuster**.
+The existing source repository (`icarusdlqx/Wreckright`), Worker (`wreckright`)
+and deployed hostname (`wreckright.ligand-ave.workers.dev`) retain their provisioned
+identifiers. This local rebrand does not move the published site or rename remote resources.
 
 Browser storage and serialized playtest identifiers deliberately retain their
 original `ironline.*` values. They are non-visible compatibility contracts: the
-first Wreckright deployment already wrote them, and keeping them stable protects
+first game deployment already wrote them, and keeping them stable protects
 existing saves and rollback safety.
 
 Authored data ids remain stable because they are save and simulation contracts,
@@ -78,7 +79,7 @@ repository and deployment.
 
 ## Licensing
 
-Wreckright uses a split licence. The engine, interface and development tools are
+Ironmuster uses a split licence. The engine, interface and development tools are
 available under the [MIT licence](LICENSE). The setting, story, missions, game
 catalogue, artwork and audio use the separate [content terms](LICENSE-CONTENT.md),
 which allow personal play and noncommercial local experimentation while
@@ -175,7 +176,7 @@ Iteration *i* runs on seed `<seed>:<i>`, so any single battle can be replayed on
   hull. Content pass to twenty-four weapons, ten equipment items and sixteen
   chassis spanning 25 to 100 tons. `npm run sim` reports damage-per-ton-per-heat
   against each class median.
-- **Setting.** WRECKRIGHT is set on Tessell, where the Aurelian Continuance has
+- **Setting.** IRONMUSTER is set on Tessell, where the Aurelian Continuance has
   returned to repossess every surviving walker root. An independent company
   fights through the Great Recall while deciding who owns the finite machines
   that kept this world alive. The setting is in `src/data/lore`, readable in-game

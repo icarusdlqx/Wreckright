@@ -35,7 +35,7 @@ export async function runSkirmishFactionChecks({ browser, url, shots, check }) {
     await page.getByTestId('home-skirmish').click();
     await page.getByTestId('enemy-force-setup').waitFor();
     const fixtures = await page.evaluate(() => {
-      const catalog = globalThis.__wreckright.world.catalog;
+      const catalog = globalThis.__ironmuster.world.catalog;
       const entries = [...catalog.designs.values()].filter(design => catalog.chassis.get(design.chassisId).frame === 'mech');
       const fixtures = {};
       for (const faction of ['linewrought', 'aurelian']) {
@@ -58,7 +58,7 @@ export async function runSkirmishFactionChecks({ browser, url, shots, check }) {
         const options = await page.getByTestId(`${prefix(side)}berth-design-0`).locator('option').evaluateAll(items => items.map(item => item.value));
         const cultures = faction === 'mixed' ? ['linewrought', 'aurelian'] : [faction];
         const savedChoices = await page.evaluate(cultures => {
-          const catalog = globalThis.__wreckright.world.catalog;
+          const catalog = globalThis.__ironmuster.world.catalog;
           return Object.keys(localStorage).filter(key=>key.startsWith('ironline.design.')).flatMap(key=>{
             const design = JSON.parse(localStorage.getItem(key));
             return cultures.includes(catalog.chassis.get(design.chassisId)?.faction) ? [`saved:${design.id}`] : [];
@@ -100,7 +100,7 @@ export async function runSkirmishFactionChecks({ browser, url, shots, check }) {
       await saveBay(page);
       await page.getByTestId('outfit-bay').waitFor({ state: 'hidden' });
       const filled = JSON.parse(await storage(side))[1];
-      const filledFaction = await page.evaluate(chassisId => globalThis.__wreckright.world.catalog.chassis.get(chassisId)?.faction,
+      const filledFaction = await page.evaluate(chassisId => globalThis.__ironmuster.world.catalog.chassis.get(chassisId)?.faction,
         filled.design.chassisId);
       check(`${faction} empty-berth refit fills an allowed hull without changing faction`, filled.empty !== true
         && filledFaction === faction && await page.getByTestId(factionId(side)).inputValue() === faction);
@@ -148,7 +148,7 @@ export async function runSkirmishFactionChecks({ browser, url, shots, check }) {
       await warning.count() === 0 && JSON.parse(await storage(0))[0].factionChoice === 'mixed'
       && await page.evaluate(key => {
         const design = JSON.parse(localStorage.getItem(key))[0].design;
-        const prime = globalThis.__wreckright.world.catalog.designs.get('hornet_spotter');
+        const prime = globalThis.__ironmuster.world.catalog.designs.get('hornet_spotter');
         return design.id !== prime.id && design.chassisId === prime.chassisId
           && JSON.stringify(design.mounts) === JSON.stringify(prime.mounts)
           && JSON.stringify(design) === JSON.stringify(JSON.parse(localStorage.getItem(`ironline.design.${design.id}`)));

@@ -137,7 +137,8 @@ export function createDamageWearMaterials(
 }
 
 /** Weapon housings remain readable against painted armour under coloured light. */
-export function createWeaponMaterial(type: WeaponType): MeshStandardMaterial {
+export function createWeaponMaterial(type: WeaponType, nativeFaction?: Faction): MeshStandardMaterial {
+  if (nativeFaction === 'aurelian') return material(0xe9eadb, 0.3, 0.24);
   const housing = type === 'energy' ? 0x78999f : type === 'missile' ? 0x69564b : 0x374c54;
   return material(mix(housing, WEAPON_ACCENTS[type], 0.24), type === 'energy' ? 0.36 : 0.52, 0.38);
 }

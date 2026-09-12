@@ -273,7 +273,7 @@ export async function verifyOutfitDialogRerender({ page, check }) {
   );
   await head.focus();
   const priorError = await page.evaluate(() => {
-    const { useGame } = globalThis.__wreckright;
+    const { useGame } = globalThis.__ironmuster;
     const error = useGame.getState().error;
     useGame.getState().patch({ error: 'audit' });
     return error;
@@ -291,7 +291,7 @@ export async function verifyOutfitDialogRerender({ page, check }) {
     await trigger.evaluate((control) => document.activeElement === control),
   );
   await page.evaluate((error) => {
-    const { useGame } = globalThis.__wreckright;
+    const { useGame } = globalThis.__ironmuster;
     useGame.getState().patch({ error });
   }, priorError);
 }

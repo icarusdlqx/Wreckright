@@ -7,8 +7,6 @@ import { employerHistoryFor } from '../../campaign/employers';
 import type {
   CampaignState,
   MissionOutcome,
-  SalvageCandidate,
-  SalvageOutcome,
   SalvageProvenance,
   StoreItem,
 } from '../../campaign/types';
@@ -21,6 +19,7 @@ import { RewardReceipt } from './CompanyRewards';
 import type { CampaignNavigationTarget } from './campaignNavigation';
 import { nextCampaignNode } from './campaignFlow';
 import './campaignFlow.css';
+import { RecoveryReport } from './RecoveryReport';
 
 const DEBRIEFED_KEY = 'ironline.campaign.debriefed';
 
@@ -62,14 +61,6 @@ function cbills(value: number): string {
   return `${Math.round(value).toLocaleString('en-GB')} C`;
 }
 
-const OUTCOME_NAMES: Record<SalvageOutcome, string> = {
-  centre_torso: 'Centre torso destroyed',
-  head: 'Head destroyed',
-  ammo_explosion: 'Ammo explosion',
-  legged: 'Both legs destroyed; side defeated',
-  ejected: 'Pilot ejected',
-};
-
 const LOCATION_NAMES: Record<SalvageProvenance['location'], string> = {
   head: 'head',
   centre_torso: 'centre torso',
@@ -81,22 +72,11 @@ const LOCATION_NAMES: Record<SalvageProvenance['location'], string> = {
   right_leg: 'right leg',
 };
 
-function chance(value: number): string {
-  return `${Number((value * 100).toFixed(1))}%`;
-}
-
 function sourceName(catalog: Catalog, source: SalvageProvenance): string {
   const mech =
     catalog.designs.get(source.sourceDesignId)?.name
     ?? stripSerialDesignation(source.sourceMechName);
   return `${mech}, ${LOCATION_NAMES[source.location]}`;
-}
-
-function candidateName(catalog: Catalog, candidate: SalvageCandidate): string {
-  return (
-    catalog.designs.get(candidate.designId)?.name
-    ?? stripSerialDesignation(candidate.name || candidate.designId)
-  );
 }
 
 /**
@@ -201,34 +181,7 @@ export function Debrief({
               {outcome.salvageFinalized ? 'Recovered salvage' : 'Choose your salvage'}
             </summary>
 
-            {candidates.length === 0 ? null : (
-              <div className="debrief-recovery" data-testid="debrief-recovery">
-                <h4>Mechs recovered</h4>
-                <p>
-                  Recovered hulls join your inventory and can be rebuilt during preparation.
-                </p>
-                <ul>
-                  {candidates.filter((candidate) => candidate.recovered).map((candidate, index) => (
-                    <li
-                      key={`${candidate.designId}-${candidate.name}-${index}`}
-                      data-testid={`debrief-recovery-${index}`}
-                    >
-                      <span className="recovery-name">{candidateName(catalog, candidate)}</span>
-                      <span className="recovery-outcome">{OUTCOME_NAMES[candidate.outcome]}</span>
-                      <span className="recovery-chance">{chance(candidate.chassisChance)}</span>
-                      <span className={candidate.recovered ? 'recovery-result recovered' : 'recovery-result'}>
-                        {candidate.recovered
-                          ? 'hull recovered'
-                          : candidate.chassisChance > 0
-                            ? 'not recovered'
-                            : 'not eligible'}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                {candidates.some((candidate) => candidate.recovered) ? null : <p>No intact hulls were recovered.</p>}
-              </div>
-            )}
+            <RecoveryReport catalog={catalog} candidates={candidates} />
 
             {offered.length === 0 ? null : (
               <div className="debrief-salvage" data-testid="debrief-salvage">
@@ -238,7 +191,7 @@ export function Debrief({
                 <p className="salvage-note">
                   {outcome.salvageFinalized
                     ? 'Salvage manifest finalized. This restored report is read-only; the marks record what came home.'
-                    : `Choose up to ${SALVAGE_PICKS} crates. Each selected crate goes into your campaign inventory.`}
+                    : `Choose up to ${SALVAGE_PICKS} crates. Each selected crate goes into your campaign inventory. `}
                   Recovered hulls keep their battle damage and need rebuilding before deployment.
                 </p>
                 <ul className="salvage-offer">

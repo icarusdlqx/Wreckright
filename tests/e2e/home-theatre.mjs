@@ -36,7 +36,7 @@ export async function checkHomeTheatre({ browser, url, shots, check }) {
     await page.evaluate(() => document.fonts.ready);
     if (shots) await page.screenshot({ path: `${shots}/00-home-desktop.png` });
     check('the home artwork loads without WebGL, battle startup, or campaign and training creation',
-      await page.evaluate(() => globalThis.__homeGlRequests === 0 && globalThis.__wreckright === undefined
+      await page.evaluate(() => globalThis.__homeGlRequests === 0 && globalThis.__ironmuster === undefined
         && document.querySelector('[data-testid="viewport"]') === null
         && localStorage.getItem('ironline.campaign') === null && localStorage.getItem('ironline.training') === null));
     const wiki = page.locator('[data-testid="home-wiki"]');
@@ -82,7 +82,7 @@ export async function checkHomeTheatre({ browser, url, shots, check }) {
     await page.locator('[data-testid="home-wiki"]').click();
     await page.locator('[data-testid="wiki"]').waitFor();
     check('a failed artwork download still opens Wiki without starting a battle or changing progress', rejected
-      && await page.evaluate(previous => globalThis.__homeGlRequests === 0 && globalThis.__wreckright === undefined
+      && await page.evaluate(previous => globalThis.__homeGlRequests === 0 && globalThis.__ironmuster === undefined
         && localStorage.getItem('ironline.campaign') === previous.company
         && localStorage.getItem('ironline.training') === previous.training, before));
     await page.locator('[data-testid="wiki-close"]').click();

@@ -11,6 +11,7 @@ import type { TerminalFallAxis } from './unitVisualState';
 import type { ModelArticulation } from './modelArticulation';
 import type { MachineServices } from './machineServices';
 import type { TerminalSupportRig } from './terminalSupport';
+import type { HitResponse } from './hitResponse';
 
 /** Three pivots keep the boot planted without adding another visible part. */
 export interface LegRig {
@@ -61,6 +62,7 @@ export interface MechModel {
   faction: Faction;
   culture: Readonly<MachineCultureProfile>;
   hullRecoil: HullRecoil;
+  hitResponse: HitResponse;
   startup: StartupLightRig | null;
   loosePanels: LoosePanelRig[];
   terminalFallAxis: TerminalFallAxis | null;
@@ -68,4 +70,3 @@ export interface MechModel {
   services: MachineServices;
   terminalSupport: TerminalSupportRig;
 }
-

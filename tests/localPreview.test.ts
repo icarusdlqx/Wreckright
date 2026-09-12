@@ -8,7 +8,7 @@ import { previewConfiguration, previewPlist, previewShutdownState } from '../too
 import { headersForPath, inspectRelease, parseReleaseHeaders, PREVIEW_HEALTH_PATH, startPreviewServer } from '../tools/local-preview-server.mjs';
 
 const releaseHeaders = await readFile(new URL('../public/_headers', import.meta.url), 'utf8');
-const index = '<!doctype html><title>Local Wreckright fixture</title><script src="./assets/game.js"></script>';
+const index = '<!doctype html><title>Local Ironmuster fixture</title><script src="./assets/game.js"></script>';
 let temporary: string;
 let directory: string;
 let server: Awaited<ReturnType<typeof startPreviewServer>>;
@@ -40,7 +40,7 @@ async function availablePort() {
 }
 
 beforeAll(async () => {
-  temporary = await mkdtemp(join(tmpdir(), 'wreckright-preview-test-'));
+  temporary = await mkdtemp(join(tmpdir(), 'ironmuster-preview-test-'));
   directory = join(temporary, 'release');
   await mkdir(join(directory, 'assets'), { recursive: true });
   await Promise.all([
@@ -49,7 +49,7 @@ beforeAll(async () => {
     writeFile(join(directory, 'assets/game.css'), 'body { color: teal; }'),
     writeFile(join(directory, 'assets/font.woff2'), 'fixture-font'),
     writeFile(join(directory, 'assets/art.webp'), 'fixture-image'),
-    writeFile(join(directory, 'site.webmanifest'), '{"name":"Wreckright"}'),
+    writeFile(join(directory, 'site.webmanifest'), '{"name":"Ironmuster"}'),
     writeFile(join(temporary, 'private.txt'), 'must not be served'),
     writeFile(join(directory, '.private'), 'must not be served'),
   ]);
@@ -181,7 +181,7 @@ describe('on-demand preview lifecycle configuration', () => {
   });
 
   it('applies path-specific header removal without losing unrelated protection', () => {
-    const headers = headersForPath(parseReleaseHeaders(releaseHeaders), '/wreckright.html');
+    const headers = headersForPath(parseReleaseHeaders(releaseHeaders), '/ironmuster.html');
     expect(headers['content-security-policy']).toBeUndefined();
     expect(headers['x-content-type-options']).toBe('nosniff');
     expect(headersForPath(parseReleaseHeaders(releaseHeaders), '/')['content-security-policy']).toContain("script-src 'self'");

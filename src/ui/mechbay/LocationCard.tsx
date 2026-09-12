@@ -150,7 +150,7 @@ export function LocationCard({
       onPointerEnter={() => onHover?.(location)}
       onPointerLeave={() => onHover?.(null)}
       onDragOver={(event) => {
-        if (target === null && !Array.from(event.dataTransfer.types).includes('application/wreckright')) return;
+        if (target === null && !Array.from(event.dataTransfer.types).includes('application/ironmuster')) return;
         event.preventDefault();
         event.dataTransfer.dropEffect = target?.sourceIndex !== undefined ? 'move' : 'copy';
         onHover?.(location);
@@ -160,7 +160,7 @@ export function LocationCard({
       }}
       onDrop={(event) => {
         event.preventDefault();
-        const payload = parsedDrop(event.dataTransfer.getData('application/wreckright'));
+        const payload = parsedDrop(event.dataTransfer.getData('application/ironmuster'));
         if (payload === null) return;
         onDrop(payload, location);
         onHover?.(null);

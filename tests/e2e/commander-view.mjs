@@ -26,21 +26,21 @@ export async function runCommanderViewChecks({ page, check, shots }) {
   await closeDesktopBattleMenu(page);
   await page.screenshot({ path: `${shots}/10-commander-field.png` });
 
-  const startedPaused = await page.evaluate(() => globalThis.__wreckright.useGame.getState().paused);
+  const startedPaused = await page.evaluate(() => globalThis.__ironmuster.useGame.getState().paused);
   if (!startedPaused) {
-    await page.evaluate(() => globalThis.__wreckright.engine.togglePause());
-    await page.waitForFunction(() => globalThis.__wreckright.useGame.getState().paused);
+    await page.evaluate(() => globalThis.__ironmuster.engine.togglePause());
+    await page.waitForFunction(() => globalThis.__ironmuster.useGame.getState().paused);
   }
   await page.locator('[data-testid="lance-bar"] button').first().click();
   await toggle.click();
   await view.waitFor({ state: 'visible' });
   check(
     'Commander click-select routes through the live battle selection',
-    await page.evaluate(() => globalThis.__wreckright.useGame.getState().selection.length === 1),
+    await page.evaluate(() => globalThis.__ironmuster.useGame.getState().selection.length === 1),
   );
 
   const mapCounts = await page.evaluate(() => {
-    const { world, useGame } = globalThis.__wreckright;
+    const { world, useGame } = globalThis.__ironmuster;
     const playerTeam = useGame.getState().playerTeam;
     return {
       friendlies: world.entities.filter(
@@ -65,18 +65,18 @@ export async function runCommanderViewChecks({ page, check, shots }) {
   );
 
   const cameraBefore = await page.evaluate(() => ({
-    ...globalThis.__wreckright.engine.renderer.camera.target,
+    ...globalThis.__ironmuster.engine.renderer.camera.target,
   }));
   await page.keyboard.down('ArrowRight');
   await sleep(180);
   await page.keyboard.up('ArrowRight');
   const cameraAfter = await page.evaluate(() => ({
-    ...globalThis.__wreckright.engine.renderer.camera.target,
+    ...globalThis.__ironmuster.engine.renderer.camera.target,
   }));
   check('Commander arrow keys do not move the hidden field camera', closePoint(cameraBefore, cameraAfter));
 
   const routeFixture = await page.evaluate(() => {
-    const { world, useGame } = globalThis.__wreckright;
+    const { world, useGame } = globalThis.__ironmuster;
     const selected = useGame.getState().selection[0];
     const entity = world.entities.find((entry) => entry.id === selected);
     if (entity === undefined) throw new Error('Commander route fixture has no selected mech');
@@ -104,7 +104,7 @@ export async function runCommanderViewChecks({ page, check, shots }) {
   await map.click({ button: 'right', position: points[0] });
   await page.waitForFunction(
     (entityId) => {
-      const entity = globalThis.__wreckright.world.entities.find((entry) => entry.id === entityId);
+      const entity = globalThis.__ironmuster.world.entities.find((entry) => entry.id === entityId);
       return entity?.orders.move !== null;
     },
     routeFixture.entityId,
@@ -113,7 +113,7 @@ export async function runCommanderViewChecks({ page, check, shots }) {
     await map.click({ button: 'right', modifiers: ['Shift'], position: point });
     await page.waitForFunction(
       ({ entityId, queueLength }) => {
-        const entity = globalThis.__wreckright.world.entities.find((entry) => entry.id === entityId);
+        const entity = globalThis.__ironmuster.world.entities.find((entry) => entry.id === entityId);
         return entity?.orders.queue.length === queueLength;
       },
       { entityId: routeFixture.entityId, queueLength: index + 1 },
@@ -130,7 +130,7 @@ export async function runCommanderViewChecks({ page, check, shots }) {
   check(
     'paused Commander planning still accepts live engine orders',
     await page.evaluate(() => {
-      const { world, useGame } = globalThis.__wreckright;
+      const { world, useGame } = globalThis.__ironmuster;
       const selected = useGame.getState().selection[0];
       const entity = world.entities.find((entry) => entry.id === selected);
       return useGame.getState().paused && entity?.orders.move !== null && entity?.orders.queue.length === 3;
@@ -152,12 +152,12 @@ export async function runCommanderViewChecks({ page, check, shots }) {
   );
 
   const selectedBeforeTab = await page.evaluate(
-    () => globalThis.__wreckright.useGame.getState().selection[0],
+    () => globalThis.__ironmuster.useGame.getState().selection[0],
   );
   await clearControlFocus(page);
   await page.keyboard.press('Tab');
   const selectedAfterTab = await page.evaluate(
-    () => globalThis.__wreckright.useGame.getState().selection[0],
+    () => globalThis.__ironmuster.useGame.getState().selection[0],
   );
   check(
     'Commander hotkey leaves field Tab unit cycling intact',
@@ -220,7 +220,7 @@ export async function runCommanderViewChecks({ page, check, shots }) {
   await toggle.click();
   await view.waitFor({ state: 'hidden' });
   if (!startedPaused) {
-    await page.evaluate(() => globalThis.__wreckright.engine.togglePause());
-    await page.waitForFunction(() => !globalThis.__wreckright.useGame.getState().paused);
+    await page.evaluate(() => globalThis.__ironmuster.engine.togglePause());
+    await page.waitForFunction(() => !globalThis.__ironmuster.useGame.getState().paused);
   }
 }

@@ -177,7 +177,7 @@ async function checkStandaloneMechbay({ browser, url, check }) {
   try {
     await page.locator('[data-testid="home-skirmish"]').click();
     await page.waitForSelector('[data-testid="briefing"]');
-    await page.waitForFunction(() => globalThis.__wreckright?.useGame.getState().ready === true);
+    await page.waitForFunction(() => globalThis.__ironmuster?.useGame.getState().ready === true);
     await openDesktopMenu(page);
     await page.locator('[data-testid="open-mechbay"]').click();
     await page.waitForSelector('[data-testid="mechbay"]');
@@ -219,7 +219,7 @@ async function checkStandaloneMechbay({ browser, url, check }) {
         && activeAudioContext(await audioProbe(page)).master === 0.5
         && (await page.evaluate(() => localStorage.getItem('ironline.muted'))) === '0');
     const stereo = await page.evaluate(() => {
-      const { engine, world } = globalThis.__wreckright;
+      const { engine, world } = globalThis.__ironmuster;
       const ally = world.entities.find((entity) => entity.team === world.playerTeam);
       if (ally === undefined) throw new Error('stereo fixture needs a friendly unit');
       const snapshot = () => globalThis.__audioProbe.snapshot().at(-1);
@@ -268,12 +268,12 @@ async function checkBattleOutfitterReuse({ browser, url, check }) {
   try {
     await page.locator('[data-testid="home-skirmish"]').click();
     await page.waitForSelector('[data-testid="briefing"]');
-    await page.waitForFunction(() => globalThis.__wreckright?.useGame.getState().ready === true);
+    await page.waitForFunction(() => globalThis.__ironmuster?.useGame.getState().ready === true);
     await page.locator('[data-testid="briefing-faction-picker"]').selectOption('aurelian');
     await page.waitForFunction(() => {
-      const wreckright = globalThis.__wreckright;
-      if (wreckright === undefined) return false;
-      const { world } = wreckright;
+      const ironmuster = globalThis.__ironmuster;
+      if (ironmuster === undefined) return false;
+      const { world } = ironmuster;
       const friendlies = world.entities.filter((entity) => entity.team === world.playerTeam);
       return friendlies.length > 0 && friendlies.every((entity) =>
         world.catalog.chassis.get(entity.chassisId)?.faction === 'aurelian');
@@ -290,14 +290,14 @@ async function checkBattleOutfitterReuse({ browser, url, check }) {
 
     await advanceAudioClock(page);
     const beforeOppositeBay = activeAudioContext(await audioProbe(page));
-    await page.evaluate(() => globalThis.__wreckright.engine.audio.setMechbayScore(0));
+    await page.evaluate(() => globalThis.__ironmuster.engine.audio.setMechbayScore(0));
     await page.waitForFunction((count) =>
       globalThis.__audioProbe.snapshot().findLast(context => context.state !== 'closed').targets > count, beforeOppositeBay.targets);
     const oppositeBay = activeAudioContext(await audioProbe(page));
     check('opposite-culture bay treatment reaches the Linewrought voicing before deployment',
       cultureMatches(oppositeBay, 0));
 
-    const briefingTick = await page.evaluate(() => globalThis.__wreckright.world.tick);
+    const briefingTick = await page.evaluate(() => globalThis.__ironmuster.world.tick);
     await advanceAudioClock(page);
     const beforePrimeRestore = activeAudioContext(await audioProbe(page));
     await page.locator('[data-testid="bay-exit"]').click();
@@ -307,7 +307,7 @@ async function checkBattleOutfitterReuse({ browser, url, check }) {
       globalThis.__audioProbe.snapshot().findLast(context => context.state !== 'closed').targets > count, beforePrimeRestore.targets);
     const primeRestored = activeAudioContext(await audioProbe(page));
     check('closing an opposite-culture bay restores the primed Aurelian battle voice before a sim step',
-      (await page.evaluate(() => globalThis.__wreckright.world.tick)) === briefingTick
+      (await page.evaluate(() => globalThis.__ironmuster.world.tick)) === briefingTick
         && cultureMatches(primeRestored, 1),
       JSON.stringify(primeRestored.gains));
 

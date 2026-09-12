@@ -34,14 +34,14 @@ export function FittedPart({ catalog, item, locationName, snap, target, replacem
         // Native dragover can precede React's dragged-part render. Its payload is
         // protected here; recognize our format now and validate its kind on drop.
         if (target?.sourceIndex !== undefined || item.kind !== 'weapon' || onReplace === undefined ||
-          (!replacing && !Array.from(event.dataTransfer.types).includes('application/wreckright'))) return;
+          (!replacing && !Array.from(event.dataTransfer.types).includes('application/ironmuster'))) return;
         event.preventDefault();
         event.stopPropagation();
         event.dataTransfer.dropEffect = 'copy';
       }}
       onDrop={(event) => {
         if (item.kind !== 'weapon' || onReplace === undefined) return;
-        const payload = parsedDrop(event.dataTransfer.getData('application/wreckright'));
+        const payload = parsedDrop(event.dataTransfer.getData('application/ironmuster'));
         if (payload?.kind !== 'weapon' || payload.sourceIndex !== undefined) return;
         event.preventDefault();
         event.stopPropagation();
@@ -54,7 +54,7 @@ export function FittedPart({ catalog, item, locationName, snap, target, replacem
         draggable={movable} aria-label={label} aria-haspopup={replacing ? 'dialog' : undefined}
         onDragStart={(event) => {
           if (!movable) { event.preventDefault(); return; }
-          event.dataTransfer.setData('application/wreckright', JSON.stringify(source));
+          event.dataTransfer.setData('application/ironmuster', JSON.stringify(source));
           event.dataTransfer.effectAllowed = 'move';
         }}
         onClick={(event) => {

@@ -101,7 +101,7 @@ export function HomeScreen() {
       <section className="home-menu" aria-labelledby="home-title">
         <div className="home-introduction">
           <span className="home-edition">TACTICAL MECH COMMAND</span>
-          <h1 id="home-title">WRECKRIGHT</h1>
+          <h1 id="home-title">IRONMUSTER</h1>
           <p className="home-premise">Your company. Your mechs. Your next move.</p>
         </div>
         <nav className="home-routes" aria-label="Choose where to begin">

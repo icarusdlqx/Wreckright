@@ -1,4 +1,4 @@
-# Wreckright audio identity
+# Ironmuster audio identity
 
 The original theme, **Roads We Keep**, now connects the main menu, campaign, MechBay and combat. Weapon families retain their own sonic identity in both factions. Settings offers separate Music and Sound effects switches, with saved volume trims and master mute.
 

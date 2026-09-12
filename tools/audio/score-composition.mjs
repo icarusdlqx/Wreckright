@@ -1,4 +1,4 @@
-/** Original Wreckright score: Roads We Keep. E minor, 116 bpm, thirty-two bars. */
+/** Original Ironmuster score: Roads We Keep. E minor, 116 bpm, thirty-two bars. */
 export const BPM = 116;
 export const BARS = 32;
 export const BEAT = 60 / BPM;

@@ -1,6 +1,6 @@
 export async function verifySensorProbe({ page, check, mission, canvasBox }) {
   const probeSetup = await page.evaluate(() => {
-    const { engine, useGame, world } = globalThis.__wreckright;
+    const { engine, useGame, world } = globalThis.__ironmuster;
     const wasPaused = useGame.getState().paused;
     // Isolate the probe from ordinary observer movement while comparing the
     // optical fog buffers. The setup takes one controlled positioning tick;
@@ -110,14 +110,14 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
     return { enemyId: enemy.id, friendlyId: friendly.id, screen, wasPaused, rpBefore,
       tick: world.tick, rng: world.rng.save(), position: { ...enemy.pos } };
   });
-  const revealsBefore = await page.evaluate(() => globalThis.__wreckright.world.reveals.length);
+  const revealsBefore = await page.evaluate(() => globalThis.__ironmuster.world.reveals.length);
   await page.locator('[data-testid="support-sensor_probe"]').click();
   await page.mouse.click(
     canvasBox.x + probeSetup.screen.x,
     canvasBox.y + probeSetup.screen.y,
   );
   const sensorOutcome = await page.evaluate((enemyId) => {
-    const { world } = globalThis.__wreckright;
+    const { world } = globalThis.__ironmuster;
     // A zero-delay probe resolves at the click even while the commander is paused.
     const rp = world.resources.get(world.playerTeam ?? 0);
     const before = globalThis.__probeFogBefore;
@@ -137,7 +137,7 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
         chassisClass: track.chassisClass,
         position: track.pos,
       },
-      log: globalThis.__wreckright.useGame.getState().log.find(
+      log: globalThis.__ironmuster.useGame.getState().log.find(
         (line) => line.startsWith('Sensor sweep —'),
       ) ?? null,
       // An empty window would make every() pass on nothing at all.
@@ -168,7 +168,7 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
   const sensorCard = page.locator(`[data-testid="sensor-contact-${probeSetup.enemyId}"]`);
   await sensorCard.waitFor({ state: 'visible' });
   await page.waitForFunction((friendlyId) => {
-    const current = globalThis.__wreckright.useGame.getState();
+    const current = globalThis.__ironmuster.useGame.getState();
     return current.selection.includes(friendlyId) &&
       current.units.some((unit) => unit.id === friendlyId && unit.alive);
   }, probeSetup.friendlyId);
@@ -188,7 +188,7 @@ export async function verifySensorProbe({ page, check, mission, canvasBox }) {
   );
   await sensorCard.click();
   const indirect = await page.evaluate(({ friendlyId, wasPaused }) => {
-    const { engine, useGame, world } = globalThis.__wreckright;
+    const { engine, useGame, world } = globalThis.__ironmuster;
     const selected = world.entities.find((entity) => entity.id === friendlyId);
     if (selected === undefined) throw new Error('selected indirect carrier disappeared');
     const indirectIds = new Set(selected.weapons.flatMap((mount) => (

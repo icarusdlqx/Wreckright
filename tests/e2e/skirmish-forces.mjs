@@ -16,7 +16,7 @@ export async function runSkirmishForceChecks({ browser, url, shots, check }) {
     await page.getByTestId(testId).selectOption(value);
   };
   const waitWorld = async (missionId) => page.waitForFunction((id) =>
-    globalThis.__wreckright?.world.mission.id === id, missionId);
+    globalThis.__ironmuster?.world.mission.id === id, missionId);
   try {
     await page.goto(url);
     await page.getByTestId('home-skirmish').click();
@@ -32,9 +32,9 @@ export async function runSkirmishForceChecks({ browser, url, shots, check }) {
     check('skirmish offers all twelve terrain maps', maps.length === 12 && new Set(maps).size === 12);
     for (const map of maps) {
       await pick('briefing-map-picker', map);
-      await page.waitForFunction((id) => globalThis.__wreckright?.world.mission.mapId === id, map);
+      await page.waitForFunction((id) => globalThis.__ironmuster?.world.mission.mapId === id, map);
       check(`${map} is a pure skirmish with legal default forces`, await page.getByTestId('briefing-deploy').isEnabled()
-        && await page.evaluate(() => globalThis.__wreckright.world.mission.triggers.length === 0));
+        && await page.evaluate(() => globalThis.__ironmuster.world.mission.triggers.length === 0));
     }
     await pick('briefing-map-picker', 'foundry_district');
     await waitWorld('skirmish_foundry_district');
@@ -129,10 +129,10 @@ export async function runSkirmishForceChecks({ browser, url, shots, check }) {
     await page.getByTestId('briefing-deploy').click();
     await page.getByTestId('briefing').waitFor({ state: 'hidden' });
     const fielded = await page.evaluate(() => ({
-      mission: globalThis.__wreckright.world.mission.id,
-      difficulty: globalThis.__wreckright.world.difficulty,
-      playerDifficulty: globalThis.__wreckright.world.playerDifficulty,
-      units: globalThis.__wreckright.world.entities.map((entity) => ({ team: entity.team, design: entity.designId,
+      mission: globalThis.__ironmuster.world.mission.id,
+      difficulty: globalThis.__ironmuster.world.difficulty,
+      playerDifficulty: globalThis.__ironmuster.world.playerDifficulty,
+      units: globalThis.__ironmuster.world.entities.map((entity) => ({ team: entity.team, design: entity.designId,
         gunnery: entity.pilot.gunnery, weapons: entity.weapons.length })),
       campaign: localStorage.getItem('ironline.campaign'),
       enemyDesign: JSON.parse(localStorage.getItem('ironline.lance.enemy.skirmish_foundry_district'))[0].design,

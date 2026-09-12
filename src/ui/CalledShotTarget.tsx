@@ -2,6 +2,8 @@ import { useState } from 'react';
 import type { MechLocation } from '../schema/common';
 import { PaperDoll } from './PaperDoll';
 import type { UnitSnapshot } from './store';
+import { getCatalog } from '../schema/load';
+import { SalvageIntent } from './SalvageIntent';
 
 interface Props {
   enemies: readonly UnitSnapshot[];
@@ -24,6 +26,7 @@ export function CalledShotTarget({ enemies, currentTargetId, location, onAim, on
       </select></label>
       <p>Choose a section of <strong>{target.identity.split(' — ')[0]}</strong> to direct the selected lance's fire there.</p>
       <PaperDoll locations={target.locations} activeLocation={location} onSelectLocation={(part) => onAim(target.id, part)} />
+      <SalvageIntent catalog={getCatalog()} target={target} location={location} />
     </>}
   </section>;
 }

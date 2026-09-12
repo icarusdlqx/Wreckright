@@ -28,7 +28,7 @@ export function ShelfItem({ payload, label, detail, boxes, stock, fit, armed, in
         onDragStart={(event) => {
           if (unavailable) return event.preventDefault();
           onInspect(payload);
-          event.dataTransfer.setData('application/wreckright', JSON.stringify(payload));
+          event.dataTransfer.setData('application/ironmuster', JSON.stringify(payload));
           event.dataTransfer.effectAllowed = 'copy';
         }}
       >

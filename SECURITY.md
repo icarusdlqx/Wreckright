@@ -2,7 +2,7 @@
 
 ## Supported version
 
-Wreckright is pre-release software. Security fixes are made only to the current
+Ironmuster is pre-release software. Security fixes are made only to the current
 revision on `main` and the currently published web build. Older checkouts,
 downloaded HTML exports, and unofficial mirrors are not supported.
 

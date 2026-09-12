@@ -79,6 +79,12 @@
   color: var(--accent);
 }
 
+.recovery-explanation {
+  grid-column: 1 / -1;
+  color: #47625e;
+  line-height: 1.4;
+}
+
 .debrief .manifest-actions button {
   background: var(--panel);
   border: 1px solid var(--edge);

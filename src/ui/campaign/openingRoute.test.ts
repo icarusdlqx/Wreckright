@@ -12,8 +12,8 @@ const suggest = (state: CampaignState) => openingRecommendation(catalog, state, 
 
 describe('suggested opening routes', () => {
   it.each([
-    ['border_dispute', ['militia_raid', 'marker_survey', 'recovery_window']],
-    ['aurelian_recall', ['first_warrant', 'custody_survey', 'custody_resupply']],
+    ['border_dispute', ['militia_raid', 'recovery_window', 'workshop_defence']],
+    ['aurelian_recall', ['first_warrant', 'cutbank_attestation', 'sarn_inventory']],
   ])('follows completed contracts in %s without requiring the side route', (campaignId, steps) => {
     for (const [index, id] of steps.entries()) {
       const state = company(campaignId, steps.slice(0, index));
@@ -26,13 +26,20 @@ describe('suggested opening routes', () => {
     expect(suggest(company(campaignId, steps))).toBeNull();
   });
 
-  it('retains the main route choices alongside the suggested survey', () => {
+  it('retains optional surveys alongside the suggested main route', () => {
     const line = company('border_dispute', ['militia_raid']);
     const stock = company('aurelian_recall', ['first_warrant']);
     expect(availableNodes(catalog, line).map((node) => node.id)).toContain('recovery_window');
     expect(availableNodes(catalog, stock).map((node) => node.id)).toContain('cutbank_attestation');
-    expect(suggest(line)?.node.id).toBe('marker_survey');
-    expect(suggest(stock)?.node.id).toBe('custody_survey');
+    expect(availableNodes(catalog, line).map((node) => node.id)).toContain('marker_survey');
+    expect(suggest(line)?.node.id).toBe('recovery_window');
+    expect(availableNodes(catalog, stock).map((node) => node.id)).toContain('custody_survey');
+    expect(suggest(stock)?.node.id).toBe('cutbank_attestation');
+  });
+
+  it('continues the main opening after an optional survey', () => {
+    expect(suggest(company('border_dispute', ['militia_raid', 'marker_survey']))?.node.id).toBe('recovery_window');
+    expect(suggest(company('aurelian_recall', ['first_warrant', 'custody_survey', 'custody_resupply']))?.node.id).toBe('cutbank_attestation');
   });
 
   it('uses durable completed nodes when reports have been archived and does not advance on a defeat', () => {
@@ -40,7 +47,7 @@ describe('suggested opening routes', () => {
     state.historyArchive = { outcomes: 30, employers: { halloran_freight: {
       employerName: 'Halloran Freight', completed: 1, failed: 29, paid: 850000,
     } } };
-    expect(suggest(state)?.node.id).toBe('marker_survey');
+    expect(suggest(state)?.node.id).toBe('recovery_window');
     state.completedNodes = [];
     expect(suggest(state)?.node.id).toBe('militia_raid');
   });
@@ -55,7 +62,7 @@ describe('suggested opening routes', () => {
 
   it.each([
     ['border_dispute', ['militia_raid', 'pass_skirmish']],
-    ['aurelian_recall', ['first_warrant', 'cutbank_attestation']],
+    ['aurelian_recall', ['first_warrant', 'root_exchange']],
   ])('does not send an established %s company back to its opening', (id, completed) => {
     expect(suggest(company(id, completed))).toBeNull();
   });
@@ -63,8 +70,8 @@ describe('suggested opening routes', () => {
   it('hides finished, unavailable and unknown routes without skipping ahead', () => {
     const state = company('border_dispute', ['militia_raid']);
     const available = availableNodes(catalog, state);
-    expect(openingRecommendation(catalog, state, available.filter((node) => node.id !== 'marker_survey'))).toBeNull();
-    state.failedNodes.push('marker_survey');
+    expect(openingRecommendation(catalog, state, available.filter((node) => node.id !== 'recovery_window'))).toBeNull();
+    state.failedNodes.push('recovery_window');
     expect(suggest(state)).toBeNull();
     state.finished = true;
     expect(openingRecommendation(catalog, state, available)).toBeNull();
@@ -103,12 +110,12 @@ describe('suggested opening routes', () => {
 
   it('filters a story link if its discovery rules become stricter', () => {
     const state = company('border_dispute', ['militia_raid']);
-    const page = catalog.lore.get('the_refit');
+    const page = catalog.lore.get('the_shared_mounts');
     expect(page).toBeDefined();
     if (page === undefined) return;
     const restricted = { ...catalog, lore: new Map(catalog.lore).set(page.id, { ...page, unlockNodeId: 'pass_skirmish' }) };
     const next = openingRecommendation(restricted, state, availableNodes(catalog, state));
-    expect(next?.links.map((link) => link.id)).not.toContain('the_refit');
+    expect(next?.links.map((link) => link.id)).not.toContain('the_shared_mounts');
     expect(next?.links.map((link) => link.id)).toContain('hornet_hnt2');
   });
 });

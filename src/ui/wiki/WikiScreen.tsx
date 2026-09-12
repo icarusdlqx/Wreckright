@@ -59,7 +59,7 @@ export function WikiScreen({ route, onClose, discovery = PUBLIC_DISCOVERY, retur
   return <main className="wiki-shell" ref={root} role="dialog" aria-modal="true" aria-label="Tessell field archive"
     data-testid="wiki" onKeyDown={(event) => { if (event.key !== 'Tab' && event.key !== 'Escape') event.stopPropagation(); }}>
     <header className="wiki-masthead"><WikiLink className="wiki-brand"><CommandMark size={34} />
-      <span>WRECKRIGHT<small>TESSELL FIELD ARCHIVE</small></span></WikiLink>
+      <span>IRONMUSTER<small>TESSELL FIELD ARCHIVE</small></span></WikiLink>
       <button type="button" ref={close} onClick={onClose} data-testid="wiki-close">Return to game <span aria-hidden="true">×</span></button>
     </header>
     <div className="wiki-scroll" ref={content} onScroll={(event) => { if (route.page === 'index') indexScroll.current = event.currentTarget.scrollTop; }}>

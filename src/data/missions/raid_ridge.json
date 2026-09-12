@@ -81,7 +81,7 @@
       ]
     }
   ],
-  "briefing": "Clear the tender approach with coordinated fire. The centre deployment lane favours Aurelian range; lateral ravines reach the cordon’s sides. Preserve the detachment because every repair stays on its account.",
+  "briefing": "Recover Ada Rusk's service cart on Apron Seven by clearing the custody tender approach. Its crated long optic is released after victory. The centre favours your reach; side ravines let local defenders turn it. Keep the company intact enough to carry the recovered equipment onward.",
   "startingResourcePoints": 450,
   "objectives": [
     {
@@ -113,7 +113,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Tender: centre lane is surveyed. Side ravines are slower, but they break the cordon’s firing line.",
+          "text": "Rusk’s cart is beyond the cordon. We have the reach; watch the side ravines and leave the reactor room to breathe.",
           "speakerPilotId": "petra_lindqvist"
         },
         {

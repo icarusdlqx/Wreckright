@@ -157,7 +157,7 @@ describe('faction campaign story', () => {
     expect(missionCopy(mission('conduit_breach'))).toContain('cold yards');
   });
 
-  it('grounds Wreckright in finite serialized walker roots', () => {
+  it('grounds Ironmuster in finite serialized walker roots', () => {
     const recall = catalog.lore.get('the_line');
     const winter = catalog.lore.get('the_foundry_winter');
     const refit = catalog.lore.get('the_refit');
@@ -183,7 +183,7 @@ describe('faction campaign story', () => {
     expect(copy).toContain('reserve and civil-defence walkers');
     expect(copy).toContain('serialized root');
     expect(copy).toContain('Crews give it a name');
-    expect(copy).toContain('wreckright');
+    expect(copy).toContain('Ironmuster Code');
     expect(copy).toContain('cannot simply build another');
     expect(copy).toContain('if its cradle survives the breach');
   });

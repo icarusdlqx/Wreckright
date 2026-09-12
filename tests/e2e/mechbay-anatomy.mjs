@@ -59,7 +59,7 @@ export async function runMechbayAnatomyChecks({ browser, url, shots, check }) {
     await page.getByTestId('open-machine-focus').click();
     const focusText = (await page.getByTestId('machine-focus').innerText()).toLowerCase();
     check('full-size fitted-mech inspection opens without leaving the loadout', await page.getByTestId('machine-focus').isVisible()
-      && focusText.includes('live fitted build')
+      && focusText.includes('your fitted machine')
       && focusText.includes('left arm'));
     await shot('focus-1280');
     await page.getByTestId('machine-focus').getByRole('button', { name: 'Return to fitting' }).click();

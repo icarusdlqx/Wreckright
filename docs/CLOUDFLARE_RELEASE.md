@@ -1,7 +1,7 @@
 # Cloudflare release runbook
 
-Wreckright production is a static-asset Worker deployed by Workers Builds from
-the private GitHub repository. The configured production branch is `main`, so
+Ironmuster production is a static-asset Worker deployed by Workers Builds from
+the personal GitHub repository. The configured production branch is `main`, so
 advancing `main` builds and publishes the site.
 
 Record these identifiers together for every release:
@@ -34,7 +34,7 @@ awk 'length($0) > 2000 { print FNR ": header line is too long"; failed=1 } END {
 
 The hosted build must contain `dist/index.html`, hashed JavaScript and CSS under
 `dist/assets/`, and `dist/_headers`. The self-contained distribution must be
-`dist-single/wreckright.html` and make no external requests.
+`dist-single/ironmuster.html` and make no external requests.
 
 ## Inspect the branch preview
 
@@ -62,15 +62,15 @@ Because `_headers` is consumed rather than served, verify its behavior over
 HTTP:
 
 ```sh
-wreckright_release_url=https://wreckright.ligand-ave.workers.dev
-wreckright_verify_dir=$(mktemp -d)
-curl -fsS -D "$wreckright_verify_dir/headers.txt" \
-  -o /dev/null "$wreckright_release_url/"
-tr -d '\r' < "$wreckright_verify_dir/headers.txt" | rg -i \
+ironmuster_release_url=https://wreckright.ligand-ave.workers.dev
+ironmuster_verify_dir=$(mktemp -d)
+curl -fsS -D "$ironmuster_verify_dir/headers.txt" \
+  -o /dev/null "$ironmuster_release_url/"
+tr -d '\r' < "$ironmuster_verify_dir/headers.txt" | rg -i \
   '^(content-security-policy|cross-origin-opener-policy|permissions-policy|referrer-policy|strict-transport-security|x-content-type-options|x-frame-options):'
 
-wreckright_js_path=$(rg -o 'assets/[^" ]+\.js' dist/index.html | head -n 1)
-curl -fsSI "$wreckright_release_url/$wreckright_js_path" | tr -d '\r' | rg -i \
+ironmuster_js_path=$(rg -o 'assets/[^" ]+\.js' dist/index.html | head -n 1)
+curl -fsSI "$ironmuster_release_url/$ironmuster_js_path" | tr -d '\r' | rg -i \
   '^cache-control: public, max-age=31536000, immutable$'
 ```
 

@@ -6,7 +6,7 @@
 After `npm ci`, generate the production dependency SBOM with:
 
 ```sh
-npm run sbom > wreckright.cdx.json
+npm run sbom > ironmuster.cdx.json
 ```
 
 The result is CycloneDX JSON. It uses npm's lockfile-native SBOM command, omits

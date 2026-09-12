@@ -9,7 +9,7 @@ in the same commit that notices it.
 
 A browser real-time-with-pause tactical mech game. TypeScript (strict, with
 `noUncheckedIndexedAccess`), Vite, React, Zustand, three.js, Zod, Vitest.
-The design document is `WRECKRIGHT_DESIGN.md`; the setting bible and all game
+The design document is `IRONMUSTER_DESIGN.md`; the setting bible and all game
 content live under `src/data`.
 
 `FACTION_PLAN.md` is the staged faction rebuild: two machine cultures, a
