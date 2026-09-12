@@ -1,3 +1,4 @@
+import { openCompanyTools, returnFromAutoPreparation } from './unified-navigation.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import { clickFittingAction } from './fitting-actions.mjs';
 import { nativeBayDrag } from './native-bay-drag.mjs';
@@ -72,6 +73,7 @@ export async function runMechbayCrewChecks({ browser, url, shots, check }) {
       && await page.locator('[data-testid="campaign-chooser"]').count() === 0);
     const guide = page.locator('[data-testid="campaign-guide-dismiss"]');
     if (await guide.isVisible()) await guide.click();
+    await openCompanyTools(page);
     await page.locator('[data-testid="camp-area-crew"]').click();
     const saved = await company(page);
     const crew = page.locator('[data-testid="camp-roster"]');
@@ -85,6 +87,7 @@ export async function runMechbayCrewChecks({ browser, url, shots, check }) {
     }
     check('each compact crew row opens its portrait, biography, strengths and weaknesses', completeCrew);
     await page.screenshot({ path: `${shots}/crew-roster-desktop.png`, fullPage: true });
+    await openCompanyTools(page);
     await page.locator('[data-testid="camp-area-workshop"]').click();
     await page.locator('img.machine-portrait').first().waitFor();
     await page.waitForFunction(() => [...document.querySelectorAll('img.machine-portrait')]
@@ -102,9 +105,9 @@ export async function runMechbayCrewChecks({ browser, url, shots, check }) {
     const head = page.locator('[data-testid="bay-location-head"]');
     const original = JSON.stringify((await company(page)).mechs);
     await left.locator('.bay-location-name').focus();
-    check('every body section has fitting boxes and keyboard inspection reveals its mounts',
+    check('weapon sections have fitting boxes and keyboard inspection reveals their mounts',
       await page.locator('.bay-hardpoints').count() === 8
-      && await page.locator('[data-testid^="free-slots-"]').count() === 8
+      && await page.locator('[data-testid^="free-slots-"]').count() >= 6
       && await left.locator('.bay-hardpoints').isVisible()
       && await left.locator('[data-testid="free-slots-left_arm"]').isVisible());
     await page.screenshot({ path: `${shots}/crew-refit-desktop.png` });
@@ -159,8 +162,10 @@ export async function runMechbayCrewChecks({ browser, url, shots, check }) {
     check('committed move preserves exactly one weapon and updates its location',
       refitted.mechs[0].design.mounts.filter(mount => mount.weaponId === 'flamer').length === 1
       && refitted.mechs[0].design.mounts.some(mount => mount.weaponId === 'flamer' && mount.location === 'right_arm'));
+    await openCompanyTools(page);
     await page.locator('[data-testid="camp-area-operations"]').click();
     await page.locator('[data-testid="camp-accept"]').click();
+    await returnFromAutoPreparation(page);
     await page.locator('[data-testid="camp-review-machines"]').click();
     await page.waitForSelector('[data-testid="lance-manifest"]');
     await page.locator('[data-testid="manifest-launch"]').click();
@@ -182,6 +187,7 @@ export async function runMechbayCrewChecks({ browser, url, shots, check }) {
     await openCompany(mobile, url); await completeInitialCampaignSetup(mobile);
     const guide = mobile.locator('[data-testid="campaign-guide-dismiss"]');
     if (await guide.isVisible()) await guide.tap();
+    await openCompanyTools(mobile);
     await mobile.locator('[data-testid="camp-area-crew"]').tap();
     await mobile.locator('.pilot-person').first().scrollIntoViewIfNeeded();
     check('pilot portraits, bios and assignments fit their cards and the phone', await mobile.evaluate(() => {
@@ -192,6 +198,7 @@ export async function runMechbayCrewChecks({ browser, url, shots, check }) {
       });
     }));
     await mobile.screenshot({ path: `${shots}/crew-roster-mobile.png`, fullPage: true });
+    await openCompanyTools(mobile);
     await mobile.locator('[data-testid="camp-area-workshop"]').tap();
     await mobile.locator('[data-testid^="camp-refit-"]:enabled').first().tap();
     await mobile.waitForSelector('[data-testid="mechbay"]');

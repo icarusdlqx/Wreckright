@@ -1,3 +1,5 @@
+import { openCampaignDetails } from './unified-navigation.mjs';
+import { returnFromAutoPreparation } from './unified-navigation.mjs';
 import { runAuthoredScoreLiveChecks } from './authored-score-live.mjs';
 import { runAuthoredScoreLoadingChecks } from './authored-score-loading.mjs';
 import { discardRefitIfPrompted } from './mechbay-exit.mjs';
@@ -109,8 +111,10 @@ async function checkCampaignAndNestedRefit({ browser, url, check }) {
         && (await page.evaluate(() => localStorage.getItem('ironline.muted'))) === '1');
     await page.locator('[data-testid="campaign-mute-button"]').click();
 
+    await openCampaignDetails(page);
     await page.locator('[data-testid="camp-node-militia_raid"]').click();
     await page.locator('[data-testid="camp-accept"]').click();
+    await returnFromAutoPreparation(page);
     await page.locator('[data-testid="camp-review-machines"]').click();
     await page.waitForSelector('[data-testid="hangar-stage"]');
     await page.locator('[data-testid="prep-seat-0"]').click();

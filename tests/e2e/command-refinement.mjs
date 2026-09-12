@@ -1,3 +1,4 @@
+import { openCompanyTools, returnFromAutoPreparation } from './unified-navigation.mjs';
 import { discardRefitIfPrompted } from './mechbay-exit.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import { nativeBayDrag } from './native-bay-drag.mjs';
@@ -34,8 +35,10 @@ export async function runCommandRefinementChecks({ browser, url, shots, check })
     await page.locator('[data-testid="survey-landscape"]').click();
     await page.locator('.mission-survey-image[data-state="ready"]').waitFor();
     await shot('landscape');
+    await openCompanyTools(page);
     await page.locator('[data-testid="camp-area-crew"]').click();
     await shot('crew');
+    await openCompanyTools(page);
     await page.locator('[data-testid="camp-area-workshop"]').click();
     await page.locator('[data-testid^="camp-refit-"]:enabled').nth(1).click();
     await page.waitForSelector('[data-testid="refit-bay"] canvas');
@@ -65,8 +68,10 @@ export async function runCommandRefinementChecks({ browser, url, shots, check })
     await page.locator('[data-testid="bay-exit"]').click();
     await discardRefitIfPrompted(page);
     await page.locator('[data-testid="refit-bay"]').waitFor({ state: 'hidden' });
+    await openCompanyTools(page);
     await page.locator('[data-testid="camp-area-operations"]').click();
     await page.locator('[data-testid="camp-accept"]').click();
+    await returnFromAutoPreparation(page);
     await page.locator('[data-testid="camp-review-machines"]').click();
     await page.locator('[data-testid="hangar-continue"]').click();
     await page.locator('.prep-presets > summary').click();

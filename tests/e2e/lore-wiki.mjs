@@ -1,3 +1,4 @@
+import { openCompanyTools } from './unified-navigation.mjs';
 import { clickFittingAction } from './fitting-actions.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 
@@ -94,6 +95,7 @@ export async function runLoreWikiChecks({ browser, url, shots, check }) {
     await completeInitialCampaignSetup(page);
     const guide = page.locator('[data-testid="campaign-guide-dismiss"]');
     if (await guide.isVisible()) await guide.click();
+    await openCompanyTools(page);
     await page.locator('[data-testid="camp-area-workshop"]').click();
     await page.locator('[data-testid^="camp-refit-"]:enabled').nth(1).click();
     await page.waitForSelector('[data-testid="refit-bay"] canvas');

@@ -43,13 +43,13 @@ export function CampaignPostBattle({
         <span className="camp-status" data-testid="camp-status" role="status" aria-live="polite">
           {status ?? ''}
         </span>
-        <ul>
+        <details><summary>Recent company activity</summary><ul>
           {state.log.slice(0, 6).map((entry, index) => (
             <li key={`${entry.day}-${index}`}>
               day {entry.day}: {stripSerialDesignation(entry.text)}
             </li>
           ))}
-        </ul>
+        </ul></details>
       </footer>
 
       {outcomeCount <= debriefed || pendingDebrief === undefined ? null : (

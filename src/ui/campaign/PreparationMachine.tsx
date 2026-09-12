@@ -4,6 +4,7 @@ import { isMechAvailable } from '../../campaign/types';
 import { mechIntegrity } from '../../campaign/integrity';
 import { estimateRepair, projectedRepairWindow, repairQueue, startRepair } from '../../campaign/repair';
 import { rebuildHulk } from '../../campaign/refit';
+import { companyWait, waitCompany } from './campaignFlow';
 import { authoredDesignName } from '../designLabel';
 import { WeaponGlyph } from '../mechbay/WeaponGlyph';
 import { formatWeaponNumber } from '../mechbay/weaponPresentation';
@@ -22,6 +23,7 @@ export function PreparationMachine({ catalog, state, mech, mutate, onRefit }: Pr
   const estimate = estimateRepair(catalog, mech);
   const projected = projectedRepairWindow(catalog, state, estimate.days);
   const booking = repairQueue(catalog, state).find((entry) => entry.mechId === mech.id);
+  const wait = mech.readyOnDay > state.day ? companyWait(catalog, state, mech.readyOnDay) : null;
   const ready = isMechAvailable(state, mech) && mech.status !== 'hulk';
   const integrity = mechIntegrity(catalog, mech);
   const weapons = [...new Set(mech.design.mounts.map((mount) => mount.weaponId))];
@@ -49,6 +51,13 @@ export function PreparationMachine({ catalog, state, mech, mutate, onRefit }: Pr
           return result.ok ? `${authoredDesignName(catalog, target.design)} booked; ready day ${target.readyOnDay}.` : result.reason;
         })}>{mech.status === 'hulk' ? 'Rebuild machine' : projected.status === 'active' ? 'Repair machine' : 'Queue repair'}</button>
     </div>
+    {wait === null ? null : <div className="prep-repair-continue">
+      <p>Ready on day {wait.targetDay} · {wait.days} days · {wait.wages.toLocaleString('en-GB')} C crew wages.</p>
+      <button type="button" disabled={wait.blocked !== null} title={wait.blocked ?? 'Complete workshop time and return to preparation.'}
+        data-testid={`hangar-finish-repair-${mech.id}`}
+        onClick={() => mutate((draft) => waitCompany(catalog, draft, wait.targetDay))}>Complete repairs & continue</button>
+      {wait.blocked === null ? null : <p role="status">{wait.blocked}</p>}
+    </div>}
     <RepairReadout catalog={catalog} state={state} mech={mech} estimate={estimate} projected={projected}
       booking={booking} ready={ready} status={ready ? 'Machine available' : 'Workshop work required'} />
     <h4>Installed weapons</h4>

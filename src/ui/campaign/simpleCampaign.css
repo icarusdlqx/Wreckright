@@ -1,0 +1,21 @@
+.campaign-journey { display: flex; align-items: center; gap: 24px; padding: 16px 0; border-bottom: 1px solid #c6cfbf; margin-bottom: 16px; color: #657970; }
+.campaign-journey strong { color: #173842; }
+.company-tools { margin-bottom: 18px; border: 1px solid #c6cfbf; border-radius: 5px; padding: 10px 14px; }
+.company-tools > summary, .campaign-route-overview > summary,
+.campaign-optional-work > summary, .campaign-terms-detail > summary,
+.campaign-company-detail > summary { cursor: pointer; font-weight: 600; padding: 7px 0; }
+.company-tools nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.company-tools p { color: #657970; font-size: 12px; }
+.company-operations { display: flex !important; flex-direction: column; gap: 16px; }
+.company-operations[hidden] { display: none !important; }
+.company-operations > .camp-contract { width: 100%; box-sizing: border-box; }
+.campaign-route-overview { order: 3; padding: 12px; border: 1px solid #c6cfbf; border-radius: 5px; }
+.campaign-optional-work { order: 4; padding: 12px; border: 1px solid #c6cfbf; }
+.campaign-company-detail { margin-top: 18px; }
+.campaign-terms-detail { margin: 12px 0; }
+.camp-contract [data-testid='camp-accept'] { margin-top: 16px; min-height: 48px; font-size: 16px; }
+.camp-log details { margin-top: 5px; }
+.prep-repair-continue { border-left: 3px solid #b17842; background: #efe6d1; padding: 10px 14px; margin: 10px 0; }
+.prep-repair-continue p { margin: 4px 0 8px; }
+.debrief .salvage-value, .debrief .salvage-owned { display: none; }
+@media(max-width:760px) { .campaign-journey { gap: 10px; font-size: 12px; flex-wrap: wrap; } }

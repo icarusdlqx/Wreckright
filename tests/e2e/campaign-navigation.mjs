@@ -1,3 +1,4 @@
+import { openCompanyTools } from './unified-navigation.mjs';
 export async function companyFile(page, testId) {
   if (testId === 'camp-save' || testId === 'camp-load') {
     await page.getByTestId(testId).click();
@@ -39,6 +40,7 @@ export async function checkRestartCancellation({ page, check }) {
 
 export async function checkCompanyWorkspaces({ page, shots, check }) {
   const saved = await page.evaluate(() => localStorage.getItem('ironline.campaign'));
+  await openCompanyTools(page);
   await page.locator('[data-testid="camp-area-workshop"]').click();
   check('Workshop exposes the machines without unrelated contract controls',
     await page.locator('[data-testid="camp-bay"]').isVisible() &&
@@ -53,18 +55,21 @@ export async function checkCompanyWorkspaces({ page, shots, check }) {
     await page.getByTestId('refit-bay').waitFor({ state: 'hidden' });
     check('closing a workshop refit restores its launch control', await refit.evaluate((button) => button === document.activeElement));
   }
+  await openCompanyTools(page);
   await page.locator('[data-testid="camp-area-crew"]').click();
   check('Crew exposes pilot progression and hides the workshop',
     await page.locator('[data-testid="camp-roster"]').isVisible() &&
     !(await page.locator('[data-testid="camp-bay"]').isVisible()));
   await page.screenshot({ path: `${shots}/08-crew.png` });
+  await openCompanyTools(page);
   await page.locator('[data-testid="camp-area-supplies"]').click();
   check('Stores and yard exposes both the inventory and parts counter',
     await page.locator('[data-testid="camp-store"]').isVisible() &&
     await page.locator('[data-testid="camp-market"]').isVisible());
   await page.screenshot({ path: `${shots}/08-stores-yard.png` });
+  await openCompanyTools(page);
   await page.locator('[data-testid="camp-area-operations"]').click();
   check('Operations restores the contract board and navigation leaves the save intact',
-    await page.locator('[data-testid="camp-map"]').isVisible() &&
+    await page.locator('.campaign-route-overview > summary').isVisible() &&
     (await page.evaluate(() => localStorage.getItem('ironline.campaign'))) === saved);
 }

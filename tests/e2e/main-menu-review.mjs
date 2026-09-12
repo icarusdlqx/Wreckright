@@ -1,3 +1,4 @@
+import { returnFromAutoPreparation } from './unified-navigation.mjs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
@@ -129,6 +130,7 @@ async function checkLaunch(route) {
       const guide = page.locator('[data-testid="campaign-guide-dismiss"]');
       if (await guide.isVisible()) await guide.click();
       await page.locator('[data-testid="camp-accept"]').click();
+      await returnFromAutoPreparation(page);
       await page.locator('[data-testid="camp-deploy"]').click();
     }
     await page.locator('[data-testid="briefing"]').waitFor();

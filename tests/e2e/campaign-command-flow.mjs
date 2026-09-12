@@ -1,3 +1,4 @@
+import { openCompanyTools, returnFromAutoPreparation } from './unified-navigation.mjs';
 import { mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
 
@@ -13,8 +14,8 @@ const preparationResources = raw => {
 };
 
 /** Controlled settled-field fixtures exercise navigation, not campaign balance or human victories. */
-async function fixture(page, url, campaignId) {
-  return page.evaluate(async ({ url, campaignId }) => {
+export async function fixture(page, url, campaignId, recoverEnemies = false) {
+  return page.evaluate(async ({ url, campaignId, recoverEnemies }) => {
     const source = path => new URL(path, url).href;
     const [{ getCatalog }, campaign, save, worldApi] = await Promise.all([
       import(source('src/schema/load.ts')), import(source('src/campaign/campaign.ts')),
@@ -28,6 +29,7 @@ async function fixture(page, url, campaignId) {
     const world = worldApi.createWorld(catalog, { seed: deployment.seed, missionId: deployment.missionId,
       playerTeam: 0, playerLance: deployment.entries, difficulty: state.difficulty });
     world.entities.find(unit => unit.team === 0).locations.centre_torso.armour -= 10;
+    if (recoverEnemies) for (const enemy of world.entities.filter(unit => unit.team !== 0)) { enemy.pilot.ejected = true; enemy.killMethod = 'ejected'; }
     world.tick = 100; world.finished = true; world.winner = 0;
     world.missionStatus = 'success'; world.missionReason = 'all objectives complete';
     for (const objective of world.objectives) if (objective.team === 0) { objective.status = 'complete'; objective.progress = 1; }
@@ -37,7 +39,7 @@ async function fixture(page, url, campaignId) {
     return { first: first.name, mechId: deployment.lance[0].mech.id,
       next: campaignId === 'border_dispute' ? 'recovery_window' : 'cutbank_attestation',
       optional: campaignId === 'border_dispute' ? 'marker_survey' : 'custody_survey' };
-  }, { url, campaignId });
+  }, { url, campaignId, recoverEnemies });
 }
 
 export async function runCampaignCommandFlow({ browser, url, shots, check }) {
@@ -57,7 +59,7 @@ export async function runCampaignCommandFlow({ browser, url, shots, check }) {
       check(`${campaignId}: settled debrief offers a next-mission review without calendar waiting`,
         (await page.locator('[data-testid="debrief-continue"]').innerText()).includes('No calendar advance is needed'));
       await page.screenshot({ path: `${shots}/campaign-flow-${campaignId}-debrief.png` });
-      const firstReportAction = page.locator('.debrief-pair-actions button').first();
+      const firstReportAction = page.locator('[data-testid="debrief"] summary:visible').first();
       await page.getByTestId('debrief-close').focus();
       await page.keyboard.press('Tab');
       const forward = await firstReportAction.evaluate(el => el === document.activeElement);
@@ -73,6 +75,7 @@ export async function runCampaignCommandFlow({ browser, url, shots, check }) {
         await page.locator(`[data-testid="camp-node-${prepared.next}"]`).evaluate(el => el.classList.contains('selected'))
         && reviewed.contract === null && reviewed.day === settled.day && reviewed.cbills === settled.cbills
         && reviewed.history.at(-1).salvageFinalized);
+      await openCompanyTools(page);
       await page.locator('[data-testid="camp-area-journal"]').click();
       check(`${campaignId}: Journal retains a visible continuation action`, await page.locator('[data-testid="camp-continue-mission"]').isVisible());
       await page.screenshot({ path: `${shots}/campaign-flow-${campaignId}-journal.png` });
@@ -86,6 +89,7 @@ export async function runCampaignCommandFlow({ browser, url, shots, check }) {
         await page.locator(`[data-testid="camp-node-${prepared.optional}"]`).evaluate(el => el.classList.contains('selected')) && await raw(page) === unchanged);
       await page.locator(`[data-testid="camp-route-review-${prepared.next}"]`).click();
       await page.locator('[data-testid="camp-accept"]').click();
+      await returnFromAutoPreparation(page);
       const signed = await raw(page);
       await page.locator('[data-testid="camp-next-mission"]').click();
       await page.locator('[data-testid="hangar-continue"]').waitFor();
@@ -107,6 +111,7 @@ export async function runCampaignCommandFlow({ browser, url, shots, check }) {
       check(`${campaignId}: reload retains signed contract and resumes at outfit step`,
         (await page.locator('[data-testid="camp-next-mission"]').innerText()).includes('Outfit & deploy')
         && (await read(page)).contract.nodeId === prepared.next && await raw(page) === preparedSave);
+      await openCompanyTools(page);
       await page.locator('[data-testid="camp-area-workshop"]').click();
       await page.locator(`[data-testid="camp-repair-${prepared.mechId}"]`).click();
       const booked = await read(page);
@@ -141,6 +146,7 @@ export async function runCampaignCommandFlow({ browser, url, shots, check }) {
         await page.locator('[data-testid="camp-waiting"] > summary').click();
       }
       await page.setViewportSize({ width: 390, height: 844 });
+      await openCompanyTools(page);
       await page.locator('[data-testid="camp-area-journal"]').click();
       await page.locator('[data-testid="camp-next-step"]').scrollIntoViewIfNeeded();
       check(`${campaignId}: phone continuation fits without horizontal overflow`,

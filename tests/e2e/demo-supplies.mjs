@@ -1,3 +1,4 @@
+import { openCompanyTools } from './unified-navigation.mjs';
 const read = page => page.evaluate(() => JSON.parse(localStorage.getItem('ironline.campaign')).state);
 const supplyClaim = state => state.claimedRewardIds?.filter(id => id.includes('/demo-supplies/')) ?? [];
 const count = (state, id) => state.store.find(item => item.kind === 'weapon' && item.itemId === id)?.count ?? 0;
@@ -5,6 +6,7 @@ const count = (state, id) => state.store.find(item => item.kind === 'weapon' && 
 async function revealSupplies(page) {
   const guide = page.getByTestId('campaign-guide-dismiss');
   if (await guide.isVisible()) await guide.click();
+  await openCompanyTools(page);
   await page.getByTestId('camp-area-supplies').click();
   await page.getByTestId('demo-supply-panel').waitFor();
 }
@@ -19,6 +21,7 @@ async function startCompany(page, url, campaignId) {
 }
 
 async function crewPortraits(page) {
+  await openCompanyTools(page);
   await page.getByTestId('camp-area-crew').click();
   const state = await read(page);
   const portraits = [];

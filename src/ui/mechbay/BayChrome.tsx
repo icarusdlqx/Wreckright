@@ -159,6 +159,7 @@ export function BayChrome({
             <button type="button" onClick={onSaveAs} disabled={!saveable} className="bay-save-as" data-testid="bay-save-as">
               Save as new…
             </button>
+            <details className="bay-file-tools"><summary>Import / export</summary>
             <button type="button" onClick={onExport} disabled={!saveable} data-testid="bay-export">
               Export JSON
             </button>
@@ -174,7 +175,7 @@ export function BayChrome({
                   if (file !== undefined) onImport(file);
                 }}
               />
-            </label>
+            </label></details>
             <select
               value=""
               onChange={(event) => {

@@ -1,3 +1,4 @@
+import { openCampaignDetails } from './unified-navigation.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import {
   verifyTouchDockControls,
@@ -52,7 +53,9 @@ async function documentOverflow(page) {
 
 async function oneColumn(page, selector) {
   return page.locator(selector).evaluate((element) => {
-    const columns = getComputedStyle(element).gridTemplateColumns.trim();
+    const style = getComputedStyle(element);
+    if (style.display === 'flex' && style.flexDirection === 'column') return true;
+    const columns = style.gridTemplateColumns.trim();
     return columns !== '' && columns.split(/\s+/).length === 1;
   });
 }
@@ -262,6 +265,7 @@ async function runOrientation({ browser, url, shots, check, viewport, label, sho
     );
     await page.locator('[data-testid="camp-manual-close"]').tap();
     await page.waitForSelector('[data-testid="camp-manual"]', { state: 'detached' });
+    await openCampaignDetails(page);
     await page.locator('.camp-node.available').first().tap();
     await page.locator('[data-testid="camp-terms-salvage_first"]').tap();
     check(

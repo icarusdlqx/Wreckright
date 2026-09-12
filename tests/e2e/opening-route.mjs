@@ -1,3 +1,4 @@
+import { openCompanyTools } from './unified-navigation.mjs';
 const stored = page => page.evaluate(() => localStorage.getItem('ironline.campaign'));
 const selected = (page, id) => page.locator(`[data-testid="camp-node-${id}"]`).evaluate(node => node.classList.contains('selected'));
 const reveal = locator => locator.evaluate(element => element.scrollIntoView({ block: 'start', behavior: 'instant' }));
@@ -73,110 +74,64 @@ async function openSaved(page, url, raw, debriefed = 0) {
   await page.locator('[data-testid="campaign"]').waitFor();
 }
 
-/** Uses the harness's single headless browser; creates and closes one disposable context. */
+/** Opening-route availability and preparation through the simplified mission screen. */
 export async function runOpeningRouteChecks({ browser, url, shots, check }) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
-  context.setDefaultTimeout(25_000);
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', error => errors.push(String(error)));
   await page.addInitScript(() => localStorage.setItem('ironline.muted', '1'));
-  const shot = name => shots ? page.screenshot({ path: `${shots}/opening-route-${name}.png` }) : Promise.resolve();
-  const guide = page.locator('[data-testid="opening-route"]');
-  const review = page.locator('[data-testid="opening-route-review"]');
   try {
-    await page.goto(url, { waitUntil: 'load' });
+    await page.goto(url);
     for (const campaignId of ['border_dispute', 'aurelian_recall']) {
       await page.setViewportSize({ width: 1440, height: 1000 });
       const fixture = await openingFixture(page, url, campaignId);
       await openSaved(page, url, fixture.freshRaw);
-      check(`${campaignId}: fresh first-drop corridor suppresses the optional opening guide`,
-        await page.locator('[data-testid="campaign-guide"]').isVisible() && await guide.count() === 0);
+      check(`${campaignId}: first mission uses the same three-step journey`,
+        await page.getByTestId('campaign-journey').isVisible()
+        && await page.getByTestId('campaign-guide').count() === 0);
       await openSaved(page, url, fixture.firstRaw);
-      await page.locator('[data-testid="debrief"]').waitFor();
-      check(`${campaignId}: diagnostic first victory keeps guidance behind the pending debrief`,
-        /Contract complete/.test(await page.locator('[data-testid="debrief-ledger"]').textContent())
-        && await guide.count() === 0);
-      await page.locator('[data-testid="debrief-close"]').click();
-      await guide.waitFor();
-      const guideText = await guide.textContent();
-      check(`${campaignId}: closing the first debrief recommends the one-scout survey`,
-        guideText.includes('contract 2 of 3') && guideText.includes(fixture.surveyName)
-        && /one fieldable scout/.test(guideText));
-      await reveal(guide);
-      await shot(`${campaignId}-desktop`);
-
-      await page.locator(`[data-testid="camp-node-${fixture.alternateId}"]`).click();
-      check(`${campaignId}: choosing the main route is not overridden by the suggestion`,
+      await page.getByTestId('debrief').waitFor();
+      await page.getByTestId('debrief-close').click();
+      const map = page.locator('.campaign-route-overview');
+      await map.locator(':scope > summary').click();
+      await page.getByTestId(`camp-node-${fixture.alternateId}`).click();
+      const before = await stored(page);
+      check(`${campaignId}: the commander can select the main route without a forced tutorial`,
         await selected(page, fixture.alternateId)
-        && (await page.locator('[data-testid="camp-contract"] h3').textContent()) === fixture.alternateName
-        && (await review.textContent()).includes(fixture.surveyName));
-      const beforeWiki = await stored(page);
-      const story = guide.locator('a[href^="#wiki/story/"]').first();
-      const storyHref = await story.getAttribute('href');
-      await story.click();
-      await page.locator('[data-testid="wiki-article"]').waitFor();
-      const storyOpened = new URL(page.url()).hash === storyHref
-        && await page.locator('[data-testid="wiki-locked"]').count() === 0;
-      await page.locator('[data-testid="wiki-close"]').click();
-      await guide.waitFor();
-      check(`${campaignId}: contextual story roundtrip preserves the full save and chosen contract`,
-        storyOpened && await stored(page) === beforeWiki && await selected(page, fixture.alternateId));
-      await review.click();
-      await page.waitForFunction(() => document.activeElement?.getAttribute('data-testid') === 'camp-contract');
-      check(`${campaignId}: explicit Review selects and focuses the survey without signing`,
-        await selected(page, fixture.surveyId) && await stored(page) === beforeWiki
-        && (await page.locator('[data-testid="camp-contract"] h3').textContent()) === fixture.surveyName);
-
+        && await page.locator('[data-testid="camp-contract"] h3').textContent() === fixture.alternateName);
+      await page.getByTestId(`camp-node-${fixture.surveyId}`).click();
+      check(`${campaignId}: optional scout mission remains selectable without changing the save`,
+        await selected(page, fixture.surveyId) && await stored(page) === before);
       await page.setViewportSize({ width: 390, height: 844 });
-      await review.scrollIntoViewIfNeeded();
-      check(`${campaignId}: phone guide has no overflow and an unobstructed touch-sized review action`,
-        await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)
-        && await guide.evaluate(element => element.scrollWidth <= element.clientWidth)
-        && await review.evaluate(button => {
-          const bounds = button.getBoundingClientRect();
-          return bounds.height >= 44 && bounds.width >= 44 && bounds.top >= 0 && bounds.bottom <= innerHeight
-            && button.contains(document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2));
-        }));
-      await shot(`${campaignId}-mobile`);
-      await review.focus();
-      await page.keyboard.press('Enter');
-      await page.waitForFunction(() => document.activeElement?.getAttribute('data-testid') === 'camp-contract');
-      check(`${campaignId}: phone keyboard review returns focus to the selected contract`,
-        await selected(page, fixture.surveyId) && await stored(page) === beforeWiki);
-      await page.locator('[data-testid="camp-accept"]').click();
-      check(`${campaignId}: signing the survey hides the opening guide`,
-        await guide.count() === 0 && JSON.parse(await stored(page)).state.contract.nodeId === fixture.surveyId);
-      await page.locator('[data-testid="camp-deploy"]').click();
-      await page.locator('[data-testid="hangar-continue"]').click();
-      await page.locator('[data-testid="lance-manifest"]').waitFor();
-      const profile = await page.locator('[data-testid="manifest-profile"]').textContent();
-      check(`${campaignId}: survey preparation enforces one berth and its authored tonnage limit`,
-        /1\/1 machines · 1 ready/.test(profile)
-        && (await page.locator('[data-testid="manifest-tonnage"]').textContent()).endsWith(`/${fixture.allowance}t`)
-        && await page.locator('[data-testid="manifest-actual-drop"] .prep-seat').count() === 5
+      const accept = page.getByTestId('camp-accept');
+      await reveal(accept);
+      check(`${campaignId}: phone mission selection has no horizontal overflow`,
+        await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+      if (shots) await page.screenshot({ path: `${shots}/opening-route-${campaignId}-mobile.png` });
+      await accept.click();
+      await page.getByTestId('hangar-continue').waitFor();
+      check(`${campaignId}: selecting the scout mission opens preparation immediately`,
+        JSON.parse(await stored(page)).state.contract.nodeId === fixture.surveyId);
+      await page.getByTestId('hangar-continue').click();
+      check(`${campaignId}: scout mission enforces authored tonnage and one deployment seat`,
+        /1\/1 machines · 1 ready/.test(await page.getByTestId('manifest-profile').textContent())
+        && (await page.getByTestId('manifest-tonnage').textContent()).endsWith(`/${fixture.allowance}t`)
         && await page.locator('[data-testid="manifest-actual-drop"] .prep-seat:not(:disabled)').count() === 1
-        && JSON.parse(await stored(page)).state.deploymentSeats.filter(seat => seat.mechId !== null).length === 1
-        && await page.locator('[data-testid="manifest-launch"]').isEnabled());
-
+        && await page.getByTestId('manifest-launch').isEnabled());
       await openSaved(page, url, fixture.archivedRaw, 2);
-      await guide.waitFor();
       const archived = JSON.parse(await stored(page)).state;
-      check(`${campaignId}: archived reports preserve completed-node progress to the recovery suggestion`,
+      check(`${campaignId}: archived reports retain completed-node progress`,
         archived.history.length === 0 && archived.historyArchive.outcomes === 2
-        && archived.completedNodes.includes(fixture.surveyId)
-        && (await guide.textContent()).includes('contract 3 of 3')
-        && (await guide.textContent()).includes(fixture.recoveryName));
-      const beforeDismiss = await stored(page);
-      await page.locator('[data-testid="opening-route-dismiss"]').click();
-      await page.locator('[data-testid="camp-area-crew"]').click();
-      await page.locator('[data-testid="camp-area-operations"]').click();
-      check(`${campaignId}: session dismissal survives workspace navigation without changing the save`,
-        await guide.count() === 0 && await stored(page) === beforeDismiss);
+        && archived.completedNodes.includes(fixture.surveyId));
+      const beforeRecords = await stored(page);
+      await openCompanyTools(page);
+      await page.getByTestId('camp-area-crew').click();
+      await openCompanyTools(page);
+      await page.getByTestId('camp-area-operations').click();
+      check(`${campaignId}: optional records navigation preserves campaign progress`,
+        await stored(page) === beforeRecords);
     }
-    check('isolated opening-route review has no browser errors', errors.length === 0, errors.join('\n'));
-  } catch (error) {
-    await shot('error').catch(() => {});
-    throw error;
+    check('opening-route journey has no browser errors', errors.length === 0, errors.join('\n'));
   } finally { await context.close(); }
 }

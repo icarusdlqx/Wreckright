@@ -100,19 +100,12 @@ describe('mechbay presentation', () => {
     expect(html).toContain('weapon-card--compact');
     expect(html.match(/id="bay-shelf-inspector"/g)).toHaveLength(1);
     expect(html.match(/role="meter"/g)).toHaveLength(3);
-    expect(html.match(/data-workspace-tab=/g)).toHaveLength(3);
-    expect(html.match(/data-workspace-panel=/g)).toHaveLength(3);
-    for (const workspace of ['loadout', 'armour', 'review']) {
-      expect(html).toContain(`aria-controls="bay-workspace-panel-${workspace}"`);
-      expect(html).toContain(`id="bay-workspace-panel-${workspace}"`);
-    }
-    expect(html).toMatch(/id="bay-workspace-panel-loadout"[^>]*role="tabpanel"(?![^>]*hidden="")/);
-    expect(html).toMatch(/id="bay-workspace-panel-armour"[^>]*hidden=""/);
-    expect(html).toMatch(/id="bay-workspace-panel-review"[^>]*hidden=""/);
-    const reviewStart = html.indexOf('id="bay-workspace-panel-review"');
-    const comparison = html.indexOf('data-testid="build-compare"');
-    expect(comparison).toBeGreaterThan(reviewStart);
-    expect(html.slice(0, reviewStart)).not.toContain('data-testid="build-compare"');
+    expect(html).not.toContain('data-workspace-tab=');
+    expect(html).toContain('data-workspace="unified"');
+    expect(html).toContain('data-testid="bay-readiness"');
+    expect(html).toContain('Quick armour allocation');
+    expect(html).toContain('Quick heat sink count');
+    expect(html).toContain('Detailed comparison and firing analysis');
     expect(html).not.toMatch(/dead inside|Lobs over cover/);
   });
 
@@ -129,7 +122,6 @@ describe('mechbay presentation', () => {
     expect(replaceBlock).toContain('setHoveredLocation(null)');
     expect(replaceBlock).toContain('setArmed(null)');
     expect(replaceBlock).toContain('setInspected(null)');
-    expect(replaceBlock).toContain("setWorkspace('loadout')");
     expect(replaceBlock).toContain('setHistory(beginDesignHistory(next))');
 
     const selected = catalog.designs.get('hornet_spotter');

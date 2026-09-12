@@ -1,13 +1,14 @@
+import { returnFromAutoPreparation } from './unified-navigation.mjs';
 import { openDesktopBattleMenu } from './input-safety.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 
 async function anatomyBounds(page) {
   return page.getByTestId('anatomical-loadout').evaluate(body => {
-    const boundary = document.querySelector('[data-testid="bay-save"]').getBoundingClientRect().top;
+    const boundary = body.getBoundingClientRect();
     return [...body.querySelectorAll('.bay-location')].map(card => {
       const rect = card.getBoundingClientRect();
       const tiles = [...card.querySelectorAll('.slot-block__inspect')].map(tile => tile.getBoundingClientRect());
-      return { part: card.dataset.testid, visible: rect.top >= 0 && rect.bottom <= boundary,
+      return { part: card.dataset.testid, visible: rect.top >= boundary.top && rect.bottom <= boundary.bottom + 1,
         contentsFit: tiles.every(tile => tile.left >= rect.left && tile.right <= rect.right + 1 && tile.top >= rect.top && tile.bottom <= rect.bottom + 1) };
     });
   });
@@ -92,13 +93,14 @@ export async function runMechbayAnatomyChecks({ browser, url, shots, check }) {
     const dismiss = page.getByTestId('campaign-guide-dismiss');
     if (await dismiss.isVisible()) await dismiss.click();
     await page.getByTestId('camp-accept').click();
+    await returnFromAutoPreparation(page);
     await page.getByTestId('camp-review-machines').click();
     await page.getByTestId('prep-seat-1').click();
     const mech = await page.evaluate(() => JSON.parse(localStorage.getItem('ironline.campaign')).state.deploymentSeats[1].mechId);
     await page.getByTestId(`hangar-refit-${mech}`).click();
     await page.getByTestId('refit-bay').getByTestId('bay-save').waitFor();
     const bounds = await anatomyBounds(page);
-    check('campaign refit retains all eight body racks alongside mission and deployment context at 1280×720', bounds.length === 8 && bounds.every(part => part.visible && part.contentsFit)
+    check('campaign refit retains all eight scrollable body compartments alongside mission and deployment context at 1280×720', bounds.length === 8 && bounds.every(part => part.visible && part.contentsFit)
       && await page.locator('.prep-refit-context .prep-seat').count() === 5, JSON.stringify(bounds));
     await shot('campaign-1280');
     check('anatomical workshop journey produces no browser errors', errors.length === 0, errors.join('\n'));

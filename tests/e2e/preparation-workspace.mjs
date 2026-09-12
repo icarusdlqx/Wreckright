@@ -1,3 +1,4 @@
+import { returnFromAutoPreparation } from './unified-navigation.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import { clickFittingAction } from './fitting-actions.mjs';
 import { isDeepStrictEqual } from 'node:util';
@@ -18,6 +19,7 @@ export async function runPreparationWorkspaceChecks({ browser, url, shots, check
     const dismiss = page.getByTestId('campaign-guide-dismiss');
     if (await dismiss.isVisible()) await dismiss.click();
     await page.getByTestId('camp-accept').click();
+    await returnFromAutoPreparation(page);
     await page.getByTestId('camp-review-machines').click();
     const workspace = page.getByTestId('lance-manifest');
     await workspace.waitFor();

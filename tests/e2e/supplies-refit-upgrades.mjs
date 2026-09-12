@@ -1,3 +1,4 @@
+import { openCompanyTools } from './unified-navigation.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import { nativeBayDrag } from './native-bay-drag.mjs';
 import { clickFittingAction } from './fitting-actions.mjs';
@@ -16,6 +17,7 @@ export async function runSuppliesRefitUpgradeChecks({ browser, url, shots, check
     await completeInitialCampaignSetup(page);
     const guide = page.locator('[data-testid="campaign-guide-dismiss"]');
     if (await guide.isVisible()) await guide.click();
+    await openCompanyTools(page);
     await page.locator('[data-testid="camp-area-workshop"]').click();
     await page.locator('[data-testid="camp-refit-mech-1"]').click();
     await page.locator('[data-testid="mechbay"]').waitFor();
@@ -46,6 +48,7 @@ export async function runSuppliesRefitUpgradeChecks({ browser, url, shots, check
     await page.locator('[data-testid="refit-bay"]').waitFor({ state: 'hidden' });
     check('Save and leave commits the chosen location', (await readCompany(page)).mechs[0].design.mounts.some(mount => mount.weaponId === 'flamer' && mount.location === 'right_arm'));
 
+    await openCompanyTools(page);
     await page.locator('[data-testid="camp-area-supplies"]').click();
     const current = await readCompany(page);
     const flamerIndex = current.mechs[0].design.mounts.findIndex(mount => mount.weaponId === 'flamer');
