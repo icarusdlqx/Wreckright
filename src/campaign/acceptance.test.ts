@@ -215,13 +215,13 @@ describe('campaign contracts', () => {
     );
     resolveWithoutCombat(run, false);
 
-    const elapsed = 1 + catalog.rules.economy.contractFailure.recoveryDays;
-    const salaries = elapsed * run.pilots.length * catalog.rules.economy.pilot.salaryPerDay;
+    const elapsed = 1;
+    const salaries = 0;
     expect(run.finished).toBe(false);
     expect(run.day).toBe(startingDay + elapsed);
     expect(run.cbills).toBe(startingCash - recoveryCost - salaries);
     expect(availableNodes(catalog, run).map((node) => node.id)).toContain('militia_raid');
-    expect(run.log.some((entry) => /costs .* credits and 3 days.*returns to the board/.test(entry.text))).toBe(true);
+    expect(run.log.some((entry) => /costs .* credits.*returns to the board/.test(entry.text))).toBe(true);
 
     const route = [
       'militia_raid',

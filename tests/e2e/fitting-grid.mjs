@@ -1,3 +1,4 @@
+import { saveBay } from './save-bay.mjs';
 import { nativeBayDrag } from './native-bay-drag.mjs';
 import { importLegacySentinel } from './mechbay-legacy-fixture.mjs';
 import { openDesktopBattleMenu } from './input-safety.mjs';
@@ -66,7 +67,7 @@ export async function runFittingGridChecks({ browser, url, shots, check }) {
     await pointerDrop(page, page.getByTestId('stock-weapon-machine_gun'), page.getByTestId('free-slots-right_arm'));
     check('ammo weapon drag automatically fits a feed and reports where it is stowed', (await page.getByTestId('bay-status').innerText()).includes('ammunition stowed') && await page.locator('[data-testid^="inspect-ammo-"]').filter({ hasText: 'Machine Gun' }).count() === 1);
     await page.getByTestId('design-name').fill('Grid Fitting Review');
-    await page.getByTestId('bay-save').click();
+    await saveBay(page);
     const fitted = await saved(page, 'grid_fitting_review');
     check('legal moved and ammo-fed layout saves with a matching ammo bin', fitted?.mounts.some(mount => mount.weaponId === 'machine_gun' && mount.location === 'right_arm') && fitted.ammo.some(bin => bin.weaponId === 'machine_gun' && bin.tons === 1));
     await page.reload();

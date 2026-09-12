@@ -1,3 +1,4 @@
+import { saveBay } from './save-bay.mjs';
 import { clickFittingAction } from './fitting-actions.mjs';
 export async function runSkirmishStorageChecks({ browser, url, shots, check }) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' });
@@ -19,7 +20,7 @@ export async function runSkirmishStorageChecks({ browser, url, shots, check }) {
     await page.getByTestId(`${side === 'enemy' ? 'enemy-' : ''}berth-customise-0`).click();
     await page.getByTestId('outfit-bay').waitFor();
     await clickFittingAction(page.getByTestId('remove-weapon-0'));
-    await page.getByTestId('bay-save').click();
+    await saveBay(page);
     await page.getByTestId('outfit-bay').waitFor({ state: 'hidden' });
   };
   try {
@@ -58,14 +59,14 @@ export async function runSkirmishStorageChecks({ browser, url, shots, check }) {
     await page.evaluate((key) => { globalThis.__blockedLanceKeys = [key]; }, enemyKey);
     await page.getByTestId('berth-customise-0').click();
     await page.getByTestId('outfit-bay').waitFor();
-    await page.getByTestId('bay-save').click();
+    await saveBay(page);
     await page.getByTestId('outfit-bay').waitFor({ state: 'hidden' });
     check('saving the friendly refit clears only its own warning', await warning.locator('li').count() === 1
       && (await warning.innerText()).includes('Enemy lance') && !(await warning.innerText()).includes('Your lance'));
     await page.evaluate(() => { globalThis.__blockedLanceKeys = []; });
     await page.getByTestId('enemy-berth-customise-0').click();
     await page.getByTestId('outfit-bay').waitFor();
-    await page.getByTestId('bay-save').click();
+    await saveBay(page);
     await page.getByTestId('outfit-bay').waitFor({ state: 'hidden' });
     check('warning clears after every affected roster is actually saved', await warning.count() === 0
       && await page.getByTestId('briefing-deploy').isEnabled());

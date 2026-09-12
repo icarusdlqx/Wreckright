@@ -35,7 +35,6 @@ export interface CampaignHeaderProps {
 
 export function CampaignHeader({
   title,
-  day,
   balance,
   seed,
   difficulty = 'regular',
@@ -45,7 +44,6 @@ export function CampaignHeader({
   nextDisabled,
   nextLabel,
   onNext,
-  waiting,
   onSave,
   onLoad,
   onExport,
@@ -92,10 +90,6 @@ export function CampaignHeader({
             </div>
           </div>
           <div className="camp-company-status" aria-label="Company status">
-            <div>
-              <span className="camp-stat-label">Local time</span>
-              <strong data-testid="camp-day">Day {day}</strong>
-            </div>
             <div>
               <span className="camp-stat-label">Treasury</span>
               <strong data-testid="camp-cbills">{balance}</strong>
@@ -162,7 +156,6 @@ export function CampaignHeader({
               </div>
             </div>
           </details>
-          {waiting}
           <nav className="camp-utility-actions" aria-label="Company help and settings">
             <WikiLink className="camp-wiki-link" data-testid="camp-wiki">Story & machines</WikiLink>
             <button type="button" onClick={onToggleManual} data-testid="camp-manual-toggle"

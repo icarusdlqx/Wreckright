@@ -205,7 +205,7 @@
   .anatomical-navigator {
     display: grid; position: relative; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: 50px 68px 50px;
     gap: 4px; padding: 8px 2px; margin-bottom: 10px;
-    grid-template-areas: '. . head . .' 'rightarm righttorso centre lefttorso leftarm' '. rightleg . leftleg .';
+    grid-template-areas: '. . head . .' 'leftarm lefttorso centre righttorso rightarm' '. leftleg . rightleg .';
   }
   .anatomical-navigator button { z-index: 1; min-height: 44px; min-width: 0; padding: 3px 1px; display: flex; flex-direction: column; justify-content: center; gap: 3px; background: var(--panel); color: var(--text); border: 1px solid var(--edge); }
   .anatomical-navigator button strong { font-size: 9px; line-height: 12px; }

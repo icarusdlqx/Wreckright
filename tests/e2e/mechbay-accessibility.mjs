@@ -190,7 +190,7 @@ export async function verifyFirstFitExplainers({ page, check }) {
   check(
     'the fitting guide reopens and component provenance stays available in the selected item details',
     reopened.workbenchExpanded === 'true' && await page.locator('#location-fit-steps').isVisible() &&
-      (cultureVisible ? reopened.cultureExpanded === 'true' : await page.locator('#bay-shelf-inspector .dossier-culture').isVisible()),
+      (cultureVisible ? reopened.cultureExpanded === 'true' : await page.locator('.weapon-card.is-inspected .weapon-card__category').isVisible()),
     JSON.stringify(reopened),
   );
   await page.locator('[data-testid="bay-workbench-disclosure"]').click();

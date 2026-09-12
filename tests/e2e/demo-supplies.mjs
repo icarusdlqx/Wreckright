@@ -1,3 +1,4 @@
+import { saveBay } from './save-bay.mjs';
 import { openCompanyTools } from './unified-navigation.mjs';
 const read = page => page.evaluate(() => JSON.parse(localStorage.getItem('ironline.campaign')).state);
 const supplyClaim = state => state.claimedRewardIds?.filter(id => id.includes('/demo-supplies/')) ?? [];
@@ -63,7 +64,7 @@ export async function runDemoSupplyChecks({ browser, url, shots, check }) {
       const replacement = page.locator('[data-replacement-fit="true"] [data-testid^="replace-weapon-"]').first();
       await replacement.click();
       await page.getByTestId('bay-replacement-confirm').click();
-      await page.getByTestId('bay-save').click();
+      await saveBay(page);
       await page.getByTestId('mechbay').waitFor({ state: 'hidden' });
       const refitted = await read(page);
       const oldMachine = initial.mechs.find(mech => mech.id === machineId);

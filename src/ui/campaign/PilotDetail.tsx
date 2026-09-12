@@ -140,7 +140,7 @@ export function PilotDetail({ pilot, state, mutate }: { pilot: PilotRecord; stat
         <span className="pilot-state">
           {pilot.dead
             ? 'KIA'
-            : `${availableXp(pilot)} XP banked${isPilotAvailable(state, pilot) ? '' : (pilot.recoveryMissions ?? 0) > 0 ? ' · misses next mission' : ` · injured to day ${pilot.injuredUntilDay}`}`}
+            : `${availableXp(pilot)} XP banked${isPilotAvailable(state, pilot) ? '' : (pilot.recoveryMissions ?? 0) > 0 ? ' · misses next mission' : ' · recovering'}`}
         </span>
       </header>
       <PilotProfile pilot={pilot} prominent />
@@ -194,19 +194,18 @@ export function PilotDetail({ pilot, state, mutate }: { pilot: PilotRecord; stat
 
 export function HireRow({ hire, state, mutate }: { hire: Pilot; state: CampaignState; mutate: Props['mutate'] }) {
   const cost = hireCost(catalog, hire);
-  const salary = catalog.rules.economy.pilot.salaryPerDay;
   return (
     <li key={hire.id} title={hire.bio} data-testid={`camp-hire-${hire.id}`}>
       <PilotProfile pilot={hire} />
       <div className="pilot-traits">{hire.traits.map((traitId) => <TraitReadout key={traitId} traitId={traitId} />)}</div>
-      <span className="pilot-state">{credits(cost)} · {credits(salary)}/day</span>
+      <span className="pilot-state">{credits(cost)} signing fee</span>
       <button
         type="button"
         disabled={state.cbills < cost}
         onClick={() =>
           mutate((draft) => {
             const result = hirePilot(catalog, draft, hire.id);
-            return result.ok ? `${hire.name} signed. Payroll rises by ${credits(salary)} a day.` : result.reason;
+            return result.ok ? `${hire.name} signed and available for deployment.` : result.reason;
           })
         }
         data-testid={`camp-sign-${hire.id}`}

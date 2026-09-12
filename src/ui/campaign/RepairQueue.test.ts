@@ -19,70 +19,25 @@ function queuedState() {
   return { state, active, queued };
 }
 
-describe('repair queue readouts', () => {
-  it('names the active lift, the waiting place and both ready dates', () => {
+describe('immediate repair readouts', () => {
+  it('shows repaired machines as ready in the company and deployment bay', () => {
     const { state, active, queued } = queuedState();
     const props = { state, mutate: () => undefined };
     const bay = renderToStaticMarkup(createElement(MechBayPanel, props));
-
-    expect(bay).toContain('One lift works through the queue in order');
-    expect(bay).toContain(`on a lift · ready day ${active.readyOnDay}`);
-    expect(bay).toContain(`queued 1 · starts day ${active.readyOnDay}`);
-    expect(bay).toContain(`ready day ${queued.readyOnDay}`);
-
-    const hangar = renderToStaticMarkup(
-      createElement(Hangar, {
-        catalog,
-        state,
-        mutate: () => undefined,
-        onRefit: () => undefined,
-        onContinue: () => undefined,
-        onCancel: () => undefined,
-      }),
-    );
-    expect(hangar).toContain(`On a lift — ready day ${active.readyOnDay}`);
-    expect(hangar).toContain(`Queued 1 — starts day ${active.readyOnDay}`);
+    expect(bay).toContain('No repairs required.');
+    expect(bay).toContain('Immediate');
+    expect(bay).not.toContain('Daily payroll');
+    const hangar = renderToStaticMarkup(createElement(Hangar, {
+      catalog, ...props, onRefit: () => undefined, onContinue: () => undefined, onCancel: () => undefined,
+    }));
+    expect(hangar).not.toContain('Queue repair');
+    expect(active.status).toBe('ready');
+    expect(queued.status).toBe('ready');
   });
-
-  it('explains why a paid workshop booking cannot be sold', () => {
+  it('makes restored hulls sellable without a waiting stage', () => {
     const { state, active } = queuedState();
-    const market = renderToStaticMarkup(
-      createElement(MarketPanel, { state, mutate: () => undefined }),
-    );
-
+    const market = renderToStaticMarkup(createElement(MarketPanel, { state, mutate: () => undefined }));
     expect(market).toContain(`data-testid="market-sell-${active.id}"`);
-    expect(market).toContain(`paid workshop booking · ready day ${active.readyOnDay}`);
-    expect(market).toContain('This paid workshop booking must finish before sale');
-  });
-
-  it('shows a credited zero-day booking at its queue start', () => {
-    const state = startCampaign(catalog, 'border_dispute', 'credited-repair-booking');
-    const [first, credited] = state.mechs;
-    if (first === undefined || credited === undefined) throw new Error('campaign needs two machines');
-    first.status = 'repairing';
-    credited.status = 'repairing';
-    first.readyOnDay = state.day + 2;
-    credited.readyOnDay = state.day + 2;
-
-    const bay = renderToStaticMarkup(
-      createElement(MechBayPanel, { state, mutate: () => undefined }),
-    );
-    expect(bay).toContain(
-      `queued 1 · starts day ${credited.readyOnDay} · ready day ${credited.readyOnDay}`,
-    );
-
-    const hangar = renderToStaticMarkup(
-      createElement(Hangar, {
-        catalog,
-        state,
-        mutate: () => undefined,
-        onRefit: () => undefined,
-        onContinue: () => undefined,
-        onCancel: () => undefined,
-      }),
-    );
-    expect(hangar).toContain(
-      `Queued 1 — starts day ${credited.readyOnDay}, ready day ${credited.readyOnDay}`,
-    );
+    expect(market).not.toContain('This paid workshop booking must finish');
   });
 });

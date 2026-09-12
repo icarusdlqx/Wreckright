@@ -91,16 +91,10 @@ describe('explicit workshop waiting', () => {
     expect(startRepair(catalog, state, second).ok).toBe(true);
     const wounded = state.pilots[0]!;
     wounded.recoveryMissions = 1;
-    const quote = nextRepairWait(catalog, state)!;
-    const secondDay = second.readyOnDay;
-    const balance = state.cbills;
-    expect(quote.targetDay).toBe(first.readyOnDay);
-    waitCompany(catalog, state, quote.targetDay);
-    expect(state.day).toBe(quote.targetDay);
+    expect(nextRepairWait(catalog, state)).toBeNull();
     expect(first.status).toBe('ready');
-    if (secondDay > state.day) expect(second.status).toBe('repairing');
+    expect(second.status).toBe('ready');
     expect(wounded.recoveryMissions).toBe(1);
-    expect(state.cbills).toBe(balance - quote.wages);
   });
 
   it('refuses an unaffordable wait without mutating the company', () => {

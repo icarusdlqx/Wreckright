@@ -2,7 +2,6 @@ import type { Design } from '../../schema/design';
 import type { Catalog } from '../../schema/load';
 import type { CampaignState, MechRecord } from '../../campaign/types';
 import type { RepairEstimate, RepairQueueEntry } from '../../campaign/repair';
-import { payrollThrough } from '../../campaign/ledger';
 import { machineDisplayName, designIdentityLabel } from '../designLabel';
 import { MachinePortrait } from '../mechbay/MachinePortrait';
 import { factionLabel } from './factionEconomy';
@@ -20,7 +19,7 @@ export function MachineIdentity({ catalog, design, companyLabel }: { catalog: Ca
       <div className="exp-machine-copy">
         <span className="exp-machine-culture">{factionLabel(chassis.faction)}</span>
         <strong>{companyLabel ?? machineDisplayName(catalog, design)}</strong>
-        <span>{chassis.tonnage}t {chassis.class} · {chassis.role}</span>
+        <span>{catalog.designs.has(design.id) ? "Prime variant" : design.name} · {chassis.tonnage}t {chassis.class} · {chassis.role}</span>
       </div>
     </div>
   );
@@ -38,34 +37,13 @@ interface RepairReadoutProps {
 }
 
 /** Keep the paid booking distinct from a quote for work not yet ordered. */
-export function RepairReadout({ catalog, state, mech, estimate, projected, booking, ready, status }: RepairReadoutProps) {
-  const booked = booking !== undefined;
+export function RepairReadout({ mech, estimate, ready, status }: RepairReadoutProps) {
   const needsWork = mech.status === 'hulk' || estimate.days > 0;
-  const readyDay = booked ? mech.readyOnDay : needsWork ? projected.readyOnDay : state.day;
-  const startsDay = booked ? booking.startsOnDay : projected.startsOnDay;
-  const wages = payrollThrough(catalog, state, Math.max(0, readyDay - state.day));
-  const badge = mech.status === 'hulk' ? 'Rebuild needed'
-    : !ready ? booking?.status === 'active' ? 'On the lift'
-      : booking?.status === 'inherited' ? 'Booked workshop work' : `In queue · ${booking?.queuePosition ?? 1}`
-    : mech.design.mounts.length === 0 ? 'Needs a weapon'
-    : needsWork ? 'Fieldable · damaged' : 'Machine ready';
-  const late = state.contract !== null && readyDay > state.contract.deadlineDay;
-  return (
-    <div className="exp-repair-readout" role="group" aria-label={status}>
-      <span className={`exp-readiness ${ready && mech.design.mounts.length > 0 ? 'is-ready' : 'needs-attention'}`}>{badge}</span>
-      {booked || needsWork ? (
-        <>
-          <dl className="exp-repair-facts">
-            <div><dt>{booked ? 'Booking' : 'Pay now'}</dt><dd>{booked ? 'Paid' : `${Math.round(estimate.cost).toLocaleString('en-GB')} C`}</dd></div>
-            <div><dt>Starts</dt><dd>{startsDay === null ? 'Existing booking' : `Day ${startsDay}`}</dd></div>
-            <div><dt>Ready</dt><dd className={late ? 'is-late' : undefined}>Day {readyDay}</dd></div>
-          </dl>
-          <p className="exp-repair-wages">Company payroll until ready: <strong>{Math.round(wages).toLocaleString('en-GB')} C</strong>. Charged as days pass.</p>
-          {late ? <p className="exp-prep-warning">Ready after the signed deadline, day {state.contract?.deadlineDay}.</p> : null}
-        </>
-      ) : <p className="exp-repair-wages">{mech.design.mounts.length === 0 ? 'Fit a weapon before deployment.' : 'No workshop booking required.'}</p>}
-    </div>
-  );
+  return <div className="exp-repair-readout" role="group" aria-label={status}>
+    <span className={`exp-readiness ${ready ? 'is-ready' : 'needs-attention'}`}>{mech.status === 'hulk' ? 'Rebuild needed' : needsWork ? 'Fieldable · damaged' : 'Machine ready'}</span>
+    {needsWork ? <p>Full restoration: <strong>{estimate.cost.toLocaleString('en-GB')} C</strong>. Ready immediately after payment.</p>
+      : <p>No repairs required.</p>}
+  </div>;
 }
 
 export function PreparationSteps({ stage }: { stage: 'bay' | 'manifest' }) {

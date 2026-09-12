@@ -226,7 +226,7 @@ describe('repair queue', () => {
     const result = startRepair(catalog, state, mech);
     expect(result.ok, result.reason ?? '').toBe(true);
     expect(state.cbills).toBe(cash - estimate.cost);
-    expect(mech.status).toBe('repairing');
+    expect(mech.status).toBe('ready');
 
     advanceDays(catalog, state, estimate.days);
     expect(mech.status).toBe('ready');

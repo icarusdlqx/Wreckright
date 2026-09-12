@@ -22,7 +22,7 @@ export function ShelfItem({ payload, label, detail, boxes, stock, fit, armed, in
       <button
         type="button" draggable={!unavailable} aria-pressed={armed}
         aria-current={inspected ? 'true' : undefined} aria-disabled={unavailable || undefined}
-        aria-controls="bay-shelf-inspector" data-testid={`stock-${payload.kind}-${payload.id}`}
+        data-testid={`stock-${payload.kind}-${payload.id}`}
         onFocus={() => onInspect(payload)}
         onClick={() => { onInspect(payload); if (!unavailable) onArm(payload); }}
         onDragStart={(event) => {

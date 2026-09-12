@@ -243,7 +243,8 @@ export function startRepair(
   }
 
   state.cbills -= estimate.cost;
-  bookRepair(catalog, state, mech, estimate.days);
+  completeRepair(catalog, mech);
+  mech.readyOnDay = state.day;
 
   return { ok: true, reason: null, estimate };
 }

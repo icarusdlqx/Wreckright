@@ -24,7 +24,7 @@ describe('company reward presentation', () => {
     expect(html).toContain('data-testid="contract-rewards"');
     expect(html).toContain('Win the contract and complete: Secure the cache');
     expect(html).toContain('Medium Laser ×2');
-    expect(html).toContain('workshop day credit');
+    expect(html).toContain('Priority workshop access');
     expect(html).toContain('separate from salvage rolls');
     expect(JSON.stringify(state)).toBe(before);
   });
@@ -37,7 +37,7 @@ describe('company reward presentation', () => {
     expect(html).toContain('Contract rewards delivered');
     expect(html).toContain(rewards[0]!.afterword);
     expect(html).toContain('To stores: Medium Laser ×2');
-    expect(html).toContain('1 workshop day credit banked');
+    expect(html).toContain('Workshop priority honoured');
     expect(renderToStaticMarkup(createElement(ContractRewards, { catalog: content, state, nodeId }))).toContain('Already delivered');
   });
 

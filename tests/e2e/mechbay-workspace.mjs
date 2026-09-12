@@ -1,3 +1,4 @@
+import { saveBay } from './save-bay.mjs';
 import { selectBaySection } from './unified-navigation.mjs';
 import { importLegacySentinel, comparisonMetrics, addedWeaponComparison } from './mechbay-legacy-fixture.mjs';
 import { discardRefitIfPrompted } from './mechbay-exit.mjs';
@@ -75,7 +76,7 @@ async function verifySavedLoadoutJourney({ page, check }) {
     await renderedTextIncludes(page.locator('[data-testid="build-review-verdict"]'), 'Legal loadout'),
   );
 
-  await page.locator('[data-testid="bay-save"]').click();
+  await saveBay(page);
   check(
     'the edited loadout keeps the existing saved-design storage contract',
     await page.evaluate(({ id, name }) => {
@@ -116,7 +117,7 @@ async function verifySavedLoadoutJourney({ page, check }) {
   check(
     'the briefing picker offers weight, class, authored role and culture without serials',
     authoredBerthLabels.length > 0 && authoredBerthLabels.every((label) =>
-      /^[^—]+ — \d+t (Light|Medium|Heavy|Assault) · [^·]+ · (Linewrought|Aurelian Stock)$/.test(label) &&
+      /^[^—]+ — \d+t (Light|Medium|Heavy|Assault) · [^·]+ · (Linewrought|Aurelian Stock) · Prime$/.test(label) &&
       !/\b[A-Z]{3}-\d+\b/.test(label)),
     authoredBerthLabels.join(' | '),
   );
@@ -166,9 +167,9 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
     .allInnerTexts();
   check(
     'the desktop stock picker carries complete machine identity without serial designations',
-    stockIdentity === 'Sentinel — 45t Medium · Plasma brawler · Aurelian Stock' &&
+    stockIdentity === 'Sentinel — 45t Medium · Plasma brawler · Aurelian Stock · Prime' &&
       stockOptions.every((label) => !/\b[A-Z]{3}-\d+\b/.test(label)) &&
-      stockOptions.every((label) => label.includes(' — ') && label.split(' · ').length === 3),
+      stockOptions.every((label) => label.includes(' — ') && label.split(' · ').length === 4),
     stockOptions.join(' | '),
   );
   await selectWorkspace(page, 'armour');
@@ -189,13 +190,13 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
 
   const firstWeaponRow = page.locator('[data-testid^="stock-weapon-"]').first();
   await firstWeaponRow.focus();
-  const inspector = page.locator('#bay-shelf-inspector');
+  const inspector = page.locator('.weapon-card.is-inspected');
   check(
     'the loadout workspace renders the machine and one visual weapon inspector',
     (await page.locator('[data-testid="mech-preview-canvas"]').count()) === 1 &&
       (await inspector.locator('[role="meter"]').count()) === 3 &&
       (await inspector.locator('.weapon-glyph').count()) === 1 &&
-      (await inspector.locator('.weapon-range-strip').count()) === 1 &&
+      (await inspector.locator('.weapon-card__description').count()) === 1 &&
       (await quietLocationState(page, true)).quiet === 8,
   );
 
@@ -346,7 +347,7 @@ export async function runSkirmishMechbayJourney({ page, check, shots }) {
       await renderedTextIncludes(page.locator('[data-testid="build-review-next-action"]'), 'Ready to commit'),
   );
 
-  await page.locator('[data-testid="bay-save"]').click();
+  await saveBay(page);
   const saved = await page.evaluate(() =>
     Object.keys(localStorage).filter((key) => key.startsWith('ironline.design.')),
   );
@@ -435,15 +436,15 @@ async function verifyDepletedCompanyRefit({ page, check }) {
   const flamerRow = page.locator('[data-testid="stock-weapon-flamer"]');
   const flamerReason = await flamerRow.getAttribute('title');
   await flamerRow.focus();
-  const inspector = page.locator('#bay-shelf-inspector');
+  const inspector = page.locator('.weapon-card.is-inspected');
   const inspectorText = await inspector.innerText();
   check(
     'the selected inspector explains exhausted weapon costs, heat, and range',
     (await inspector.locator('[role="meter"]').count()) === 3 &&
-      inspectorText.toLowerCase().includes('slot') &&
+      inspectorText.toLowerCase().includes('box') &&
       flamerReason !== null &&
       await renderedTextIncludes(inspector, flamerReason) &&
-      (await inspector.locator('.weapon-range-strip').count()) === 1,
+      (await inspector.locator('.weapon-card__description').count()) === 1,
     `${flamerReason ?? 'no fit reason'} | ${inspectorText}`,
   );
   check(
@@ -475,7 +476,7 @@ async function verifyDepletedCompanyRefit({ page, check }) {
     await renderedTextIncludes(page.locator('[data-testid="build-review-verdict"]'), 'Legal loadout') &&
       !(await page.locator('[data-testid="bay-save"]').isDisabled()),
   );
-  await page.locator('[data-testid="bay-save"]').click();
+  await saveBay(page);
   await page.waitForSelector('[data-testid="lance-manifest"]');
   check(
     'a company-owned no-change refit returns to the manifest',

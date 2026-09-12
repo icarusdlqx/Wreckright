@@ -98,7 +98,7 @@ export function BayChrome({
                 .filter((entry) => catalog.chassis.get(entry.chassisId)?.frame === 'mech')
                 .map((entry) => (
                   <option key={entry.id} value={entry.id}>
-                    {designIdentityLabel(catalog, entry)}
+                    {designIdentityLabel(catalog, entry)} · Prime
                   </option>
                 ))}
             </select>
@@ -128,7 +128,7 @@ export function BayChrome({
           title="Restore the catalogued stock loadout and undo every change on the gantry."
           data-testid="bay-reset-stock"
         >
-          Reset to stock
+          Reset to Prime
         </button>
         <button
           type="button"
@@ -154,10 +154,10 @@ export function BayChrome({
           {commissioned ? 'Commit refit' : 'Save changes'}
         </button>
 
-        {commissioned ? null : (
+        {(
           <>
             <button type="button" onClick={onSaveAs} disabled={!saveable} className="bay-save-as" data-testid="bay-save-as">
-              Save as new…
+              Save variant…
             </button>
             <details className="bay-file-tools"><summary>Import / export</summary>
             <button type="button" onClick={onExport} disabled={!saveable} data-testid="bay-export">
@@ -184,7 +184,7 @@ export function BayChrome({
               data-testid="bay-stored"
               aria-label="Saved loadouts"
             >
-              <option value="">Saved loadouts…</option>
+              <option value="">Saved variants…</option>
               {stored.map((entry) => (
                 <option key={entry.id} value={entry.id}>
                   {entry.label}

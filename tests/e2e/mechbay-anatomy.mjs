@@ -48,14 +48,13 @@ export async function runMechbayAnatomyChecks({ browser, url, shots, check }) {
     await picker.selectOption('sentinel_brawler');
     const expectedMounts = expectedDesigns.sentinel_brawler.mounts;
     check('installed weapons retain the same recognizable artwork as catalogue weapons', await page.locator('[data-testid^="inspect-weapon-"] .weapon-glyph').count() === expectedMounts.length
-      && await page.locator('.weapon-card__quick-stats').first().isVisible());
+      && await page.locator('.weapon-card__meters').first().isVisible());
     const guide = page.getByTestId('bay-workbench-disclosure');
     check('expanded fitting guide is visibly expanded without requiring hover', await guide.getAttribute('aria-expanded') === 'true' && await page.locator('#location-fit-steps').isVisible());
     const mounted = page.getByTestId('inspect-weapon-0');
     await mounted.focus();
     check('focusing an installed weapon exposes keyboard accessible Move and Remove actions', await page.getByTestId('move-weapon-0').isVisible() && await page.getByTestId('remove-weapon-0').isVisible());
-    check('inspecting a fitted weapon describes its installed location rather than trying to fit another copy', (await page.getByTestId('dossier-fit').innerText()).toLowerCase().includes('installed')
-      && (await page.getByTestId('dossier-fit').innerText()).includes(expectedMounts[0].location.replaceAll('_', ' ')));
+    check('an inspected fitted weapon remains in its named anatomical compartment', await mounted.evaluate((element, location) => element.closest('.bay-location')?.getAttribute('data-testid') === `bay-location-${location}`, expectedMounts[0].location));
     await page.getByTestId('bay-location-left_arm').getByRole('button', { name: 'Select Left Arm' }).click();
     await page.getByTestId('open-machine-focus').click();
     const focusText = (await page.getByTestId('machine-focus').innerText()).toLowerCase();

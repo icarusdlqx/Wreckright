@@ -77,8 +77,8 @@ export function Hangar({ catalog, state, mutate, onRefit, onContinue, onCancel }
           )}
           <dl className="exp-prep-summary">
             <div><dt>Fieldable machines</dt><dd>{state.mechs.filter((mech) => isMechAvailable(state, mech) && mech.status !== 'hulk' && mech.design.mounts.length > 0).length}</dd></div>
-            <div><dt>Workshop bookings</dt><dd>{queue.length}</dd></div>
-            <div><dt>Today</dt><dd>Day {state.day}</dd></div>
+
+            <div><dt>Repairs</dt><dd>Immediate</dd></div>
           </dl>
         </header>
 
@@ -92,24 +92,7 @@ export function Hangar({ catalog, state, mutate, onRefit, onContinue, onCancel }
             const health = integrity.fraction;
             const projected = projectedRepairWindow(catalog, state, estimate.days);
             const booking = queueByMech.get(mech.id);
-            const projectedTiming =
-              projected.status === 'active'
-                ? `ready day ${projected.readyOnDay}`
-                : `starts day ${projected.startsOnDay}, ready day ${projected.readyOnDay}`;
-            const status =
-              mech.status === 'hulk'
-                ? `Wreck — ${cbills(estimate.cost)}, ${projectedTiming}`
-                : !ready
-                  ? booking?.status === 'active'
-                    ? `On a lift — ready day ${mech.readyOnDay}`
-                    : booking?.status === 'inherited'
-                      ? `Inherited concurrent booking — ready day ${mech.readyOnDay}`
-                      : `Queued ${booking?.queuePosition ?? 1} — starts day ${booking?.startsOnDay ?? state.day}, ready day ${mech.readyOnDay}`
-                  : mech.design.mounts.length === 0
-                    ? 'Rebuilt — fit a weapon before deployment'
-                    : estimate.days === 0
-                      ? 'Ready'
-                      : `Damaged — ${cbills(estimate.cost)}, ${projectedTiming}`;
+            const status = mech.status === 'hulk' ? `Rebuild: ${cbills(estimate.cost)}; ready immediately` : estimate.days === 0 ? 'Ready' : `Repair: ${cbills(estimate.cost)}; ready immediately`;
 
             return (
               <li key={mech.id} className="manifest-row" data-testid={`hangar-${mech.id}`}>
@@ -146,13 +129,13 @@ export function Hangar({ catalog, state, mutate, onRefit, onContinue, onCancel }
                             if (target === undefined) return null;
                             const result = rebuildHulk(catalog, draft, target);
                             return result.ok
-                              ? `${authoredDesignName(catalog, target.design)} booked; ready day ${target.readyOnDay}.`
+                              ? `${authoredDesignName(catalog, target.design)} repaired and ready to deploy.`
                               : result.reason;
                           })
                         }
                         data-testid={`hangar-rebuild-${mech.id}`}
                       >
-                        {projected.status === 'active' ? 'Rebuild' : 'Queue rebuild'}
+                        Rebuild now
                       </button>
                     ) : (
                       <>
@@ -165,13 +148,13 @@ export function Hangar({ catalog, state, mutate, onRefit, onContinue, onCancel }
                               if (target === undefined) return null;
                               const result = startRepair(catalog, draft, target);
                               return result.ok
-                                ? `${authoredDesignName(catalog, target.design)} booked; ready day ${target.readyOnDay}.`
+                                ? `${authoredDesignName(catalog, target.design)} repaired and ready to deploy.`
                                 : result.reason;
                             })
                           }
                           data-testid={`hangar-repair-${mech.id}`}
                         >
-                          {projected.status === 'active' ? 'Repair' : 'Queue repair'}
+                          Repair now
                         </button>
                         <button
                           type="button"

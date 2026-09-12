@@ -1,3 +1,4 @@
+import { saveBay } from './save-bay.mjs';
 import { openCompanyTools, returnFromAutoPreparation } from './unified-navigation.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import { clickFittingAction } from './fitting-actions.mjs';
@@ -156,7 +157,7 @@ export async function runMechbayCrewChecks({ browser, url, shots, check }) {
     await right.locator('.bay-location-name').press('Enter');
     check('keyboard placement uses the same matching section', await right.getByRole('button', { name: 'Inspect Flamer', exact: true }).count() === 1);
     await page.screenshot({ path: `${shots}/crew-snapped-fit.png` });
-    await page.locator('[data-testid="bay-save"]').click();
+    await saveBay(page);
     await page.locator('[data-testid="refit-bay"]').waitFor({ state: 'hidden' });
     const refitted = await company(page);
     check('committed move preserves exactly one weapon and updates its location',

@@ -70,8 +70,8 @@ describe('company recovery status', () => {
       onRetire: () => undefined,
     }));
 
-    expect(html).toContain('return the company to the field on day 12');
-    expect(html).toContain('Advance to day 12');
+    expect(html).toContain('Injured pilots still miss their next mission');
+    expect(html).toContain('Refresh supplies');
   });
 
   it('names the stored weapon a rebuilt hull still needs', () => {
@@ -97,8 +97,8 @@ describe('company recovery status', () => {
       onRetire: () => undefined,
     }));
 
-    expect(html).toContain('Cairn leaves the workshop on day 12');
-    expect(html).toContain('Fit Medium Laser before returning it to the field');
+    expect(html).toContain('fit Medium Laser to Cairn');
+    expect(html).toContain('fit Medium Laser to Cairn');
   });
 
   it('does not put a ready unarmed hull in the workshop while its pilot recovers', () => {
@@ -124,9 +124,9 @@ describe('company recovery status', () => {
       onRetire: () => undefined,
     }));
 
-    expect(html).toContain('Cairn is ready for refit');
-    expect(html).toContain('Fit Medium Laser now');
-    expect(html).toContain('injured crew can return the company to the field on day 12');
+    expect(html).toContain('fit Medium Laser to Cairn');
+    expect(html).toContain('fit Medium Laser to Cairn');
+    expect(html).toContain('Injured pilots still miss their next mission');
     expect(html).not.toContain('leaves the workshop on day 12');
   });
 
@@ -155,10 +155,10 @@ describe('company recovery status', () => {
       onRetire: () => undefined,
     }));
 
-    expect(html).toContain('paid workshop booking');
-    expect(html).toContain('executable on day 15');
+    expect(html).toContain('paid workshop orders');
+    expect(html).toContain('Refresh supplies');
     expect(html).toContain('rebuild Cairn for 500,000 C');
-    expect(html).toContain('Advance to day 15');
+    expect(html).toContain('Refresh supplies');
   });
 
   it('distinguishes fresh yard stock from a contract-blocked wait', () => {
@@ -170,8 +170,8 @@ describe('company recovery status', () => {
       onAdvance: () => undefined,
       onRetire: () => undefined,
     }));
-    expect(yard).toContain('New stock arrives on day 14');
-    expect(yard).toContain('Advance to day 14');
+    expect(yard).toContain('Refresh supplies');
+    expect(yard).toContain('Refresh supplies');
 
     const blocked = renderToStaticMarkup(createElement(CompanyStatus, {
       report: {
@@ -181,8 +181,8 @@ describe('company recovery status', () => {
       onAdvance: () => undefined,
       onRetire: () => undefined,
     }));
-    expect(blocked).toContain('falls after the signed deadline');
-    expect(blocked).not.toContain('Advance to day 14');
+    expect(blocked).toContain('reassess your available machines and pilots');
+    expect(blocked).not.toContain('Refresh supplies');
   });
 
   it('orders a yard purchase before the sale that funds its pilot', () => {

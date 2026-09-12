@@ -2,10 +2,8 @@ import { useState, type ReactNode } from 'react';
 import type { CampaignState } from '../../campaign/types';
 import { defaultDropBerths, missionSlots } from '../../campaign/campaign';
 import { deploymentCandidates } from '../../campaign/deployment';
-import { dailyPayroll } from '../../campaign/ledger';
 import type { Catalog } from '../../schema/load';
 import { CompanyJournal } from './CompanyJournal';
-import { cbills } from './Panels';
 import './campaignWorkspace.css';
 import './simpleCampaign.css';
 import type { CompanyArea } from './campaignNavigation';
@@ -54,7 +52,7 @@ export function CampaignWorkspace({
       </div>
       {!fullCompany ? null : <details className="company-tools" open={selected !== 'operations' || undefined}>
         <summary>Company records & supplies</summary>
-        <p>{ready} fieldable machines · {state.pilots.filter((pilot) => !pilot.dead).length} pilots · {cbills(dailyPayroll(catalog, state))} wages / day
+        <p>{ready} fieldable machines · {state.pilots.filter((pilot) => !pilot.dead).length} pilots
           {' · '}{state.contract === null && !state.finished ? 'Available for contract · ' : ''}{state.finished ? completion : `${state.contract === null ? defaultDropBerths(catalog) : missionSlots(catalog, state.contract.missionId)} deployment berths`}</p>
         <nav aria-label="Company tools">{AREAS.filter((entry) => !state.finished || entry.id === 'operations' || entry.id === 'journal').map((entry) =>
           <button key={entry.id} type="button" data-testid={`camp-area-${entry.id}`} aria-current={selected === entry.id ? 'page' : undefined}

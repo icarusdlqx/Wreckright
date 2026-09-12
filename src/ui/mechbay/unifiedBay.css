@@ -33,7 +33,16 @@
 .bay.bay--workspace .location-workbench__guide .location-workbench__status { position: static; width: 100%; height: auto; min-height: 0; max-height: none; white-space: normal; font-size: 12px; line-height: 1.45; }
 .bay.bay--workspace .location-workbench__guide .fitting-mass-space { display: block; }
 .bay.bay--workspace .bay-grid > .bay-armed-banner { position: static; height: auto; font-size: 12px; }
-.bay.bay--workspace .location-overview.anatomical-layout { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); grid-template-rows: auto; grid-template-areas: 'profile profile head' 'rightarm centre leftarm' 'righttorso stance lefttorso' 'rightleg notes leftleg'; gap: 12px; padding: 14px; min-height: 0; align-items: start; }
+.bay.bay--workspace .location-overview.anatomical-layout { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); grid-template-rows: auto; grid-template-areas: 'profile profile head notes notes' 'leftarm lefttorso centre righttorso rightarm' '. leftleg stance rightleg .'; gap: 12px; padding: 14px; min-height: 0; align-items: start; }
+.bay.bay--workspace .anatomical-layout > .loc-head { grid-area:head; }
+.bay.bay--workspace .anatomical-layout > .loc-centre_torso { grid-area:centre; }
+.bay.bay--workspace .anatomical-layout > .loc-left_torso { grid-area:lefttorso; }
+.bay.bay--workspace .anatomical-layout > .loc-right_torso { grid-area:righttorso; }
+.bay.bay--workspace .anatomical-layout > .loc-left_arm { grid-area:leftarm; }
+.bay.bay--workspace .anatomical-layout > .loc-right_arm { grid-area:rightarm; }
+.bay.bay--workspace .anatomical-layout > .loc-left_leg { grid-area:leftleg; }
+.bay.bay--workspace .anatomical-layout > .loc-right_leg { grid-area:rightleg; }
+.bay.bay--workspace .anatomical-notes { grid-area:notes; }
 .bay.bay--workspace .anatomical-layout > .bay-location { align-self: start; width: auto; min-height: 0; padding: 10px; position: relative; gap: 7px; }
 .bay.bay--workspace .anatomical-layout .bay-location-name { font-size: 13px; min-height: 30px; }
 .bay.bay--workspace .anatomical-layout .bay-location-capacity { font-size: 11px; }
@@ -79,7 +88,7 @@
 .bay-full-review { margin-top: 14px; }
 .bay-full-review > summary { cursor: pointer; padding: 12px; border: 1px solid #526f68; }
 @media(max-width:1100px) {
- .bay.bay--workspace .location-overview.anatomical-layout { grid-template-columns: repeat(2,minmax(0,1fr)); grid-template-areas: 'profile profile' 'head centre' 'rightarm leftarm' 'righttorso lefttorso' 'rightleg leftleg' 'notes notes'; }
+ .bay.bay--workspace .location-overview.anatomical-layout { grid-template-columns: repeat(2,minmax(0,1fr)); grid-template-areas: 'profile profile' 'navigator navigator' 'head head' 'leftarm rightarm' 'lefttorso righttorso' 'centre centre' 'leftleg rightleg' 'notes notes'; }
  .bay.bay--workspace .anatomical-stance { display: none; }
  .bay.bay--workspace .anatomical-navigator { display: none; }
  .bay.bay--workspace .anatomical-profile { order: 0; grid-area: profile; }
@@ -131,7 +140,7 @@
  .bay.bay--workspace .bay-top button { padding: 6px 8px; min-height: 36px; }
 }
 @media(max-width:760px) {
- .bay.bay--workspace .anatomical-navigator { display: grid; }
+ .bay.bay--workspace .anatomical-navigator { display: grid; grid-area:navigator; }
  .bay.bay--workspace .anatomical-navigator button { min-height: 44px; }
 }
 /* Focusing a removal control must not reflow another location under the pointer. */
@@ -157,3 +166,16 @@
 .bay.bay--workspace[data-dragging] .anatomical-layout .rack-drop-space,
 .bay.bay--workspace[data-dragging] .bay-armed-banner { display: none; }
 .bay.bay--workspace[data-dragging] .anatomical-layout .bay-location-feedback { height: 0; min-height: 0; padding: 0; margin: 0; }
+
+.bay.bay--workspace .bay-catalog { grid-template-areas: 'catalog-head' 'catalog-results'; grid-template-rows: auto minmax(160px,1fr); }
+.bay.bay--workspace .weapon-card__description { display:block; color:#36564e; line-height:1.4; font-size:11px; margin:5px 0; }
+.bay.bay--workspace .weapon-card__meters { display:grid; grid-template-columns:1fr; gap:5px; margin:8px 0; width:100%; }
+.bay.bay--workspace .weapon-card__meter { display:grid; grid-template-columns:48px minmax(30px,1fr) 65px; align-items:center; gap:8px; font-size:11px; color:#254b4d; }
+.bay.bay--workspace .weapon-card__meter-track { grid-column:auto; display:block; height:6px; background:#c9d0bf; border-radius:2px; overflow:hidden; }
+.weapon-card__meter-track > span { display:block; height:100%; background:#2d7b74; }
+.weapon-card__meter--heat .weapon-card__meter-track > span { background:#ce743e; }
+.weapon-card__meter > strong { text-align:right; font-size:10px; }
+
+.build-firing-analysis { max-width:700px; padding:12px; background:#173740; margin:12px 0; border-radius:6px; }
+.bay.bay--workspace .weapon-card .fire-mode-comparison { color:#254b4d; margin:6px 0; }
+.bay.bay--workspace .weapon-card .fire-mode-comparison__scroll { max-width:100%; overflow-x:auto; }

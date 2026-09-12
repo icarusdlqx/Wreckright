@@ -10,7 +10,7 @@ export function YardMachineDetails({ catalog, mech }: { catalog: Catalog; mech: 
   const integrity = mechIntegrity(catalog, mech);
   const repair = estimateRepair(catalog, mech);
   return <div className="yard-machine-details">
-    <p><strong>{Math.round(integrity.fraction * 100)}% intact</strong> · {repair.cost === 0 ? 'No repairs needed' : `${cbills(repair.cost)} repair estimate · ${repair.days} workshop day${repair.days === 1 ? '' : 's'}`}</p>
+    <p><strong>{Math.round(integrity.fraction * 100)}% intact</strong> · {repair.cost === 0 ? 'No repairs needed' : `${cbills(repair.cost)} repair estimate · ready immediately after payment`}</p>
     <h5>Included fittings</h5>
     <ul>{mech.design.mounts.map((mount, index) => {
       const weapon = catalog.weapons.get(mount.weaponId);

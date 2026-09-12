@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { CampaignNavigationTarget } from './campaignNavigation';
 import { rebuildHulk } from '../../campaign/refit';
-import { dailyPayroll, payrollThrough } from '../../campaign/ledger';
 import { estimateRepair, projectedRepairWindow, repairQueue, startRepair } from '../../campaign/repair';
 import { isMechAvailable } from '../../campaign/types';
 import { mechIntegrity } from '../../campaign/integrity';
@@ -35,9 +34,6 @@ export function MechBayPanel({ state, mutate, onRefit, previewActive = false, fo
     if (focus?.area === 'workshop' && focus.mechId !== undefined) setSelectedId(focus.mechId);
   }, [focus]);
   const selected = state.mechs.find((mech) => mech.id === selectedId) ?? state.mechs[0];
-  const payroll = dailyPayroll(catalog, state);
-  const bayCapacity = catalog.rules.economy.repair.bayCapacity;
-  const bayDescription = `${bayCapacity === 1 ? 'One lift works' : `${bayCapacity} lifts work`} through the queue in order.`;
   const queue = repairQueue(catalog, state);
   const queueByMech = new Map(queue.map((entry) => [entry.mechId, entry]));
   return (
@@ -46,14 +42,11 @@ export function MechBayPanel({ state, mutate, onRefit, previewActive = false, fo
         <div><p>Company workshop</p><h3>Mech bay</h3></div>
         <dl className="company-workshop-ledger">
           <div><dt>Treasury</dt><dd>{cbills(state.cbills)}</dd></div>
-          <div><dt>Daily payroll</dt><dd>{cbills(payroll)}</dd></div>
-          <div><dt>Paid bookings</dt><dd>{queue.length}</dd></div>
+          <div><dt>Repair service</dt><dd>Immediate</dd></div>
+
         </dl>
       </header>
-      <p className="ledger-note">
-        {bayDescription} Workshop bills are paid up front; the {cbills(payroll)} daily
-        payroll continues while work is booked.
-      </p>
+      <p className="ledger-note">Pay for repairs, restore your machine, and deploy. No waiting or daily charges.</p>
       <p className="company-inspection-status" role="status" aria-live="polite" aria-atomic="true"
         data-testid="camp-inspection-status">{inspectionStatus}</p>
       <div className="company-workshop-floor">
@@ -67,24 +60,7 @@ export function MechBayPanel({ state, mutate, onRefit, previewActive = false, fo
           const integrity = mechIntegrity(catalog, mech);
           const projected = projectedRepairWindow(catalog, state, estimate.days);
           const booking = queueByMech.get(mech.id);
-          const calendarDays = projected.readyOnDay - state.day;
-          const projectedTiming =
-            projected.status === 'active'
-              ? `ready day ${projected.readyOnDay}`
-              : `starts day ${projected.startsOnDay} · ready day ${projected.readyOnDay}`;
-          const status = mech.status === 'hulk'
-            ? `wreck — ${cbills(estimate.cost)} now · ${projectedTiming} · ${cbills(payrollThrough(catalog, state, calendarDays))} wages`
-            : ready
-              ? mech.design.mounts.length === 0
-                ? 'rebuilt — fit a weapon before deployment'
-                : estimate.days === 0
-                  ? 'ready'
-                  : `damaged — ${cbills(estimate.cost)} now · ${projectedTiming} · ${cbills(payrollThrough(catalog, state, calendarDays))} wages`
-              : booking?.status === 'active'
-                ? `on a lift · ready day ${mech.readyOnDay} · ${cbills(payrollThrough(catalog, state, mech.readyOnDay - state.day))} wages left`
-                : booking?.status === 'inherited'
-                  ? `inherited concurrent booking · ready day ${mech.readyOnDay}`
-                  : `queued ${booking?.queuePosition ?? 1} · starts day ${booking?.startsOnDay ?? state.day} · ready day ${mech.readyOnDay}`;
+          const status = mech.status === 'hulk' ? 'Rebuild needed' : estimate.days > 0 ? 'Damaged' : 'Ready';
           const shortfall = Math.max(0, estimate.cost - state.cbills);
           return (
             <li key={mech.id} className="company-workshop-machine" data-selected={selected?.id === mech.id} data-testid={`camp-mech-${mech.id}`}>
@@ -107,7 +83,7 @@ export function MechBayPanel({ state, mutate, onRefit, previewActive = false, fo
                 <RepairReadout catalog={catalog} state={state} mech={mech} estimate={estimate}
                   projected={projected} booking={booking} ready={ready} status={status} />
                 {booking === undefined && (mech.status === 'hulk' || estimate.days > 0) && shortfall > 0 ? (
-                  <p className="company-workshop-shortfall">Need {cbills(shortfall)} more to book this work.</p>
+                  <p className="company-workshop-shortfall">Need {cbills(shortfall)} more to repair this machine.</p>
                 ) : null}
               </div>
               <div className="company-workshop-actions">
@@ -126,12 +102,12 @@ export function MechBayPanel({ state, mutate, onRefit, previewActive = false, fo
                         if (target === undefined) return null;
                         const result = rebuildHulk(catalog, draft, target);
                         return result.ok
-                          ? `${authoredDesignName(catalog, target.design)} booked; ready day ${target.readyOnDay}.`
+                          ? `${authoredDesignName(catalog, target.design)} repaired and ready to deploy.`
                           : result.reason;
                       })
                     }
                   >
-                    {projected.status === 'active' ? 'Rebuild' : 'Queue rebuild'}
+                    Rebuild now
                   </button>
                 ) : estimate.days > 0 && mech.status === 'ready' ? (
                   <button
@@ -142,13 +118,13 @@ export function MechBayPanel({ state, mutate, onRefit, previewActive = false, fo
                         if (target === undefined) return null;
                         const result = startRepair(catalog, draft, target);
                         return result.ok
-                          ? `${authoredDesignName(catalog, target.design)} booked; ready day ${target.readyOnDay}.`
+                          ? `${authoredDesignName(catalog, target.design)} repaired and ready to deploy.`
                           : result.reason;
                       })
                     }
                     data-testid={`camp-repair-${mech.id}`}
                   >
-                    {projected.status === 'active' ? 'Repair' : 'Queue repair'}
+                    Repair now
                   </button>
                 ) : null}
                 {onRefit === undefined ? null : (

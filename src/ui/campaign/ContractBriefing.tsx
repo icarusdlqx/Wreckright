@@ -1,4 +1,4 @@
-import { contractCommitment, formatMissionClock } from '../../campaign/contractBriefing';
+import { formatMissionClock } from '../../campaign/contractBriefing';
 import { sideContractProfile } from '../../campaign/sidework';
 import type { CampaignState } from '../../campaign/types';
 import type { Catalog } from '../../schema/load';
@@ -22,7 +22,6 @@ export function ContractBriefing({
   catalog,
   state,
   missionId,
-  deadlineDay,
   nodeId,
   terms,
 }: {
@@ -35,10 +34,8 @@ export function ContractBriefing({
 }) {
   const profile = sideContractProfile(catalog, missionId);
   if (profile === null) return null;
-  const commitment = contractCommitment(catalog, state, deadlineDay);
   const authored = catalog.campaigns.get(state.campaignId)?.nodes.some((entry) => entry.id === nodeId)
     ?? false;
-  const days = commitment.daysRemaining === 1 ? 'day' : 'days';
 
   return (
     <><dl className="contract-facts" data-testid="contract-facts">
@@ -55,13 +52,6 @@ export function ContractBriefing({
           {profile.oppositionTonnage}t rated opposition
         </dd>
       </div>
-      <div>
-        <dt>Calendar</dt>
-        <dd>
-          day {commitment.currentDay} → day {commitment.deadlineDay} ·{' '}
-          {commitment.daysRemaining} {days} remaining
-        </dd>
-      </div>
       {terms === undefined ? null : (
         <>
           <div>
@@ -75,20 +65,13 @@ export function ContractBriefing({
             <dt>Failure</dt>
             <dd>
               {authored
-                ? `${cbills(Math.round(terms.payout * catalog.rules.economy.contractFailure.recoveryCostFactor))} recovery fee + ${catalog.rules.economy.contractFailure.recoveryDays} recovery days; route reopens`
+                ? `${cbills(Math.round(terms.payout * catalog.rules.economy.contractFailure.recoveryCostFactor))} recovery fee; route reopens`
                 : 'No route-recovery fee'}
               {' · '}battle damage remains the company workshop bill
             </dd>
           </div>
         </>
       )}
-      <div>
-        <dt>Payroll</dt>
-        <dd>
-          {cbills(commitment.dailyPayroll)}/day now · {cbills(commitment.wagesThroughDeadline)} maximum
-          through deadline at current roster
-        </dd>
-      </div>
     </dl><ContractRewards catalog={catalog} state={state} nodeId={nodeId} /></>
   );
 }

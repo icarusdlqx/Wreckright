@@ -1,3 +1,4 @@
+import { saveBay } from './save-bay.mjs';
 /** Disposable-browser regression: changes made through the actual setup and bay controls. */
 import { runBriefingTeamLayoutChecks } from './briefing-team.mjs';
 import { clickFittingAction } from './fitting-actions.mjs';
@@ -65,7 +66,7 @@ export async function runSkirmishForceChecks({ browser, url, shots, check }) {
     await page.getByTestId('berth-customise-0').click();
     await page.getByTestId('outfit-bay').waitFor();
     await clickFittingAction(page.getByTestId('remove-weapon-0'));
-    await page.getByTestId('bay-save').click();
+    await saveBay(page);
     await page.getByTestId('outfit-bay').waitFor({ state: 'hidden' });
     const savedFriendly = await page.evaluate(() => localStorage.getItem('ironline.lance.skirmish_foundry_district'));
     check('friendly Commit refit saves its actual changed weapons before leaving the bay',
@@ -79,7 +80,7 @@ export async function runSkirmishForceChecks({ browser, url, shots, check }) {
     check('enemy refit identifies its side and opens the selected chassis',
       (await page.getByTestId('bay-commission').innerText()).includes('Enemy berth 1'));
     await clickFittingAction(page.getByTestId('remove-weapon-0'));
-    await page.getByTestId('bay-save').click();
+    await saveBay(page);
     await page.getByTestId('outfit-bay').waitFor({ state: 'hidden' });
     check('enemy refit returns an edited loadout to the opposing berth',
       await page.getByTestId('enemy-berth-design-0').inputValue() === 'custom');
@@ -122,7 +123,7 @@ export async function runSkirmishForceChecks({ browser, url, shots, check }) {
     await page.getByTestId('enemy-berth-customise-0').click();
     await page.getByTestId('outfit-bay').waitFor();
     await clickFittingAction(page.getByTestId('remove-weapon-0'));
-    await page.getByTestId('bay-save').click();
+    await saveBay(page);
     await page.getByTestId('outfit-bay').waitFor({ state: 'hidden' });
     if (shots) await page.getByTestId('briefing').screenshot({ path: `${shots}/skirmish-forces-desktop.png` });
     await page.getByTestId('briefing-deploy').click();

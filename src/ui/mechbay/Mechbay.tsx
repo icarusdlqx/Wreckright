@@ -44,6 +44,7 @@ import { useMechbayPersistence } from './useMechbayPersistence';
 import { useQuietBay } from './useQuietBay';
 import { DraftExitDialog, useDraftExit } from './useDraftExit';
 import { SaveConfigurationDialog } from './SaveConfigurationDialog';
+import { BuildFiringAnalysis } from './BuildFiringAnalysis';
 import './commandBay.css';
 import './unifiedBay.css';
 
@@ -255,7 +256,7 @@ export function Mechbay({
           setStatus({ tone: 'ok', text: `Back to the stock ${factory.name} loadout.` });
         }}
         onExit={draftExit.requestExit}
-        onSave={draftExit.save}
+        onSave={() => catalog.designs.has(design.id) ? setSavingAs(true) : draftExit.save()}
         onSaveAs={() => setSavingAs(true)}
         onExport={persistence.exportFile}
         onImport={(file) => void persistence.importFile(file)}
@@ -359,6 +360,7 @@ export function Mechbay({
       </section></details>
       <details className="bay-full-review" data-workspace-panel="review"><summary>Detailed comparison and firing analysis</summary>
         <BuildCompare catalog={catalog} design={design} />
+        <BuildFiringAnalysis catalog={catalog} design={design} {...(inspected?.kind === 'weapon' ? {weaponId: inspected.id} : {})} />
         <BuildReview
           catalog={catalog}
           design={design}
@@ -382,7 +384,7 @@ export function Mechbay({
           onConfirm={replacement.confirm} onCancel={replacement.close} />
       ) : null}
       {savingAs ? <SaveConfigurationDialog catalog={catalog} design={design}
-        storedIds={persistence.stored.map((entry) => entry.id)}
+        storedIds={persistence.stored.map((entry) => entry.id)} error={status?.tone === 'error' ? status.text : null}
         onCancel={() => setSavingAs(false)} onSave={(named) => {
           if (!persistence.save(named)) return false;
           setHistory(beginDesignHistory(named));

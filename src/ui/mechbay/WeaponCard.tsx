@@ -6,13 +6,14 @@ import { weaponSize, weaponSizeLabel } from '../../sim/loadout';
 import { foreignComponentPresentation } from './machineCulturePresentation';
 import { SlotBoxes } from './SlotBoxes';
 import type { InspectorFit } from './Dossier';
+import { FireModeComparison } from './FireModeComparison';
 import { WeaponGlyph } from './WeaponGlyph';
 import {
   factionPresentation,
   formatWeaponNumber,
   weaponCategory,
   weaponCategoryLabel,
-  weaponMetrics,
+  weaponMetrics, weaponMetricMaxima, weaponOperatingLine,
 } from './weaponPresentation';
 
 export interface WeaponCardProps {
@@ -76,6 +77,7 @@ export function WeaponCard({
   const statusId = `weapon-card-${weapon.id}-fit`;
   const detailId = `weapon-card-${weapon.id}-fit-detail`;
   const metrics = weaponMetrics(weapon);
+  const maxima = weaponMetricMaxima(catalog);
   const mountSize = weaponSizeLabel(catalog, weaponSize(catalog, weapon));
   const classes = [
     'weapon-card',
@@ -107,7 +109,6 @@ export function WeaponCard({
         aria-pressed={selected}
         aria-current={inspected ? 'true' : undefined}
         aria-disabled={unavailable || undefined}
-        aria-controls="bay-shelf-inspector"
         aria-describedby={`${statusId} ${detailId}`}
         aria-label={`${weapon.name}, ${faction.label}, ${weaponCategoryLabel(category)}, ${fitLabel}`}
         title={reason ?? undefined}
@@ -166,16 +167,22 @@ export function WeaponCard({
             ? `${formatWeaponNumber(ammoTons * weapon.ammoPerTon)} rounds shared on this mech`
             : `First bin fitted automatically · 1t / ${catalog.rules.construction.ammoSlotsPerTon} box${catalog.rules.construction.ammoSlotsPerTon === 1 ? '' : 'es'}`}</span>
         </span>
-        <span className="weapon-card__quick-stats" aria-label="Weapon summary">
-          <span>{formatWeaponNumber(metrics.damage)}/s damage</span>
-          <span>{formatWeaponNumber(metrics.reach)}m reach</span>
-          <span>{formatWeaponNumber(metrics.heat)}/s heat</span>
+        <span className="weapon-card__description" title={weaponOperatingLine(weapon)}>{weapon.summary}</span>
+        <span className="weapon-card__meters" aria-label="Weapon summary">
+          {(['damage', 'reach', 'heat'] as const).map((key) => <span key={key} className={`weapon-card__meter weapon-card__meter--${key}`}>
+            <span>{key === 'reach' ? 'Range' : key === 'heat' ? 'Heat' : 'Damage'}</span>
+            <span className="weapon-card__meter-track" role="meter" aria-label={key} aria-valuemin={0} aria-valuemax={maxima[key]} aria-valuenow={metrics[key]}>
+              <span style={{ width: `${maxima[key] > 0 ? metrics[key] / maxima[key] * 100 : 0}%` }} />
+            </span>
+            <strong>{formatWeaponNumber(metrics[key])}{key === 'reach' ? 'm' : '/s'}</strong>
+          </span>)}
         </span>
         <span className={`weapon-card__fit ${unavailable ? 'is-blocked' : 'is-fit'}`}>
           <strong id={statusId}>{fitLabel}</strong>
           <span id={detailId}>{fitDetail}</span>
         </span>
       </button>
+      <FireModeComparison weapon={weapon} />
       {unavailable || replacementOnly || onAutoFit === undefined ? null : (
         <button
           type="button"

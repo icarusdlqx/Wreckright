@@ -19,7 +19,7 @@ describe('briefing lance identity', () => {
     const identity = 'Gadfly — 35t Light · Forward spotter · Linewrought';
 
     expect(model.berths[0]?.customLabel).toBe(identity);
-    expect(model.designs.find((design) => design.value === current.id)?.label).toBe(identity);
+    expect(model.designs.find((design) => design.value === current.id)?.label).toBe(`${identity} · Prime`);
     expect(model.berths[0]?.machine).toMatchObject({ name: 'Gadfly', chassisId: current.chassisId,
       identity, weaponCount: current.mounts.length });
   });

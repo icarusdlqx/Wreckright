@@ -28,7 +28,7 @@ function financeText(report: SolvencyReport, contractActive: boolean): string {
   } else if (plan.mechNeedsRebuild) {
     steps.push(
       `rebuild ${plan.mechName} for ${credits(plan.mechCost)} ` +
-      `(workshop ready day ${plan.mechReadyOnDay})`,
+      '(ready immediately)',
     );
   }
   if (plan.mechNeedsWeapon && plan.weaponName !== null) {
@@ -74,28 +74,14 @@ export function CompanyStatus({
   if (report.state === 'fieldable' || report.state === 'finished') return null;
 
   let text: string;
-  if (report.action === 'wait') {
-    const plan = report.plan;
-    const recoverOnDay = report.recoverOnDay ?? plan?.mechReadyOnDay ?? 0;
-    const fit = plan?.mechNeedsWeapon === true && plan.weaponName !== null
-      ? plan.mechReadyOnDay < recoverOnDay
-        ? `${plan.mechName} is ready for refit. Fit ${plan.weaponName} now; ` +
-          `injured crew can return the company to the field on day ${recoverOnDay}.`
-        : `${plan.mechName} leaves the workshop on day ${plan.mechReadyOnDay}. ` +
-          `Fit ${plan.weaponName} before returning it to the field.`
-      : `Paid workshop work or injured crew can return the company to the field on day ${report.recoverOnDay ?? '?'}.`;
-    text = fit;
-  } else if (report.action === 'wait_booking') {
-    text = `A paid workshop booking makes the recovery executable on day ${report.recoverOnDay ?? '?'}. ` +
-      `Advance to that date, then reassess. ${financeText(report, false)}`;
-  } else if (report.action === 'wait_yard') {
-    text = `The current yard cannot finish a recovery. New stock arrives on day ${report.recoverOnDay ?? '?'}.`;
+  if (report.action === 'wait' || report.action === 'wait_booking' || report.action === 'wait_yard') {
+    text = `Refresh supplies and complete any previously paid workshop orders. Injured pilots still miss their next mission. ${financeText(report, contractActive)}`;
   } else if (report.action === 'withdraw') {
     text = report.plan?.needsSale === true && report.state === 'temporary'
       ? financeText(report, contractActive)
       : report.recoverOnDay === null
         ? terminalText(report, contractActive)
-        : `The recovery date falls after the signed deadline. Withdraw under the contract terms, then reassess the calendar.`;
+        : `Withdraw under the contract terms, then reassess your available machines and pilots.`;
   } else if (report.action === 'stand_down') {
     text = 'Every living pilot is wounded, and no relief pilot is affordable. Forfeit one mission to let the crew recover.';
   } else if (report.action === 'call_up') {
@@ -119,7 +105,7 @@ export function CompanyStatus({
           onClick={() => onAdvance(report.recoverOnDay ?? 0)}
           data-testid="company-recover-wait"
         >
-          Advance to day {report.recoverOnDay}
+          Refresh supplies
         </button>
       ) : null}
       {report.state === 'terminal' && !contractActive ? (

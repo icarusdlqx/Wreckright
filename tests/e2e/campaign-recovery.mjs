@@ -16,16 +16,10 @@ export async function runCampaignRecovery({ page, shots, check }) {
     (await page.locator('[data-testid="camp-recovery"]').innerText()).includes('memory-only'),
   );
 
-  const dayBefore = Number(
-    (await page.locator('[data-testid="camp-day"]').innerText()).replace('Day ', ''),
-  );
-  await page.locator('[data-testid="camp-waiting"] > summary').click();
-  await page.locator('[data-testid="camp-advance"]').click();
-  await page.locator('[data-testid="camp-waiting"] > summary').click();
-  const dayAfter = Number(
-    (await page.locator('[data-testid="camp-day"]').innerText()).replace('Day ', ''),
-  );
-  check('memory-only transactions remain usable', dayAfter === dayBefore + 1);
+  await page.getByTestId('camp-accept').click();
+  await page.getByTestId('lance-manifest').waitFor();
+  check('memory-only mission preparation remains usable', await page.getByTestId('manifest-tonnage').isVisible());
+  await page.getByTestId('manifest-cancel').click();
   check(
     'memory-only transactions do not overwrite the damaged save',
     (await page.evaluate(() => localStorage.getItem('ironline.campaign'))) === damaged,

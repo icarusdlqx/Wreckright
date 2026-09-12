@@ -114,36 +114,21 @@ export async function runCampaignCommandFlow({ browser, url, shots, check }) {
       await openCompanyTools(page);
       await page.locator('[data-testid="camp-area-workshop"]').click();
       await page.locator(`[data-testid="camp-repair-${prepared.mechId}"]`).click();
-      const booked = await read(page);
-      const targetDay = Math.min(...booked.mechs.filter(mech => mech.status === 'repairing').map(mech => mech.readyOnDay));
-      await page.locator('[data-testid="camp-waiting"] > summary').click();
-      check(`${campaignId}: booked work exposes a priced wait to the next ready day`,
-        (await page.locator('[data-testid="camp-wait-repair"]').innerText()).includes('wages') && await page.locator('[data-testid="camp-wait-repair"]').isEnabled());
-      await page.screenshot({ path: `${shots}/campaign-flow-${campaignId}-wait.png` });
-      await page.locator('[data-testid="camp-wait-repair"]').click();
       const ready = await read(page);
-      check(`${campaignId}: paid-repair wait finishes the booked mech and retains the signed mission`,
-        ready.day === targetDay && ready.mechs.find(mech => mech.id === prepared.mechId).status === 'ready' && ready.contract.nodeId === prepared.next);
-      await page.locator('[data-testid="camp-waiting"] > summary').click();
+      check(`${campaignId}: paying for repairs restores the mech immediately and retains the signed mission`,
+        ready.day === preparedState.day && ready.mechs.find(mech => mech.id === prepared.mechId).status === 'ready'
+        && ready.cbills < preparedState.cbills && ready.contract.nodeId === prepared.next);
+      check(`${campaignId}: no waiting or calendar controls remain`, await page.getByTestId('camp-waiting').count() === 0);
       for (const width of [390, 320, 1440]) {
-        await page.setViewportSize({ width, height: width === 1440 ? 1000 : 844 });
-        await page.locator('[data-testid="camp-waiting"] > summary').click();
-        const waitingBounds = await page.locator('.campaign-waiting-panel').evaluate(el => {
-          const rect = el.getBoundingClientRect();
-          const buttons = [...el.querySelectorAll('button')].map(button => {
-            const box = button.getBoundingClientRect();
-            return { left: box.left, right: box.right, height: box.height,
-              hit: button.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2)) };
-          });
-          return { left: rect.left, right: rect.right, viewport: innerWidth, buttons };
-        });
-        const label = width === 390 ? 'phone waiting controls stay inside the viewport' : `${width}px waiting controls stay inside the viewport`;
-        check(`${campaignId}: ${label}`, waitingBounds.left >= 0 && waitingBounds.right <= width,
-          JSON.stringify(waitingBounds));
-        check(`${campaignId}: ${width}px waiting actions remain complete ${width <= 900 ? 'touch' : 'pointer'} hit targets`,
-          waitingBounds.buttons.length > 0 && waitingBounds.buttons.every(button => button.left >= 0 && button.right <= width && button.height >= (width <= 900 ? 44 : 36) && button.hit), JSON.stringify(waitingBounds));
-        await page.screenshot({ path: `${shots}/campaign-flow-${campaignId}-wait-${width}.png` });
-        await page.locator('[data-testid="camp-waiting"] > summary').click();
+        await page.setViewportSize({width, height:width===1440?1000:844});
+        const next = page.getByTestId('camp-next-mission');
+        await next.scrollIntoViewIfNeeded();
+        check(`${campaignId}: ${width}px next deployment action stays reachable`, await next.evaluate(button=>{
+          const box=button.getBoundingClientRect();
+          return box.left>=0 && box.right<=innerWidth && box.height>=36
+            && button.contains(document.elementFromPoint(box.x+box.width/2,box.y+box.height/2));
+        }));
+        await page.screenshot({path:`${shots}/campaign-flow-${campaignId}-ready-${width}.png`});
       }
       await page.setViewportSize({ width: 390, height: 844 });
       await openCompanyTools(page);

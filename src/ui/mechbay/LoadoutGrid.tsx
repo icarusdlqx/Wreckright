@@ -189,7 +189,7 @@ export function LoadoutGrid({
           <small>Standard role · your refit can change its fighting style</small>
         </div>
         <div className="anatomical-stance" aria-hidden="true">{chassis.name}<span>{chassis.tonnage} TONNES</span>
-          <small>FRONT VIEW</small><small>Right ← · → Left</small></div>
+          <small>FITTING LAYOUT</small><small>Left ← · → Right</small></div>
         {LOCATIONS.map((location) => (
           <LocationCard
             key={location}

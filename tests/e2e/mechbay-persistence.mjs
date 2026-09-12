@@ -1,3 +1,4 @@
+import { saveBay } from './save-bay.mjs';
 import { importLegacySentinel } from './mechbay-legacy-fixture.mjs';
 import { openDesktopBattleMenu } from './input-safety.mjs';
 import { clickFittingAction } from './fitting-actions.mjs';
@@ -31,7 +32,7 @@ export async function runMechbayPersistenceChecks({ browser, url, shots, check }
     await page.getByTestId('stock-weapon-small_laser').click();
     await page.getByTestId('free-slots-left_arm').click();
     await page.getByTestId('design-name').fill('Audit Close Escort');
-    await page.getByTestId('bay-save').click();
+    await saveBay(page);
     const closeEscort = await saved(page, 'audit_close_escort');
     check('an actual mixed-gun refit saves its changed weapon footprint',
       closeEscort?.mounts.some(mount => mount.weaponId === 'small_laser' && mount.location === 'left_arm')
@@ -98,7 +99,7 @@ export async function runMechbayPersistenceChecks({ browser, url, shots, check }
       && await page.getByTestId('bay-unsaved-dialog').count() === 0
       && await page.getByTestId('bay-exit').isVisible());
     await page.getByTestId('design-name').fill('Audit Close Escort');
-    await page.getByTestId('bay-save').click();
+    await saveBay(page);
 
     await openBay(page, url);
     await page.getByTestId('bay-stored').selectOption('audit_energy_escort');
@@ -155,7 +156,7 @@ async function checkBlockedStorage({ browser, url, shots, check }) {
       await page.getByTestId('bay-exit').isVisible()
       && await page.getByTestId('bay-stored').locator('option').count() === 1);
     await page.getByTestId('design-name').fill('Blocked Browser Draft');
-    await page.getByTestId('bay-save').click();
+    await saveBay(page);
     check('blocked storage reports a recoverable save refusal without an uncaught error',
       /storage.*full|storage.*unavailable/i.test(await page.getByTestId('bay-status').innerText())
       && await page.getByTestId('design-name').inputValue() === 'Blocked Browser Draft'

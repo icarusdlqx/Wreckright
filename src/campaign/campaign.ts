@@ -132,7 +132,7 @@ export function abandonContract(catalog: Catalog, state: CampaignState): void {
   const employerName = recordEmployerFailure(catalog, state, contract, 'withdrawn');
   const failure = applyContractFailure(catalog, state, contract);
   logCampaign(state, `Withdrew from the ${employerName} contract.${recoveryNotice(failure)}`);
-  advanceDays(catalog, state, failure.recoveryDays);
+  advanceDays(catalog, state, 0, false, false);
 }
 
 export interface MissionRun {
@@ -319,7 +319,7 @@ export function resolveMission(
     logCampaign(state, `${campaign.name} won.`);
   }
 
-  advanceDays(catalog, state, 1 + (failure?.recoveryDays ?? 0), restDayEvents);
+  advanceDays(catalog, state, 1, restDayEvents, false);
   return { outcome, battle, salvage };
 }
 
@@ -339,7 +339,7 @@ export function standDownCampaign(catalog: Catalog, state: CampaignState): { ok:
   return { ok: true, reason };
 }
 
-export function advanceDays(catalog: Catalog, state: CampaignState, days: number, restDayEvents = true): void {
+export function advanceDays(catalog: Catalog, state: CampaignState, days: number, restDayEvents = true, calendarCosts = true): void {
   let remaining = days;
   let payrollPaid = 0;
 
@@ -347,7 +347,7 @@ export function advanceDays(catalog: Catalog, state: CampaignState, days: number
     remaining -= 1;
     state.day += 1;
 
-    const payroll = dailyPayroll(catalog, state);
+    const payroll = calendarCosts ? dailyPayroll(catalog, state) : 0;
     state.cbills -= payroll;
     payrollPaid += payroll;
 
@@ -358,7 +358,7 @@ export function advanceDays(catalog: Catalog, state: CampaignState, days: number
       }
     }
 
-    if (state.contract !== null && state.day > state.contract.deadlineDay) {
+    if (calendarCosts && state.contract !== null && state.day > state.contract.deadlineDay) {
       const contract = state.contract;
       state.contract = null;
       const employerName = recordEmployerFailure(catalog, state, contract, 'expired');
@@ -367,7 +367,7 @@ export function advanceDays(catalog: Catalog, state: CampaignState, days: number
       remaining += failure.recoveryDays;
     }
 
-    if (!state.finished && restDayEvents) {
+    if (calendarCosts && !state.finished && restDayEvents) {
       withCampaignRng(state, (rng) => {
         applyRestDayEvent(catalog, state, rng.fork(`rest-day:${state.day}`));
       });

@@ -1,3 +1,4 @@
+import { advanceDays } from '../../campaign/campaign';
 import { useEffect, useMemo, useState } from 'react';
 import { abandonContract, acceptContract, availableNodes, campaignOf, standDownCampaign,
   negotiationOptions } from '../../campaign/campaign';
@@ -45,9 +46,8 @@ import { MissionSurvey } from './MissionSurvey';
 import { missionPreviewData, previewMissionId } from './missionPreviewData';
 import { CampaignStoryPanel } from './CampaignStoryPanel';
 import { CampaignNextStep } from './CampaignNextStep';
-import { CampaignWaiting } from './CampaignWaiting';
 import { CampaignRouteList } from './CampaignRouteList';
-import { nextCampaignNode, waitCompany } from './campaignFlow';
+import { nextCampaignNode } from './campaignFlow';
 
 const catalog = getCatalog();
 const DEFAULT_CAMPAIGN_ID = 'border_dispute';
@@ -206,8 +206,6 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         nextDisabled={state.finished}
         nextLabel={state.finished ? 'Campaign ended' : state.contract !== null ? 'Outfit & deploy' : 'Next mission'}
         onNext={continueMission}
-        waiting={<CampaignWaiting catalog={catalog} state={state}
-          onWait={(day) => mutate((draft) => waitCompany(catalog, draft, day))} />}
         onSave={files.openSave}
         onLoad={files.openLoad}
         onExport={onExportSave}
@@ -300,7 +298,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
             report={solvency}
             contractActive={state.contract !== null}
             onAdvance={(day) =>
-              mutate((draft) => waitCompany(catalog, draft, day))
+              mutate((draft) => advanceDays(catalog, draft, Math.max(0, day - draft.day), false, false))
             }
             onRetire={() =>
               mutate((draft) => {

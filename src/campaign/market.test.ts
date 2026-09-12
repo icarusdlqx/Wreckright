@@ -351,7 +351,7 @@ describe('the yard', () => {
     const repair = startRepair(catalog, state, mech);
     expect(repair.ok).toBe(true);
     expect(repair.estimate.cost).toBeGreaterThan(0);
-    expect(mech.status).toBe('repairing');
+    expect(mech.status).toBe('ready');
     expect(saleValueOf(catalog, mech)).toBe(fullSale);
   });
 

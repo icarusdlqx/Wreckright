@@ -136,7 +136,7 @@ export async function runFireModeStage2Checks({ browser, url, check }) {
     await desktop.page.locator('[data-testid="berth-customise-0"]').click();
     await desktop.page.waitForSelector('[data-testid="outfit-bay"]');
     await desktop.page.locator('[data-testid="inspect-weapon-0"]').click();
-    const dossier = desktop.page.locator('#bay-shelf-inspector');
+    const dossier = desktop.page.locator('.weapon-card.is-inspected');
     const fireModes = dossier.getByRole('region', { name: 'Canister Cannon fire mode statistics' });
     await fireModes.waitFor({ state: 'visible' });
     const rows = await fireModes.locator('tbody tr').allTextContents();

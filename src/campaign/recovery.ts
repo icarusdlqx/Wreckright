@@ -30,9 +30,8 @@ export function applyContractFailure(
 
 export function recoveryNotice(failure: ContractFailure): string {
   if (!failure.reopens) return '';
-  const noun = failure.recoveryDays === 1 ? 'day' : 'days';
   return (
-    ` Recovery costs ${failure.recoveryCost} credits and ${failure.recoveryDays} ${noun}.` +
+    ` Recovery costs ${failure.recoveryCost} credits.` +
     ' The contract returns to the board.'
   );
 }

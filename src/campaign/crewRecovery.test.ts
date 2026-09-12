@@ -7,7 +7,6 @@ import { isPilotAvailable } from './types';
 import { deserialiseCampaign, serialiseCampaign } from './save';
 import { assessSolvency } from './solvency';
 import { needsCrewStandDown, standDownCost } from './crewRecovery';
-import { dailyPayroll } from './ledger';
 import { employerHistories } from './employers';
 import type { BattleResult, UnitResult } from '../sim/world';
 
@@ -139,9 +138,9 @@ describe('campaign crew recovery and career', () => {
     const beforeXp = state.pilots.map((pilot) => pilot.xp);
     const beforeStore = structuredClone(state.store);
     const day = state.day;
-    const payroll = dailyPayroll(local, state) * cost.days;
+    const payroll = 0;
     expect(standDownCampaign(local, state).ok).toBe(true);
-    expect(state.day).toBe(day + cost.days);
+    expect(state.day).toBe(day + 1);
     expect(state.cbills).toBe(beforeMoney - cost.fee - payroll);
     expect(state.pilots.map((pilot) => pilot.xp)).toEqual(beforeXp);
     expect(state.pilots.every((pilot) => isPilotAvailable(state, pilot))).toBe(true);

@@ -1161,7 +1161,7 @@ async function main() {
     await completeInitialCampaignSetup(page);
 
     const day = async () =>
-      Number((await page.locator('[data-testid="camp-day"]').innerText()).replace('Day ', ''));
+      page.evaluate(() => JSON.parse(localStorage.getItem('ironline.campaign')).state.day);
     const cash = async () =>
       Number(
         (await page.locator('[data-testid="camp-cbills"]').innerText()).replace(/[^0-9-]/g, ''),
@@ -1380,28 +1380,13 @@ async function main() {
       'contract terms name success pay, field clock and wage exposure',
       selectedTermsText.includes('on success only') &&
         selectedTermsText.includes('clock') &&
-        selectedTermsText.includes('maximum through deadline'),
+        !selectedTermsText.includes('maximum through deadline'),
       selectedTermsText,
     );
     await page.screenshot({ path: `${SHOTS}/08-contract-terms.png` });
 
     const dayBefore = await day();
-    await page.locator('[data-testid="camp-waiting"] > summary').click();
-    await page.locator('[data-testid="camp-advance"]').click();
-    await page.locator('[data-testid="camp-waiting"] > summary').click();
-    check('advancing a day moves the clock', (await day()) === dayBefore + 1);
-    await page.locator('[data-testid="camp-log"] details > summary').click();
-    const restDayLog = await page.locator('[data-testid="camp-log"]').innerText();
-    check(
-      'a rest day draws and records one seeded campaign event',
-      restDayLog.includes('Rest day —'),
-      restDayLog,
-    );
-    await page.screenshot({ path: `${SHOTS}/06d-rest-day-event.png` });
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.locator('[data-testid="camp-log"]').scrollIntoViewIfNeeded();
-    await page.screenshot({ path: `${SHOTS}/06e-rest-day-event-touch.png` });
-    await page.setViewportSize({ width: 1440, height: 900 });
+    check('campaign preparation has no waiting controls or calendar charges', await page.getByTestId('camp-advance').count() === 0 && await page.getByTestId('camp-day').count() === 0 && await day() === dayBefore);
 
     // Back to the war for the rest of the run: the authored node is the one
     // whose payout, salvage and unlocks the later checks are written against.
@@ -1755,7 +1740,7 @@ async function main() {
     check(
       'the board states when it renews',
       (await page.locator('[data-testid="camp-hall"] .hall-note').innerText()).includes(
-        'New work arrives on day',
+        'Available work refreshes as the campaign progresses',
       ),
     );
 
@@ -1780,8 +1765,8 @@ async function main() {
     );
     const rosterText = await page.locator('[data-testid="camp-roster"]').innerText();
     check(
-      'the barracks states experience and daily payroll',
-      rosterText.includes('XP banked') && rosterText.includes('/day'),
+      'the barracks states experience without a daily payroll',
+      rosterText.includes('XP banked') && !rosterText.includes('/day'),
     );
 
     checkCampaignHaul({ before: beforeDrop, after: resolvedState, check });

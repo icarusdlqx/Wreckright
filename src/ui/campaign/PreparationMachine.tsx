@@ -4,7 +4,6 @@ import { isMechAvailable } from '../../campaign/types';
 import { mechIntegrity } from '../../campaign/integrity';
 import { estimateRepair, projectedRepairWindow, repairQueue, startRepair } from '../../campaign/repair';
 import { rebuildHulk } from '../../campaign/refit';
-import { companyWait, waitCompany } from './campaignFlow';
 import { authoredDesignName } from '../designLabel';
 import { WeaponGlyph } from '../mechbay/WeaponGlyph';
 import { formatWeaponNumber } from '../mechbay/weaponPresentation';
@@ -23,7 +22,6 @@ export function PreparationMachine({ catalog, state, mech, mutate, onRefit }: Pr
   const estimate = estimateRepair(catalog, mech);
   const projected = projectedRepairWindow(catalog, state, estimate.days);
   const booking = repairQueue(catalog, state).find((entry) => entry.mechId === mech.id);
-  const wait = mech.readyOnDay > state.day ? companyWait(catalog, state, mech.readyOnDay) : null;
   const ready = isMechAvailable(state, mech) && mech.status !== 'hulk';
   const integrity = mechIntegrity(catalog, mech);
   const weapons = [...new Set(mech.design.mounts.map((mount) => mount.weaponId))];
@@ -41,23 +39,16 @@ export function PreparationMachine({ catalog, state, mech, mutate, onRefit }: Pr
       <button type="button" onClick={() => onRefit(mech.id)} disabled={!ready}
         title={ready ? 'Change this machine’s installed equipment.' : 'Finish workshop work or rebuild this machine before refitting.'}
         data-testid={`hangar-refit-${mech.id}`}>Refit loadout</button>
-      <button type="button" disabled={mech.status !== 'hulk' && (!ready || estimate.days === 0)}
-        title={mech.status === 'hulk' ? 'Book a full chassis rebuild.' : !ready ? 'This machine already has workshop work booked.' : estimate.days === 0 ? 'This machine does not need repairs.' : `Book ${estimate.days} day${estimate.days === 1 ? '' : 's'} of workshop work.`}
+      <button type="button" disabled={estimate.cost > state.cbills || (mech.status !== 'hulk' && (!ready || estimate.days === 0))}
+        title={estimate.cost > state.cbills ? `Need ${estimate.cost.toLocaleString()} C for repairs.` : 'Pay the repair cost and restore this mech immediately.'}
         data-testid={`hangar-${mech.status === 'hulk' ? 'rebuild' : 'repair'}-${mech.id}`}
         onClick={() => mutate((draft) => {
           const target = draft.mechs.find((entry) => entry.id === mech.id);
           if (target === undefined) return 'Machine unavailable.';
           const result = target.status === 'hulk' ? rebuildHulk(catalog, draft, target) : startRepair(catalog, draft, target);
-          return result.ok ? `${authoredDesignName(catalog, target.design)} booked; ready day ${target.readyOnDay}.` : result.reason;
-        })}>{mech.status === 'hulk' ? 'Rebuild machine' : projected.status === 'active' ? 'Repair machine' : 'Queue repair'}</button>
+          return result.ok ? `${authoredDesignName(catalog, target.design)} repaired and ready to deploy.` : result.reason;
+        })}>{mech.status === 'hulk' ? 'Rebuild now' : 'Repair now'} · {estimate.cost.toLocaleString()} C</button>
     </div>
-    {wait === null ? null : <div className="prep-repair-continue">
-      <p>Ready on day {wait.targetDay} · {wait.days} days · {wait.wages.toLocaleString('en-GB')} C crew wages.</p>
-      <button type="button" disabled={wait.blocked !== null} title={wait.blocked ?? 'Complete workshop time and return to preparation.'}
-        data-testid={`hangar-finish-repair-${mech.id}`}
-        onClick={() => mutate((draft) => waitCompany(catalog, draft, wait.targetDay))}>Complete repairs & continue</button>
-      {wait.blocked === null ? null : <p role="status">{wait.blocked}</p>}
-    </div>}
     <RepairReadout catalog={catalog} state={state} mech={mech} estimate={estimate} projected={projected}
       booking={booking} ready={ready} status={ready ? 'Machine available' : 'Workshop work required'} />
     <h4>Installed weapons</h4>

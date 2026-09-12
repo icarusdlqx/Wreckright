@@ -89,7 +89,7 @@ describe('mechbay history controls', () => {
     expect(standalone).toContain('aria-label="Design name"');
     expect(standalone).toContain('aria-label="Stock design"');
     expect(standalone).toContain('Save changes');
-    expect(standalone).toContain('Save as new…');
+    expect(standalone).toContain('Save variant…');
     expect(standalone).toContain('aria-label="Saved loadouts"');
     expect(standalone).not.toContain('Build Linewrought');
     expect(standalone).not.toContain('shopbuilt');
@@ -97,7 +97,7 @@ describe('mechbay history controls', () => {
     expect(commissioned).toContain('Commit refit');
     expect(commissioned).not.toContain('aria-label="Design name"');
     expect(commissioned).not.toContain('aria-label="Stock design"');
-    expect(commissioned).not.toContain('aria-label="Saved loadouts"');
+    expect(commissioned).toContain('aria-label="Saved loadouts"');
   });
 
   it('selects authored mech loadouts without offering vehicles or emplacements', () => {

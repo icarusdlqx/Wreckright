@@ -1,3 +1,4 @@
+import { saveBay } from './save-bay.mjs';
 import { returnFromAutoPreparation } from './unified-navigation.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import { clickFittingAction } from './fitting-actions.mjs';
@@ -56,7 +57,7 @@ export async function runPreparationWorkspaceChecks({ browser, url, shots, check
     const oldDesign = beforeRefit.mechs.find(mech => mech.id === second.mechId).design;
     await clickFittingAction(refit.locator('[data-testid^="remove-weapon-"]').first());
     check('an uncommitted refit does not change the campaign machine', JSON.stringify((await company(page)).mechs.find(mech => mech.id === second.mechId).design) === JSON.stringify(oldDesign));
-    await page.getByTestId('bay-save').click();
+    await saveBay(page);
     await refit.waitFor({ state: 'hidden' });
     check('committing a refit returns to the same selected cockpit', await page.getByTestId('prep-seat-1').getAttribute('aria-pressed') === 'true');
     const committed = await company(page);

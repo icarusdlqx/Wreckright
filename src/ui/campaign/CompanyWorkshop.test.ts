@@ -33,7 +33,7 @@ describe('company workshop', () => {
     expect(refitButton(markup, first.id)).not.toContain('disabled');
     expect(markup).toContain('data-testid="chassis-silhouette"');
     expect(markup).toContain('Armour &amp; structure');
-    expect(markup).toContain('Daily payroll');
+    expect(markup).not.toContain('Daily payroll');
     expect(markup).toContain('role="status" aria-live="polite" aria-atomic="true"');
     expect(JSON.stringify(state)).toBe(before);
   });
@@ -89,7 +89,7 @@ describe('company workshop', () => {
     state.cbills = 0;
     const before = JSON.stringify(state);
     const quote = workshop(state);
-    expect(quote).toContain(`Need ${estimate.cost.toLocaleString('en-GB')} C more to book this work.`);
+    expect(quote).toContain(`Need ${estimate.cost.toLocaleString('en-GB')} C more to repair this machine.`);
     expect(quote).toContain(`data-testid="camp-repair-${first.id}"`);
     expect(JSON.stringify(state)).toBe(before);
 
@@ -97,9 +97,9 @@ describe('company workshop', () => {
     expect(startRepair(catalog, state, first).ok).toBe(true);
     state.cbills = 0;
     const booked = workshop(state);
-    expect(booked).toContain('<dt>Booking</dt><dd>Paid</dd>');
-    expect(booked).toContain('Company payroll until ready:');
-    expect(booked).not.toContain('more to book this work');
+    expect(booked).toContain('No repairs required.');
+    expect(booked).not.toContain('Company payroll until ready:');
+    expect(booked).not.toContain('more to repair this machine');
     expect(booked).not.toContain(`data-testid="camp-repair-${first.id}"`);
   });
 });

@@ -318,7 +318,7 @@ export async function runMobileMechbayJourney({
   check(
     `${prefix} inspecting the fitted weapon does not remove it`,
     (await page.locator('[data-testid="free-tonnage"]').innerText()) === afterFit &&
-      await renderedTextIncludes(page.locator('#bay-shelf-inspector'), 'Medium Laser'),
+      await renderedTextIncludes(page.locator('.weapon-card.is-inspected'), 'Medium Laser'),
   );
   await remove.tap();
   await selectWorkspace(page, 'review');

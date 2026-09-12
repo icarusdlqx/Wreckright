@@ -1,3 +1,4 @@
+import { selectBaySection } from './unified-navigation.mjs';
 import { readFileSync } from 'node:fs';
 
 const STORAGE_KEY = 'ironline.design.e2e_range_cairn';
@@ -62,6 +63,7 @@ async function openFixture(browser, url, viewport) {
   await inspect.scrollIntoViewIfNeeded();
   await inspect.focus();
   await inspect.press('Enter');
+  await selectBaySection(page, 'review');
   const chart = page.locator('[data-testid="range-damage-chart"]');
   await chart.waitFor({ state: 'visible' });
   await chart.scrollIntoViewIfNeeded();
@@ -113,7 +115,7 @@ export async function runRangeDamageChartChecks({ browser, url, shots, check }) 
         JSON.stringify(stackFacts),
       );
       const geometry = await run.chart.evaluate((element) => {
-        const dossier = element.closest('[data-testid="bay-dossier-card"]');
+        const dossier = element.closest('[data-testid="build-firing-analysis"]');
         const bay = element.closest('[data-testid="mechbay"]');
         const rect = element.getBoundingClientRect();
         const dossierRect = dossier?.getBoundingClientRect();
