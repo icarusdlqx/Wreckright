@@ -145,7 +145,7 @@
  .bay.bay--workspace .bay-catalog > .bay-inspector-shell { flex: none; max-height: 230px; overflow-y: auto; }
 }
 
-@media(pointer:coarse) {
+@media(max-width:760px), (pointer:coarse) {
  .bay.bay--workspace .anatomical-layout .bay-location-name,
  .bay.bay--workspace .anatomical-layout .slot-block .slot-block__move,
  .bay.bay--workspace .anatomical-layout .slot-block .slot-block__remove { min-height: 44px; }
