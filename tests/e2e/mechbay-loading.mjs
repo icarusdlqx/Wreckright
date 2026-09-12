@@ -17,7 +17,7 @@ export async function runColdMechbayChecks({ browser, url, shots, check }) {
   try {
     await page.goto(url);
     await page.getByTestId('home-campaign').click();
-    await page.getByTestId('campaign-choice').selectOption('border_dispute');
+    await page.getByTestId('company-card-border_dispute').click();
     await page.getByTestId('campaign-choice-start').click();
     await page.getByTestId('campaign-chooser').waitFor({ state: 'hidden' });
     const guide = page.getByTestId('campaign-guide-dismiss');

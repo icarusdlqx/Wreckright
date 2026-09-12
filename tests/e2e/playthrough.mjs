@@ -1169,9 +1169,9 @@ async function main() {
 
     await companyFile(page, 'camp-campaigns');
     await page.waitForSelector('[data-testid="campaign-chooser"]');
-    const campaignChoices = await page.locator('[data-testid="campaign-choice"] option')
+    const campaignChoices = await page.locator('.company-choice-card')
       .evaluateAll((options) => options.map((option) => ({
-        id: option.value,
+        id: option.getAttribute('data-testid').replace('company-card-', ''),
         name: option.textContent?.trim() ?? '',
       })));
     check(
@@ -1182,7 +1182,7 @@ async function main() {
       JSON.stringify(campaignChoices),
     );
     await page.screenshot({ path: `${SHOTS}/06a-campaign-chooser.png` });
-    await page.locator('[data-testid="campaign-choice"]').selectOption('aurelian_recall');
+    await page.getByTestId('company-card-aurelian_recall').click();
     await page.locator('[data-testid="campaign-choice-start"]').click();
     await openCampaignDetails(page);
     await page.waitForSelector('[data-testid="camp-node-first_warrant"]');
@@ -1254,7 +1254,7 @@ async function main() {
     );
     await page.screenshot({ path: `${SHOTS}/06b-aurelian-campaign.png` });
     await companyFile(page, 'camp-campaigns');
-    await page.locator('[data-testid="campaign-choice"]').selectOption('border_dispute');
+    await page.getByTestId('company-card-border_dispute').click();
     await page.locator('[data-testid="campaign-choice-resume"]').click();
     await openCampaignDetails(page);
     await page.waitForSelector('[data-testid="camp-node-militia_raid"]');

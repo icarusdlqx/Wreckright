@@ -15,7 +15,7 @@ async function revealSupplies(page) {
 async function startCompany(page, url, campaignId) {
   await page.goto(url);
   await page.getByTestId('home-campaign').click();
-  await page.getByTestId('campaign-choice').selectOption(campaignId);
+  await page.getByTestId(`company-card-${campaignId}`).click();
   await page.getByTestId('campaign-choice-start').click();
   await page.getByTestId('campaign-chooser').waitFor({ state: 'hidden' });
   await revealSupplies(page);

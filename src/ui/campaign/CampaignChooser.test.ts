@@ -36,10 +36,10 @@ describe('campaign chooser', () => {
       onStart: vi.fn(),
     }));
 
-    expect(html).toContain('data-testid="campaign-choice-border_dispute"');
-    expect(html).toContain('data-testid="campaign-choice-aurelian_recall"');
+    expect(html).toContain('data-testid="company-card-border_dispute"');
+    expect(html).toContain('data-testid="company-card-aurelian_recall"');
     expect(html).toContain('The Great Recall');
-    expect(html).toContain('The Great Recall: Custodians');
+    expect(html).not.toContain('data-testid="campaign-choice"');
     expect(html).toContain('This is the campaign already in progress.');
     expect(html).toContain('Each faction has its own parked company slot');
     expect(html).toContain('disabled="" data-testid="campaign-choice-start"');
@@ -68,7 +68,7 @@ describe('campaign chooser', () => {
       campaigns: [...catalog.campaigns.values()], currentId: 'missing_campaign', initial: true,
       onClose: vi.fn(), onStart: vi.fn(),
     }));
-    expect(html).toMatch(/<option value="border_dispute"[^>]* selected=""/);
+    expect(html).toMatch(/aria-pressed="true"[^>]*data-testid="company-card-border_dispute"/);
     expect(html).toContain('data-testid="campaign-difficulty-picker"');
     expect(html).not.toContain('Selected: missing_campaign');
   });

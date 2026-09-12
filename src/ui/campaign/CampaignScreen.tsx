@@ -248,6 +248,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
           onClose={() => setManualOpen(false)}
         />
       )}
+      <CrewStandDown catalog={catalog} state={state} onStandDown={() => mutate((draft) => standDownCampaign(catalog, draft).reason)} />
       <CampaignNextStep catalog={catalog} state={state} node={node} onContinue={continueMission} />
       <CampaignWorkspace
         key={`${state.campaignId}:${state.seed}`}
@@ -293,7 +294,6 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         employer={employer}
         employers={employers}
         companyStatus={
-          <><CrewStandDown catalog={catalog} state={state} onStandDown={() => mutate((draft) => standDownCampaign(catalog, draft).reason)} />
           <CompanyStatus
             report={solvency}
             contractActive={state.contract !== null}
@@ -306,7 +306,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
                 return result.ok ? 'Company retired. This campaign is over.' : result.reason;
               })
             }
-          /></>
+          />
         }
         onSelectTerms={setSelectedTerms}
         onAccept={(termsId) => {

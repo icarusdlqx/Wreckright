@@ -85,7 +85,7 @@ export async function runCampaignSaveLibraryChecks({ page, shots, check }) {
     await savedPage.getByTestId('camp-exit').click();
     await savedPage.evaluate(() => localStorage.setItem('ironline.campaign.debriefed', '4'));
     await savedPage.getByTestId('home-new-campaign').click();
-    await savedPage.getByTestId('campaign-choice').selectOption('aurelian_recall');
+    await savedPage.getByTestId('company-card-aurelian_recall').click();
     await savedPage.getByTestId('campaign-difficulty-picker').selectOption('veteran');
     await savedPage.getByTestId('campaign-choice-start').click();
     await savedPage.getByTestId('campaign-chooser').waitFor({ state: 'hidden' });

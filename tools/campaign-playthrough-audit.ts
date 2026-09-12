@@ -8,18 +8,21 @@ import {
   negotiationOptions,
   runMission,
   startCampaign,
+  standDownCampaign,
 } from '../src/campaign/campaign';
 import { fitFromStore, planFit } from '../src/campaign/refit';
 import { estimateRepair, startRepair } from '../src/campaign/repair';
 import { availableHires, hirePilot } from '../src/campaign/roster';
 import { deserialiseCampaign, serialiseCampaign } from '../src/campaign/save';
 import { isPilotAvailable, type CampaignState } from '../src/campaign/types';
+import { needsCrewStandDown } from '../src/campaign/crewRecovery';
 import { getCatalog } from '../src/schema/load';
 
 const catalog = getCatalog();
 const output = process.env.CAMPAIGN_PLAYTHROUGH_OUT ??
   'docs/review/release-audit/campaign-playthrough.md';
 let lastFailure = 'not started';
+const failedAttempts: string[] = [];
 
 interface RouteDefinition {
   campaignId: string;
@@ -123,6 +126,13 @@ function attempt(route: RouteDefinition, seed: string): RouteRecord | null {
         lastFailure = `${nodeId}: contract could not be accepted`;
         return null;
       }
+      if (needsCrewStandDown(catalog, state)) {
+        const recovery = standDownCampaign(catalog, state);
+        if (!recovery.ok) { lastFailure = recovery.reason; return null; }
+        console.log(`${seed}: ${nodeId}: forfeited a contract to recover the entirely wounded crew`);
+        state = restore(state);
+        continue;
+      }
       let result;
       try {
         result = runMission(catalog, state);
@@ -165,6 +175,7 @@ function verify(route: RouteDefinition): RouteRecord {
     const seed = `release-live-${route.ending}-${index}`;
     const result = attempt(route, seed);
     if (result !== null) return result;
+    failedAttempts.push(`${seed}: ${lastFailure}`);
     if (process.env.CAMPAIGN_PLAYTHROUGH_TRACE === '1') console.log(`${seed}: ${lastFailure}`);
   }
   throw new Error(`${route.campaignId}/${route.ending} did not finish in the bounded seed set`);
@@ -196,6 +207,9 @@ for (const record of records) {
   );
 }
 lines.push(
+  '## Unsuccessful attempts', '',
+  'This is a bounded completion audit, not an unbeaten first-attempt playthrough or a difficulty study. Failed runs are retained below rather than hidden by the seed search.', '',
+  ...failedAttempts.map(failure => `- ${failure}`), '',
   '## Coverage',
   '',
   '- Both factions complete their eight-operation main routes with optional work skipped.',
