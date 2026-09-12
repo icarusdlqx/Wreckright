@@ -135,9 +135,10 @@ export async function runSkirmishForceChecks({ browser, url, shots, check }) {
       units: globalThis.__wreckright.world.entities.map((entity) => ({ team: entity.team, design: entity.designId,
         gunnery: entity.pilot.gunnery, weapons: entity.weapons.length })),
       campaign: localStorage.getItem('ironline.campaign'),
+      enemyDesign: JSON.parse(localStorage.getItem('ironline.lance.enemy.skirmish_foundry_district'))[0].design,
     }));
     check('deployment uses the exact two selected forces and their independent tiers', fielded.units.length === 2
-      && fielded.units[0].design === 'hornet_spotter' && fielded.units[1].design === 'sentinel_brawler'
+      && fielded.units[0].design === JSON.parse(savedFriendly)[0].design.id && fielded.units[1].design === fielded.enemyDesign.id
       && fielded.difficulty === 'green' && fielded.playerDifficulty === 'elite'
       && fielded.units[0].weapons === JSON.parse(savedFriendly)[0].design.mounts.length
       && fielded.units[1].weapons === savedEnemy[0].design.mounts.length);

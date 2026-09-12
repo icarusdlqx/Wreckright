@@ -296,20 +296,20 @@
       "rewards": [
         {
           "id": "gantry_repair_days",
-          "label": "Two workshop day credits",
+          "label": "Sarn workshop access",
           "effects": {
             "freeRepairDays": 2
           },
-          "afterword": "Sarn banks two workshop day credits. Each later repair or rebuild booking can use one to shorten its duration by a day. Parts, labour and payroll remain payable."
+          "afterword": "The Sarn crews keep a repair station open for the company. Repairs and rebuilds finish as soon as their quoted parts and labour are paid."
         },
         {
           "id": "stores_supplier_terms",
-          "label": "Stores cabinet: seven days of supplier terms",
+          "label": "Stores cabinet: seven missions of supplier terms",
           "objectiveId": "recover_workshop_stock",
           "effects": {
             "supplierDiscountDays": 7
           },
-          "afterword": "The recovered stores records establish the company with Sarn's suppliers. Preferential terms last seven campaign days."
+          "afterword": "The recovered stores records establish the company with Sarn's suppliers. Preferential terms last for the next seven missions."
         }
       ]
     },

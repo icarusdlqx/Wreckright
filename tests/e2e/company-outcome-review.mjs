@@ -184,7 +184,7 @@ export async function runCompanyOutcomeChecks({ browser, url, shots, check }) {
       && fixture.itemNames.every(name => receiptText.includes(name))
       && fixture.receipts.every(reward => receiptText.includes(reward.afterword))
       && /Workshop priority honoured/.test(receiptText)
-      && /Supplier purchase discount through day/.test(receiptText)
+      && /Supplier purchase discount activated/.test(receiptText)
       && stockAndClaimsMatch(JSON.parse(fixture.offerRaw).state, settled, fixture.receipts)
       && account(settled) === account(JSON.parse(fixture.raw).state), `${receiptText}\n${recoveryText}`);
     await reveal(receipt);

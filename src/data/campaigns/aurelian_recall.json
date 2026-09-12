@@ -197,7 +197,7 @@
         },
         {
           "id": "sealed_burst_stock",
-          "label": "Seal cabinet: burst optics and one workshop day credit",
+          "label": "Seal cabinet: burst optics and workshop access",
           "objectiveId": "recover_sealed_stock",
           "items": [
             {
@@ -209,7 +209,7 @@
           "effects": {
             "freeRepairDays": 1
           },
-          "afterword": "The cabinet carries two Medium Burst Lasers and banks one workshop day credit for a later repair or rebuild booking. Parts, labour and payroll remain payable. The burst optics trade reach for close-range accuracy."
+          "afterword": "The cabinet carries two Medium Burst Lasers and secures access to the workshop. Quoted repairs finish immediately after payment. The burst optics trade reach for close-range accuracy."
         }
       ]
     },

@@ -18,6 +18,7 @@ Variants are local to the browser and origin. Import/export remains available fo
 
 - All 3,490 fast tests pass, including campaign acceptance, save migration, exact-payment/insufficient-funds repair checks and pilot injury protection.
 - Both faction browser journeys pass all 24 checks: settlement, salvage inventory, immediate repairs, named shared variants, exact deployment designs and skirmish reuse. These use controlled battle-result fixtures, not a claim of two manual full-campaign playthroughs.
+- The 17 layout and named-save checks also verify a visible error inside the naming dialog, no partial write on storage failure, and a successful retry.
 - Native pointer fitting checks cover moving installed weapons, illegal drops, undo, shelf placement, automatic ammunition, keyboard placement, exact save/reload and phone touch targets.
 - Anatomy checks inspect every authored chassis at 1280×720; additional geometric checks cover 1600, 1280, 1024 and 390 pixel widths, centred head, left/right parts and no page overflow.
 - Dedicated sensor checks verify paused activation, fog-preserving tracked red dots and probe expiry. No sensor simulation change was needed.
