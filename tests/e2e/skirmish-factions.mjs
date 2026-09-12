@@ -151,7 +151,7 @@ export async function runSkirmishFactionChecks({ browser, url, shots, check }) {
         const prime = globalThis.__wreckright.world.catalog.designs.get('hornet_spotter');
         return design.id !== prime.id && design.chassisId === prime.chassisId
           && JSON.stringify(design.mounts) === JSON.stringify(prime.mounts)
-          && JSON.stringify(design) === localStorage.getItem(`ironline.design.${design.id}`);
+          && JSON.stringify(design) === JSON.stringify(JSON.parse(localStorage.getItem(`ironline.design.${design.id}`)));
       }, key(0)));
     if (shots) {
       await page.getByTestId('briefing-faction-picker').scrollIntoViewIfNeeded();
