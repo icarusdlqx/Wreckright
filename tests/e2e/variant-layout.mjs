@@ -47,5 +47,14 @@ try {
  await page.getByTestId('bay-save-confirm').click();
  await page.getByTestId('bay-save-dialog').waitFor({state:'hidden'});
  check('retry saves the same named blueprint without losing its weapons', await page.evaluate(()=>JSON.parse(localStorage.getItem('ironline.design.protected_variant')).mounts.length>0));
+ await page.getByTestId('design-picker').selectOption('sentinel_brawler');
+ await page.getByTestId('remove-weapon-0').click();
+ await page.getByTestId('bay-exit').click();
+ await page.getByTestId('bay-unsaved-save').click();
+ await page.getByTestId('home-mechbay').waitFor();
+ check('Save and leave gives an unnamed Prime edit its own variant designation', await page.evaluate(()=>{
+  const variant=JSON.parse(localStorage.getItem('ironline.design.sentinel_field_fit'));
+  return variant?.name==='Sentinel Field Fit' && localStorage.getItem('ironline.design.sentinel_brawler')===null;
+ }));
  console.log(`${checks} layout and save checks passed`);
 } finally { await browser.close(); }

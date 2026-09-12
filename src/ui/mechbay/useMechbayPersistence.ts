@@ -55,7 +55,7 @@ export function useMechbayPersistence({
 
   const save = (candidate: Design = design): boolean => {
     let current = currentStockDesign(catalog, candidate);
-    if (commission !== undefined && catalog.designs.has(current.id)) {
+    if (catalog.designs.has(current.id)) {
       let designation = `${current.name} Field Fit`;
       let index = 2;
       while (listStoredDesigns().includes(idFromName(designation))) designation = `${current.name} Field Fit ${index++}`;
