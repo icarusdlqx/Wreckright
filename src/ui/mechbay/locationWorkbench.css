@@ -119,6 +119,9 @@
   padding: 8px;
 }
 
+.bay-location > header { display: flex; align-items: center; justify-content: space-between; gap: 5px; }
+.bay-location-capacity { flex: none; color: var(--muted); font-size: 8px; font-variant-numeric: tabular-nums; text-transform: uppercase; }
+
 .bay-location-flags {
   display: flex;
   min-height: 16px;

@@ -7,6 +7,7 @@ import type { Catalog } from '../../schema/load';
 import { CompanyJournal } from './CompanyJournal';
 import { cbills } from './Panels';
 import './campaignWorkspace.css';
+import './simpleCampaign.css';
 import type { CompanyArea } from './campaignNavigation';
 
 const AREAS = [
@@ -48,29 +49,17 @@ export function CampaignWorkspace({
   return (
     <main className={`company-workspace company-workspace--${faction}${state.finished ? ' company-workspace--finished' : ''}`}
       data-campaign-faction={faction}>
-      <div className="company-overview" aria-label="Company readiness">
-        <span><strong>{ready}</strong> fieldable machines <small>of {state.mechs.length} owned</small></span>
-        <span><strong>{state.pilots.filter((pilot) => !pilot.dead).length}</strong> crew <small>{cbills(dailyPayroll(catalog, state))} wages / day</small></span>
-        <span className="company-contract-state"><i aria-hidden="true" />{state.finished ? completion : state.contract === null ? 'Available for contract' : 'Contract signed'}
-          <small>{state.finished ? `Company record · day ${state.day}` : `${state.contract === null ? defaultDropBerths(catalog) : missionSlots(catalog, state.contract.missionId)} drop berths · mission tonnage applies`}</small></span>
+      <div className="campaign-journey" data-testid="campaign-journey" aria-label="Campaign mission flow">
+        <strong>1 · Choose mission</strong><span>2 · Repair & customise</span><span>3 · Pair pilots & deploy</span>
       </div>
-      {!fullCompany ? null : (
-        <nav className="company-navigation" aria-label="Company work areas">
-          {AREAS.filter((entry) => !state.finished || entry.id === 'operations' || entry.id === 'journal').map((entry, index) => (
-            <button
-              key={entry.id}
-              type="button"
-              aria-current={selected === entry.id ? 'page' : undefined}
-              aria-controls={`company-area-${entry.id}`}
-              data-testid={`camp-area-${entry.id}`}
-              onClick={() => setArea(entry.id)}
-            >
-              <span aria-hidden="true">0{index + 1}</span>
-              <strong>{entry.label}</strong><small>{entry.detail}</small>
-            </button>
-          ))}
-        </nav>
-      )}
+      {!fullCompany ? null : <details className="company-tools" open={selected !== 'operations' || undefined}>
+        <summary>Company records & supplies</summary>
+        <p>{ready} fieldable machines · {state.pilots.filter((pilot) => !pilot.dead).length} pilots · {cbills(dailyPayroll(catalog, state))} wages / day
+          {' · '}{state.contract === null && !state.finished ? 'Available for contract · ' : ''}{state.finished ? completion : `${state.contract === null ? defaultDropBerths(catalog) : missionSlots(catalog, state.contract.missionId)} deployment berths`}</p>
+        <nav aria-label="Company tools">{AREAS.filter((entry) => !state.finished || entry.id === 'operations' || entry.id === 'journal').map((entry) =>
+          <button key={entry.id} type="button" data-testid={`camp-area-${entry.id}`} aria-current={selected === entry.id ? 'page' : undefined}
+            onClick={() => setArea(entry.id)}>{entry.id === 'operations' ? 'Return to missions' : entry.label}</button>)}</nav>
+      </details>}
       {selected === 'operations' ? story : null}
       {selected === 'operations' ? route : null}
       <div id="company-area-operations" className="company-area company-operations" hidden={selected !== 'operations'}>

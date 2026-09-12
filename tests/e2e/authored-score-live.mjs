@@ -60,7 +60,7 @@ export async function runAuthoredScoreLiveChecks({ browser, url, check }) {
     const home = await page.evaluate(() => globalThis.__liveScore.snapshot()[0]);
     check('a home gesture starts decoded local music in a running native audio context',
       home.state === 'running' && home.decoded.length === 3
-        && home.decoded.every(stem => stem.peak > .0001 && Math.abs(stem.duration - 32 * 4 * 60 / 104) < .1)
+        && home.decoded.every(stem => stem.peak > .0001 && Math.abs(stem.duration - 32 * 4 * 60 / 116) < .1)
         && home.decoded.filter(stem => stem.channels === 2).length === 1
         && home.decoded.filter(stem => stem.channels === 1).length === 2
         && new Set(home.sources.map(source => source.starts[0])).size === 1

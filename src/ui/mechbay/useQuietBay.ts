@@ -31,6 +31,7 @@ export function useQuietBay(armed: DropPayload | null) {
 
   return {
     targeting: dragged ?? armed,
+    dragging: dragged !== null,
     cultureExpanded,
     guideExpanded,
     snapLocation,

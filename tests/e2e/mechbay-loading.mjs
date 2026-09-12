@@ -1,3 +1,4 @@
+import { openCompanyTools } from './unified-navigation.mjs';
 import { checkCompanyWorkspaces } from './campaign-navigation.mjs';
 import { clickFittingAction } from './fitting-actions.mjs';
 
@@ -21,6 +22,7 @@ export async function runColdMechbayChecks({ browser, url, shots, check }) {
     await page.getByTestId('campaign-chooser').waitFor({ state: 'hidden' });
     const guide = page.getByTestId('campaign-guide-dismiss');
     if (await guide.isVisible()) await guide.click();
+    await openCompanyTools(page);
     await page.getByTestId('camp-area-workshop').click();
     const launch = page.locator('[data-testid^="camp-refit-"]:enabled').first();
     const saved = await page.evaluate(() => localStorage.getItem('ironline.campaign'));

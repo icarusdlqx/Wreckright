@@ -1,3 +1,5 @@
+import { openCampaignDetails } from './unified-navigation.mjs';
+import { returnFromAutoPreparation } from './unified-navigation.mjs';
 import { runAuthoredScoreLiveChecks } from './authored-score-live.mjs';
 import { runAuthoredScoreLoadingChecks } from './authored-score-loading.mjs';
 import { discardRefitIfPrompted } from './mechbay-exit.mjs';
@@ -13,8 +15,8 @@ import {
 } from './audio-probe.mjs';
 
 const SCORE_SOURCE_COUNT = 3;
-const CAMPAIGN_LEVEL = .8 * .6;
-const MECHBAY_LEVEL = .8 * .72;
+const CAMPAIGN_LEVEL = .8 * .54;
+const MECHBAY_LEVEL = .8 * .68;
 
 function watchPage(page) {
   const errors = [];
@@ -109,8 +111,10 @@ async function checkCampaignAndNestedRefit({ browser, url, check }) {
         && (await page.evaluate(() => localStorage.getItem('ironline.muted'))) === '1');
     await page.locator('[data-testid="campaign-mute-button"]').click();
 
+    await openCampaignDetails(page);
     await page.locator('[data-testid="camp-node-militia_raid"]').click();
     await page.locator('[data-testid="camp-accept"]').click();
+    await returnFromAutoPreparation(page);
     await page.locator('[data-testid="camp-review-machines"]').click();
     await page.waitForSelector('[data-testid="hangar-stage"]');
     await page.locator('[data-testid="prep-seat-0"]').click();
@@ -151,7 +155,7 @@ async function checkCampaignAndNestedRefit({ browser, url, check }) {
     await advanceAudioClock(page);
     await page.waitForFunction(() => {
       const active = globalThis.__audioProbe.snapshot().findLast(context => context.state !== 'closed');
-      return active?.gains.some(gain => Math.abs(gain.value - .8 * .9) < .0001);
+      return active?.gains.some(gain => Math.abs(gain.value - .8 * .86) < .0001);
     });
     const home = activeAudioContext(await audioProbe(page));
     check('campaign return reuses its strategic sources for the home theme',

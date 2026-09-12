@@ -141,6 +141,7 @@ export function ContractPanel({
               terms={selected}
             />
           )}
+          <details className="campaign-terms-detail"><summary>Payment & salvage terms · {selected?.name}</summary>
           <fieldset className="camp-negotiate" data-testid="camp-terms">
             <legend>Terms</legend>
             {options.map((option) => (
@@ -163,7 +164,7 @@ export function ContractPanel({
                 </span>
               </label>
             ))}
-          </fieldset>
+          </fieldset></details>
           {selected === null ? null : (
             <details className="contract-salvage-detail">
               <summary>Recovery odds for {selected.name.toLowerCase()} terms</summary>
@@ -184,12 +185,12 @@ export function ContractPanel({
             }}
             data-testid="camp-accept"
           >
-            Sign {selected?.name ?? 'terms'}
+            Choose mission & prepare →
           </button>
         </>
       )}
-      {companyStatus}
-      <EmployerLedger employers={employers} />
+      <details className="campaign-company-detail"><summary>Company readiness & employer records</summary>{companyStatus}
+      <EmployerLedger employers={employers} /></details>
     </section>
   );
 }

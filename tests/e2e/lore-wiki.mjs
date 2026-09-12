@@ -1,3 +1,4 @@
+import { openCompanyTools } from './unified-navigation.mjs';
 import { clickFittingAction } from './fitting-actions.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 
@@ -94,6 +95,7 @@ export async function runLoreWikiChecks({ browser, url, shots, check }) {
     await completeInitialCampaignSetup(page);
     const guide = page.locator('[data-testid="campaign-guide-dismiss"]');
     if (await guide.isVisible()) await guide.click();
+    await openCompanyTools(page);
     await page.locator('[data-testid="camp-area-workshop"]').click();
     await page.locator('[data-testid^="camp-refit-"]:enabled').nth(1).click();
     await page.waitForSelector('[data-testid="refit-bay"] canvas');
@@ -111,13 +113,13 @@ export async function runLoreWikiChecks({ browser, url, shots, check }) {
     const compactHistory = await history.evaluate(link => {
       const rect = link.getBoundingClientRect();
       const profile = link.closest('.anatomical-profile').getBoundingClientRect();
-      const footer = document.querySelector('[data-testid="bay-save"]').getBoundingClientRect().top;
+      const boundary = document.querySelector('[data-testid="anatomical-loadout"]').getBoundingClientRect();
       return rect.width >= 44 && rect.height >= 44 && rect.left >= profile.left && rect.right <= profile.right
         && rect.top >= profile.top && rect.bottom <= profile.bottom
         && document.querySelectorAll('[data-testid="refit-bay"] .machine-wiki-link').length === 1
-        && [...document.querySelectorAll('[data-testid="anatomical-loadout"] .bay-location')].every(card => card.getBoundingClientRect().bottom <= footer);
+        && [...document.querySelectorAll('[data-testid="anatomical-loadout"] .bay-location')].every(card => card.getBoundingClientRect().bottom <= boundary.bottom + 1);
     });
-    check('compact laptop refit keeps one visible history link and all eight body locations', await history.isVisible() && compactHistory);
+    check('laptop refit keeps a reachable history link and all eight scrollable body locations', await history.isVisible() && compactHistory);
     await shot('refit-history');
     await history.click();
     await page.locator('[data-testid="wiki-article"]').waitFor();

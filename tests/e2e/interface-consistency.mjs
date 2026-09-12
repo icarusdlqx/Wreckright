@@ -1,3 +1,4 @@
+import { openCompanyTools, returnFromAutoPreparation } from './unified-navigation.mjs';
 import { mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
@@ -83,6 +84,8 @@ try {
   check('campaign shows save state in text', (await page.getByTestId('camp-save-state').innerText()).includes('Saved locally'));
 
   for (const [area, number] of [['workshop', '07'], ['crew', '08'], ['supplies', '09'], ['journal', '10']]) {
+    await openCompanyTools(page);
+    await openCompanyTools(page);
     await page.getByTestId(`camp-area-${area}`).click();
     await inspect(page, `${number}-campaign-${area}`, '[data-testid="campaign"]');
   }
@@ -93,8 +96,10 @@ try {
   await inspect(page, '12-field-manual', '[data-testid="camp-manual"]');
   await page.getByTestId('camp-manual-close').click();
 
+  await openCompanyTools(page);
   await page.getByTestId('camp-area-operations').click();
   await page.getByTestId('camp-accept').click();
+  await returnFromAutoPreparation(page);
   await page.getByTestId('camp-next-mission').click();
   await inspect(page, '13-preparation-machines', '[data-testid="lance-manifest"]');
   await page.getByTestId('hangar-continue').click();

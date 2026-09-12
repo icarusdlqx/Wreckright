@@ -20,7 +20,7 @@ export async function quietLocationState(page, allowArmourReveal = false) {
       const armourIsSequenced = visible(armour) && !visible(armourDetail) ||
         allowReveal && !visible(armour) && visible(armourDetail);
       return card.querySelector('.bay-location-name') !== null &&
-        slotGrid !== null && freeSlots !== null && visible(card.querySelector('.rack-cell')) &&
+        ((slotGrid !== null && freeSlots !== null && visible(card.querySelector('.rack-cell'))) || card.querySelector('.bay-leg-note') !== null) &&
         armourIsSequenced && /^\d+\+\d+$/.test(armour?.textContent ?? '') &&
         card.querySelector('.bay-slots') === null &&
         card.querySelector('.bay-hardpoints') !== null &&
@@ -115,11 +115,11 @@ export async function verifyQuietBayOpening({ page, check, selectWorkspace, comp
   const initialExplainers = await explainerState(page);
   check(
     'the workspace opens on one visible Loadout panel',
-    (await page.locator('[data-testid="bay-workspace-tabs"] [role="tab"]').count()) === 3 &&
-      (await page.locator('[data-workspace-tab="loadout"]').getAttribute('aria-selected')) === 'true' &&
+    (await page.locator('[data-workspace-tab]').count()) === 0 &&
+      await page.getByTestId('bay-readiness').isVisible() &&
       await page.locator('[data-workspace-panel="loadout"]').isVisible() &&
-      !(await page.locator('[data-workspace-panel="armour"]').isVisible()) &&
-      !(await page.locator('[data-workspace-panel="review"]').isVisible()) &&
+      !(await page.getByTestId('cooling-bank').isVisible()) &&
+      !(await page.getByTestId('build-review').isVisible()) &&
       !(await page.locator('[data-testid="build-compare"]').isVisible()) &&
       initialExplainers.workbenchExpanded === 'true' &&
       initialExplainers.cultureExpanded === 'true',

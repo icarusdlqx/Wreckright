@@ -1,26 +1,26 @@
 [
   {
-    "file": "carry-the-dawn-core.wav",
-    "seconds": 73.84615625,
-    "peak": 0.368865966796875,
-    "rms": 0.07458854522724857,
-    "loop_jump": 0.002899169921875,
-    "normal_delta_p99": 0.03460693359375
+    "file": "roads-we-keep-core.wav",
+    "seconds": 66.20690625,
+    "peak": 0.26092529296875,
+    "rms": 0.06285733454031538,
+    "loop_jump": 0.001373291015625,
+    "normal_delta_p99": 0.023223876953125
   },
   {
-    "file": "carry-the-dawn-ironwork.wav",
-    "seconds": 73.84615625,
-    "peak": 0.359832763671875,
-    "rms": 0.047026907500744175,
-    "loop_jump": 0.000396728515625,
-    "normal_delta_p99": 0.041412353515625
+    "file": "roads-we-keep-ironwork.wav",
+    "seconds": 66.20690625,
+    "peak": 0.56683349609375,
+    "rms": 0.07499289030546968,
+    "loop_jump": 0.00067138671875,
+    "normal_delta_p99": 0.1522216796875
   },
   {
-    "file": "carry-the-dawn-monolith.wav",
-    "seconds": 73.84615625,
-    "peak": 0.230987548828125,
-    "rms": 0.034643784070342555,
-    "loop_jump": 0.005096435546875,
-    "normal_delta_p99": 0.03399658203125
+    "file": "roads-we-keep-monolith.wav",
+    "seconds": 66.20690625,
+    "peak": 0.282867431640625,
+    "rms": 0.03575615560788421,
+    "loop_jump": 0.000457763671875,
+    "normal_delta_p99": 0.053192138671875
   }
 ]

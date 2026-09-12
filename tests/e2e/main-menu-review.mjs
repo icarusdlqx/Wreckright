@@ -1,3 +1,4 @@
+import { returnFromAutoPreparation } from './unified-navigation.mjs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
@@ -43,7 +44,7 @@ async function checkResponsiveMenu(viewport, label) {
       company: localStorage.getItem('ironline.campaign'), training: localStorage.getItem('ironline.training'),
     }));
     const routes = [];
-    for (const id of ['home-learn', 'home-campaign', 'home-skirmish', 'home-wiki']) {
+    for (const id of ['home-learn', 'home-campaign', 'home-mechbay', 'home-skirmish', 'home-wiki']) {
       const route = page.locator(`[data-testid="${id}"]`);
       // Small or short screens may scroll; every choice must remain usable when reached.
       await route.scrollIntoViewIfNeeded();
@@ -129,6 +130,7 @@ async function checkLaunch(route) {
       const guide = page.locator('[data-testid="campaign-guide-dismiss"]');
       if (await guide.isVisible()) await guide.click();
       await page.locator('[data-testid="camp-accept"]').click();
+      await returnFromAutoPreparation(page);
       await page.locator('[data-testid="camp-deploy"]').click();
     }
     await page.locator('[data-testid="briefing"]').waitFor();
@@ -147,10 +149,59 @@ async function checkLaunch(route) {
   } finally { await context.close(); }
 }
 
+async function checkMechbayRoute() {
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  context.setDefaultTimeout(30_000);
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', error => errors.push(String(error)));
+  await page.addInitScript(() => {
+    localStorage.clear();
+    localStorage.setItem('ironline.muted', '1');
+  });
+  try {
+    await page.goto(options.url, { waitUntil: 'load' });
+    await page.locator('[data-testid="home-mechbay"]').click();
+    await page.locator('[data-testid="mechbay"]').waitFor();
+    options.check('mechbay: Home route opens the workshop without starting a battle',
+      await page.locator('[data-testid="design-picker"]').isVisible()
+        && await page.locator('[data-testid="bay-save-as"]').isVisible()
+        && await page.locator('[data-testid="viewport"]').count() === 0
+        && await page.locator('[data-testid="bay-exit"]').innerText() === 'Back to command');
+    await page.screenshot({ path: `${shots}/launch-mechbay.png` });
+
+    await page.locator('[data-testid="bay-save-as"]').click();
+    await page.locator('[data-testid="bay-save-dialog"]').waitFor();
+    await page.locator('[data-testid="bay-save-name"]').fill('Menu Field Scout');
+    await page.screenshot({ path: `${shots}/launch-mechbay-save-dialog.png` });
+    await page.locator('[data-testid="bay-save-confirm"]').click();
+    await page.locator('[data-testid="bay-save-dialog"]').waitFor({ state: 'hidden' });
+    const saved = await page.evaluate(() => {
+      const raw = localStorage.getItem('ironline.design.menu_field_scout');
+      return raw === null ? null : JSON.parse(raw);
+    });
+    options.check('mechbay: Save as new creates a named reusable configuration',
+      saved?.name === 'Menu Field Scout'
+        && await page.locator('[data-testid="design-name"]').inputValue() === 'Menu Field Scout'
+        && await page.locator('[data-testid="bay-stored"] option[value="menu_field_scout"]').count() === 1,
+      JSON.stringify(saved));
+
+    await page.locator('[data-testid="bay-exit"]').click();
+    await page.locator('[data-testid="home-screen"]').waitFor();
+    await page.locator('[data-testid="home-mechbay"]').click();
+    await page.locator('[data-testid="mechbay"]').waitFor();
+    options.check('mechbay: saved configuration remains available after a Home round trip',
+      await page.locator('[data-testid="bay-stored"] option[value="menu_field_scout"]').count() === 1);
+    options.check('mechbay: route and save interactions report no page errors',
+      errors.length === 0, errors.join(' | '));
+  } finally { await context.close(); }
+}
+
 try {
   await checkHomeTheatre(options);
   await checkResponsiveMenu({ width: 320, height: 568 }, 'small-portrait');
   await checkResponsiveMenu({ width: 844, height: 390 }, 'short-landscape');
+  await checkMechbayRoute();
   for (const route of ['learn', 'skirmish', 'campaign']) await checkLaunch(route);
   if (results.some(result => !result.passed)) throw new Error(JSON.stringify(results.filter(result => !result.passed)));
   console.log(`${results.length}/${results.length} main-menu checks passed`);

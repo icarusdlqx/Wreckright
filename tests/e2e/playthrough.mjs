@@ -1,3 +1,4 @@
+import { returnFromAutoPreparation, openCampaignDetails } from './unified-navigation.mjs';
 import { runPreparationWorkspaceChecks } from './preparation-workspace.mjs';
 import { runPilotCommandDockChecks } from './pilot-command-dock.mjs';
 import { runCompactCommandDockChecks } from './compact-command-dock.mjs';
@@ -254,35 +255,19 @@ async function verifyFirstDropLaunchPaths({ browser, url, shots, check: recordCh
   process.stdout.write('\nfirst drop launch\n');
   const fresh = await freshCampaignFixture(browser, url);
   try {
-    // From a ready opening company, signing and launching are the only two
-    // gestures between the contract board and the mission briefing.
-    await fresh.page.locator('[data-testid="camp-accept"]').click();
-    const launch = fresh.page.locator('[data-testid="camp-deploy"]');
-    const review = fresh.page.locator('[data-testid="camp-review-machines"]');
-    await fresh.page.waitForFunction(
-      () => document.activeElement?.getAttribute('data-testid') === 'camp-deploy',
-    );
-    recordCheck(
-      'a fresh signed company offers launch first and machine review second',
-      (await launch.innerText()) === 'Launch the drop' &&
-        (await review.innerText()) === 'Review machines first' &&
-        (await fresh.page.locator('[data-testid="campaign"]').getAttribute('data-first-drop-stage')) ===
-          'launch' &&
-        (await launch.evaluate((element) => element === document.activeElement)),
-    );
-    await launch.scrollIntoViewIfNeeded();
+    await fresh.page.getByTestId('camp-accept').click();
+    await fresh.page.getByTestId('hangar-stage').waitFor();
+    recordCheck('choosing the first mission opens repair and customisation directly',
+      await fresh.page.getByTestId('hangar-continue').isVisible());
     await fresh.page.screenshot({ path: `${shots}/08-first-drop-launch-desktop.png` });
     await fresh.page.setViewportSize({ width: 390, height: 844 });
-    await launch.scrollIntoViewIfNeeded();
     await fresh.page.screenshot({ path: `${shots}/08-first-drop-launch-mobile.png` });
-    await fresh.page.setViewportSize({ width: 1440, height: 900 });
-    await launch.click();
-    await fresh.page.waitForSelector('[data-testid="briefing"]');
-    recordCheck(
-      'fresh campaign reaches the contracted briefing in exactly Sign and Launch clicks',
-      (await fresh.page.locator('[data-testid="campaign"]').count()) === 0 &&
-        (await fresh.page.locator('[data-testid="briefing"]').count()) === 1,
-    );
+    await fresh.page.getByTestId('hangar-continue').click();
+    await fresh.page.getByTestId('manifest-launch').click();
+    await fresh.page.getByTestId('briefing').waitFor();
+    recordCheck('mission choice, team preparation and deployment reach the correct briefing',
+      await fresh.page.getByTestId('campaign').count() === 0);
+
   } finally {
     await fresh.context.close();
   }
@@ -308,15 +293,6 @@ async function verifyFirstDropLaunchPaths({ browser, url, shots, check: recordCh
       }, kind);
       await reopenSavedCampaign(fallback.page);
       await fallback.page.locator('[data-testid="camp-accept"]').click();
-      const prepare = fallback.page.locator('[data-testid="camp-deploy"]');
-      recordCheck(
-        `${kind} assigned machine retains Prepare drop instead of direct launch`,
-        (await prepare.innerText()).startsWith('Prepare drop (') &&
-          (await fallback.page.locator('[data-testid="camp-review-machines"]').count()) === 0 &&
-          (await fallback.page.locator('[data-testid="campaign"]').getAttribute('data-first-drop-stage')) ===
-            'prepare',
-      );
-      await prepare.click();
       await fallback.page.waitForSelector('[data-testid="hangar-stage"]');
       recordCheck(
         `${kind} assigned machine still opens the existing hangar prep corridor`,
@@ -375,14 +351,15 @@ async function main() {
         (await page.evaluate(() => globalThis.__wreckright === undefined)),
     );
     check(
-      'Home offers learn, campaign, skirmish and the built-in wiki',
+      'Home offers learn, campaign, MechBay, skirmish and the built-in wiki',
       (await page.locator('[data-testid="home-learn"]').count()) === 1 &&
         (await page.locator('[data-testid="home-campaign"]').count()) === 1 &&
+        (await page.locator('[data-testid="home-mechbay"]').count()) === 1 &&
         (await page.locator('[data-testid="home-skirmish"]').count()) === 1 &&
         (await page.locator('[data-testid="home-wiki"]').getAttribute('href')) === '#wiki' &&
         (await page.locator('[data-testid="home-wiki"]').innerText()).includes('Wiki') &&
         (await page.locator('#home-title').innerText()) === 'WRECKRIGHT' &&
-        (await page.locator('.home-kicker').textContent()) === 'No new machines. Only new owners.' &&
+        (await page.locator('.home-premise').textContent()) === 'Your company. Your mechs. Your next move.' &&
         (await page.locator('[data-testid="home-learn"] strong').textContent()) === 'Learn Command',
     );
     await page.locator('[data-testid="home-learn"]').click();
@@ -474,8 +451,8 @@ async function main() {
     await completeInitialCampaignSetup(page);
     check(
       'successful training reaches first-contract guidance',
-      (await page.locator('[data-testid="campaign-guide"]').innerText()).includes(
-        '1 · Choose the job',
+      (await page.locator('[data-testid="campaign-journey"]').innerText()).includes(
+        '1 · Choose mission',
       ),
     );
     await page.locator('[data-testid="camp-exit"]').click();
@@ -1207,6 +1184,7 @@ async function main() {
     await page.screenshot({ path: `${SHOTS}/06a-campaign-chooser.png` });
     await page.locator('[data-testid="campaign-choice"]').selectOption('aurelian_recall');
     await page.locator('[data-testid="campaign-choice-start"]').click();
+    await openCampaignDetails(page);
     await page.waitForSelector('[data-testid="camp-node-first_warrant"]');
     const aurelianNodeIds = await page.locator('.camp-node').evaluateAll((nodes) =>
       nodes.map((node) => node.getAttribute('data-testid')?.replace('camp-node-', '') ?? ''),
@@ -1278,6 +1256,7 @@ async function main() {
     await companyFile(page, 'camp-campaigns');
     await page.locator('[data-testid="campaign-choice"]').selectOption('border_dispute');
     await page.locator('[data-testid="campaign-choice-resume"]').click();
+    await openCampaignDetails(page);
     await page.waitForSelector('[data-testid="camp-node-militia_raid"]');
 
     const campaignNodeIds = await page.locator('.camp-node').evaluateAll((nodes) =>
@@ -1323,8 +1302,8 @@ async function main() {
       'first-drop guidance begins at choosing the job',
       (await page.locator('[data-testid="campaign"]').getAttribute('data-first-drop-stage')) ===
         'choose' &&
-        (await page.locator('[data-testid="campaign-guide"]').innerText()).includes(
-          '1 · Choose the job',
+        (await page.locator('[data-testid="campaign-journey"]').innerText()).includes(
+          '1 · Choose mission',
         ),
     );
 
@@ -1381,6 +1360,7 @@ async function main() {
     );
     await page.setViewportSize({ width: 1440, height: 900 });
 
+    await openCampaignDetails(page);
     const offerFor = async (termsId) => {
       const choice = page.locator(`[data-testid="camp-terms-${termsId}"]`);
       await choice.click();
@@ -1410,6 +1390,7 @@ async function main() {
     await page.locator('[data-testid="camp-advance"]').click();
     await page.locator('[data-testid="camp-waiting"] > summary').click();
     check('advancing a day moves the clock', (await day()) === dayBefore + 1);
+    await page.locator('[data-testid="camp-log"] details > summary').click();
     const restDayLog = await page.locator('[data-testid="camp-log"]').innerText();
     check(
       'a rest day draws and records one seeded campaign event',
@@ -1426,8 +1407,10 @@ async function main() {
     // whose payout, salvage and unlocks the later checks are written against.
     await page.locator('[data-testid="camp-node-militia_raid"]').click();
 
+    await openCampaignDetails(page);
     await page.locator('[data-testid="camp-terms-salvage_first"]').click();
     await page.locator('[data-testid="camp-accept"]').click();
+    await returnFromAutoPreparation(page);
     check(
       'signing shows the active contract with launch and review controls',
       (await page.locator('[data-testid="camp-deploy"]').innerText()) === 'Launch the drop' &&
@@ -1438,11 +1421,11 @@ async function main() {
       'signing advances first-drop guidance to Launch the drop',
       (await page.locator('[data-testid="campaign"]').getAttribute('data-first-drop-stage')) ===
         'launch' &&
-        (await page.locator('[data-testid="campaign-guide"]').innerText()).includes(
-          '2 · Launch the drop',
+        (await page.locator('[data-testid="campaign-journey"]').innerText()).includes(
+          '2 · Repair & customise',
         ) &&
-        (await page.locator('[data-testid="campaign-guide"]').innerText()).includes(
-          'review the machines first',
+        (await page.locator('[data-testid="campaign-journey"]').innerText()).includes(
+          '3 · Pair pilots & deploy',
         ),
     );
     check(
@@ -1462,8 +1445,8 @@ async function main() {
       'Review machines opens preparation with the company machines',
       (await page.locator('[data-testid="campaign"]').getAttribute('data-first-drop-stage')) ===
         'bay' &&
-        (await page.locator('[data-testid="campaign-guide"]').innerText()).includes(
-          '3 · Prepare the team',
+        (await page.locator('[data-testid="campaign-journey"]').innerText()).includes(
+          '2 · Repair & customise',
         ) &&
         (await page.locator('[data-testid^="prep-machine-"]').count()) > 0,
     );
@@ -1474,8 +1457,8 @@ async function main() {
       'hangar continue opens the guided manifest stage',
       (await page.locator('[data-testid="campaign"]').getAttribute('data-first-drop-stage')) ===
         'manifest' &&
-        (await page.locator('[data-testid="campaign-guide"]').innerText()).includes(
-          '3 · Assign the pilots',
+        (await page.locator('[data-testid="campaign-journey"]').innerText()).includes(
+          '3 · Pair pilots & deploy',
         ),
     );
     await page.screenshot({ path: `${SHOTS}/08-manifest.png` });
@@ -1642,8 +1625,9 @@ async function main() {
       'the debrief accounts for every pilot who dropped',
       (await page.locator('[data-testid^="debrief-fate-"]').count()) > 0,
     );
+    await page.locator('.debrief-pilot-report > summary').click();
     check(
-      'the pilot XP rows stay visible beside the compact ledger',
+      'the pilot XP rows are available in the crew report',
       (await page.locator('[data-testid^="debrief-fate-"]:visible').count()) ===
         debriefOutcome.pilotReportCount,
     );
@@ -1660,23 +1644,24 @@ async function main() {
     const salvageReport = page.locator('[data-testid="debrief-salvage-report"]');
     if (hasDetailedSalvage) {
       check(
-        'the recovery ledger and picker begin folded behind the salvage disclosure',
+        'the recovery ledger and picker are visible immediately',
         (await salvageReport.count()) === 1 &&
-          (await salvageReport.getAttribute('open')) === null &&
-          (await page.locator('[data-testid="debrief-recovery"]').isVisible()) === false &&
-          (await page.locator('[data-testid="debrief-salvage"]').isVisible()) === false,
+          (await salvageReport.getAttribute('open')) !== null &&
+          (debriefOutcome.salvageCandidates.length === 0 || await page.locator('[data-testid="debrief-recovery"]').isVisible()) &&
+          (debriefOutcome.salvageOffered.length === 0 || await page.locator('[data-testid="debrief-salvage"]').isVisible()),
       );
 
       const adjustPicks = page.locator('[data-testid="debrief-adjust-picks"]');
       await adjustPicks.focus();
       check(
-        'the editable salvage disclosure is named Adjust picks',
-        !debriefOutcome.salvageFinalized && (await adjustPicks.textContent())?.trim() === 'Adjust picks',
+        'the salvage choice is plainly named',
+        !debriefOutcome.salvageFinalized && (await adjustPicks.textContent())?.trim() === 'Choose your salvage',
         JSON.stringify({ label: await adjustPicks.innerText(), finalized: debriefOutcome.salvageFinalized }),
       );
       await page.keyboard.press('Enter');
+      await page.keyboard.press('Enter');
       check(
-        'the keyboard opens the full salvage report one click deeper',
+        'the keyboard can collapse and reopen salvage',
         (await salvageReport.getAttribute('open')) !== null &&
           (debriefOutcome.salvageCandidates.length === 0 ||
             (await page.locator('[data-testid="debrief-recovery"]').isVisible())) &&
@@ -1711,7 +1696,7 @@ async function main() {
       await page.keyboard.press('Tab');
       check(
         'the campaign debrief traps forward focus at its first crew action',
-        await page.locator('.debrief-pair-actions button').first().evaluate(el => document.activeElement === el),
+        await page.locator('[data-testid="debrief"] summary:visible').first().evaluate(el => document.activeElement === el),
       );
       await page.keyboard.press('Shift+Tab');
       check(
@@ -1747,7 +1732,7 @@ async function main() {
 
     check(
       'first-drop guidance retires after the opening outcome',
-      (await page.locator('[data-testid="campaign-guide"]').count()) === 0 &&
+      (await page.locator('[data-testid="campaign-journey"]').count()) === 1 &&
         (await page.locator('[data-testid="campaign"]').getAttribute('data-first-drop-stage')) ===
           null,
     );
@@ -1758,6 +1743,7 @@ async function main() {
       (await page.locator('li[data-testid^="camp-pilot-"]').count()) >= 4,
     );
 
+    await openCampaignDetails(page);
     const posted = await page.locator('[data-testid="camp-hall"] li').count();
     check('the hiring hall is posting work', posted > 0, `${posted} postings`);
     const postingFacts = await page.locator('[data-testid="camp-hall"] button').first().innerText();

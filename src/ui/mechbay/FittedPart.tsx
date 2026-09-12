@@ -26,7 +26,7 @@ export function FittedPart({ catalog, item, locationName, snap, target, replacem
   const label = replacing ? `Preview replacing ${item.label} with ${incomingName} in ${locationName}` : `Inspect ${item.label}`;
   return (
     <li
-      className={`slot-block tone-${item.tone}${item.oversized ? ' too-big' : ''}${snap ? ' snap-target' : ''}${replacing ? ` replacement-target ${replacement?.ok ? 'can-replace' : 'cannot-replace'}` : ''}`}
+      className={`slot-block tone-${item.tone}${item.oversized ? ' too-big' : ''}${snap ? ' snap-target' : ''}${target !== null ? ' is-drag-target' : ''}${replacing ? ` replacement-target ${replacement?.ok ? 'can-replace' : 'cannot-replace'}` : ''}`}
       data-testid={item.kind === 'weapon' ? `replacement-target-${item.index}` : undefined}
       data-replacement-fit={replacing ? String(replacement?.ok === true) : undefined}
       title={item.oversized ? `${item.label} — too large for this mount` : `${item.label} — ${item.slots} slots`}

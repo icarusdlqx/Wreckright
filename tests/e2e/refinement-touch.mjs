@@ -1,3 +1,4 @@
+import { openCompanyTools } from './unified-navigation.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 
 const company = page => page.evaluate(() => JSON.parse(localStorage.getItem('ironline.campaign')).state);
@@ -63,6 +64,7 @@ export async function runRefinementTouchChecks({ browser, url, shots, check }) {
       && await horizontalFit(page.locator('[data-testid="camp-mission-survey"]')));
     await shot('planning-map');
 
+    await openCompanyTools(page);
     await tap(page.locator('[data-testid="camp-area-crew"]'));
     const rows = page.locator('[data-testid^="crew-select-"]');
     check('phone crew uses compact portrait rows and one selected detailed record',
@@ -88,6 +90,7 @@ export async function runRefinementTouchChecks({ browser, url, shots, check }) {
       })));
     await shot('crew');
 
+    await openCompanyTools(page);
     await tap(page.locator('[data-testid="camp-area-workshop"]'));
     const bulwark = page.locator('.company-workshop-machine').filter({ hasText: 'Bulwark' });
     await tap(bulwark.locator('[data-testid^="camp-refit-"]:enabled'));

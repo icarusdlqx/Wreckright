@@ -8,11 +8,8 @@ import { getCatalog } from '../../schema/load';
 import { computeHeatProfile, computeLoadout } from '../../sim/loadout';
 import { setName } from './editor';
 import { BayChrome, type BayStatus } from './BayChrome';
-import {
-  BayWorkspacePanel,
-  BayWorkspaceTabs,
-  type BayWorkspaceTab,
-} from './BayWorkspaceTabs';
+import { BayQuickSystems } from './BayQuickSystems';
+import { BayReadiness } from './BayReadiness';
 import { BuildReview } from './BuildReview';
 import { BuildCompare } from './BuildCompare';
 import { CoolingBank } from './CoolingBank';
@@ -46,6 +43,9 @@ import { useMechbayScore } from './useMechbayScore';
 import { useMechbayPersistence } from './useMechbayPersistence';
 import { useQuietBay } from './useQuietBay';
 import { DraftExitDialog, useDraftExit } from './useDraftExit';
+import { SaveConfigurationDialog } from './SaveConfigurationDialog';
+import './commandBay.css';
+import './unifiedBay.css';
 
 const catalog = getCatalog();
 export interface BayCommission {
@@ -60,12 +60,14 @@ export interface BayCommission {
 }
 export function Mechbay({
   onExit,
+  exitLabel,
   commission,
   battleAudio,
   onBattleMuted,
   preparationContext,
 }: {
   onExit: () => void;
+  exitLabel?: string;
   commission?: BayCommission;
   battleAudio?: AudioDirector;
   onBattleMuted?: (muted: boolean) => void;
@@ -85,7 +87,7 @@ export function Mechbay({
   const [showAll, setShowAll] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<MechLocation | null>(null);
   const [hoveredLocation, setHoveredLocation] = useState<MechLocation | null>(null);
-  const [workspace, setWorkspace] = useState<BayWorkspaceTab>(coolingPart ? 'armour' : 'loadout');
+  const [savingAs, setSavingAs] = useState(false);
   const quietBay = useQuietBay(armed);
   const bayRef = useRef<HTMLDivElement>(null);
 
@@ -96,7 +98,6 @@ export function Mechbay({
     quietBay.clearDrag();
     setInspected(null);
     setShowAll(false);
-    setWorkspace('loadout');
     quietBay.resetSnap();
     setHistory(beginDesignHistory(next));
     draftExit.reset(next);
@@ -209,17 +210,17 @@ export function Mechbay({
       return;
     }
     setSelectedLocation((current) => current === location ? null : location);
-    setShelf('weapons');
   };
 
   return (
     <>
     <div
       ref={bayRef}
-      inert={replacement.request !== null || draftExit.confirming || undefined}
+      inert={replacement.request !== null || draftExit.confirming || savingAs || undefined}
       className="bay bay--workspace"
       data-testid="mechbay"
-      data-workspace={workspace}
+      data-dragging={quietBay.dragging || undefined}
+      data-workspace="unified"
       data-dirty={draftExit.dirty}
       onDragStart={(event) => quietBay.beginDrag(
         event.dataTransfer.getData('application/wreckright'))}
@@ -233,9 +234,10 @@ export function Mechbay({
           commissionTitle: commission.title,
           commissionCancelLabel: commission.cancelLabel,
         })}
+        {...(exitLabel === undefined ? {} : { exitLabel })}
         stored={persistence.stored}
         saveable={saveable}
-        status={status}
+        status={!saveable ? { tone: 'error', text: report.issues.filter((issue) => issue.severity === 'error').map((issue) => issue.message).join(' · ') } : status}
         muted={score.muted}
         onToggleMuted={score.toggleMuted}
         canUndo={history.past.length > 0}
@@ -254,18 +256,17 @@ export function Mechbay({
         }}
         onExit={draftExit.requestExit}
         onSave={draftExit.save}
+        onSaveAs={() => setSavingAs(true)}
         onExport={persistence.exportFile}
         onImport={(file) => void persistence.importFile(file)}
         onLoad={persistence.load}
       />
       {preparationContext === undefined ? null : <div className="bay-preparation-context">{preparationContext}</div>}
-      <BayWorkspaceTabs
-        active={workspace}
-        issueCount={report.issues.length}
-        onSelect={setWorkspace}
-      />
-
-      <BayWorkspacePanel tab="loadout" active={workspace === 'loadout'}>
+      <div className="bay-unified-body">
+      <BayReadiness catalog={catalog} design={design} report={report} heat={heat} onAmmo={autoFit} />
+      <BayQuickSystems catalog={catalog} chassis={chassis} design={design} loadout={loadout} heat={heat}
+        equipmentAvailability={inventory?.equipment} onIntent={applyIntent} onApply={commitDraft} />
+      <section className="bay-workspace-panel bay-workspace-panel--loadout" data-workspace-panel="loadout" tabIndex={-1}>
         <LoadoutGrid machine={<MachinePanel
           catalog={catalog}
           chassis={chassis}
@@ -335,9 +336,8 @@ export function Mechbay({
           onAutoFit={autoFit}
           onHoverWeapon={() => undefined}
         />
-      </BayWorkspacePanel>
-
-      <BayWorkspacePanel tab="armour" active={workspace === 'armour'}>
+      </section>
+      <details className="bay-system-details" data-workspace-panel="armour"><summary>Fine-tune individual armour and cooling</summary><section className="bay-systems" aria-label="Armour and cooling">
         <CoolingBank
           catalog={catalog}
           chassis={chassis}
@@ -356,18 +356,23 @@ export function Mechbay({
           onPreviewEnd={() => setHistory(
             (current) => finishDesignTransaction(current, 'armour'))}
         />
-      </BayWorkspacePanel>
-
-      <BayWorkspacePanel tab="review" active={workspace === 'review'}>
+      </section></details>
+      <details className="bay-full-review" data-workspace-panel="review"><summary>Detailed comparison and firing analysis</summary>
         <BuildCompare catalog={catalog} design={design} />
         <BuildReview
           catalog={catalog}
           design={design}
           loadout={loadout}
           heat={heat}
-          onNavigate={setWorkspace}
+          onNavigate={(section) => {
+            const panel = bayRef.current?.querySelector<HTMLElement>(`[data-workspace-panel="${section}"]`);
+            if (panel instanceof HTMLDetailsElement) panel.open = true;
+            panel?.scrollIntoView({ block: 'start' });
+            panel?.focus({ preventScroll: true });
+          }}
         />
-      </BayWorkspacePanel>
+      </details>
+      </div>
       </div>
       {draftExit.confirming ? <DraftExitDialog saveable={saveable} switching={draftExit.switching} onSave={draftExit.saveAndExit}
         onDiscard={draftExit.discard} onKeep={draftExit.keepEditing} /> : null}
@@ -376,6 +381,15 @@ export function Mechbay({
           stocked={inventory !== undefined} error={replacement.error}
           onConfirm={replacement.confirm} onCancel={replacement.close} />
       ) : null}
+      {savingAs ? <SaveConfigurationDialog catalog={catalog} design={design}
+        storedIds={persistence.stored.map((entry) => entry.id)}
+        onCancel={() => setSavingAs(false)} onSave={(named) => {
+          if (!persistence.save(named)) return false;
+          setHistory(beginDesignHistory(named));
+          draftExit.reset(named);
+          setSavingAs(false);
+          return true;
+        }} /> : null}
     </>
   );
 }

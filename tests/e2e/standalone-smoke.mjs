@@ -1,3 +1,4 @@
+import { openCompanyTools, returnFromAutoPreparation } from './unified-navigation.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -76,15 +77,18 @@ try {
   await page.locator('[data-testid="home-campaign"]').click();
   await page.waitForSelector('[data-testid="campaign"]');
   await completeInitialCampaignSetup(page);
-  await page.locator('[data-testid="campaign-guide-dismiss"]').click();
+
+  await openCompanyTools(page);
   await page.locator('[data-testid="camp-area-workshop"]').click();
   await page.locator('[data-testid^="camp-refit-"]:enabled').first().click();
   await page.waitForSelector('[data-testid="refit-bay"]');
   await page.waitForSelector('[data-testid="refit-bay"] canvas');
   await page.screenshot({ path: `${shots}/workshop-refit.png` });
   await page.keyboard.press('Escape');
+  await openCompanyTools(page);
   await page.locator('[data-testid="camp-area-operations"]').click();
   await page.locator('[data-testid="camp-accept"]').click();
+  await returnFromAutoPreparation(page);
   await page.locator('[data-testid="camp-deploy"]').click();
   await page.waitForSelector('[data-testid="briefing"]');
   await page.locator('[data-testid="briefing-deploy"]').click();
