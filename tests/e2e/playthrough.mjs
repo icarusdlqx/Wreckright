@@ -730,22 +730,32 @@ async function main() {
     check('own armour is an inspection view, not a called-shot control',
       await page.locator('[data-testid="doll-left_leg"]').isDisabled());
     // A controlled optical fixture lets this input test inspect a real hostile body section.
-    // Patch the paused world's vision directly instead of advancing a combat tick: on a slow
-    // CI runner, a projectile already in flight could otherwise destroy the chosen target in
-    // that one forced step and leave the hostile picker without its expected option.
+    // Pause explicitly: preceding input checks resume combat, and a normal tick on a slow
+    // runner can replace these injected optics or destroy the target before the picker opens.
     const aimFixture = await page.evaluateHandle(() => {
-      const { world, useGame } = globalThis.__ironmuster;
-      const enemy = world.entities.find(entity => entity.team !== world.playerTeam && !entity.destroyed);
+      const { world, useGame, engine } = globalThis.__ironmuster;
+      const wasPaused = useGame.getState().paused;
+      engine.setPaused(true);
+      const enemy = world.entities.find(entity => entity.team !== world.playerTeam &&
+        !entity.destroyed && !entity.withdrawn && !entity.pilot.dead && !entity.pilot.ejected);
+      if (enemy === undefined || world.vision === null) {
+        engine.setPaused(wasPaused);
+        throw new Error('Called-shot input fixture requires an operational hostile and player optics.');
+      }
       const wasVisible = world.vision.visible.has(enemy.id);
       const wasIdentified = world.vision.identified.has(enemy.id);
       world.vision.visible.add(enemy.id);
       world.vision.identified.add(enemy.id);
       // A fresh array marks the paused HUD dirty; its next frame publishes the updated vision.
       useGame.getState().setSelection([...useGame.getState().selection]);
-      return { world, useGame, targetId: enemy.id, wasVisible, wasIdentified };
+      return { world, useGame, engine, targetId: enemy.id, wasVisible, wasIdentified, wasPaused };
     });
     try {
       const aimTarget = await aimFixture.evaluate(({ targetId }) => targetId);
+      await page.waitForFunction(id => {
+        const state = globalThis.__ironmuster.useGame.getState();
+        return state.paused && state.enemies.some(enemy => enemy.id === id && enemy.alive && enemy.identified);
+      }, aimTarget);
       await page.locator('[data-testid="command-called_shot"]').click();
       await page.locator('[data-testid="called-shot-hostile"]').selectOption(String(aimTarget));
       await page.locator('[data-testid="called-shot-target"] [data-testid="doll-left_leg"]').click();
@@ -758,10 +768,11 @@ async function main() {
       await page.locator('[data-testid="called-shot-target"] button').filter({ hasText: 'Done' }).click();
     } finally {
       try {
-        await aimFixture.evaluate(({ world, useGame, targetId, wasVisible, wasIdentified }) => {
+        await aimFixture.evaluate(({ world, useGame, engine, targetId, wasVisible, wasIdentified, wasPaused }) => {
           if (!wasVisible) world.vision.visible.delete(targetId);
           if (!wasIdentified) world.vision.identified.delete(targetId);
           useGame.getState().setSelection([...useGame.getState().selection]);
+          engine.setPaused(wasPaused);
         });
       } finally {
         await aimFixture.dispose();
