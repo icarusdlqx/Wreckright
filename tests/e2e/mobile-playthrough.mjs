@@ -244,8 +244,7 @@ async function runOrientation({ browser, url, shots, check, viewport, label, sho
     await openBattleMenu(page);
     await page.locator('[data-testid="choose-mission"]').tap();
     await page.waitForSelector('[data-testid="briefing"]');
-    await openBattleMenu(page);
-    await page.locator('[data-testid="open-campaign"]').tap();
+    await page.locator('[data-testid="training-skip"]').tap();
     await page.waitForSelector('[data-testid="campaign"]');
     await completeInitialCampaignSetup(page);
 
