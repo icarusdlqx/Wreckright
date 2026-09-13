@@ -42,7 +42,7 @@ export function skirmishForceIssue(
       return `${side} lance is set to ${skirmishFactionName(faction)}. Choose a mech from that faction, or select Mixed company.`;
     }
     if (!validateDesign(catalog, design).valid) {
-      return `${side} lance has an invalid loadout. Open Refit loadout to correct it.`;
+      return `${side} lance has an invalid loadout. Open the Mechlab to correct it.`;
     }
   }
   const total = lanceTonnage(catalog, berths);

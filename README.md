@@ -148,7 +148,7 @@ Iteration *i* runs on seed `<seed>:<i>`, so any single battle can be replayed on
   last-known-position ghosts, paper-doll damage display, heat bar with threshold
   markers, weapon groups with cooldown rings, camera pan/zoom, and pause that
   freezes the sim while still accepting orders.
-- **Phase 3 — Mechbay: complete.** Construction weight tables in `/data/rules`,
+- **Phase 3 — Mechlab: complete.** Construction weight tables in `/data/rules`,
   a loadout calculator that enforces tonnage, slots, hardpoint types, armour
   maxima and heat-sink minimums, drag-to-hardpoint editing with live validation,
   per-location armour sliders, a heat efficiency calculator verified against

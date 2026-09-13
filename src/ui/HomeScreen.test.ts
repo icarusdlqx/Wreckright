@@ -49,6 +49,8 @@ describe('home screen', () => {
     expect(html).toContain('data-testid="home-new-campaign"');
     expect(html).toContain('data-testid="home-skirmish"');
     expect(html).toContain('data-testid="home-mechbay"');
+    expect(html).toContain('<strong>Mechlab</strong>');
+    expect(html).not.toMatch(/>Mech[Bb]ay</);
     expect(routeTag(html, 'home-wiki')).toContain('href="#wiki"');
     expect(html).toContain('Wiki <span class="home-wiki-subtitle">· Story &amp; mechs</span>');
     expect(html).toContain('aria-label="Game settings"');

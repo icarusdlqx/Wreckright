@@ -57,7 +57,7 @@ the collision between those two answers to the same root serial.
 | Language | TypeScript (strict) | Type safety across a large data-driven system |
 | Build | Vite | Instant HMR, zero config |
 | Tactical render | three.js (WebGL) | Stylised 3D terrain, articulated machines and combat effects |
-| Shell UI | React | Mechbay, briefing, campaign screens |
+| Shell UI | React | Mechlab, briefing, campaign screens |
 | App state | Zustand | Simple, outside React render cycle |
 | Schema validation | Zod | All JSON content validated at load |
 | Tests | Vitest | Sim unit tests + headless battle harness |
@@ -89,7 +89,7 @@ Optional later: Tauri wrapper for a native `.app`. Not in scope for phases 0–7
   /schema           # Zod schemas mirroring /data
   /render           # Shared machine silhouettes and presentation blueprints.
   /render3d         # three.js scenes, terrain, articulation and effects; reads sim state.
-  /ui               # React. Mechbay, briefing, HUD overlays, campaign map.
+  /ui               # React. Mechlab, briefing, HUD overlays, campaign map.
   /campaign         # Meta-layer: economy, salvage, roster, time, save/load
   /headless         # CLI battle harness for balance analysis
 ```
@@ -411,7 +411,7 @@ Node-based operational map. Missions unlock in a branching sequence; some option
 
 **Between missions:**
 
-- Mechbay — repair, refit, strip salvage
+- Mechlab — repair, refit, strip salvage
 - Yard — buy and sell recovered walkers, weapons and ammunition
 - Barracks — hire pilots, assign, spend XP
 - Contracts — accept, negotiate payout vs salvage split
@@ -447,7 +447,7 @@ products, but they are opposition rather than recoverable roster hulls.
 
 ### 7.2 The loop
 
-One full turn of the campaign reads: **map → mechbay → deployment → battle → salvage → map.** Signing a contract and pressing "Prepare drop" walks a two-stage corridor — the hangar first (repairs, rebuilds, refits), then the dropship manifest (who flies what, against the tonnage allowance) — and launching fights the battle. The debrief brings home salvage, pay and experience, and the map opens the next contract. The drop itself is sized by **tonnage, not berth count**: up to six machines may drop so long as they fit the allowance, so three heavies instead of four mediums is a legitimate answer to it, and a skirmish berth can simply be left empty.
+One full turn of the campaign reads: **map → Mechlab → deployment → battle → salvage → map.** Signing a contract and pressing "Prepare drop" walks a two-stage corridor — the hangar first (repairs, rebuilds, refits), then the dropship manifest (who flies what, against the tonnage allowance) — and launching fights the battle. The debrief brings home salvage, pay and experience, and the map opens the next contract. The drop itself is sized by **tonnage, not berth count**: up to six machines may drop so long as they fit the allowance, so three heavies instead of four mediums is a legitimate answer to it, and a skirmish berth can simply be left empty.
 
 ## 8. Enemy AI
 
@@ -531,7 +531,7 @@ Three-dimensional terrain, articulated mech rendering with facing, selection and
 
 **Accept:** A skirmish mission is playable end to end with mouse and keyboard. Pause instantly freezes the sim and accepts orders.
 
-### Phase 3 — Mechbay
+### Phase 3 — Mechlab
 
 Loadout editor with drag-to-hardpoint, live validation of tonnage / slots / hardpoint type, armour allocation slider per location, heat efficiency calculator showing sustained vs alpha-strike heat, build save/load to JSON.
 

@@ -4,9 +4,20 @@ import { isOperational, type EntityId, type Vec2, type World } from '../sim/type
 import { disposeObjectResources } from './sceneResources';
 import { effectPoint, needsArmour } from './supportEffectModels';
 import { REPAIR_LINKS, repairTruckModel, type RepairVisual } from './repairTruckModels';
+import { canPresentEntity } from './visibilityPresentation';
 
 const CAPACITY = 4;
 const LIFT_SECONDS = 1.2;
+
+function ownsSupport(world: World, team: number): boolean {
+  return world.playerTeam === null || world.playerTeam === team;
+}
+
+function seesGround(world: World, at: Vec2): boolean {
+  const tile = world.terrain.toTile(at);
+  return world.vision !== null && world.terrain.inBounds(tile.column, tile.row) &&
+    world.vision.tiles[tile.row * world.terrain.width + tile.column] === 1;
+}
 
 /** A delivered service vehicle is cosmetic; the authored repair circle remains authoritative. */
 export class RepairTruckEffects {
@@ -25,9 +36,8 @@ export class RepairTruckEffects {
   draw(world: World, delta: number): void {
     const dt = Math.max(0, delta); this.elapsed += dt;
     for (const visual of this.visuals) visual.seen = false;
-    const visible = (team: number): boolean => world.playerTeam === null || world.playerTeam === team;
     for (const active of world.support.trucks) {
-      if (!visible(active.team)) continue;
+      if (!ownsSupport(world, active.team) && !seesGround(world, active.pos)) continue;
       const visual = this.acquire(world, active.team, active.pos, active.expiresTick);
       if (visual === undefined) continue;
       visual.phase = 'working'; visual.seen = true; visual.root.visible = true;
@@ -35,7 +45,8 @@ export class RepairTruckEffects {
       this.place(world, visual, active.radius, Math.max(0, active.expiresTick - world.tick) * world.dt);
     }
     for (const pending of world.support.pending) {
-      if (pending.call !== 'repair_truck' || !visible(pending.team)) continue;
+      // The delivered vehicle can be observed; the opponent's queued orders cannot.
+      if (pending.call !== 'repair_truck' || !ownsSupport(world, pending.team)) continue;
       const end = pending.resolveTick + Math.round(world.rules.support.repair_truck.durationSeconds / world.dt);
       const visual = this.acquire(world, pending.team, pending.target, end);
       if (visual === undefined) continue;
@@ -45,6 +56,9 @@ export class RepairTruckEffects {
     }
     for (const visual of this.visuals) {
       if (visual.seen || visual.phase === 'hidden') continue;
+      if (!ownsSupport(world, visual.team) && !seesGround(world, { x: visual.x, y: visual.y })) {
+        visual.phase = 'hidden'; visual.root.visible = false; continue;
+      }
       if (visual.phase !== 'departing') { visual.phase = 'departing'; visual.age = 0; }
       visual.age += dt;
       if (this.reducedMotion || visual.age >= LIFT_SECONDS) {
@@ -64,7 +78,8 @@ export class RepairTruckEffects {
     visual.parkX = 0; visual.parkY = 0;
     // Park beside a crowded drop point so a mech cannot conceal the whole service vehicle.
     const friendlies = world.entities.filter(e => e.team === team && isOperational(e));
-    if (friendlies.some(e => Math.hypot(e.pos.x - at.x, e.pos.y - at.y) < 22)) {
+    // Enemy parking must not depend on unseen recipients or move into a hidden tile.
+    if (ownsSupport(world, team) && friendlies.some(e => Math.hypot(e.pos.x - at.x, e.pos.y - at.y) < 22)) {
       let best = -1;
       for (let index = 0; index < 8; index++) {
         const x = Math.cos(index * Math.PI / 4) * 26, y = Math.sin(index * Math.PI / 4) * 26;
@@ -82,6 +97,7 @@ export class RepairTruckEffects {
     const parkedHeight = this.heightAt(visual.x + visual.parkX, visual.y + visual.parkY) - ground;
     const working = visual.phase === 'working';
     const incoming = visual.phase === 'incoming';
+    const owned = ownsSupport(world, visual.team);
     const lift = this.reducedMotion ? 0 : incoming ? Math.min(1, visual.age / LIFT_SECONDS) : visual.phase === 'departing' ? Math.min(1, visual.age / LIFT_SECONDS) : 0;
     visual.vehicle.position.set(visual.parkX, parkedHeight + lift * lift * 72, visual.parkY);
     visual.vehicle.visible = !incoming || visual.age <= LIFT_SECONDS;
@@ -90,7 +106,7 @@ export class RepairTruckEffects {
     visual.colour.color.setHex(teamColour(visual.team));
     visual.boom.scale.x = working ? this.reducedMotion ? 1 : Math.min(1, 0.45 + visual.age * 1.5) : 0.45;
     visual.beacon.scale.setScalar(this.reducedMotion ? 1 : 0.9 + 0.25 * Math.sin(this.elapsed * 7));
-    visual.radius.visible = visual.phase !== 'departing'; visual.radius.scale.setScalar(radius);
+    visual.radius.visible = owned && visual.phase !== 'departing'; visual.radius.scale.setScalar(radius);
     const boundary = visual.radius.geometry.getAttribute('position') as BufferAttribute;
     for (let index = 0; index < boundary.count; index += 1) {
       const x = boundary.getX(index) * radius, y = -boundary.getY(index) * radius;
@@ -104,7 +120,7 @@ export class RepairTruckEffects {
     effectPoint(visual.tether, 2, 0, 2, 0);
     (visual.tether.geometry.getAttribute('position') as BufferAttribute).needsUpdate = true;
     const ratio = working ? Math.max(0, Math.min(1, remaining / world.rules.support.repair_truck.durationSeconds)) : 0;
-    visual.progress.visible = working;
+    visual.progress.visible = owned && working;
     for (let i = 0; i <= 48; i++) {
       const angle = -Math.PI / 2 + i / 48 * Math.PI * 2 * ratio;
       const x = visual.x + Math.cos(angle) * radius, y = visual.y + Math.sin(angle) * radius;
@@ -118,7 +134,10 @@ export class RepairTruckEffects {
     let links = 0;
     if (working) for (const entity of world.entities) {
       if (links >= (this.lowFx ? 3 : REPAIR_LINKS) || entity.team !== visual.team || !isOperational(entity) || !needsArmour(entity)) continue;
-      const at = this.positionOf(entity.id) ?? entity.pos;
+      if (!owned && !canPresentEntity(world, entity.id)) continue;
+      const presented = this.positionOf(entity.id);
+      if (!owned && presented === null) continue;
+      const at = presented ?? entity.pos;
       if (Math.hypot(entity.pos.x - visual.x, entity.pos.y - visual.y) > radius) continue;
       const link = visual.links[links]!, weld = visual.welds[links]!;
       const tx = at.x - visual.x, tz = at.y - visual.y, ty = this.heightAt(at.x, at.y) - ground + 10;

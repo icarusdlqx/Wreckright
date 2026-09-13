@@ -63,7 +63,7 @@ export function ShelfToolbar({
   };
   return (
     <div className="bay-shelf-head">
-      <div className="bay-shelf-tabs" role="tablist" aria-label="Mechbay catalog">
+      <div className="bay-shelf-tabs" role="tablist" aria-label="Mechlab catalog">
         {TABS.map((tab, index) => (
           <button
             key={tab.id}

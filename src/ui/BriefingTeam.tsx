@@ -75,8 +75,8 @@ function BriefingBerthEditor({ berth, lance, prefix, hidden }: {
       </label>
       <div className="briefing-refit-line">
         <small>{occupied ? `${berth.machine?.weaponCount ?? 0} weapons fitted · ${berth.tonnage}t drop weight` : 'An empty berth stays behind on this drop.'}</small>
-        <button type="button" onClick={() => lance.onCustomise(berth.index)} title="Open the bay on this machine"
-          data-testid={`${prefix}berth-customise-${berth.index}`}>Refit loadout</button>
+        <button type="button" onClick={() => lance.onCustomise(berth.index)} title="Open the Mechlab on this machine"
+          data-testid={`${prefix}berth-customise-${berth.index}`}>Mechlab</button>
       </div>
     </div>
     {!occupied || berth.pilot === null ? null : <div className="briefing-pilot-dossier" data-testid={`${prefix}briefing-pilot-dossier`}>

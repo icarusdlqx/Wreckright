@@ -18,7 +18,7 @@ The three runtime stems share their exact sample length and one playback clock. 
 
 1. **Home — Open road:** the hook and rhythm arrive together at confident cruising intensity.
 2. **Campaign — Long haul:** the score drops to a restrained pulse so planning and story remain clear.
-3. **MechBay — Hot workshop:** mechanical rhythm and faction colour support fitting without dominating it.
+3. **Mechlab — Hot workshop:** mechanical rhythm and faction colour support fitting without dominating it.
 4. **Battle — Full drive:** combat pressure raises the rhythm layer continuously while the visible force mix crossfades between Ironwork and Monolith colour.
 
 Playback speed never changes the musical tempo or pitch. Muting preserves position, and route changes reuse the same synchronized sources to prevent doubling.

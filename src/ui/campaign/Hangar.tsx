@@ -62,7 +62,7 @@ export function Hangar({ catalog, state, mutate, onRefit, onContinue, onCancel }
       >
         <header>
           <PreparationSteps stage="bay" />
-          <h3 id="hangar-title">Mechbay — prepare the machines</h3>
+          <h3 id="hangar-title">Mechlab — prepare the machines</h3>
           <p>
             {mission?.name ?? 'Contract'}
             {employer === null ? '' : ` — ${employer}.`} Check condition and equipment,

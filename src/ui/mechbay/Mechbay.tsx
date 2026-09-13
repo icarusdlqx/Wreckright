@@ -75,7 +75,7 @@ export function Mechbay({
   preparationContext?: ReactNode;
 }) {
   const initial = commission?.design ?? catalog.designs.get('sentinel_brawler');
-  if (initial === undefined) throw new Error('missing default mechbay design');
+  if (initial === undefined) throw new Error('missing default Mechlab design');
 
   const [history, setHistory] = useState(() => beginDesignHistory(initial));
   const design = history.present;

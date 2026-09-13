@@ -81,7 +81,7 @@ export function BattleMenu({ fullHud, variant, ...props }: BattleMenuProps) {
                 }}
                 data-testid="open-mechbay"
               >
-                Mechbay
+                Mechlab
               </button>
               <button
                 type="button"

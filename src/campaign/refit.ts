@@ -91,6 +91,12 @@ function withAmmo(design: Design, weaponId: string, location: MechLocation): Des
   return next;
 }
 
+// Prefer compartments the machine can lose before its centre torso or pilot.
+const AMMO_FALLBACK_LOCATIONS: readonly MechLocation[] = [
+  'left_torso', 'right_torso', 'left_arm', 'right_arm',
+  'left_leg', 'right_leg', 'centre_torso', 'head',
+];
+
 /**
  * Finds a location where this weapon fits once armour is re-spread. Returns the
  * finished design so the caller does not have to redo the search.
@@ -115,6 +121,24 @@ export function planFit(
 
     const balanced = maximiseArmour(catalog, candidate);
     if (validateDesign(catalog, balanced).valid) return { location, design: balanced };
+  }
+
+  // Keep every existing successful fit unchanged. Only a gun needing its first
+  // bin gets this second pass: a full weapon bay can feed from another section.
+  if (weapon.ammoPerTon === null || design.ammo.some((bin) => bin.weaponId === weaponId)) return null;
+  const shielded = new Set(design.equipment.filter((fit) =>
+    (catalog.equipment.get(fit.equipmentId)?.stats.ammo_blast_containment ?? 0) > 0,
+  ).map((fit) => fit.location));
+  const ammoLocations = [...AMMO_FALLBACK_LOCATIONS].sort((a, b) =>
+    Number(shielded.has(b)) - Number(shielded.has(a)),
+  );
+  for (const location of LOCATIONS) {
+    const candidate = withWeapon(design, weaponId, location);
+    for (const ammoLocation of ammoLocations) {
+      if (ammoLocation === location) continue;
+      const balanced = maximiseArmour(catalog, withAmmo(candidate, weaponId, ammoLocation));
+      if (validateDesign(catalog, balanced).valid) return { location, design: balanced };
+    }
   }
 
   return null;

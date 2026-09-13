@@ -351,7 +351,7 @@ async function main() {
         (await page.evaluate(() => globalThis.__ironmuster === undefined)),
     );
     check(
-      'Home offers learn, campaign, MechBay, skirmish and the built-in wiki',
+      'Home offers learn, campaign, Mechlab, skirmish and the built-in wiki',
       (await page.locator('[data-testid="home-learn"]').count()) === 1 &&
         (await page.locator('[data-testid="home-campaign"]').count()) === 1 &&
         (await page.locator('[data-testid="home-mechbay"]').count()) === 1 &&

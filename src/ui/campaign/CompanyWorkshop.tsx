@@ -39,7 +39,7 @@ export function MechBayPanel({ state, mutate, onRefit, previewActive = false, fo
   return (
     <section className="camp-bay progression-bay company-workshop" data-testid="camp-bay">
       <header className="company-workshop-heading">
-        <div><p>Company workshop</p><h3>Mech bay</h3></div>
+        <div><p>Company workshop</p><h3>Mechlab</h3></div>
         <dl className="company-workshop-ledger">
           <div><dt>Treasury</dt><dd>{cbills(state.cbills)}</dd></div>
           <div><dt>Repair service</dt><dd>Immediate</dd></div>

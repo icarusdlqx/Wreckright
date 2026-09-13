@@ -39,7 +39,7 @@ function MechbayLoading({ onCancel }: { onCancel: () => void }) {
     return () => document.removeEventListener('keydown', onKey);
   }, []);
   return <div ref={root} className="route-loading bay-loading" data-testid="route-loading">
-    <span role="status">Opening the bay…</span>
+    <span role="status">Opening the Mechlab…</span>
     <button type="button" data-testid="bay-loading-cancel" onClick={onCancel}>Cancel</button>
   </div>;
 }

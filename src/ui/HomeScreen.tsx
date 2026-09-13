@@ -118,7 +118,7 @@ export function HomeScreen() {
             <button type="button" data-testid="home-new-campaign" onClick={() => { setFileNotice(null); setNewCampaignOpen(true); }}>New Campaign</button>
           </div>
           <button type="button" className="home-route" onClick={mechbay} data-testid="home-mechbay">
-            <span className="home-route-copy"><strong>MechBay</strong><span>Fit weapons. Save configurations. Know every rack.</span></span>
+            <span className="home-route-copy"><strong>Mechlab</strong><span>Fit weapons. Save configurations. Know every rack.</span></span>
             <span className="home-route-arrow" aria-hidden="true">↗</span>
           </button>
           <button type="button" className="home-route" onClick={skirmish} data-testid="home-skirmish">

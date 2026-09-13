@@ -39,7 +39,7 @@ export function PreparationMachine({ catalog, state, mech, mutate, onRefit }: Pr
     <div className="prep-machine-actions">
       <button type="button" onClick={() => onRefit(mech.id)} disabled={!ready}
         title={ready ? 'Change this machine’s installed equipment.' : 'Finish workshop work or rebuild this machine before refitting.'}
-        data-testid={`hangar-refit-${mech.id}`}>Refit loadout</button>
+        data-testid={`hangar-refit-${mech.id}`}>Mechlab</button>
       <button type="button" disabled={estimate.cost > state.cbills || (mech.status !== 'hulk' && (!ready || estimate.days === 0))}
         title={estimate.cost > state.cbills ? `Need ${estimate.cost.toLocaleString()} C for repairs.` : 'Pay the repair cost and restore this mech immediately.'}
         data-testid={`hangar-${mech.status === 'hulk' ? 'rebuild' : 'repair'}-${mech.id}`}

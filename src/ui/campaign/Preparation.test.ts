@@ -164,6 +164,8 @@ describe('expedition preparation readouts', () => {
       catalog, state, mech: workshop, mutate: () => undefined, onRefit: () => undefined,
     }));
     expect(workshopDetail).toContain('No repairs required.');
+    expect(workshopDetail).toContain('>Mechlab</button>');
+    expect(workshopDetail).not.toContain('Refit loadout');
     expect(workshopDetail).not.toContain('<dt>Booking</dt><dd>Paid</dd>');
     expect(aboardIds(html)).toEqual(dropTeam(catalog, state, state.contract?.missionId ?? '').map((pair) => pair.pilot.id));
     expect(aboardIds(html)).toHaveLength(2);

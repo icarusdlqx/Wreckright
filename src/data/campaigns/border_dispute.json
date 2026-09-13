@@ -572,7 +572,7 @@
   "demoSupplies": {
     "id": "fitting_crate_v1",
     "label": "Demo fitting crate",
-    "description": "Twelve weapon types are supplied for this demo, including a few from the other faction. Try different builds early. Advanced weapons still arrive through contract rewards and battlefield salvage. The workshop automatically fits a first ammunition bin when needed; add more in the mechbay.",
+    "description": "Twelve weapon types are supplied for this demo, including a few from the other faction. Try different builds early. Advanced weapons still arrive through contract rewards and battlefield salvage. The workshop automatically fits a first ammunition bin when needed; add more in the Mechlab.",
     "items": [
       {
         "kind": "weapon",
