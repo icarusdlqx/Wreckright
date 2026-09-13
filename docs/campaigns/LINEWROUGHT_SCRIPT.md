@@ -38,7 +38,7 @@ first job is to clear the registry guard.
 | Main L4 | `pass_skirmish` | `sealed_contact` | First Attestation | `ridge_pass` | 215t / 5 |
 | Optional | `supply_line` | `base_capture_ridge` | Custody Posts | `aurelian_civic_exchange` | 195t / 4 |
 | Optional | `causeway_push` | `causeway_crossing` | The Causeway | `causeway` | 205t / 5 |
-| Main L5 | `foundry_sweep_node` | `rules_break` | Broken Wreckright | `line_workshop_belt` | 220t / 5 |
+| Main L5 | `foundry_sweep_node` | `rules_break` | Broken Code | `line_workshop_belt` | 220t / 5 |
 | Optional | `cutbank_register` | `exchange_register` | Cutbank Ledger | `exchange_yard` | 205t / 5 |
 | Optional | `blackglass_receipt` | `quarry_brakes` | Blackglass Attestation | `blackglass_quarry` | 220t / 5 |
 | Main L6 | `shale_overwatch_node` | `conduit_breach` | The Cold Yards | `shale_steps` | 240t / 5 |
@@ -50,7 +50,7 @@ The revised main path opens The Quiet Claim directly after First Notice. The
 Missing Trail remains optional and changes only a small line in the rescue
 briefing. The local Custody Posts branch opens after First Notice; The Causeway
 and Cutbank Ledger follow it. Blackglass Attestation opens after Broken
-Wreckright. Optional work never gates L3-L8.
+Ironmuster. Optional work never gates L3-L8.
 
 ## L1 — First Notice
 
@@ -210,7 +210,7 @@ attestation package to the Tender. If it reaches the pass, the first local roots
 will be accepted for seizure without challenge.
 
 **Why it opens L5:** Defeating the detail yields direct evidence of Kestrel's
-orders and draws the contractor into violating wreckright at Sarn.
+orders and draws the contractor into violating the Ironmuster Code at Sarn.
 
 **Briefing**
 

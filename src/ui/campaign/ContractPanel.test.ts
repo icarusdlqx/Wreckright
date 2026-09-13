@@ -58,9 +58,9 @@ describe('contract panel', () => {
     expect(html).toContain(profile.objectives[0] ?? 'missing objective');
     expect(html).toContain(`${formatMissionClock(profile.clockSeconds)} clock`);
     expect(html).toContain(`${profile.dropTonnage}t drop / ${profile.oppositionTonnage}t rated opposition`);
-    expect(html).toContain(`day ${state.day} → day ${deadlineDay}`);
-    expect(html).toContain(`${dailyPayroll(catalog, state).toLocaleString('en-GB')} C/day now`);
-    expect(html).toContain(
+    expect(html).not.toContain(`day ${state.day} → day ${deadlineDay}`);
+    expect(html).not.toContain(`${dailyPayroll(catalog, state).toLocaleString('en-GB')} C/day now`);
+    expect(html).not.toContain(
       `${payrollThrough(catalog, state, node.deadlineDays).toLocaleString('en-GB')} C maximum`,
     );
     expect(html).toContain('Enemy walking-hull recovery');
@@ -70,7 +70,7 @@ describe('contract panel', () => {
     expect(html).toContain('<summary>Employers</summary>');
     expect(html).toContain('Recovery odds for standard split terms');
     expect(html).toContain('recovery fee');
-    expect(html).toContain('recovery days; route reopens');
+    expect(html).toContain('route reopens');
     expect(html).toContain('battle damage remains the company workshop bill');
     expect(html).not.toContain('Repair cover');
     expect(html).toContain('General Reversion Order');

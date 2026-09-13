@@ -1,3 +1,4 @@
+import { openCompanyTools } from './unified-navigation.mjs';
 import { clickFittingAction } from './fitting-actions.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 
@@ -94,6 +95,7 @@ export async function runLoreWikiChecks({ browser, url, shots, check }) {
     await completeInitialCampaignSetup(page);
     const guide = page.locator('[data-testid="campaign-guide-dismiss"]');
     if (await guide.isVisible()) await guide.click();
+    await openCompanyTools(page);
     await page.locator('[data-testid="camp-area-workshop"]').click();
     await page.locator('[data-testid^="camp-refit-"]:enabled').nth(1).click();
     await page.waitForSelector('[data-testid="refit-bay"] canvas');
@@ -111,13 +113,13 @@ export async function runLoreWikiChecks({ browser, url, shots, check }) {
     const compactHistory = await history.evaluate(link => {
       const rect = link.getBoundingClientRect();
       const profile = link.closest('.anatomical-profile').getBoundingClientRect();
-      const footer = document.querySelector('[data-testid="bay-save"]').getBoundingClientRect().top;
+      const boundary = document.querySelector('[data-testid="anatomical-loadout"]').getBoundingClientRect();
       return rect.width >= 44 && rect.height >= 44 && rect.left >= profile.left && rect.right <= profile.right
         && rect.top >= profile.top && rect.bottom <= profile.bottom
         && document.querySelectorAll('[data-testid="refit-bay"] .machine-wiki-link').length === 1
-        && [...document.querySelectorAll('[data-testid="anatomical-loadout"] .bay-location')].every(card => card.getBoundingClientRect().bottom <= footer);
+        && [...document.querySelectorAll('[data-testid="anatomical-loadout"] .bay-location')].every(card => card.getBoundingClientRect().bottom <= boundary.bottom + 1);
     });
-    check('compact laptop refit keeps one visible history link and all eight body locations', await history.isVisible() && compactHistory);
+    check('laptop refit keeps a reachable history link and all eight scrollable body locations', await history.isVisible() && compactHistory);
     await shot('refit-history');
     await history.click();
     await page.locator('[data-testid="wiki-article"]').waitFor();
@@ -159,24 +161,24 @@ export async function runLoreWikiChecks({ browser, url, shots, check }) {
     await page.locator('[data-testid="briefing-deploy"]').click();
     await page.locator('[data-testid="lance-bar"]').waitFor();
     // The shipped build has no diagnostic handle; the full development runner also checks live pause ownership.
-    if (await page.evaluate(() => Boolean(globalThis.__wreckright))) {
-      await page.evaluate(() => globalThis.__wreckright.engine.setPaused(false));
-      await page.waitForFunction(() => globalThis.__wreckright?.world.tick > 2);
+    if (await page.evaluate(() => Boolean(globalThis.__ironmuster))) {
+      await page.evaluate(() => globalThis.__ironmuster.engine.setPaused(false));
+      await page.waitForFunction(() => globalThis.__ironmuster?.world.tick > 2);
       await page.evaluate(() => { location.hash = '#wiki/mech/prybar_pry1'; });
       await page.locator('[data-testid="wiki-article"]').waitFor();
       await page.locator('.wiki-article h1').focus();
-      const before = await page.evaluate(() => ({ tick: globalThis.__wreckright.world.tick, order: globalThis.__wreckright.useGame.getState().orderMode }));
+      const before = await page.evaluate(() => ({ tick: globalThis.__ironmuster.world.tick, order: globalThis.__ironmuster.useGame.getState().orderMode }));
       await page.keyboard.press('Space'); await page.keyboard.press('m');
       await page.evaluate(() => new Promise(resolve => { let frames = 0; const next = () => ++frames < 12 ? requestAnimationFrame(next) : resolve(); requestAnimationFrame(next); }));
-      const paused = await page.evaluate(() => ({ tick: globalThis.__wreckright.world.tick, order: globalThis.__wreckright.useGame.getState().orderMode, paused: globalThis.__wreckright.useGame.getState().paused }));
+      const paused = await page.evaluate(() => ({ tick: globalThis.__ironmuster.world.tick, order: globalThis.__ironmuster.useGame.getState().orderMode, paused: globalThis.__ironmuster.useGame.getState().paused }));
       check('archive pauses a live battle and blocks field shortcuts', paused.tick === before.tick && paused.order === before.order && paused.paused, JSON.stringify({ before, paused }));
       await page.keyboard.press('Escape');
-      await page.waitForFunction(tick => globalThis.__wreckright?.world.tick > tick, before.tick);
-      check('closing the archive resumes a battle that was running', await page.evaluate(() => !globalThis.__wreckright.useGame.getState().paused));
-      await page.evaluate(() => { globalThis.__wreckright.engine.setPaused(true); location.hash = '#wiki'; });
+      await page.waitForFunction(tick => globalThis.__ironmuster?.world.tick > tick, before.tick);
+      check('closing the archive resumes a battle that was running', await page.evaluate(() => !globalThis.__ironmuster.useGame.getState().paused));
+      await page.evaluate(() => { globalThis.__ironmuster.engine.setPaused(true); location.hash = '#wiki'; });
       await page.locator('[data-testid="wiki"]').waitFor();
       await page.keyboard.press('Escape');
-      check('closing the archive preserves an already paused battle', await page.evaluate(() => globalThis.__wreckright.useGame.getState().paused));
+      check('closing the archive preserves an already paused battle', await page.evaluate(() => globalThis.__ironmuster.useGame.getState().paused));
     }
     check('wiki journey has no browser errors', errors.length === 0, errors.join('\n'));
   } catch (error) { await shot('error').catch(() => {}); throw error; }

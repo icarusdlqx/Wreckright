@@ -22,7 +22,7 @@ export function factionLabel(faction: Faction): string {
 export function workshopFactionLine(catalog: Catalog, faction: Faction): string {
   const factors = catalog.rules.economy.repair.factionFactors[faction];
   const marketSupported = catalog.rules.economy.market.availableFactions.includes(faction);
-  return `${factionLabel(faction)} · ${factor(factors.cost)}× workshop cost · ${factor(factors.days)}× workshop time · ${marketSupported ? 'local repair supply' : 'replacement weapons and equipment salvage-only'}`;
+  return `${factionLabel(faction)} · ${factor(factors.cost)}× workshop cost · ${marketSupported ? 'local repair supply' : 'replacement weapons and equipment salvage-only'}`;
 }
 
 export function yardStockLine(catalog: Catalog): string {

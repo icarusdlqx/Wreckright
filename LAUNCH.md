@@ -5,16 +5,15 @@ session — human or agent — can pick the list up where the last one stopped.
 
 ## The name
 
-The working public title is **WRECKRIGHT**. Complete a formal trademark
+The working public title is **IRONMUSTER**. Complete a formal trademark
 clearance and storefront search before a paid release; choosing the title does
 not replace that review.
 
-The product, repository, Worker, deployment hostname, downloads, and tooling
-now share the Wreckright identity. Existing browser-storage and serialized
-playtest identifiers retain their original `ironline.*` values as non-visible
-compatibility contracts, preserving saves and rollback safety from the first
-Wreckright deployment. Authored data ids likewise remain stable because they
-are save and simulation contracts rather than branding.
+The product and build artifacts use Ironmuster. Existing repository and Worker
+addresses remain provisioned under their previous identifiers until the next
+release is explicitly authorised. Saved games and playtest exports keep their
+original `ironline.*` protocol values so the rebrand preserves existing campaigns.
+Authored data IDs remain unchanged.
 
 ## The IP scrub (done, August 2026)
 
@@ -77,8 +76,8 @@ the full ladder). Nobody who bounced off their first battle plays a second.
 
 ## Remaining before a public push
 
-- [x] Adopt WRECKRIGHT across player-facing application and release surfaces
-- [ ] Complete formal trademark and storefront clearance for WRECKRIGHT
+- [x] Adopt IRONMUSTER across player-facing application and release surfaces
+- [ ] Complete formal trademark and storefront clearance for IRONMUSTER
 - [ ] Add the analytics beacon (human step, needs the dashboard)
 - [ ] One full playthrough at Green from a cleared browser profile
 - [ ] itch.io page with screenshots and a short pitch

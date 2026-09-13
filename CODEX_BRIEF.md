@@ -28,7 +28,7 @@ both.** A visual change you have not looked at is not finished. Attach the pair
 to the pull request.
 
 For anything the harness does not reach, `npm run dev` serves the game and
-`globalThis.__wreckright = { engine, world, useGame }` is live in the dev
+`globalThis.__ironmuster = { engine, world, useGame }` is live in the dev
 console (dev builds only — production strips it).
 
 ## The simulation: rules of engagement

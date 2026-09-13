@@ -26,19 +26,10 @@ import { impactBearing } from './impactBearing';
 import type { ImpactFamily } from './shotBurstPool';
 import type { FootfallContact } from './locomotionContact';
 import type { BattleFeedbackBindings } from './battleFeedbackBindings';
+import { destructiveLocation, presentDestructiveEvent } from './destructiveEventPresentation';
 export type { BattleFeedbackBindings } from './battleFeedbackBindings';
 
-type DestructiveEvent = Extract<SimEvent, { type: 'mech_destroyed' | 'ammo_explosion' }>;
-
-function destructiveLocation(event: DestructiveEvent): MechLocation {
-  return event.type === 'ammo_explosion'
-    ? event.location
-    : event.method === 'head' ? 'head' : 'centre_torso';
-}
-
 const CRITICAL_COLOUR = 0xffd07a;
-const AMMO_COLOUR = 0xffa34f;
-const TERMINAL_COLOUR = 0xff6b38;
 
 /** Combat effects and camera recoil share one clock and one fixed budget. */
 export class BattleEffects {
@@ -173,30 +164,9 @@ export class BattleEffects {
         const location = destructiveLocation(event);
         if (this.locationOf(event.entityId, location, this.effectPoint)) {
           this.toGroundPoint(this.effectPoint);
-          this.addShake(6 * this.nearness(this.effectAt));
-          if (event.type === 'mech_destroyed') {
-            const entity = findEntity(world, event.entityId);
-            const scale = 1 + Math.min(1.2, (entity?.tonnage ?? 50) / 100);
-            this.tracers.burst(
-              this.effectAt,
-              this.effectPoint.y - 14,
-              'terminal',
-              TERMINAL_COLOUR,
-              scale, 'generic', 0, this.heightAt(this.effectAt.x, this.effectAt.y),
-            );
-            this.wear.wreck(event.entityId, this.effectAt, this.effectPoint.y - 6, world.terrain.idAtPoint(this.effectAt) === 'water');
-          } else {
-            this.tracers.burst(
-              this.effectAt,
-              this.effectPoint.y - 14,
-              'ammo',
-              AMMO_COLOUR,
-              0.8 + Math.min(1, event.damage / 60),
-              'generic', 0, this.heightAt(this.effectAt.x, this.effectAt.y),
-            );
-            this.tracers.spawnSmoke(this.effectAt, this.effectPoint.y - 14);
-            this.wear.ammo(this.effectAt, event.damage, world.terrain.idAtPoint(this.effectAt) === 'water');
-          }
+          const shake = presentDestructiveEvent(world, event, this.effectAt, this.effectPoint,
+            this.heightAt(this.effectAt.x, this.effectAt.y), this.tracers, this.wear);
+          this.addShake(shake * this.nearness(this.effectAt));
         }
         continue;
       }

@@ -112,7 +112,7 @@ export class FakeContext {
 
   createBuffer(channels: number, length: number): AudioBuffer {
     const data = new Float32Array(length);
-    return { numberOfChannels: channels, duration: 32 * 4 * 60 / 104, getChannelData: () => data } as unknown as AudioBuffer;
+    return { numberOfChannels: channels, duration: 32 * 4 * 60 / 116, getChannelData: () => data } as unknown as AudioBuffer;
   }
 
   createBufferSource(): AudioBufferSourceNode {

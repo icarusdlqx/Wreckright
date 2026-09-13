@@ -1,3 +1,5 @@
+import { saveBay } from './save-bay.mjs';
+import { openCompanyTools } from './unified-navigation.mjs';
 const read = page => page.evaluate(() => JSON.parse(localStorage.getItem('ironline.campaign')).state);
 const supplyClaim = state => state.claimedRewardIds?.filter(id => id.includes('/demo-supplies/')) ?? [];
 const count = (state, id) => state.store.find(item => item.kind === 'weapon' && item.itemId === id)?.count ?? 0;
@@ -5,6 +7,7 @@ const count = (state, id) => state.store.find(item => item.kind === 'weapon' && 
 async function revealSupplies(page) {
   const guide = page.getByTestId('campaign-guide-dismiss');
   if (await guide.isVisible()) await guide.click();
+  await openCompanyTools(page);
   await page.getByTestId('camp-area-supplies').click();
   await page.getByTestId('demo-supply-panel').waitFor();
 }
@@ -12,13 +15,14 @@ async function revealSupplies(page) {
 async function startCompany(page, url, campaignId) {
   await page.goto(url);
   await page.getByTestId('home-campaign').click();
-  await page.getByTestId('campaign-choice').selectOption(campaignId);
+  await page.getByTestId(`company-card-${campaignId}`).click();
   await page.getByTestId('campaign-choice-start').click();
   await page.getByTestId('campaign-chooser').waitFor({ state: 'hidden' });
   await revealSupplies(page);
 }
 
 async function crewPortraits(page) {
+  await openCompanyTools(page);
   await page.getByTestId('camp-area-crew').click();
   const state = await read(page);
   const portraits = [];
@@ -60,7 +64,7 @@ export async function runDemoSupplyChecks({ browser, url, shots, check }) {
       const replacement = page.locator('[data-replacement-fit="true"] [data-testid^="replace-weapon-"]').first();
       await replacement.click();
       await page.getByTestId('bay-replacement-confirm').click();
-      await page.getByTestId('bay-save').click();
+      await saveBay(page);
       await page.getByTestId('mechbay').waitFor({ state: 'hidden' });
       const refitted = await read(page);
       const oldMachine = initial.mechs.find(mech => mech.id === machineId);

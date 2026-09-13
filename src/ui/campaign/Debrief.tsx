@@ -7,8 +7,6 @@ import { employerHistoryFor } from '../../campaign/employers';
 import type {
   CampaignState,
   MissionOutcome,
-  SalvageCandidate,
-  SalvageOutcome,
   SalvageProvenance,
   StoreItem,
 } from '../../campaign/types';
@@ -18,10 +16,10 @@ import { DebriefCrew } from './DebriefCrew';
 import { salvageItemFacts, salvageSummary } from './salvageFacts';
 import './salvage.css';
 import { RewardReceipt } from './CompanyRewards';
-import { DebriefActions } from './DebriefActions';
 import type { CampaignNavigationTarget } from './campaignNavigation';
 import { nextCampaignNode } from './campaignFlow';
 import './campaignFlow.css';
+import { RecoveryReport } from './RecoveryReport';
 
 const DEBRIEFED_KEY = 'ironline.campaign.debriefed';
 
@@ -63,14 +61,6 @@ function cbills(value: number): string {
   return `${Math.round(value).toLocaleString('en-GB')} C`;
 }
 
-const OUTCOME_NAMES: Record<SalvageOutcome, string> = {
-  centre_torso: 'Centre torso destroyed',
-  head: 'Head destroyed',
-  ammo_explosion: 'Ammo explosion',
-  legged: 'Both legs destroyed; side defeated',
-  ejected: 'Pilot ejected',
-};
-
 const LOCATION_NAMES: Record<SalvageProvenance['location'], string> = {
   head: 'head',
   centre_torso: 'centre torso',
@@ -82,22 +72,11 @@ const LOCATION_NAMES: Record<SalvageProvenance['location'], string> = {
   right_leg: 'right leg',
 };
 
-function chance(value: number): string {
-  return `${Number((value * 100).toFixed(1))}%`;
-}
-
 function sourceName(catalog: Catalog, source: SalvageProvenance): string {
   const mech =
     catalog.designs.get(source.sourceDesignId)?.name
     ?? stripSerialDesignation(source.sourceMechName);
   return `${mech}, ${LOCATION_NAMES[source.location]}`;
-}
-
-function candidateName(catalog: Catalog, candidate: SalvageCandidate): string {
-  return (
-    catalog.designs.get(candidate.designId)?.name
-    ?? stripSerialDesignation(candidate.name || candidate.designId)
-  );
 }
 
 /**
@@ -194,42 +173,15 @@ export function Debrief({
           )}
         </header>
 
-        <DebriefCrew catalog={catalog} state={state} outcome={outcome}
-          {...(onAction === undefined ? {} : { onAction })} />
+
 
         {candidates.length === 0 && offered.length === 0 ? null : (
-          <details className="debrief-salvage-report" data-testid="debrief-salvage-report">
+          <details open className="debrief-salvage-report" data-testid="debrief-salvage-report">
             <summary tabIndex={0} data-testid="debrief-adjust-picks">
-              {outcome.salvageFinalized ? 'Review salvage report' : 'Adjust picks'}
+              {outcome.salvageFinalized ? 'Recovered salvage' : 'Choose your salvage'}
             </summary>
 
-            {candidates.length === 0 ? null : (
-              <div className="debrief-recovery" data-testid="debrief-recovery">
-                <h4>Field recovery ledger</h4>
-                <p>
-                  Eligible hull odds include the signed package. Ineligible hulls remain on the record without a roll.
-                </p>
-                <ul>
-                  {candidates.map((candidate, index) => (
-                    <li
-                      key={`${candidate.designId}-${candidate.name}-${index}`}
-                      data-testid={`debrief-recovery-${index}`}
-                    >
-                      <span className="recovery-name">{candidateName(catalog, candidate)}</span>
-                      <span className="recovery-outcome">{OUTCOME_NAMES[candidate.outcome]}</span>
-                      <span className="recovery-chance">{chance(candidate.chassisChance)}</span>
-                      <span className={candidate.recovered ? 'recovery-result recovered' : 'recovery-result'}>
-                        {candidate.recovered
-                          ? 'hull recovered'
-                          : candidate.chassisChance > 0
-                            ? 'not recovered'
-                            : 'not eligible'}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            <RecoveryReport catalog={catalog} candidates={candidates} />
 
             {offered.length === 0 ? null : (
               <div className="debrief-salvage" data-testid="debrief-salvage">
@@ -238,16 +190,9 @@ export function Debrief({
                 </h4>
                 <p className="salvage-note">
                   {outcome.salvageFinalized
-                    ? 'Salvage manifest finalized. This restored report is read-only. '
-                    : ''}
-                  Recovered hulls are already in the yard, carrying their field damage and no mounted
-                  weapons or equipment. When the field yields more than five crate types, weapons and
-                  equipment alternate; each list rotates from one field to the next.
-                  {outcome.salvageFinalized
-                    ? ' The aboard and left marks record what came home. '
-                    : ' Choose what comes home; one pick takes the full listed crate. '}
-                  Loose crates cannot be sold.
-                  Mounted sale basis is what a part adds to an intact mech's yard valuation.
+                    ? 'Salvage manifest finalized. This restored report is read-only; the marks record what came home.'
+                    : `Choose up to ${SALVAGE_PICKS} crates. Each selected crate goes into your campaign inventory. `}
+                  Recovered hulls keep their battle damage and need rebuilding before deployment.
                 </p>
                 <ul className="salvage-offer">
                   {offered.map((item) => {
@@ -300,6 +245,10 @@ export function Debrief({
           </details>
         )}
 
+<details className="debrief-pilot-report"><summary tabIndex={0}>Pilot experience & injuries</summary>
+        <DebriefCrew catalog={catalog} state={state} outcome={outcome}
+          {...(onAction === undefined ? {} : { onAction })} />
+</details>
         <RewardReceipt catalog={catalog} rewards={outcome.campaignRewards ?? []} />
 
         {outcome.mechsLost.length === 0 ? null : (
@@ -308,8 +257,7 @@ export function Debrief({
           </p>
         )}
 
-        {onAction === undefined || state.finished ? null : <DebriefActions catalog={catalog} state={state}
-          outcome={{ ...outcome, salvagedItems: receiptItems }} onAction={onAction} />}
+
 
         {onAction === undefined || nextMission === null ? null : <section className="debrief-continue" data-testid="debrief-continue">
           <div><strong>Next mission · {nextMission.name}</strong><p>Review the contract, then prepare the crew and machines together. No calendar advance is needed.</p></div>
@@ -318,10 +266,10 @@ export function Debrief({
         <footer className="manifest-actions">
           {onAction === undefined || nextMission === null ? null : <button type="button" data-testid="debrief-next-mission"
             onClick={() => onAction({ area: 'operations', nodeId: nextMission.id })}>
-            {nextMission.ending ? 'Review ending choices' : 'Review next mission'} →
+            {nextMission.ending ? 'Review ending choices' : 'Confirm salvage & choose next mission'} →
           </button>}
           <button type="button" onClick={onClose} data-testid="debrief-close">
-            Stay at company
+            Back to mission selection
           </button>
         </footer>
       </section>

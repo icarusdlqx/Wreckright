@@ -12,7 +12,7 @@ function readDismissed(): string[] {
 
 export function resetFieldHints(): void {
   try { localStorage.removeItem(KEY); } catch { /* The open field can still reset. */ }
-  globalThis.window?.dispatchEvent(new Event('wreckright-guidance-reset'));
+  globalThis.window?.dispatchEvent(new Event('ironmuster-guidance-reset'));
 }
 
 export function FieldHints() {
@@ -20,8 +20,8 @@ export function FieldHints() {
   const [dismissed, setDismissed] = useState(readDismissed);
   useEffect(() => {
     const reset = (): void => setDismissed([]);
-    window.addEventListener('wreckright-guidance-reset', reset);
-    return () => window.removeEventListener('wreckright-guidance-reset', reset);
+    window.addEventListener('ironmuster-guidance-reset', reset);
+    return () => window.removeEventListener('ironmuster-guidance-reset', reset);
   }, []);
   const hint = state.supportMode !== null
     ? { id: 'support', title: 'Call support with a purpose', text: 'Pick the marked area carefully. A sensor probe reveals tracks; indirect missiles can use live returns. Support spends Resource Points and arrives after its warning.' }

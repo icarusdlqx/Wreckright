@@ -44,6 +44,7 @@ describe('battle topbar disclosure', () => {
     expect(markup.indexOf('data-testid="audio-settings"')).toBeGreaterThan(menuIndex);
     expect(markup.indexOf('data-testid="fx-toggle"')).toBeGreaterThan(menuIndex);
     expect(markup.indexOf('data-testid="open-mechbay"')).toBeGreaterThan(menuIndex);
+    expect(markup).toMatch(/data-testid="open-mechbay"[^>]*>Mechlab<\/button>/);
     expect(markup.indexOf('data-testid="open-campaign"')).toBeGreaterThan(menuIndex);
     expect(markup.indexOf('data-testid="mission-picker"')).toBeGreaterThan(menuIndex);
     expect(markup.indexOf('data-testid="difficulty-picker"')).toBeGreaterThan(menuIndex);
@@ -65,6 +66,7 @@ describe('battle topbar disclosure', () => {
     const menuIndex = markup.indexOf('data-testid="mobile-menu-toggle"');
 
     expect(markup).toContain('aria-label="Open battle menu"');
+    expect(markup).toMatch(/data-testid="open-mechbay"[^>]*>Mechlab<\/button>/);
     expect(markup.indexOf('data-testid="mute-button"')).toBeGreaterThan(menuIndex);
     expect(markup.indexOf('data-testid="audio-settings"')).toBeGreaterThan(menuIndex);
     expect(markup.indexOf('data-testid="feedback-link"')).toBeGreaterThan(menuIndex);

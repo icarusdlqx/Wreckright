@@ -42,7 +42,7 @@ export function captureReproductionContext(): ReproductionContext {
     ? ''
     : getCatalog().campaigns.get(campaign.campaignId)?.presentation?.title ?? campaign.campaignId;
   return {
-    build: __WRECKRIGHT_VERSION__,
+    build: __IRONMUSTER_VERSION__,
     mode: game.screen,
     mission: game.missionName || (campaign?.contract?.missionId ?? game.skirmishMissionId),
     faction: campaignMode ? campaignTitle : 'Skirmish force',

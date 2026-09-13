@@ -1,4 +1,4 @@
-# Hosting Wreckright
+# Hosting Ironmuster
 
 The game is a static site: there is no server, database, API, service worker,
 or Cloudflare binding. Production is the `wreckright` Worker serving the
@@ -6,7 +6,7 @@ contents of `dist/` at `wreckright.ligand-ave.workers.dev`.
 
 ## Cloudflare production
 
-Production is connected to the private GitHub repository through Workers
+Production is connected to the personal GitHub repository through Workers
 Builds. A push to the configured production branch, `main`, builds and deploys
 automatically, so advancing `main` is a production action.
 
@@ -39,7 +39,7 @@ The same file applies the browser security policy. If a Worker script is later
 placed in front of the assets, responses created by that script must attach
 equivalent headers themselves.
 
-The self-contained `dist-single/wreckright.html` has inline script and style by
+The self-contained `dist-single/ironmuster.html` has inline script and style by
 design. Its path explicitly detaches the normal site's CSP when the complete
 `dist-single` directory is hosted, while the normal deployed app keeps the
 strict policy.
@@ -54,7 +54,7 @@ The site works in Safari on iOS and macOS. On a phone:
 - Everything else is on the buttons along the bottom.
 
 Add it to the home screen (Share → Add to Home Screen) and it installs as
-WRECKRIGHT with its own app icon, opening full screen in landscape with no
+IRONMUSTER with its own app icon, opening full screen in landscape with no
 browser chrome. There is deliberately no service worker: the single-file build
 is the offline distribution, and stale application code is worse than a
 network round trip.
@@ -66,5 +66,5 @@ any static host. The build uses relative asset paths, so it works from a domain
 root or subdirectory. Another host must reproduce the caching and security
 headers in `public/_headers` using its own configuration format.
 
-`npm run build:single` writes `dist-single/wreckright.html`, containing the
+`npm run build:single` writes `dist-single/ironmuster.html`, containing the
 entire game and its assets in one file that can be opened from disk.

@@ -39,6 +39,9 @@ export type { MechModel, LegRig, Footprint } from './modelTypes';
 import type { MechModel, LegRig, Footprint } from './modelTypes';
 import { createTerminalSupport } from './terminalSupport';
 import { WeaponMountStack } from './weaponMountStack';
+import { weaponArtFor } from './weaponArt';
+import { addRefitHardware } from './refitHardware';
+import { createHitResponse } from './hitResponse';
 
 type PresentedMount = MountArt & { destroyed?: boolean };
 
@@ -78,7 +81,9 @@ export function buildMechModel(
     for (const location of lost) sealedFailures.add(location);
     for (const mount of mounts) if (mount.destroyed === true) sealedFailures.add(mount.location);
   }
-  const tones = createMechMaterials(identity, team, destroyed, faction);
+  const breachedHull = destroyed && (lost.size === 0 || lost.has('centre_torso'));
+  const tones = createMechMaterials(identity, team, breachedHull, faction);
+  if (destroyed) { tones.glass.emissive.setHex(0); tones.glass.emissiveIntensity = 0; }
   const burnt = createMechMaterials(identity, team, true, faction);
   const worn = Object.values(shownWear).some((tier) => tier === 1)
     ? createDamageWearMaterials(tones, 1)
@@ -250,9 +255,9 @@ export function buildMechModel(
     const anchor = plan.hardpoints[mount.location];
     if (anchor === undefined) continue;
 
-    const material = destroyed || (mount.destroyed === true && faction === 'aurelian')
+    const material = breachedHull || mount.destroyed === true
       ? new MeshStandardMaterial({ color: 0x10171a, roughness: 0.74, metalness: 0.48 })
-      : createWeaponMaterial(mount.type);
+      : createWeaponMaterial(mount.type, weaponArtFor(mount).nativeFaction);
     ownedMaterials.push(material);
     const heft = 0.5 + Math.min(1, mount.tonnage / 14);
     const weapon = buildWeaponModel(
@@ -263,6 +268,7 @@ export function buildMechModel(
       boreMaterial,
       options.geometry,
     );
+    addRefitHardware(weapon, faction, scale, options.geometry);
     weapon.root.traverse((child) => {
       if (child instanceof Mesh) child.castShadow = castsMechShadow(child);
     });
@@ -313,6 +319,7 @@ export function buildMechModel(
     faction,
     culture,
     hullRecoil: { kick: 0, travel: scale * 0.018 },
+    hitResponse: createHitResponse(),
     startup,
     loosePanels,
     terminalFallAxis: null,

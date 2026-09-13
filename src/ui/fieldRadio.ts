@@ -4,6 +4,15 @@ import { findEntity, isOperational, type MechEntity, type World } from '../sim/t
 import { FIELD_RADIO, type OrderCall } from '../schema/fieldRadio';
 import type { PilotCall } from '../schema/pilotPersonality';
 import { pilotPersonality } from './pilotPersonality';
+import { PILOT_CONTINUITY } from '../schema/pilotContinuity';
+
+export interface FieldRadioMemory {
+  entityId: number;
+  text: string;
+  trigger: 'move' | 'weapon';
+  weaponId?: string;
+  onHeard: () => void;
+}
 
 export interface RadioMessage {
   id: number;
@@ -23,6 +32,9 @@ const incomingHits = new Map<number, { tick: number; damage: number }[]>();
 const lastPressureTick = new Map<number, number>();
 const heard = new Set<string>();
 const listeners = new Set<() => void>();
+let memories: readonly FieldRadioMemory[] = [];
+let memoriesSpoken = 0;
+const pilotsRemembered = new Set<number>();
 
 export const readRadioMessage = (): RadioMessage | null => message;
 export function subscribeRadio(listener: () => void): () => void {
@@ -35,11 +47,16 @@ export function dismissRadio(id: number): void {
 }
 export function beginFieldRadio(world: World): void {
   activeWorld = world; message = null; lastRoutineTick = -Infinity;
-  lastUrgentTick = -Infinity; lineIndices.clear(); incomingHits.clear(); lastPressureTick.clear(); heard.clear(); emit();
+  lastUrgentTick = -Infinity; lineIndices.clear(); incomingHits.clear(); lastPressureTick.clear(); heard.clear();
+  memories = []; memoriesSpoken = 0; pilotsRemembered.clear(); emit();
+}
+export function attachFieldRadioMemories(world: World, cues: readonly FieldRadioMemory[]): void {
+  if (world === activeWorld) memories = cues;
 }
 export function endFieldRadio(world: World): void {
   if (activeWorld !== world) return;
-  activeWorld = null; message = null; incomingHits.clear(); lastPressureTick.clear(); heard.clear(); emit();
+  activeWorld = null; message = null; incomingHits.clear(); lastPressureTick.clear(); heard.clear();
+  memories = []; pilotsRemembered.clear(); emit();
 }
 function say(world: World, pilot: RadioMessage['pilot'], text: string, priority: RadioMessage['priority']): boolean {
   if (world !== activeWorld) return false;
@@ -61,9 +78,23 @@ function say(world: World, pilot: RadioMessage['pilot'], text: string, priority:
 export function pilotOrder(world: World, pilot: MechEntity | null, order: OrderCall): Faction | undefined {
   if (pilot === null || pilot.team !== world.playerTeam || !isOperational(pilot)) return;
   const faction = world.catalog.chassis.get(pilot.chassisId)?.faction ?? 'linewrought';
+  if (order === 'move' && recall(world, pilot, 'move')) return faction;
   if (!pilotCall(world, pilot, order, FIELD_RADIO.lines[faction][order])) return;
   if (order === 'attack') heard.add(`engaged:${pilot.id}`);
   return faction;
+}
+
+function recall(world: World, pilot: MechEntity, trigger: 'move' | 'weapon', weaponId?: string): boolean {
+  if (world !== activeWorld || pilot.team !== world.playerTeam || !isOperational(pilot)
+    || pilot.pilot.dead || pilot.pilot.ejected || memoriesSpoken >= PILOT_CONTINUITY.maxPerMission
+    || pilotsRemembered.has(pilot.id)) return false;
+  const cue = memories.find((entry) => entry.entityId === pilot.id && entry.trigger === trigger
+    && (trigger !== 'weapon' || entry.weaponId === weaponId));
+  if (cue === undefined || !say(world, pilot.pilot, cue.text, 'routine')) return false;
+  memoriesSpoken += 1;
+  pilotsRemembered.add(pilot.id);
+  cue.onHeard();
+  return true;
 }
 
 function pilotCall(world: World, entity: MechEntity, call: PilotCall, fallback: readonly string[]): boolean {
@@ -76,6 +107,11 @@ function pilotCall(world: World, entity: MechEntity, call: PilotCall, fallback: 
 }
 
 function observeCombat(world: World, events: readonly SimEvent[]): void {
+  for (const event of events) {
+    if (event.type !== 'weapon_fired') continue;
+    const shooter = findEntity(world, event.shooterId);
+    if (shooter !== null && recall(world, shooter, 'weapon', event.weaponId)) heard.add(`engaged:${shooter.id}`);
+  }
   const rules = FIELD_RADIO.pressure;
   for (const event of events) {
     if (event.type !== 'projectile_hit' || event.damage <= 0) continue;

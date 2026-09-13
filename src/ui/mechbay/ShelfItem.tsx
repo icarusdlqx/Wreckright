@@ -22,13 +22,13 @@ export function ShelfItem({ payload, label, detail, boxes, stock, fit, armed, in
       <button
         type="button" draggable={!unavailable} aria-pressed={armed}
         aria-current={inspected ? 'true' : undefined} aria-disabled={unavailable || undefined}
-        aria-controls="bay-shelf-inspector" data-testid={`stock-${payload.kind}-${payload.id}`}
+        data-testid={`stock-${payload.kind}-${payload.id}`}
         onFocus={() => onInspect(payload)}
         onClick={() => { onInspect(payload); if (!unavailable) onArm(payload); }}
         onDragStart={(event) => {
           if (unavailable) return event.preventDefault();
           onInspect(payload);
-          event.dataTransfer.setData('application/wreckright', JSON.stringify(payload));
+          event.dataTransfer.setData('application/ironmuster', JSON.stringify(payload));
           event.dataTransfer.effectAllowed = 'copy';
         }}
       >

@@ -3,7 +3,7 @@ import type { Catalog } from '../../schema/load';
 import type { Campaign } from '../../schema/campaign';
 import type { EmployerHistory } from '../../campaign/employers';
 import { employerDisplayName } from '../../campaign/employers';
-import { nextOfferDay, sideContractProfile } from '../../campaign/sidework';
+import { sideContractProfile } from '../../campaign/sidework';
 import { formatMissionClock } from '../../campaign/contractBriefing';
 import { employerHistoryText } from './EmployerLedger';
 import { negotiationOptions } from '../../campaign/contractTerms';
@@ -29,7 +29,6 @@ export interface HiringHallProps {
 export function HiringHall({
   catalog,
   campaign,
-  day,
   offers,
   employers,
   selectedId,
@@ -62,8 +61,7 @@ export function HiringHall({
                 </span>
                 <span className="hall-terms">
                   {cbills(Math.min(...payouts))}–{cbills(Math.max(...payouts))} on success ·{' '}
-                  {Math.min(...salvage)}%–{Math.max(...salvage)}% salvage · due day{' '}
-                  {day + offer.deadlineDays}
+                  {Math.min(...salvage)}%–{Math.max(...salvage)}% salvage
                 </span>
                 {profile === null ? null : (
                   <span className="hall-profile">
@@ -81,7 +79,7 @@ export function HiringHall({
         })}
       </ul>
       <p className="hall-note">
-        New work arrives on day {nextOfferDay(catalog, day)}. Rated opposition is a planning
+        Available work refreshes as the campaign progresses. Rated opposition is a planning
         weight, not a composition report.
       </p>
     </section>

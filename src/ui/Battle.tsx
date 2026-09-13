@@ -89,6 +89,7 @@ export function Battle(props: BattleProps = {}) {
   const activeTraining = !state.campaignPending && missionId === TRAINING_MISSION_ID;
   const training = useTrainingPresentation({
     active: activeTraining,
+    battlefieldRevision: setup.revision,
     onSkip: onSkipTraining,
     onComplete: onTrainingComplete,
     onContinueAnyway: onTrainingContinueAnyway,
@@ -269,7 +270,7 @@ export function Battle(props: BattleProps = {}) {
       ) : null}
       {state.briefingSeen && !state.campaignPending ? (
         activeTraining ? (
-          <TrainingCoach active step={training.step} onStep={training.onStep}
+          <TrainingCoach key={`${setup.engine.missionId}:${setup.revision}`} active step={training.step} onStep={training.onStep}
             onShowGate={() => showTrainingGate(engineRef.current)} />
         ) : (
           <BattleCoach missionId={missionId} />

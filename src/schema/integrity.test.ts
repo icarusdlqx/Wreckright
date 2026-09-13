@@ -6,7 +6,7 @@ import { CampaignSchema } from './campaign';
 import type { TerrainMapData } from './map';
 
 describe('campaign content integrity', () => {
-  it('keeps Wreckright copy on stable campaign and mission identifiers', () => {
+  it('keeps Ironmuster copy on stable campaign and mission identifiers', () => {
     const campaign = catalog.campaigns.get('border_dispute');
     expect(campaign).toBeDefined();
     if (campaign === undefined) return;

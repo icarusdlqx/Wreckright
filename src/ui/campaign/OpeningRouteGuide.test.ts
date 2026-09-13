@@ -18,22 +18,22 @@ function markup(selectedId: string) {
 
 describe('opening route presentation', () => {
   it('connects the next contract to practice and public background without revealing future steps', () => {
-    const html = markup('marker_survey');
+    const html = markup('recovery_window');
     expect(html).toContain('contract 2 of 3');
-    expect(html).toContain('The Missing Trail');
+    expect(html).toContain('The Quiet Claim');
     expect(html).toContain('Review selected contract');
-    expect(html).toContain('Choose one fieldable scout');
+    expect(html).toContain('Name and save Lamplighter');
     expect(html).toContain('Gadfly field record');
     expect(html).toContain('hornet_hnt2');
-    expect(html).toContain('the_refit');
+    expect(html).toContain('the_shared_mounts');
     expect(html).not.toContain('the_sealed');
-    expect(html).not.toContain('The Quiet Claim');
+    expect(html).not.toContain('Keep the Gantries');
     expect(html).toContain('Hide opening guide');
   });
 
   it('offers an explicit review action when the player has chosen another contract', () => {
     const html = markup('pass_skirmish');
-    expect(html).toContain('Review The Missing Trail');
+    expect(html).toContain('Review The Quiet Claim');
     expect(html).not.toContain('Review selected contract');
     expect(html).toContain('Choose any available contract on the map.');
     expect(html).not.toContain('Sign');

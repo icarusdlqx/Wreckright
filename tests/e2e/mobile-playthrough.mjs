@@ -1,3 +1,4 @@
+import { openCampaignDetails } from './unified-navigation.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import {
   verifyTouchDockControls,
@@ -28,11 +29,11 @@ async function mobilePage(browser, url, viewport) {
   await page.addInitScript(() => localStorage.clear());
   await page.goto(url);
   await page.waitForSelector('[data-testid="home-screen"]');
-  const homeWithoutEngine = await page.evaluate(() => globalThis.__wreckright === undefined);
+  const homeWithoutEngine = await page.evaluate(() => globalThis.__ironmuster === undefined);
   await page.locator('[data-testid="home-learn"]').tap();
-  await page.waitForFunction(() => globalThis.__wreckright !== undefined, { timeout: 30_000 });
+  await page.waitForFunction(() => globalThis.__ironmuster !== undefined, { timeout: 30_000 });
   await page.waitForSelector('[data-testid="briefing"]');
-  await page.waitForFunction(() => globalThis.__wreckright.useGame.getState().ready);
+  await page.waitForFunction(() => globalThis.__ironmuster.useGame.getState().ready);
   return { context, page, errors, homeWithoutEngine };
 }
 
@@ -52,7 +53,9 @@ async function documentOverflow(page) {
 
 async function oneColumn(page, selector) {
   return page.locator(selector).evaluate((element) => {
-    const columns = getComputedStyle(element).gridTemplateColumns.trim();
+    const style = getComputedStyle(element);
+    if (style.display === 'flex' && style.flexDirection === 'column') return true;
+    const columns = style.gridTemplateColumns.trim();
     return columns !== '' && columns.split(/\s+/).length === 1;
   });
 }
@@ -98,7 +101,7 @@ async function openBattleMenu(page) {
 async function unlockRangeDrill(page, check, prefix) {
   await engageTrainingOpticalContact({ page, check, prefix, touch: true });
   await page.evaluate(() => {
-    const { useGame } = globalThis.__wreckright;
+    const { useGame } = globalThis.__ironmuster;
     const current = useGame.getState();
     const selected = new Set(current.selection);
     current.patch({
@@ -112,7 +115,7 @@ async function unlockRangeDrill(page, check, prefix) {
 
 async function verifyMobileCommander({ page, check, prefix, shots }) {
   await page.evaluate(() => {
-    const state = globalThis.__wreckright.useGame.getState();
+    const state = globalThis.__ironmuster.useGame.getState();
     state.setOrderMode(null);
     state.setSupportMode(null);
     state.patch({ queueOrders: false });
@@ -128,7 +131,7 @@ async function verifyMobileCommander({ page, check, prefix, shots }) {
   check(
     `${prefix} Commander map accepts touch movement orders`,
     await page.evaluate(() => {
-      const { useGame, world } = globalThis.__wreckright;
+      const { useGame, world } = globalThis.__ironmuster;
       const selected = useGame.getState().selection[0];
       return world.entities.find((entity) => entity.id === selected)?.orders.move !== null;
     }),
@@ -189,7 +192,7 @@ async function runOrientation({ browser, url, shots, check, viewport, label, sho
     await page.locator('[data-testid="briefing-deploy"]').tap();
     await page.waitForSelector('[data-testid="mobile-dock"]');
     await page.waitForSelector('[data-testid="training-coach"]');
-    await page.waitForFunction(() => globalThis.__wreckright.useGame.getState().briefingSeen);
+    await page.waitForFunction(() => globalThis.__ironmuster.useGame.getState().briefingSeen);
     check(`${prefix} deploy starts the battle`, (await page.locator('[data-testid="mobile-dock"]').count()) === 1);
     check(
       `${prefix} keeps the compact topbar and dock on screen`,
@@ -207,13 +210,13 @@ async function runOrientation({ browser, url, shots, check, viewport, label, sho
     await page.waitForSelector('[data-testid="command-move"]');
     check(
       `${prefix} first lance card accepts a touch`,
-      (await page.evaluate(() => globalThis.__wreckright.useGame.getState().selection.length)) === 1 &&
+      (await page.evaluate(() => globalThis.__ironmuster.useGame.getState().selection.length)) === 1 &&
         (await firstLance.getAttribute('aria-pressed')) === 'true',
     );
 
     await page.locator('[data-testid="mobile-select-all"]').tap();
     const allSelected = await page.evaluate(() => {
-      const state = globalThis.__wreckright.useGame.getState();
+      const state = globalThis.__ironmuster.useGame.getState();
       const alive = state.units.filter((unit) => unit.team === state.playerTeam && unit.alive);
       return alive.length > 1 && alive.every((unit) => state.selection.includes(unit.id));
     });
@@ -241,8 +244,7 @@ async function runOrientation({ browser, url, shots, check, viewport, label, sho
     await openBattleMenu(page);
     await page.locator('[data-testid="choose-mission"]').tap();
     await page.waitForSelector('[data-testid="briefing"]');
-    await openBattleMenu(page);
-    await page.locator('[data-testid="open-campaign"]').tap();
+    await page.locator('[data-testid="training-skip"]').tap();
     await page.waitForSelector('[data-testid="campaign"]');
     await completeInitialCampaignSetup(page);
 
@@ -262,6 +264,7 @@ async function runOrientation({ browser, url, shots, check, viewport, label, sho
     );
     await page.locator('[data-testid="camp-manual-close"]').tap();
     await page.waitForSelector('[data-testid="camp-manual"]', { state: 'detached' });
+    await openCampaignDetails(page);
     await page.locator('.camp-node.available').first().tap();
     await page.locator('[data-testid="camp-terms-salvage_first"]').tap();
     check(
@@ -355,7 +358,7 @@ export async function runMobilePlaythrough({ browser, url, shots, check }) {
         (await desktopPage.locator('.mobile-topbar').count()) === 0,
     );
     await desktopPage.evaluate(() => {
-      globalThis.__wreckright.useGame.getState().patch({ screen: 'mechbay' });
+      globalThis.__ironmuster.useGame.getState().patch({ screen: 'mechbay' });
     });
     await desktopPage.waitForSelector('[data-testid="mechbay"]');
     check(

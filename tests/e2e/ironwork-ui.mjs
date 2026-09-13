@@ -1,3 +1,4 @@
+import { openCompanyTools, returnFromAutoPreparation } from './unified-navigation.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 /** Fresh-context campaign checks; callable by either the main or a standalone headless harness. */
 async function installGraphicsProbe(page) {
@@ -48,6 +49,7 @@ async function openCompany(page) {
     await completeInitialCampaignSetup(page);
   const guide = page.locator('[data-testid="campaign-guide-dismiss"]');
   if (await guide.isVisible()) await guide.click();
+  await openCompanyTools(page);
   await page.waitForSelector('[data-testid="camp-area-workshop"]');
 }
 
@@ -103,6 +105,7 @@ export async function runIronworkUiChecks({ browser, url, check, shots }) {
       JSON.stringify({ name: survey.name, width: survey.width, height: survey.height, colours: survey.colourSamples, contexts: surveyed }));
     if (shots) await page.screenshot({ path: `${shots}/ironwork-operations.png` });
 
+    await openCompanyTools(page);
     await page.locator('[data-testid="camp-area-workshop"]').click();
     const showcase = page.locator('[data-testid="camp-selected-machine"]');
     await showcase.locator('[data-testid="mech-preview-canvas"]').waitFor();
@@ -171,8 +174,10 @@ export async function runIronworkUiChecks({ browser, url, check, shots }) {
       JSON.stringify(cancelled));
 
     for (let visit = 0; visit < 3; visit += 1) {
+      await openCompanyTools(page);
       await page.locator('[data-testid="camp-area-crew"]').click();
       await waitForLiveContexts(page, 0);
+      await openCompanyTools(page);
       await page.locator('[data-testid="camp-area-workshop"]').click();
       await showcase.locator('[data-testid="mech-preview-canvas"]').waitFor();
       await waitForLiveContexts(page, 1);
@@ -205,6 +210,7 @@ export async function runIronworkUiChecks({ browser, url, check, shots }) {
       await savedCampaign(page) === initialSave && restoredSurvey.name === survey.name
         && restoredSurvey.alt === survey.alt);
     await page.locator('[data-testid="camp-accept"]').click();
+    await returnFromAutoPreparation(page);
     const signed = JSON.parse(await savedCampaign(page)).state;
     const signedSurvey = await page.locator('[data-testid="camp-mission-survey"]').evaluate((section) => ({
       name: section.querySelector('h3')?.textContent,
@@ -262,6 +268,7 @@ export async function captureIronworkMobile({ browser, url, check, shots }) {
     check('mobile campaign map keeps all authored sites contained and label cards separate',
       geometry.cards.length > 1 && geometry.contained && geometry.separated, JSON.stringify(geometry));
     if (shots) await page.locator('[data-testid="camp-map"]').screenshot({ path: `${shots}/ironwork-mobile-map.png` });
+    await openCompanyTools(page);
     await page.locator('[data-testid="camp-area-workshop"]').click();
     const showcase = page.locator('[data-testid="camp-selected-machine"]');
     await showcase.locator('canvas').waitFor();
@@ -282,6 +289,7 @@ export async function captureIronworkMobile({ browser, url, check, shots }) {
           === `Inspecting ${mobileName}. Current equipment and condition shown.`
         && await savedCampaign(page) === before, JSON.stringify(widths));
     if (shots) await showcase.screenshot({ path: `${shots}/ironwork-mobile-workshop.png` });
+    await openCompanyTools(page);
     await page.locator('[data-testid="camp-area-operations"]').click();
     await waitForLiveContexts(page, 0);
     check('mobile work-area navigation releases the inspection context without page errors',

@@ -1,3 +1,4 @@
+import { openCompanyTools, returnFromAutoPreparation } from './unified-navigation.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -27,7 +28,7 @@ try {
   page.on('request', (request) => {
     if (/^https?:/.test(request.url())) external.push(request.url());
   });
-  await page.goto(pathToFileURL(resolve('dist-single/wreckright.html')).href);
+  await page.goto(pathToFileURL(resolve('dist-single/ironmuster.html')).href);
   // A decoded image is not screenshot-ready until React exposes it and its fade finishes.
   await page.waitForFunction(() => {
     const home = document.querySelector('[data-testid="home-screen"][data-artwork="ready"]');
@@ -76,15 +77,18 @@ try {
   await page.locator('[data-testid="home-campaign"]').click();
   await page.waitForSelector('[data-testid="campaign"]');
   await completeInitialCampaignSetup(page);
-  await page.locator('[data-testid="campaign-guide-dismiss"]').click();
+
+  await openCompanyTools(page);
   await page.locator('[data-testid="camp-area-workshop"]').click();
   await page.locator('[data-testid^="camp-refit-"]:enabled').first().click();
   await page.waitForSelector('[data-testid="refit-bay"]');
   await page.waitForSelector('[data-testid="refit-bay"] canvas');
   await page.screenshot({ path: `${shots}/workshop-refit.png` });
   await page.keyboard.press('Escape');
+  await openCompanyTools(page);
   await page.locator('[data-testid="camp-area-operations"]').click();
   await page.locator('[data-testid="camp-accept"]').click();
+  await returnFromAutoPreparation(page);
   await page.locator('[data-testid="camp-deploy"]').click();
   await page.waitForSelector('[data-testid="briefing"]');
   await page.locator('[data-testid="briefing-deploy"]').click();

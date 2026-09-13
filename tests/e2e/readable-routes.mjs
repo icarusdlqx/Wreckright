@@ -23,7 +23,7 @@ function strictlyIncreasingEtas(labels) {
 
 async function routeFrame(page) {
   return page.evaluate((batchNames) => {
-    const { renderer } = globalThis.__wreckright.engine;
+    const { renderer } = globalThis.__ironmuster.engine;
 
     const coloursOf = (attribute, count) => {
       if (attribute === undefined) return [];
@@ -99,8 +99,8 @@ async function routeFrame(page) {
     };
 
     return {
-      tick: globalThis.__wreckright.world.tick,
-      paused: globalThis.__wreckright.useGame.getState().paused,
+      tick: globalThis.__ironmuster.world.tick,
+      paused: globalThis.__ironmuster.useGame.getState().paused,
       stats: structuredClone(renderer.routeMarkerStats),
       render: { ...renderer.renderStats },
       batches: Object.fromEntries(batchNames.map((name) => [name, batch(name)])),
@@ -153,7 +153,7 @@ export async function runReadableRouteChecks({ page, check, shots }) {
   }
 
   const fixture = await page.evaluate(() => {
-    const { engine, useGame, world } = globalThis.__wreckright;
+    const { engine, useGame, world } = globalThis.__ironmuster;
     const state = useGame.getState();
     const routeEntity = world.entities.find(
       (entity) =>
@@ -222,7 +222,7 @@ export async function runReadableRouteChecks({ page, check, shots }) {
   try {
     await page.waitForFunction(
       () => {
-        const stats = globalThis.__wreckright.engine.renderer.routeMarkerStats;
+        const stats = globalThis.__ironmuster.engine.renderer.routeMarkerStats;
         return stats.routes === 1 && stats.activeLegs === 1 && stats.queuedLegs === 3;
       },
       undefined,
@@ -286,7 +286,7 @@ export async function runReadableRouteChecks({ page, check, shots }) {
     );
 
     await page.evaluate(() => {
-      globalThis.__wreckright.engine.renderer.camera.reducedMotion = true;
+      globalThis.__ironmuster.engine.renderer.camera.reducedMotion = true;
     });
     await settleFrames(page, 3);
     const reduced = await sampleRouteFrames(page);
@@ -309,7 +309,7 @@ export async function runReadableRouteChecks({ page, check, shots }) {
     check(
       'the field camera is centred and zoomed to the complete planned route',
       await page.evaluate(({ entityId, destinations }) => {
-        const { engine, useGame } = globalThis.__wreckright;
+        const { engine, useGame } = globalThis.__ironmuster;
         const { camera, terrain, viewport } = engine.renderer;
         const onScreen = destinations.every((point) => {
           const screen = camera.worldToScreen(point, viewport, terrain.heightAt(point.x, point.y));
@@ -323,7 +323,7 @@ export async function runReadableRouteChecks({ page, check, shots }) {
 
     await page.screenshot({ path: `${shots}/10-readable-route.png` });
     const closeClip = await page.evaluate(({ destinations, distance }) => {
-      const { renderer } = globalThis.__wreckright.engine;
+      const { renderer } = globalThis.__ironmuster.engine;
       const { camera, terrain, viewport } = renderer;
       const focus = destinations.slice(1, 4);
       const bounds = focus.reduce(
@@ -373,7 +373,7 @@ export async function runReadableRouteChecks({ page, check, shots }) {
     await page.evaluate(() => {
       const restore = globalThis.__readableRouteRestore;
       if (restore === undefined) return;
-      const { engine, useGame } = globalThis.__wreckright;
+      const { engine, useGame } = globalThis.__ironmuster;
       engine.renderer.camera.reducedMotion = restore.reducedMotion;
       engine.renderer.camera.distance = restore.distance;
       engine.renderer.camera.centreOn(restore.target);

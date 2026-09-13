@@ -8,7 +8,7 @@ import {
   remainingInventory,
   type BayInventory,
 } from './bayFit';
-import { Dossier, type Inspected, type InspectorFit } from './Dossier';
+import type { Inspected } from './Dossier';
 import { ShelfItem } from './ShelfItem';
 import type { DropPayload } from './LocationCard';
 import { mountedWeaponProfiles as resolveMountedWeaponProfiles } from './rangeDamageChartModel';
@@ -167,17 +167,6 @@ export function StoreShelf({
           ? null
           : { kind: 'equipment', id: gearRows[0].equipment.id };
   const inspector = matchingInspected ?? defaultInspected;
-  const installedMount = inspector?.kind === 'weapon' && inspector.sourceIndex !== undefined
-    ? design.mounts[inspector.sourceIndex] : undefined;
-  const inspectorFit: InspectorFit | null = installedMount !== undefined && installedMount.weaponId === inspector?.id
-    ? { ok: true, label: 'Installed', reason: `Mounted in ${installedMount.location.replaceAll('_', ' ')}. Use the tile to move or remove it.` }
-    : inspector?.kind === 'weapon'
-    ? (weaponRows.find(({ weapon }) => weapon.id === inspector.id)?.fit ?? null)
-    : inspector?.kind === 'ammo'
-      ? (ammoRows.find(({ weapon }) => weapon.id === inspector.id)?.fit ?? null)
-      : inspector?.kind === 'equipment'
-        ? (gearRows.find(({ equipment }) => equipment.id === inspector.id)?.fit ?? null)
-        : null;
   const resultLabel =
     shelf === 'weapons'
       ? `${visibleWeaponRows.length} of ${knownWeapons.length} weapons · ${showAll ? 'all fit states' : selectedLocation === null ? 'fits, replacements & installed' : 'fits & replacements'}`
@@ -202,19 +191,6 @@ export function StoreShelf({
         onShowAllChange={onShowAllChange}
         onClearLocation={onClearLocation}
       />
-
-      <details className="bay-inspector-shell" open>
-        <summary>Part details &amp; firing profile</summary>
-      <Dossier
-        catalog={catalog}
-        inspected={inspector}
-        heatSinkId={design.heatSinkId}
-        mountedWeapons={mountedWeapons}
-        mountedWeaponProfiles={mountedWeaponProfiles}
-        chassisFaction={chassis.faction}
-        fit={inspectorFit}
-      />
-      </details>
 
       <div
         id="bay-shelf-results"

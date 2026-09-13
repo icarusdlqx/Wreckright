@@ -3,7 +3,7 @@
   "name": "Warrant — Custody Posts",
   "type": "base_capture",
   "mapId": "aurelian_civic_exchange",
-  "briefing": "Secure the west and east custody posts along Sarn’s main avenue. Local defenders use the garden lanes and workshop streets to reach your flanks. Advance together; the obvious centre is a firing lane.",
+  "briefing": "Secure both Cutbank custody posts on Sarn Avenue and preserve Len Saye's original rolls. A fixed gun watches the centre. Use the gardens for position and the recovered long optic for support; cover blocks even advanced emitters, and an exposed side is still an exposed side.",
   "maxDurationSeconds": 390,
   "startingResourcePoints": 500,
   "lances": [
@@ -137,7 +137,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Tender: two posts on the avenue. Garden lanes on both sides are unsurveyed approach routes.",
+          "text": "Saye will not leave his original rolls. Fixed gun in the avenue; use a garden approach and keep the long optic clear.",
           "speakerPilotId": "petra_lindqvist"
         }
       ]

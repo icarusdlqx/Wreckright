@@ -47,6 +47,7 @@ const PilotRecordSchema = z.strictObject({
   recoveryMissions: z.number().int().nonnegative().default(0),
   dead: z.boolean(),
   mechId: z.string().nullable(),
+  radioMemories: z.array(z.string().max(4000)).max(64).optional(),
 });
 
 const StoreItemSchema = z.strictObject({
@@ -136,6 +137,8 @@ const MissionOutcomeSchema = z.strictObject({
         mech: z.string(),
         mechId: z.string().min(1).optional(),
         chassisId: IdSchema.optional(),
+        weaponLayout: z.string().max(4000).optional(),
+        weaponIds: z.array(IdSchema).max(24).optional(),
         kills: z.number().nonnegative(),
         damage: z.number().nonnegative(),
         xp: z.number(),

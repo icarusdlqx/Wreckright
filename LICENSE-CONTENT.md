@@ -24,6 +24,6 @@ exist and are held. This notice does not restrict rights independently
 available under applicable law. It does not assert that every AI-generated
 output is copyrightable, exclusively owned or cleared of third-party rights.
 
-The project owner may separately authorise publication of Wreckright using
+The project owner may separately authorise publication of Ironmuster using
 content they have the right to publish. Publishing the software under MIT does
 not make the separately identified game content or media MIT-licensed.

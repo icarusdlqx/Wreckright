@@ -35,27 +35,27 @@ async function openNightBattle(page, url) {
   await page.waitForSelector('[data-testid="home-screen"]');
   await page.locator('[data-testid="home-skirmish"]').click();
   await page.waitForSelector('[data-testid="briefing"]');
-  await page.waitForFunction(() => globalThis.__wreckright?.useGame.getState().ready === true);
+  await page.waitForFunction(() => globalThis.__ironmuster?.useGame.getState().ready === true);
 
   await page.locator('[data-testid="briefing-mission-picker"]').selectOption('causeway_night');
   await page.waitForFunction(() => (
-    globalThis.__wreckright?.world.mission.id === 'causeway_night' &&
-    globalThis.__wreckright.useGame.getState().ready === true
+    globalThis.__ironmuster?.world.mission.id === 'causeway_night' &&
+    globalThis.__ironmuster.useGame.getState().ready === true
   ));
 
   const faction = page.locator('[data-testid="briefing-faction-picker"]');
   if (await faction.inputValue() !== 'linewrought') {
     await faction.selectOption('linewrought');
     await page.waitForFunction(() => (
-      globalThis.__wreckright?.world.mission.id === 'causeway_night' &&
-      globalThis.__wreckright.useGame.getState().ready === true
+      globalThis.__ironmuster?.world.mission.id === 'causeway_night' &&
+      globalThis.__ironmuster.useGame.getState().ready === true
     ));
   }
 
   await page.locator('[data-testid="briefing-deploy"]').click();
   await page.waitForFunction(() => (
-    globalThis.__wreckright?.world.mission.id === 'causeway_night' &&
-    globalThis.__wreckright.useGame.getState().briefingSeen === true
+    globalThis.__ironmuster?.world.mission.id === 'causeway_night' &&
+    globalThis.__ironmuster.useGame.getState().briefingSeen === true
   ));
   await page.waitForSelector('.viewport canvas:not(.perf-overlay)');
 
@@ -66,7 +66,7 @@ async function openNightBattle(page, url) {
 
 async function prepareFixture(page) {
   const fixture = await page.evaluate(() => {
-    const { engine, useGame, world } = globalThis.__wreckright;
+    const { engine, useGame, world } = globalThis.__ironmuster;
     const state = useGame.getState();
     const friendlies = world.entities
       .filter((entity) => entity.team === state.playerTeam && !entity.destroyed && !entity.withdrawn)

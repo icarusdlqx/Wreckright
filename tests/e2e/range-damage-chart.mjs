@@ -1,3 +1,4 @@
+import { selectBaySection } from './unified-navigation.mjs';
 import { readFileSync } from 'node:fs';
 
 const STORAGE_KEY = 'ironline.design.e2e_range_cairn';
@@ -48,20 +49,21 @@ async function openFixture(browser, url, viewport) {
   await page.goto(url);
   await page.locator('[data-testid="home-skirmish"]').click();
   await page.waitForSelector('[data-testid="briefing"]');
-  await page.waitForFunction(() => globalThis.__wreckright?.useGame.getState().ready === true);
+  await page.waitForFunction(() => globalThis.__ironmuster?.useGame.getState().ready === true);
   await page.getByTestId('briefing-faction-picker').selectOption('linewrought');
   const berth = page.locator('[data-testid="berth-design-0"]');
   await berth.selectOption('saved:e2e_range_cairn');
   await page.waitForFunction(
     () => document.querySelector('[data-testid="berth-design-0"]')?.value === 'custom',
   );
-  await page.waitForFunction(() => globalThis.__wreckright?.world.entities.some(entity => entity.designId === 'e2e_range_cairn'));
+  await page.waitForFunction(() => globalThis.__ironmuster?.world.entities.some(entity => entity.designId === 'e2e_range_cairn'));
   await page.locator('[data-testid="berth-customise-0"]').click();
   await page.waitForSelector('[data-testid="outfit-bay"]');
   const inspect = page.getByRole('button', { name: 'Inspect Longshot 10', exact: true });
   await inspect.scrollIntoViewIfNeeded();
   await inspect.focus();
   await inspect.press('Enter');
+  await selectBaySection(page, 'review');
   const chart = page.locator('[data-testid="range-damage-chart"]');
   await chart.waitFor({ state: 'visible' });
   await chart.scrollIntoViewIfNeeded();
@@ -76,7 +78,7 @@ export async function runRangeDamageChartChecks({ browser, url, shots, check }) 
     try {
       const prefix = `${viewport.label} range chart`;
       check(`${prefix} uses a legal Linewrought mech fixture`, await run.page.getByTestId('bay-save').isEnabled() && await run.page.evaluate(() => {
-        const world = globalThis.__wreckright.world;
+        const world = globalThis.__ironmuster.world;
         const mech = world.entities.find(entity => entity.designId === 'e2e_range_cairn');
         const chassis = world.catalog.chassis.get(mech?.chassisId);
         return chassis?.frame === 'mech' && chassis.faction === 'linewrought';
@@ -113,7 +115,7 @@ export async function runRangeDamageChartChecks({ browser, url, shots, check }) 
         JSON.stringify(stackFacts),
       );
       const geometry = await run.chart.evaluate((element) => {
-        const dossier = element.closest('[data-testid="bay-dossier-card"]');
+        const dossier = element.closest('[data-testid="build-firing-analysis"]');
         const bay = element.closest('[data-testid="mechbay"]');
         const rect = element.getBoundingClientRect();
         const dossierRect = dossier?.getBoundingClientRect();

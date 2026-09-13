@@ -155,7 +155,7 @@ describe('expedition preparation readouts', () => {
     injured.recoveryMissions = 1;
     const saved = JSON.stringify(state);
     const html = manifest(state);
-    expect(rosterEntry(html, workshop.id)).toContain('Reserve · Workshop');
+    expect(rosterEntry(html, workshop.id)).toContain('Reserve · Fieldable');
     expect(rosterEntry(html, unarmed.id)).toContain('Reserve · Needs weapon');
     const injuredEntry = rosterEntry(roster(state, 'pilots'), injured.id);
     expect(injuredEntry).toContain('Injured · misses next mission');
@@ -163,10 +163,12 @@ describe('expedition preparation readouts', () => {
     const workshopDetail = renderToStaticMarkup(createElement(PreparationMachine, {
       catalog, state, mech: workshop, mutate: () => undefined, onRefit: () => undefined,
     }));
-    expect(workshopDetail).toContain(`<dt>Ready</dt><dd>Day ${workshop.readyOnDay}</dd>`);
-    expect(workshopDetail).toContain('<dt>Booking</dt><dd>Paid</dd>');
+    expect(workshopDetail).toContain('No repairs required.');
+    expect(workshopDetail).toContain('>Mechlab</button>');
+    expect(workshopDetail).not.toContain('Refit loadout');
+    expect(workshopDetail).not.toContain('<dt>Booking</dt><dd>Paid</dd>');
     expect(aboardIds(html)).toEqual(dropTeam(catalog, state, state.contract?.missionId ?? '').map((pair) => pair.pilot.id));
-    expect(aboardIds(html)).toHaveLength(1);
+    expect(aboardIds(html)).toHaveLength(2);
     expect(JSON.stringify(state)).toBe(saved);
 
     // Explicit choices survive a change in readiness; they are shown as problems,
@@ -176,7 +178,7 @@ describe('expedition preparation readouts', () => {
     const chosenSave = JSON.stringify(state);
     const chosen = manifest(state);
     expect(aboardIds(chosen)).toEqual(state.deploymentSelection);
-    expect(chosen).toContain(`Workshop · day ${workshop.readyOnDay}`);
+    expect(chosen).not.toContain(`Workshop · day ${workshop.readyOnDay}`);
     expect(chosen).toContain('Needs weapon');
     expect(chosen).toContain('Injured · misses next mission');
     expect(chosen.match(/<button[^>]*data-testid="manifest-launch"[^>]*>/)?.[0]).toContain('disabled=""');
@@ -195,10 +197,10 @@ describe('expedition preparation readouts', () => {
     const saved = JSON.stringify(state);
     const html = hangar(state);
     expect(html).toContain('Fieldable · damaged');
-    expect(html).toContain(`<dt>Pay now</dt><dd>${estimate.cost.toLocaleString('en-GB')} C</dd>`);
-    expect(html).toContain(`<dt>Ready</dt><dd>Day ${projected.readyOnDay}</dd>`);
-    expect(html).toContain(`Company payroll until ready: <strong>${wages.toLocaleString('en-GB')} C</strong>`);
-    expect(html).toContain('Charged as days pass.');
+    expect(html).toContain(`${estimate.cost.toLocaleString('en-GB')} C`);
+    expect(html).not.toContain(`<dt>Ready</dt><dd>Day ${projected.readyOnDay}</dd>`);
+    expect(html).not.toContain(`Company payroll until ready: <strong>${wages.toLocaleString('en-GB')} C</strong>`);
+    expect(html).toContain('Ready immediately after payment.');
     expect(html).toContain('class="machine-portrait"');
     expect(html).toContain('Linewrought');
     expect(JSON.stringify(state)).toBe(saved);
@@ -216,12 +218,9 @@ describe('expedition preparation readouts', () => {
     }
     state.contract.deadlineDay = state.day;
     const html = hangar(state);
-    expect(html.match(/<dt>Booking<\/dt><dd>Paid<\/dd>/g)).toHaveLength(2);
-    expect(html).not.toContain('<dt>Pay now</dt>');
-    expect(html).toContain('On the lift');
-    expect(html).toContain('In queue · 1');
-    expect(html).toContain(`<dt>Starts</dt><dd>Day ${active.readyOnDay}</dd>`);
-    expect(html).toContain(`<dd class="is-late">Day ${queued.readyOnDay}</dd>`);
-    expect(html).toContain(`Ready after the signed deadline, day ${state.contract.deadlineDay}.`);
+    expect(html).toContain('No repairs required.');
+    expect(html).not.toContain('In queue');
+    expect(active.status).toBe('ready');
+    expect(queued.status).toBe('ready');
   });
 });

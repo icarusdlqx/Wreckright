@@ -29,23 +29,23 @@ export async function runCompactDesktopChecks({ browser, url, shots, check }) {
       await page.goto(url);
       await page.getByTestId('home-skirmish').click();
       await page.getByTestId('briefing-mission-picker').selectOption('skirmish_ridge');
-      await page.waitForFunction(() => globalThis.__wreckright?.world.mission.id === 'skirmish_ridge'
-        && globalThis.__wreckright.useGame.getState().ready);
+      await page.waitForFunction(() => globalThis.__ironmuster?.world.mission.id === 'skirmish_ridge'
+        && globalThis.__ironmuster.useGame.getState().ready);
       await page.getByTestId('briefing-deploy').click();
       await page.getByTestId('briefing').waitFor({ state: 'hidden' });
       await page.waitForFunction(() => {
-        const test = globalThis.__wreckright;
+        const test = globalThis.__ironmuster;
         return test?.useGame.getState().ready && test.useGame.getState().briefingSeen
           && test.engine.world === test.world;
       });
-      if (!await page.evaluate(() => globalThis.__wreckright.useGame.getState().paused)) {
+      if (!await page.evaluate(() => globalThis.__ironmuster.useGame.getState().paused)) {
         await page.getByTestId('pause-button').click();
       }
       check(`${label} selects the intended HUD without changing the pointer device`,
         await page.locator('.mobile-topbar').count() === Number(example.compact)
         && await page.evaluate(() => matchMedia('(pointer: coarse)').matches) === example.touch);
       const fixture = await page.evaluate(() => {
-        const { world, useGame } = globalThis.__wreckright;
+        const { world, useGame } = globalThis.__ironmuster;
         const friends = world.entities.filter(unit => unit.team === world.playerTeam && !unit.destroyed);
         if (friends.length < 2) throw Error('Commander input check requires two friendly mechs.');
         friends[0].pos = { x: 300, y: 600 };
@@ -80,29 +80,29 @@ export async function runCompactDesktopChecks({ browser, url, shots, check }) {
       if (example.touch) {
         await first.tap();
         await map.tap({ position: pointA });
-        await page.waitForFunction(id => globalThis.__wreckright.world.entities.find(unit => unit.id === id)?.orders.move !== null, fixture.first);
+        await page.waitForFunction(id => globalThis.__ironmuster.world.entities.find(unit => unit.id === id)?.orders.move !== null, fixture.first);
         check(`${label} touch selects a mech and tap-moves without a mouse button`,
-          await page.evaluate(id => globalThis.__wreckright.useGame.getState().selection.includes(id), fixture.first));
+          await page.evaluate(id => globalThis.__ironmuster.useGame.getState().selection.includes(id), fixture.first));
       } else {
         await first.click();
         await second.click({ modifiers: ['Shift'] });
         check(`${label} Shift-click adds a second mech to mouse selection`, await page.evaluate(({ first, second }) => {
-          const selected = globalThis.__wreckright.useGame.getState().selection;
+          const selected = globalThis.__ironmuster.useGame.getState().selection;
           return selected.length === 2 && selected.includes(first) && selected.includes(second);
         }, fixture));
         await second.click({ modifiers: ['Shift'] });
         check(`${label} Shift-click toggles that mech back out`, await page.evaluate(id => {
-          const selected = globalThis.__wreckright.useGame.getState().selection;
+          const selected = globalThis.__ironmuster.useGame.getState().selection;
           return selected.length === 1 && selected[0] === id;
         }, fixture.first));
         await map.click({ button: 'right', position: pointA });
-        await page.waitForFunction(id => globalThis.__wreckright.world.entities.find(unit => unit.id === id)?.orders.move !== null, fixture.first);
+        await page.waitForFunction(id => globalThis.__ironmuster.world.entities.find(unit => unit.id === id)?.orders.move !== null, fixture.first);
         await map.click({ button: 'right', modifiers: ['Shift'], position: pointB });
-        await page.waitForFunction(id => globalThis.__wreckright.world.entities.find(unit => unit.id === id)?.orders.queue.length === 1, fixture.first);
+        await page.waitForFunction(id => globalThis.__ironmuster.world.entities.find(unit => unit.id === id)?.orders.queue.length === 1, fixture.first);
         check(`${label} right-click moves and Shift-right-click queues a second waypoint`, true);
         await map.click({ position: pointA });
         check(`${label} plain mouse ground click deselects without replacing the route`, await page.evaluate(id => {
-          const { world, useGame } = globalThis.__wreckright;
+          const { world, useGame } = globalThis.__ironmuster;
           return useGame.getState().selection.length === 0 && world.entities.find(unit => unit.id === id).orders.queue.length === 1;
         }, fixture.first));
         await first.click();

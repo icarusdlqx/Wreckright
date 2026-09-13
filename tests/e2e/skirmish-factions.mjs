@@ -1,3 +1,4 @@
+import { saveBay } from './save-bay.mjs';
 import { clickFittingAction } from './fitting-actions.mjs';
 
 /** Saved fixtures enter through storage; every faction, hull and refit change uses actual UI controls. */
@@ -34,7 +35,7 @@ export async function runSkirmishFactionChecks({ browser, url, shots, check }) {
     await page.getByTestId('home-skirmish').click();
     await page.getByTestId('enemy-force-setup').waitFor();
     const fixtures = await page.evaluate(() => {
-      const catalog = globalThis.__wreckright.world.catalog;
+      const catalog = globalThis.__ironmuster.world.catalog;
       const entries = [...catalog.designs.values()].filter(design => catalog.chassis.get(design.chassisId).frame === 'mech');
       const fixtures = {};
       for (const faction of ['linewrought', 'aurelian']) {
@@ -56,7 +57,14 @@ export async function runSkirmishFactionChecks({ browser, url, shots, check }) {
         await page.getByTestId(`${prefix(side)}briefing-berth-0`).click();
         const options = await page.getByTestId(`${prefix(side)}berth-design-0`).locator('option').evaluateAll(items => items.map(item => item.value));
         const cultures = faction === 'mixed' ? ['linewrought', 'aurelian'] : [faction];
-        const expected = ['empty', ...cultures.flatMap(faction => [...fixtures[faction].stock, `saved:${fixtures[faction].design.id}`])];
+        const savedChoices = await page.evaluate(cultures => {
+          const catalog = globalThis.__ironmuster.world.catalog;
+          return Object.keys(localStorage).filter(key=>key.startsWith('ironline.design.')).flatMap(key=>{
+            const design = JSON.parse(localStorage.getItem(key));
+            return cultures.includes(catalog.chassis.get(design.chassisId)?.faction) ? [`saved:${design.id}`] : [];
+          });
+        }, cultures);
+        const expected = ['empty', ...cultures.flatMap(faction => fixtures[faction].stock), ...savedChoices];
         check(`${side ? 'enemy' : 'player'} ${faction} lists exactly its eligible stock and saved hulls`,
           JSON.stringify([...options].sort()) === JSON.stringify(expected.sort()));
       }
@@ -80,7 +88,7 @@ export async function runSkirmishFactionChecks({ browser, url, shots, check }) {
         await storage(side) === beforeCancel && await page.getByTestId(factionId(side)).inputValue() === faction);
       await refit(side);
       await clickFittingAction(page.getByTestId('remove-weapon-0'));
-      await page.getByTestId('bay-save').click();
+      await saveBay(page);
       await page.getByTestId('outfit-bay').waitFor({ state: 'hidden' });
       const saved = JSON.parse(await storage(side));
       check(`${faction} committed refit keeps its faction and exact changed weapons`, saved[0].factionChoice === faction
@@ -89,10 +97,10 @@ export async function runSkirmishFactionChecks({ browser, url, shots, check }) {
         && await page.getByTestId(factionId(side)).inputValue() === faction);
       await select(side, 1, 'empty');
       await refit(side, 1);
-      await page.getByTestId('bay-save').click();
+      await saveBay(page);
       await page.getByTestId('outfit-bay').waitFor({ state: 'hidden' });
       const filled = JSON.parse(await storage(side))[1];
-      const filledFaction = await page.evaluate(chassisId => globalThis.__wreckright.world.catalog.chassis.get(chassisId)?.faction,
+      const filledFaction = await page.evaluate(chassisId => globalThis.__ironmuster.world.catalog.chassis.get(chassisId)?.faction,
         filled.design.chassisId);
       check(`${faction} empty-berth refit fills an allowed hull without changing faction`, filled.empty !== true
         && filledFaction === faction && await page.getByTestId(factionId(side)).inputValue() === faction);
@@ -134,11 +142,17 @@ export async function runSkirmishFactionChecks({ browser, url, shots, check }) {
       && await warning.isVisible());
     await page.evaluate(() => { globalThis.__blockedLanceKeys = []; });
     await refit(0);
-    await page.getByTestId('bay-save').click();
+    await saveBay(page);
     await page.getByTestId('outfit-bay').waitFor({ state: 'hidden' });
     check('successful retry saves both the explicit choice and current refit and clears the warning',
       await warning.count() === 0 && JSON.parse(await storage(0))[0].factionChoice === 'mixed'
-      && JSON.parse(await storage(0))[0].design.id === 'hornet_spotter');
+      && await page.evaluate(key => {
+        const design = JSON.parse(localStorage.getItem(key))[0].design;
+        const prime = globalThis.__ironmuster.world.catalog.designs.get('hornet_spotter');
+        return design.id !== prime.id && design.chassisId === prime.chassisId
+          && JSON.stringify(design.mounts) === JSON.stringify(prime.mounts)
+          && JSON.stringify(design) === JSON.stringify(JSON.parse(localStorage.getItem(`ironline.design.${design.id}`)));
+      }, key(0)));
     if (shots) {
       await page.getByTestId('briefing-faction-picker').scrollIntoViewIfNeeded();
       await page.getByTestId('briefing').screenshot({ path: `${shots}/after-mixed-restored.png` });

@@ -39,30 +39,30 @@ async function openCultureBattle(page, url) {
   await page.waitForSelector('[data-testid="home-screen"]');
   await page.locator('[data-testid="home-skirmish"]').click();
   await page.waitForSelector('[data-testid="briefing"]');
-  await page.waitForFunction(() => globalThis.__wreckright?.useGame.getState().ready === true);
+  await page.waitForFunction(() => globalThis.__ironmuster?.useGame.getState().ready === true);
 
   // Force an actual mission change before returning to the stored mixed lance.
   await page.locator('[data-testid="briefing-mission-picker"]').selectOption('rules_break');
   await page.waitForFunction(() => (
-    globalThis.__wreckright?.world.mission.id === 'rules_break' &&
-    globalThis.__wreckright.useGame.getState().ready === true
+    globalThis.__ironmuster?.world.mission.id === 'rules_break' &&
+    globalThis.__ironmuster.useGame.getState().ready === true
   ));
   await page.locator('[data-testid="briefing-mission-picker"]').selectOption('skirmish_ridge');
   await page.waitForFunction(() => (
-    globalThis.__wreckright?.world.mission.id === 'skirmish_ridge' &&
-    globalThis.__wreckright.useGame.getState().ready === true
+    globalThis.__ironmuster?.world.mission.id === 'skirmish_ridge' &&
+    globalThis.__ironmuster.useGame.getState().ready === true
   ));
   await page.waitForFunction(() => (
     document.querySelector('[data-testid="briefing-faction-picker"]')?.value === 'mixed'
   ));
   await page.locator('[data-testid="briefing-deploy"]').click();
-  await page.waitForFunction(() => globalThis.__wreckright?.useGame.getState().briefingSeen === true);
+  await page.waitForFunction(() => globalThis.__ironmuster?.useGame.getState().briefingSeen === true);
   await page.waitForSelector('.viewport canvas:not(.perf-overlay)');
 }
 
 async function stageCultureFixture(page) {
   return page.evaluate(() => {
-    const { engine, useGame, world } = globalThis.__wreckright;
+    const { engine, useGame, world } = globalThis.__ironmuster;
     const state = useGame.getState();
     const friendlies = world.entities.filter((entity) => entity.team === state.playerTeam);
     const compact = engine.renderer.viewport.width < 900;
@@ -123,7 +123,7 @@ async function stageCultureFixture(page) {
 async function inspectCultureFixture(page, ids) {
   await settle(page);
   return page.evaluate((wantedIds) => {
-    const { engine, useGame, world } = globalThis.__wreckright;
+    const { engine, useGame, world } = globalThis.__ironmuster;
     const { renderer } = engine;
     const effectiveVisible = (node, root) => {
       let current = node;
@@ -229,7 +229,7 @@ async function inspectCultureFixture(page, ids) {
 
 async function setQuality(page, distance, lowFx) {
   await page.evaluate(({ nextDistance, nextLowFx }) => {
-    const { renderer } = globalThis.__wreckright.engine;
+    const { renderer } = globalThis.__ironmuster.engine;
     renderer.setLowFx(nextLowFx);
     renderer.camera.distance = nextDistance;
     renderer.camera.update(renderer.viewport);

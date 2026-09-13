@@ -33,7 +33,7 @@ async function openBattle(browser, url) {
   await waitForScoreReady(page);
   await page.waitForFunction(() => globalThis.__audioProbe.snapshot().filter(graph => graph.state !== 'closed').length === 1);
   await page.evaluate(() => {
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     for (const entity of world.entities) {
       entity.autopilot = false;
       entity.controller = 'orders';
@@ -63,7 +63,7 @@ async function openBattle(browser, url) {
 async function emitMoment(page, kind) {
   const before = activeAudioContext(await audioProbe(page));
   await page.evaluate((moment) => {
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     const ally = world.entities.find((entity) => entity.team === world.playerTeam);
     if (ally === undefined) throw new Error('missing last-silent-moments ally');
     const event = moment === 'ability_used'
@@ -187,7 +187,7 @@ export async function runLastSilentMomentsChecks({ browser, url, check }) {
 
     const beforeHeat = activeAudioContext(await audioProbe(page));
     await page.evaluate(() => {
-      const { engine, world } = globalThis.__wreckright;
+      const { engine, world } = globalThis.__ironmuster;
       const ally = world.entities.find((entity) => entity.team === world.playerTeam);
       if (ally === undefined) throw new Error('missing heat-warning ally');
       ally.heat = ally.heatCapacity * 0.95;
@@ -213,7 +213,7 @@ export async function runLastSilentMomentsChecks({ browser, url, check }) {
 
     const beforeHidden = activeAudioContext(await audioProbe(page));
     await page.evaluate(() => {
-      const { engine, world } = globalThis.__wreckright;
+      const { engine, world } = globalThis.__ironmuster;
       const enemy = world.entities.find((entity) => entity.team !== world.playerTeam);
       if (enemy === undefined || world.vision === null) throw new Error('missing hidden enemy fixture');
       // The heat-warning fixture left an ally at 95% heat. forceStep also
@@ -243,7 +243,7 @@ export async function runLastSilentMomentsChecks({ browser, url, check }) {
     await page.locator('[data-testid="mute-button"]').click();
     const mutedBefore = activeAudioContext(await audioProbe(page));
     await page.evaluate(() => {
-      const { engine, world } = globalThis.__wreckright;
+      const { engine, world } = globalThis.__ironmuster;
       const ally = world.entities.find((entity) => entity.team === world.playerTeam);
       if (ally === undefined) throw new Error('missing muted-audio ally');
       world.events.push(
@@ -273,7 +273,7 @@ export async function runLastSilentMomentsChecks({ browser, url, check }) {
       JSON.stringify(nativeMix),
     );
 
-    await page.evaluate(() => globalThis.__wreckright.engine.audio.destroy());
+    await page.evaluate(() => globalThis.__ironmuster.engine.audio.destroy());
     await page.waitForFunction(() => {
       const graph = globalThis.__audioProbe.snapshot().at(-1);
       return graph.state === 'closed' && graph.closeCalls === 1 && graph.activeSources === 0;

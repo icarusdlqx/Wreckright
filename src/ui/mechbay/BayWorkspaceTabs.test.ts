@@ -18,7 +18,7 @@ describe('mechbay workspace tabs', () => {
     }));
 
     expect(html).toContain('role="tablist"');
-    expect(html).toContain('aria-label="Mechbay workspace"');
+    expect(html).toContain('aria-label="Mechlab workspace"');
     expect(html.match(/role="tab"/g)).toHaveLength(3);
     expect(html).toContain('Loadout');
     expect(html).toContain('Armour &amp; Cooling');

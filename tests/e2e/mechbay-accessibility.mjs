@@ -20,7 +20,7 @@ export async function quietLocationState(page, allowArmourReveal = false) {
       const armourIsSequenced = visible(armour) && !visible(armourDetail) ||
         allowReveal && !visible(armour) && visible(armourDetail);
       return card.querySelector('.bay-location-name') !== null &&
-        slotGrid !== null && freeSlots !== null && visible(card.querySelector('.rack-cell')) &&
+        ((slotGrid !== null && freeSlots !== null && visible(card.querySelector('.rack-cell'))) || card.querySelector('.bay-leg-note') !== null) &&
         armourIsSequenced && /^\d+\+\d+$/.test(armour?.textContent ?? '') &&
         card.querySelector('.bay-slots') === null &&
         card.querySelector('.bay-hardpoints') !== null &&
@@ -115,11 +115,11 @@ export async function verifyQuietBayOpening({ page, check, selectWorkspace, comp
   const initialExplainers = await explainerState(page);
   check(
     'the workspace opens on one visible Loadout panel',
-    (await page.locator('[data-testid="bay-workspace-tabs"] [role="tab"]').count()) === 3 &&
-      (await page.locator('[data-workspace-tab="loadout"]').getAttribute('aria-selected')) === 'true' &&
+    (await page.locator('[data-workspace-tab]').count()) === 0 &&
+      await page.getByTestId('bay-readiness').isVisible() &&
       await page.locator('[data-workspace-panel="loadout"]').isVisible() &&
-      !(await page.locator('[data-workspace-panel="armour"]').isVisible()) &&
-      !(await page.locator('[data-workspace-panel="review"]').isVisible()) &&
+      !(await page.getByTestId('cooling-bank').isVisible()) &&
+      !(await page.getByTestId('build-review').isVisible()) &&
       !(await page.locator('[data-testid="build-compare"]').isVisible()) &&
       initialExplainers.workbenchExpanded === 'true' &&
       initialExplainers.cultureExpanded === 'true',
@@ -190,7 +190,7 @@ export async function verifyFirstFitExplainers({ page, check }) {
   check(
     'the fitting guide reopens and component provenance stays available in the selected item details',
     reopened.workbenchExpanded === 'true' && await page.locator('#location-fit-steps').isVisible() &&
-      (cultureVisible ? reopened.cultureExpanded === 'true' : await page.locator('#bay-shelf-inspector .dossier-culture').isVisible()),
+      (cultureVisible ? reopened.cultureExpanded === 'true' : await page.locator('.weapon-card.is-inspected .weapon-card__category').isVisible()),
     JSON.stringify(reopened),
   );
   await page.locator('[data-testid="bay-workbench-disclosure"]').click();
@@ -273,7 +273,7 @@ export async function verifyOutfitDialogRerender({ page, check }) {
   );
   await head.focus();
   const priorError = await page.evaluate(() => {
-    const { useGame } = globalThis.__wreckright;
+    const { useGame } = globalThis.__ironmuster;
     const error = useGame.getState().error;
     useGame.getState().patch({ error: 'audit' });
     return error;
@@ -291,7 +291,7 @@ export async function verifyOutfitDialogRerender({ page, check }) {
     await trigger.evaluate((control) => document.activeElement === control),
   );
   await page.evaluate((error) => {
-    const { useGame } = globalThis.__wreckright;
+    const { useGame } = globalThis.__ironmuster;
     useGame.getState().patch({ error });
   }, priorError);
 }

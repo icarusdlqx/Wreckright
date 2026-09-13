@@ -57,7 +57,7 @@ export function CampaignSaveDialog({ mode, catalog, current, onClose, onSaved, o
           title={current === undefined ? 'Open a campaign before making a checkpoint.' : name.trim() === '' ? 'Enter a checkpoint name.' : listing.library.error ?? 'Keep this named copy in the current browser.'}
           data-testid="save-new-checkpoint">Save new checkpoint</button>
       </form> : null}
-      {listing.library.error === null ? null : <div className="campaign-save-warning" role="alert"><p>{listing.library.error}</p>{listing.library.recoveryRaw === null ? null : <button type="button" data-testid="save-export-library-recovery" onClick={() => exportRaw(listing.library.recoveryRaw!, 'wreckright-save-library-recovery.json')}>Export original library</button>}</div>}
+      {listing.library.error === null ? null : <div className="campaign-save-warning" role="alert"><p>{listing.library.error}</p>{listing.library.recoveryRaw === null ? null : <button type="button" data-testid="save-export-library-recovery" onClick={() => exportRaw(listing.library.recoveryRaw!, 'ironmuster-save-library-recovery.json')}>Export original library</button>}</div>}
       <div className="campaign-saves-workspace">
         <div className="campaign-saves-list" aria-label="Saved campaigns" data-testid="save-list">
           {listing.entries.length === 0 ? <p className="campaign-saves-empty">No saved campaigns yet. Start a company from the main menu.</p> : listing.entries.map(entry => {
@@ -81,7 +81,7 @@ export function CampaignSaveDialog({ mode, catalog, current, onClose, onSaved, o
             </>}
             {selected.savedAt === null ? null : <small>Saved {new Date(selected.savedAt).toLocaleString()}</small>}
             <div className="campaign-save-tools">
-              <button type="button" data-testid="save-export-selected" onClick={() => exportRaw(selected.raw, `wreckright-${selected.id.replace(/[^a-z0-9-]/gi, '-')}.json`)}>Export selected</button>
+              <button type="button" data-testid="save-export-selected" onClick={() => exportRaw(selected.raw, `ironmuster-${selected.id.replace(/[^a-z0-9-]/gi, '-')}.json`)}>Export selected</button>
               {editable ? <button type="button" data-testid="save-delete-selected" onClick={() => setConfirmation('delete')}>Delete</button> : null}
               {mode === 'save' && editable ? <button type="button" data-testid="save-overwrite-selected" disabled={name.trim() === '' || listing.library.error !== null}
                 title={name.trim() === '' ? 'Enter a checkpoint name.' : listing.library.error ?? 'Replace only this named checkpoint.'}

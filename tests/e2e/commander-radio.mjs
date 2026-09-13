@@ -9,15 +9,15 @@ export async function runCommanderRadioChecks({ browser, url, shots, check }) {
     await page.goto(url);
     await page.getByTestId('home-skirmish').click();
     await page.getByTestId('briefing-mission-picker').selectOption('skirmish_ridge');
-    await page.waitForFunction(() => globalThis.__wreckright?.world.mission.id === 'skirmish_ridge'
-      && globalThis.__wreckright.useGame.getState().ready);
+    await page.waitForFunction(() => globalThis.__ironmuster?.world.mission.id === 'skirmish_ridge'
+      && globalThis.__ironmuster.useGame.getState().ready);
     await page.getByTestId('briefing-deploy').click();
     await page.getByTestId('briefing').waitFor({ state: 'hidden' });
     await page.waitForFunction(() => {
-      const test = globalThis.__wreckright;
+      const test = globalThis.__ironmuster;
       return test?.useGame.getState().ready && test.useGame.getState().briefingSeen && test.engine.world === test.world;
     });
-    if (!await page.evaluate(() => globalThis.__wreckright.useGame.getState().paused)) {
+    if (!await page.evaluate(() => globalThis.__ironmuster.useGame.getState().paused)) {
       await page.getByTestId('pause-button').click();
     }
     await page.getByTestId('lance-bar').locator('button').first().click();
@@ -52,12 +52,12 @@ export async function runCommanderRadioChecks({ browser, url, shots, check }) {
     check('radio sits inside the command dock and outside the Commander map', layout.radioDocked, JSON.stringify(layout));
     check('paired pilot and mech cards stay inside the command dock', layout.pairedCards, JSON.stringify(layout));
     // Contacts intentionally hide in Commander mode; check physical field layout on return below.
-    const selected = await page.evaluate(() => globalThis.__wreckright.useGame.getState().selection);
+    const selected = await page.evaluate(() => globalThis.__ironmuster.useGame.getState().selection);
     if (shots) await page.screenshot({ path: `${shots}/commander-radio-docked.png` });
     await page.getByRole('button', { name: 'Dismiss radio report', exact: true }).click();
     await radio.waitFor({ state: 'hidden' });
     check('dismissing a docked report leaves the selection unchanged',
-      JSON.stringify(await page.evaluate(() => globalThis.__wreckright.useGame.getState().selection)) === JSON.stringify(selected));
+      JSON.stringify(await page.evaluate(() => globalThis.__ironmuster.useGame.getState().selection)) === JSON.stringify(selected));
     await page.getByTestId('commander-toggle').click();
     const contactsAttached = await page.evaluate(() => {
       const top = document.querySelector('[data-testid="topbar"]').getBoundingClientRect();

@@ -65,7 +65,7 @@ export function BayWorkspaceTabs({
     <div
       className="bay-workspace-tabs"
       role="tablist"
-      aria-label="Mechbay workspace"
+      aria-label="Mechlab workspace"
       aria-orientation="horizontal"
       data-testid="bay-workspace-tabs"
     >

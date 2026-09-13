@@ -44,17 +44,17 @@ describe('weapon card', () => {
     expect(html).toContain('type="button"');
     expect(html).toContain('draggable="true"');
     expect(html).toContain('aria-pressed="true"');
-    expect(html).toContain('aria-controls="bay-shelf-inspector"');
+    expect(html).not.toContain('aria-controls="bay-shelf-inspector"');
     expect(html).toContain('data-testid="weapon-card-ac5"');
   });
 
   it('keeps only the three quick comparison numbers in the repeated row', () => {
     const html = render('lrm20');
     expect(html).toContain('aria-label="Weapon summary"');
-    expect(html).toContain('10.25/s damage');
-    expect(html).toContain('540m reach');
-    expect(html).toContain('1.5/s heat');
-    expect(html).not.toContain('role="meter"');
+    expect(html).toContain('10.25/s');
+    expect(html).toContain('540m');
+    expect(html).toContain('1.5/s');
+    expect(html.match(/role="meter"/g)).toHaveLength(3);
     expect(html).not.toContain('weapon-range-strip');
   });
 
@@ -76,7 +76,7 @@ describe('weapon card', () => {
     expect(html).toContain('>Fit<');
     expect(html).toContain('Drag to a matching part, or pick and place.');
     expect(html).not.toContain('1 ton of ammo lasts');
-    expect(html).not.toContain('a live sensor track to fire over cover');
+    expect(html).toContain('a live sensor track to fire over cover');
   });
 
   it('keeps unavailable cards inspectable but prevents activation and dragging', () => {

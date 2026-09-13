@@ -20,7 +20,7 @@
 .briefing .briefing-berth-controls select { width: 100%; min-width: 0; }
 .briefing-refit-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; }
 .briefing-refit-line small { color: var(--muted); font-size: 10px; line-height: 1.5; }
-.briefing .briefing-refit-line button { flex-shrink: 0; }
+.briefing .briefing-refit-line button { flex-shrink: 0; min-inline-size: 84px; }
 .briefing-pilot-dossier { display: grid; align-content: start; gap: 9px; min-width: 0; }
 .briefing-pilot-character > strong { font-size: 14px; }
 .briefing .briefing-pilot-character .pilot-personality { margin: 4px 0 0; padding: 0; border: none; background: none; font-size: 11px; }

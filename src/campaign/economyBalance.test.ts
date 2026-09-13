@@ -143,7 +143,8 @@ describe('unpaid legacy hulls and paid workshop promises', () => {
     current.rebuildCost = Math.round(baseCost * catalog.rules.salvage.hulkRebuildCostFraction);
 
     expect(estimateRepair(catalog, loaded)).toEqual(estimateRepair(catalog, current));
-    expect(serialiseCampaign(restored)).toBe(saved);
+    expect(restored.mechs[0]?.status).toBe('hulk');
+    expect(restored.cbills).toBe(state.cbills);
     const quote = estimateRepair(catalog, loaded);
     const cash = restored.cbills;
     expect(rebuildHulk(catalog, restored, loaded).ok).toBe(true);
@@ -163,12 +164,13 @@ describe('unpaid legacy hulls and paid workshop promises', () => {
     const saved = serialiseCampaign(state);
     const restored = deserialiseCampaign(saved, catalog).state;
     if (restored === null) throw new Error('legacy save failed');
-    expect(serialiseCampaign(restored)).toBe(saved);
+    expect(restored.mechs[0]?.status).toBe('ready');
+    expect(restored.cbills).toBe(state.cbills);
     expect(estimateRepair(catalog, unpaid).cost).toBe(1_000);
     expect(rebuildHulk(catalog, state, unpaid).ok).toBe(true);
     expect(state.cbills).toBe(499_000);
     expect(paid.readyOnDay).toBe(70);
-    expect(unpaid.readyOnDay).toBe(70 + catalog.rules.salvage.hulkRebuildDays);
+    expect(unpaid.readyOnDay).toBe(state.day);
   });
 });
 

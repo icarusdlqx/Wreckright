@@ -1,7 +1,7 @@
 {
-  "name": "WRECKRIGHT",
-  "short_name": "WRECKRIGHT",
-  "description": "No new machines. Only new owners. Command a mech company through the Great Recall.",
+  "name": "IRONMUSTER",
+  "short_name": "IRONMUSTER",
+  "description": "Your company. Your mechs. Your next move. Command a mech company through the Great Recall.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

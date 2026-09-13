@@ -21,7 +21,7 @@ export function CompanyChoiceCard({ campaign, selected, onSelect }: { campaign: 
       <p>{copy?.premise}</p><p><strong>Your advantage</strong>{copy?.strength}</p><p><strong>The cost</strong>{copy?.tradeoff}</p>
       <small>Starting company · {designs.length} machines · {campaign.startingCbills.toLocaleString('en-GB')} C</small>
       <small>{designs.map((design) => machineDisplayName(catalog, design)).join(' / ')}</small>
-      <small className="company-choice-campaign">One campaign · {campaign.nodes.length} contracts · {1 + campaign.alternateVictoryNodeIds.length} alternative endings</small>
+      <small className="company-choice-campaign">Faction route · {campaign.nodes.length} contracts · {1 + campaign.alternateVictoryNodeIds.length} alternative endings</small>
     </div>
   </button>;
 }

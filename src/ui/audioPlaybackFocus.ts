@@ -24,6 +24,7 @@ export class AudioPlaybackFocus {
     this.listening = true;
     this.owned = false;
     try {
+      // Retain the original channel so an older open tab cannot double-play audio.
       this.channel = new BroadcastChannel('wreckright-audio-owner');
       this.channel.addEventListener('message', this.receive);
     } catch { this.channel = null; }

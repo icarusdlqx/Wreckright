@@ -1,6 +1,6 @@
 export async function checkIncomingFireDirection({ page, check, shots }) {
   const prepared = await page.evaluate(() => {
-    const { engine, world, useGame } = globalThis.__wreckright;
+    const { engine, world, useGame } = globalThis.__ironmuster;
     const targetId = useGame.getState().selection[0];
     const target = world.entities.find((entity) => entity.id === targetId);
     if (target === undefined || world.vision === null) return null;
@@ -54,7 +54,7 @@ export async function checkIncomingFireDirection({ page, check, shots }) {
   );
 
   const sustained = await page.evaluate(async (shooterId) => {
-    const { engine, world, useGame } = globalThis.__wreckright;
+    const { engine, world, useGame } = globalThis.__ironmuster;
     const targetId = useGame.getState().selection[0];
     const target = world.entities.find((entity) => entity.id === targetId);
     const shooter = world.entities.find((entity) => entity.id === shooterId);
@@ -283,7 +283,7 @@ export async function checkIncomingFireDirection({ page, check, shots }) {
 
   await page.evaluate(async (saved) => {
     if (saved === null) return;
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     if (!saved.shooterWasVisible) world.vision?.visible.delete(saved.shooterId);
     engine.renderer.camera.distance = saved.distance;
     engine.renderer.camera.centreOn(saved.target);

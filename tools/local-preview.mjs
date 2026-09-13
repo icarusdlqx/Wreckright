@@ -100,7 +100,7 @@ async function start() {
 
 async function serve() {
   const server = await startPreviewServer({ directory: config.directory, ports: config.ports, identity: config.identity });
-  console.log(`Serving Wreckright on ${server.ports.join(', ')} at ${new Date().toISOString()}`);
+  console.log(`Serving Ironmuster on ${server.ports.join(', ')} at ${new Date().toISOString()}`);
   let stopping = false;
   const finish = () => {
     if (stopping) return;

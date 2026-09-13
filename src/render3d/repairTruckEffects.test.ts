@@ -84,8 +84,18 @@ describe('delivered repair vehicle presentation', () => {
   it('bounds busy support scenes and never presents hidden enemy service vehicles', () => {
     const { world, effects, object, active } = setup();
     const count = effects.group.children.length;
+    world.vision!.tiles.fill(0);
     world.support.trucks.push({ ...active, team: 1 });
     effects.draw(world, 0.1);
+    expect(object('support-repair-truck-0').visible).toBe(false);
+    const tile = world.terrain.toTile(active.pos);
+    const cell = tile.row * world.terrain.width + tile.column;
+    world.vision!.tiles[cell] = 1;
+    effects.draw(world, 0);
+    expect(object('support-repair-truck-0').visible).toBe(true);
+    expect(object('support-repair-radius-0').visible).toBe(false);
+    world.vision!.tiles[cell] = 0;
+    effects.draw(world, 0);
     expect(object('support-repair-truck-0').visible).toBe(false);
     world.support.trucks = Array.from({ length: 50 }, (_, i) => ({ ...active, expiresTick: active.expiresTick + i }));
     for (let frame = 0; frame < 20; frame++) effects.draw(world, 0.1);

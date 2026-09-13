@@ -57,7 +57,7 @@ Later guaranteed rewards give a reliable equipment progression alongside the exi
 | Campaign | Contract | Equipment |
 | --- | --- | --- |
 | Linewrought | First Attestation | Two Focused Medium Lasers |
-| Linewrought | Broken Wreckright | Canister Cannon |
+| Linewrought | Broken Ironmuster | Canister Cannon |
 | Linewrought | The Cold Yards | Gauss Rifle |
 | Linewrought | Blackglass Attestation | Longshot 20 |
 | Aurelian | Custody Posts | Large Burst Laser |

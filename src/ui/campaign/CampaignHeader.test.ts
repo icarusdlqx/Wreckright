@@ -38,7 +38,7 @@ describe('campaign command header', () => {
       expect(files).not.toContain(`data-testid="${id}"`);
     }
     expect(markup).toContain('Run field-code');
-    expect(markup).toContain('data-testid="camp-day">Day 3');
+    expect(markup).not.toContain('data-testid="camp-day"');
     expect(markup).toContain('data-testid="camp-cbills">240,000 C-bills');
     expect(files).not.toContain('camp-advance');
     expect(markup).toContain('data-testid="camp-next-mission"');

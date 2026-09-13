@@ -1,4 +1,4 @@
-# WRECKRIGHT — Design & Build Specification
+# IRONMUSTER — Design & Build Specification
 
 A real-time-with-pause tactical mech combat game about disputed machines,
 salvage law and the cost of keeping an irreplaceable company alive.
@@ -43,7 +43,7 @@ Aurelian roots. **Aurelian Stock** uses cleaner, more advanced machines with
 powerful equipment and costly workshop needs. The player's company grows through custody, purchase and battlefield
 salvage, never by creating a walker from a saved design.
 
-Tessell's field custom is **wreckright**: whoever holds a disabled machine at
+Tessell's field custom is **the Ironmuster Code**: whoever holds a disabled machine at
 dusk holds the wreck. The Recall Authority rejects that custom because state
 property cannot become lawful salvage. The campaign, **The Great Recall**, is
 the collision between those two answers to the same root serial.
@@ -57,7 +57,7 @@ the collision between those two answers to the same root serial.
 | Language | TypeScript (strict) | Type safety across a large data-driven system |
 | Build | Vite | Instant HMR, zero config |
 | Tactical render | three.js (WebGL) | Stylised 3D terrain, articulated machines and combat effects |
-| Shell UI | React | Mechbay, briefing, campaign screens |
+| Shell UI | React | Mechlab, briefing, campaign screens |
 | App state | Zustand | Simple, outside React render cycle |
 | Schema validation | Zod | All JSON content validated at load |
 | Tests | Vitest | Sim unit tests + headless battle harness |
@@ -89,7 +89,7 @@ Optional later: Tauri wrapper for a native `.app`. Not in scope for phases 0–7
   /schema           # Zod schemas mirroring /data
   /render           # Shared machine silhouettes and presentation blueprints.
   /render3d         # three.js scenes, terrain, articulation and effects; reads sim state.
-  /ui               # React. Mechbay, briefing, HUD overlays, campaign map.
+  /ui               # React. Mechlab, briefing, HUD overlays, campaign map.
   /campaign         # Meta-layer: economy, salvage, roster, time, save/load
   /headless         # CLI battle harness for balance analysis
 ```
@@ -411,7 +411,7 @@ Node-based operational map. Missions unlock in a branching sequence; some option
 
 **Between missions:**
 
-- Mechbay — repair, refit, strip salvage
+- Mechlab — repair, refit, strip salvage
 - Yard — buy and sell recovered walkers, weapons and ammunition
 - Barracks — hire pilots, assign, spend XP
 - Contracts — accept, negotiate payout vs salvage split
@@ -435,7 +435,7 @@ products, but they are opposition rather than recoverable roster hulls.
    custody records before the Recall Authority seals them.
 2. **First Attestation.** The company brings down its first bone-white Aurelian
    Stock. A checkpoint reader proves the root's identity but never controls it.
-3. **Broken Wreckright.** Kestrel violates the pilot code and cuts power to
+3. **Broken Code.** Kestrel violates the pilot code and cuts power to
    Sarn's occupied repair yards as local title, shop liens and Continuance
    reversion claims become an open conflict.
 4. **The Manifest.** The final depot holds the master root register and scarce
@@ -447,7 +447,7 @@ products, but they are opposition rather than recoverable roster hulls.
 
 ### 7.2 The loop
 
-One full turn of the campaign reads: **map → mechbay → deployment → battle → salvage → map.** Signing a contract and pressing "Prepare drop" walks a two-stage corridor — the hangar first (repairs, rebuilds, refits), then the dropship manifest (who flies what, against the tonnage allowance) — and launching fights the battle. The debrief brings home salvage, pay and experience, and the map opens the next contract. The drop itself is sized by **tonnage, not berth count**: up to six machines may drop so long as they fit the allowance, so three heavies instead of four mediums is a legitimate answer to it, and a skirmish berth can simply be left empty.
+One full turn of the campaign reads: **map → Mechlab → deployment → battle → salvage → map.** Signing a contract and pressing "Prepare drop" walks a two-stage corridor — the hangar first (repairs, rebuilds, refits), then the dropship manifest (who flies what, against the tonnage allowance) — and launching fights the battle. The debrief brings home salvage, pay and experience, and the map opens the next contract. The drop itself is sized by **tonnage, not berth count**: up to six machines may drop so long as they fit the allowance, so three heavies instead of four mediums is a legitimate answer to it, and a skirmish berth can simply be left empty.
 
 ## 8. Enemy AI
 
@@ -531,7 +531,7 @@ Three-dimensional terrain, articulated mech rendering with facing, selection and
 
 **Accept:** A skirmish mission is playable end to end with mouse and keyboard. Pause instantly freezes the sim and accepts orders.
 
-### Phase 3 — Mechbay
+### Phase 3 — Mechlab
 
 Loadout editor with drag-to-hardpoint, live validation of tonnage / slots / hardpoint type, armour allocation slider per location, heat efficiency calculator showing sustained vs alpha-strike heat, build save/load to JSON.
 
@@ -580,7 +580,7 @@ Use original names for everything a player can read — chassis, weapons, equipm
 ## 14. Getting Started
 
 ```bash
-cd Wreckright
+cd Ironmuster
 npm install
 npm test
 ```

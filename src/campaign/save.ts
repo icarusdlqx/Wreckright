@@ -1,3 +1,4 @@
+import { completeRepair } from './repair';
 import { getCatalog, type Catalog } from '../schema/load';
 import type { Campaign } from '../schema/campaign';
 import {
@@ -209,6 +210,11 @@ export function deserialiseCampaign(text: string, catalog: Catalog = getCatalog(
   coalesceMigratedWeaponItems(state);
   pruneSideOffers(catalog, state);
   pruneCampaignHistory(catalog, state);
+  // Existing bookings were already paid; the immediate workshop honours them.
+  for (const mech of state.mechs) {
+    if (mech.status === 'repairing') completeRepair(catalog, mech);
+    mech.readyOnDay = Math.min(mech.readyOnDay, state.day);
+  }
   reopenExpandedCampaign(catalog, state);
   return { state, error: null };
 }

@@ -114,28 +114,28 @@ describe('campaign debrief recovery ledger', () => {
     expect(html).toContain('Medium Laser ×2');
     expect(html).toContain('data-testid="debrief-salvage-report"');
     expect(html).toContain('data-testid="debrief-adjust-picks"');
-    expect(html).toMatch(/<summary[^>]*tabindex="0"[^>]*>Adjust picks<\/summary>/);
-    expect(html).toContain('Field recovery ledger');
+    expect(html).toMatch(/<summary[^>]*tabindex="0"[^>]*>Choose your salvage<\/summary>/);
+    expect(html).toContain('Mechs recovered');
+    expect(html).toContain('<details open=');
+    expect(html).toContain('Each selected crate goes into your campaign inventory');
+    expect(html).not.toContain('not eligible');
     expect(html).toContain('Head destroyed');
     expect(html).toContain('22.5%');
+    expect(html).toContain('10% chance');
+    expect(html).toContain('The recovery roll failed; no hull was added');
+    expect(html).toContain('This vehicle cannot be rebuilt as a company mech');
+    expect(html).toContain('Percentages include your contract share');
     expect(html).toContain('hull recovered');
-    expect(html).toContain('not recovered');
-    expect(html).toContain('not eligible');
     expect(html).toContain('Field source: Sentinel, left arm');
     expect(html).toContain('Sentinel, centre torso');
     expect(html).toContain("Field Carrier &#x27;Mule&#x27;, right arm");
     expect(html).toContain("Field Carrier &#x27;Mule&#x27;");
     expect(html).toContain("Lost: Sentinel &#x27;Brawler&#x27;.");
     expect(html).not.toMatch(/(?:SNL|FCR)-\d+/);
-    expect(html).toContain('Recovered hulls are already in the yard');
-    expect(html).toContain('carrying their field damage and no mounted');
-    expect(html).toContain('weapons or equipment');
-    expect(html).toContain('weapons and equipment alternate');
-    expect(html).toContain('each list rotates from one field to the next');
     expect(html).toContain('Kestrel Combine');
     expect(html).toContain('1 completed · 0 failed · 100 C paid');
     expect(html).toContain('+9 XP');
-    expect(html.indexOf('+9 XP')).toBeLessThan(html.indexOf('data-testid="debrief-salvage-report"'));
+    expect(html.indexOf('+9 XP')).toBeGreaterThan(html.indexOf('data-testid="debrief-salvage-report"'));
 
     outcome.salvageFinalized = true;
     const restored = renderToStaticMarkup(
@@ -151,7 +151,7 @@ describe('campaign debrief recovery ledger', () => {
     expect(restored).toContain('This restored report is read-only');
     expect(restored).toContain('marks record what came home');
     expect(restored).not.toContain('Choose what comes home');
-    expect(restored).toMatch(/<summary[^>]*tabindex="0"[^>]*>Review salvage report<\/summary>/);
+    expect(restored).toMatch(/<summary[^>]*tabindex="0"[^>]*>Recovered salvage<\/summary>/);
     expect(restored).toMatch(/disabled=""[^>]*data-testid="salvage-pick-medium_laser"/);
 
     const failed = renderToStaticMarkup(

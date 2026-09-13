@@ -40,6 +40,8 @@ export interface PilotRecord {
   dead: boolean;
   /** Instance id of the mech this pilot is assigned to, if any. */
   mechId: string | null;
+  /** Bounded, presentation-only recollections already voiced in the field. */
+  radioMemories?: string[];
 }
 
 export type ContractTermsId = 'fee_first' | 'standard' | 'salvage_first';
@@ -116,6 +118,9 @@ export interface PilotReport {
   /** Optional presentation identity; old reports retain their authored mech name. */
   mechId?: string;
   chassisId?: string;
+  /** The actual deployed weapon layout, rather than the current workshop draft. */
+  weaponLayout?: string;
+  weaponIds?: string[];
   kills: number;
   damage: number;
   xp: number;

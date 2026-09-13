@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { investigateSensorIfPresent } from './training-flow.mjs';
 
 async function fixture(run, { clickResult = 'investigate', touch = false } = {}) {
-  const priorHook = globalThis.__wreckright;
+  const priorHook = globalThis.__ironmuster;
   const priorDocument = globalThis.document;
   const calls = [];
   const checks = [];
@@ -38,7 +38,7 @@ async function fixture(run, { clickResult = 'investigate', touch = false } = {})
     else if (clickResult === 'missing-card') { promote({ card: false }); throw new Error('missing optical control'); }
     else if (clickResult === 'broken-order') promote();
   };
-  globalThis.__wreckright = { world, useGame: { getState: () => state } };
+  globalThis.__ironmuster = { world, useGame: { getState: () => state } };
   globalThis.document = { querySelector: (selector) => nodes.get(selector.match(/data-testid="([^"]+)"/)?.[1]) ?? null };
   const page = {
     locator(selector) {
@@ -56,8 +56,8 @@ async function fixture(run, { clickResult = 'investigate', touch = false } = {})
     check: (name, passed, detail) => checks.push({ name, passed, detail }) });
   try { await run({ investigate, calls, checks, world, state, nodes }); }
   finally {
-    if (priorHook === undefined) delete globalThis.__wreckright;
-    else globalThis.__wreckright = priorHook;
+    if (priorHook === undefined) delete globalThis.__ironmuster;
+    else globalThis.__ironmuster = priorHook;
     if (priorDocument === undefined) delete globalThis.document;
     else globalThis.document = priorDocument;
   }

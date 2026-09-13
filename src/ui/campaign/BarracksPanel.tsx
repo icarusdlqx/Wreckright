@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { dailyPayroll } from '../../campaign/ledger';
 import { availableHires, availableXp, pendingTraitPicks } from '../../campaign/roster';
 import { isPilotAvailable, type CampaignState, type PilotRecord } from '../../campaign/types';
 import { getCatalog } from '../../schema/load';
@@ -51,13 +50,13 @@ export function BarracksPanel({ state, mutate, focus }: Props) {
   return <section className="camp-roster progression-roster crew-overview" data-testid="camp-roster">
     <header className="roster-ledger"><h3>Barracks{trainable > 0 ? <span className="train-ready"
       data-testid="train-ready">{trainable} ready to train</span> : null}</h3>
-      <strong>{Math.round(dailyPayroll(catalog, state)).toLocaleString('en-GB')} C/day</strong>
+      <strong>{crew.length} pilots</strong>
     </header>
     <div className="crew-sections" aria-label="Crew services">
       <button type="button" aria-pressed={section === 'crew'} data-testid="crew-overview-tab" onClick={() => setSection('crew')}>Company crew · {crew.length}</button>
       <button type="button" aria-pressed={section === 'hiring'} data-testid="crew-hiring-tab" onClick={() => setSection('hiring')}>Hiring hall · {hires.length}</button>
     </div>
-    <p className="ledger-note">Earn XP on campaign missions, then choose a skill to train. Wounded pilots miss the next mission; waiting days does not clear a mission injury. Injured crew remain on payroll.</p>
+    <p className="ledger-note">Earn XP on campaign missions, then choose a skill to train. Wounded pilots miss the next mission. Repairing a mech does not heal its pilot.</p>
     <div hidden={section !== 'crew'}>
       <div className="crew-filters" aria-label="Filter crew">{FILTERS.map((entry) => <button key={entry.id}
         type="button" aria-pressed={filter === entry.id} data-testid={`crew-filter-${entry.id}`}

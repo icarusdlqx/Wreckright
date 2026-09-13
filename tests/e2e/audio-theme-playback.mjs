@@ -73,13 +73,13 @@ export async function runAudioThemePlaybackChecks({ browser, url, check }) {
       && globalThis.__themePlayback.summary().every(source => source.starts.length === 1), null, { timeout: 30_000 });
     const starts = await page.evaluate(() => globalThis.__themePlayback.summary().map(source => source.starts[0]));
     check('real browser decodes and starts all three shipped theme stems', starts.length === 3
-      && starts.every(source => Math.abs(source.duration - 32 * 4 * 60 / 104) < .03)
+      && starts.every(source => Math.abs(source.duration - 32 * 4 * 60 / 116) < .03)
       && starts.map(source => source.channels).join(',') === '2,1,1', JSON.stringify(starts));
     check('decoded theme contains finite audible music with headroom', starts.every(source =>
       Number.isFinite(source.rms) && source.rms > .02 && source.peak > .1 && source.peak < .85));
     check('all real music stems loop at the same timestamp and unchanged playback speed',
       starts.every(source => source.at === starts[0].at && source.rate === 1 && source.loop
-        && Math.abs(source.loopEnd - 32 * 4 * 60 / 104) < .001));
+        && Math.abs(source.loopEnd - 32 * 4 * 60 / 116) < .001));
     await page.getByTestId('audio-music-enabled').click();
     await page.waitForFunction(() => globalThis.__themePlayback.musicGain() === 0);
     check('Music Off silences the real music bus without stopping or recreating the theme',

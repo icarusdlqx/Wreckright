@@ -16,6 +16,7 @@ const Mechbay = lazy(() => import('./Mechbay').then((module) => ({ default: modu
 
 interface Props {
   onExit: () => void;
+  exitLabel?: string;
   commission?: BayCommission;
   battleAudio?: AudioDirector;
   onBattleMuted?: (muted: boolean) => void;
@@ -38,18 +39,19 @@ function MechbayLoading({ onCancel }: { onCancel: () => void }) {
     return () => document.removeEventListener('keydown', onKey);
   }, []);
   return <div ref={root} className="route-loading bay-loading" data-testid="route-loading">
-    <span role="status">Opening the bay…</span>
+    <span role="status">Opening the Mechlab…</span>
     <button type="button" data-testid="bay-loading-cancel" onClick={onCancel}>Cancel</button>
   </div>;
 }
 
-export function LazyMechbay({ onExit, commission, battleAudio, onBattleMuted, preparationContext }: Props) {
+export function LazyMechbay({ onExit, exitLabel, commission, battleAudio, onBattleMuted, preparationContext }: Props) {
   return (
     <Suspense
       fallback={<MechbayLoading onCancel={commission?.onCancel ?? onExit} />}
     >
       <Mechbay
         onExit={onExit}
+        {...(exitLabel === undefined ? {} : { exitLabel })}
         {...(commission === undefined ? {} : { commission })}
         {...(battleAudio === undefined ? {} : { battleAudio })}
         {...(onBattleMuted === undefined ? {} : { onBattleMuted })}

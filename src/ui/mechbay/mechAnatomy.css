@@ -205,7 +205,7 @@
   .anatomical-navigator {
     display: grid; position: relative; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: 50px 68px 50px;
     gap: 4px; padding: 8px 2px; margin-bottom: 10px;
-    grid-template-areas: '. . head . .' 'rightarm righttorso centre lefttorso leftarm' '. rightleg . leftleg .';
+    grid-template-areas: '. . head . .' 'leftarm lefttorso centre righttorso rightarm' '. leftleg . rightleg .';
   }
   .anatomical-navigator button { z-index: 1; min-height: 44px; min-width: 0; padding: 3px 1px; display: flex; flex-direction: column; justify-content: center; gap: 3px; background: var(--panel); color: var(--text); border: 1px solid var(--edge); }
   .anatomical-navigator button strong { font-size: 9px; line-height: 12px; }
@@ -220,31 +220,4 @@
   .anatomical-navigator .loc-left_leg { grid-area: leftleg; }
   .anatomical-navigator .loc-right_leg { grid-area: rightleg; }
   .bay.bay--workspace .bay-preparation-context { grid-area: auto; grid-column: 1; }
-}
-
-/* Retain the whole machine when the mission strip shares a laptop display. */
-@media (min-width: 1060px) and (max-height: 800px) and (pointer: fine) {
-  .bay.bay--workspace:has(.bay-preparation-context) {
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-    grid-template-areas: 'preparation preparation' 'top tabs' 'workspace workspace' 'act act';
-    grid-template-rows: auto auto minmax(0, 1fr) auto;
-    gap: 8px;
-  }
-  .bay.bay--workspace:has(.bay-preparation-context) .bay-top { gap: 5px; padding: 5px; }
-  .bay.bay--workspace:has(.bay-preparation-context) .bay-top button { padding: 5px 7px; font-size: 10px; }
-  .bay.bay--workspace:has(.bay-preparation-context) .bay-top .bay-commission { font-size: 11px; }
-  .bay.bay--workspace:has(.bay-preparation-context) .bay-grid.location-workbench { grid-template-rows: 44px minmax(0, 1fr); }
-  .bay.bay--workspace:has(.bay-preparation-context) .location-workbench__guide { grid-template-rows: 24px 12px; padding: 2px 6px; gap: 2px 5px; }
-  .bay.bay--workspace:has(.bay-preparation-context) .location-workbench__heading h3 { font-size: 11px; }
-  .bay.bay--workspace:has(.bay-preparation-context) .location-workbench__disclosure { align-self: center; }
-  .bay.bay--workspace:has(.bay-preparation-context) .location-overview.anatomical-layout { grid-template-rows: 80px minmax(182px, 1fr) 80px; gap: 5px; }
-  .bay.bay--workspace:has(.bay-preparation-context) .anatomical-layout .slot-block:not(.empty) { height: 46px; min-height: 46px; }
-  .bay.bay--workspace:has(.bay-preparation-context) .anatomical-layout .slot-block__inspect { height: 44px; min-height: 44px; grid-template-rows: 24px 16px; }
-  .bay.bay--workspace:has(.bay-preparation-context) .anatomical-layout .fitted-part__graphic .weapon-glyph { height: 24px; }
-  .bay.bay--workspace:has(.bay-preparation-context) .anatomical-layout .fitted-part__identity strong { line-height: 16px; }
-  .bay.bay--workspace:has(.bay-preparation-context) .anatomical-layout .bay-location:is(.loc-head,.loc-left_leg,.loc-right_leg) { padding: 4px; gap: 2px; }
-  .bay.bay--workspace:has(.bay-preparation-context) .anatomical-layout .bay-location:is(.loc-head,.loc-left_leg,.loc-right_leg) > header,
-  .bay.bay--workspace:has(.bay-preparation-context) .anatomical-layout .bay-location:is(.loc-head,.loc-left_leg,.loc-right_leg) .bay-location-name { min-height: 20px; }
-  .bay.bay--workspace:has(.bay-preparation-context) .anatomical-layout .bay-location:is(.loc-head,.loc-left_leg,.loc-right_leg) .bay-armour-read { display: none; }
-  .bay.bay--workspace:has(.bay-preparation-context) .anatomical-profile .mech-preview { height: 76px; }
 }

@@ -1,332 +1,75 @@
 import { describe, expect, it } from 'vitest';
 import { catalog } from '../../tests/support';
-import type { Faction } from '../schema/faction';
-import type { Catalog } from '../schema/load';
-import { EconomyRulesSchema } from '../schema/rules';
-import { advanceDays, startCampaign } from './campaign';
-import { sellMech } from './market';
+import { startCampaign } from './campaign';
+import { estimateRepair, pristineCondition, repairQueue, startRepair } from './repair';
 import { rebuildHulk } from './refit';
-import {
-  estimateRepair,
-  projectedRepairWindow,
-  repairQueue,
-  startRepair,
-} from './repair';
 import { deserialiseCampaign, serialiseCampaign } from './save';
-import type { CampaignState, MechRecord } from './types';
 
-function start(): CampaignState {
-  return startCampaign(catalog, 'border_dispute', 'one-repair-lift');
-}
-
-function withBayCapacity(bayCapacity: number): Catalog {
-  return {
-    ...catalog,
-    rules: {
-      ...catalog.rules,
-      economy: {
-        ...catalog.rules.economy,
-        repair: { ...catalog.rules.economy.repair, bayCapacity },
-      },
-    },
-  };
-}
-
-function withChassisFaction(mech: MechRecord, faction: Faction): Catalog {
-  const chassis = catalog.chassis.get(mech.design.chassisId);
-  if (chassis === undefined) throw new Error('test mech has no chassis');
-  const chassisById = new Map(catalog.chassis);
-  chassisById.set(chassis.id, { ...chassis, faction });
-  return { ...catalog, chassis: chassisById };
-}
-
-function damage(mech: MechRecord, amount = 1): void {
-  mech.condition.centre_torso.armour = Math.max(
-    0,
-    mech.condition.centre_torso.armour - amount,
-  );
-}
-
-function firstThree(state: CampaignState): [MechRecord, MechRecord, MechRecord] {
-  const [first, second, third] = state.mechs;
-  if (first === undefined || second === undefined || third === undefined) {
-    throw new Error('campaign needs three machines for the queue test');
-  }
-  return [first, second, third];
-}
-
-describe('single repair bay', () => {
-  it('applies the authored Sealed cost and workshop-time premium', () => {
-    const mech = start().mechs[0];
-    if (mech === undefined) throw new Error('campaign has no test mech');
-    damage(mech, 20);
-    mech.condition.left_arm.destroyed = true;
-
-    const line = estimateRepair(withChassisFaction(mech, 'linewrought'), mech);
-    const sealed = estimateRepair(withChassisFaction(mech, 'aurelian'), mech);
-    const factors = catalog.rules.economy.repair.factionFactors;
-
-    expect(factors.linewrought).toEqual({ cost: 1, days: 1 });
-    expect(factors.aurelian.cost).toBeGreaterThan(1);
-    expect(factors.aurelian.cost).toBeLessThan(2);
-    expect(factors.aurelian.days).toBeGreaterThan(1);
-    expect(factors.aurelian.days).toBeLessThan(2);
-    expect(sealed.cost).toBe(Math.round(line.cost * factors.aurelian.cost));
-    expect(sealed.days).toBeGreaterThanOrEqual(line.days);
-    expect(sealed.days).toBeLessThanOrEqual(Math.ceil(line.days * factors.aurelian.days));
-  });
-
-  it('defaults older economy packs to one repair lift', () => {
-    const legacyRepair = Object.fromEntries(
-      Object.entries(catalog.rules.economy.repair).filter(([key]) => key !== 'bayCapacity'),
-    );
-    const parsed = EconomyRulesSchema.parse({
-      ...catalog.rules.economy,
-      repair: legacyRepair,
-    });
-
-    expect(parsed.repair.bayCapacity).toBe(1);
-  });
-
-  it('charges on booking and completes deterministic queued work one machine at a time', () => {
-    const state = start();
-    const [first, second] = firstThree(state);
-    damage(first, 1);
-    damage(second, 2);
-
-    const firstEstimate = estimateRepair(catalog, first);
-    const secondEstimate = estimateRepair(catalog, second);
-    const cash = state.cbills;
-
-    expect(startRepair(catalog, state, first).ok).toBe(true);
-    expect(startRepair(catalog, state, second).ok).toBe(true);
-    expect(state.cbills).toBe(cash - firstEstimate.cost - secondEstimate.cost);
-    expect(first.readyOnDay).toBe(state.day + firstEstimate.days);
-    expect(second.readyOnDay).toBe(first.readyOnDay + secondEstimate.days);
-    expect(repairQueue(catalog, state)).toEqual([
-      expect.objectContaining({
-        mechId: first.id,
-        position: 1,
-        queuePosition: null,
-        status: 'active',
-        startsOnDay: state.day,
-        readyOnDay: first.readyOnDay,
-      }),
-      expect.objectContaining({
-        mechId: second.id,
-        position: 2,
-        queuePosition: 1,
-        status: 'queued',
-        startsOnDay: first.readyOnDay,
-        readyOnDay: second.readyOnDay,
-      }),
-    ]);
-
-    advanceDays(catalog, state, firstEstimate.days);
-    expect(first.status).toBe('ready');
-    expect(second.status).toBe('repairing');
-    expect(repairQueue(catalog, state)[0]).toMatchObject({
-      mechId: second.id,
-      position: 1,
-      status: 'active',
-      startsOnDay: state.day,
-    });
-
-    advanceDays(catalog, state, secondEstimate.days);
-    expect(second.status).toBe('ready');
+describe('immediate paid workshop', () => {
+  it.each(['border_dispute', 'aurelian_recall'])('restores a fleet without queues or elapsed days: %s', (id) => {
+    const campaignId = catalog.campaigns.has(id) ? id : [...catalog.campaigns.keys()][1]!;
+    const state = startCampaign(catalog, campaignId, 'instant-workshop');
+    const beforeDay = state.day;
+    const beforeCash = state.cbills;
+    let cost = 0;
+    for (const mech of state.mechs) {
+      mech.condition.centre_torso.armour = 0;
+      const design = structuredClone(mech.design);
+      cost += estimateRepair(catalog, mech).cost;
+      expect(startRepair(catalog, state, mech).ok).toBe(true);
+      expect(mech.condition).toEqual(pristineCondition(catalog, design));
+      expect(mech.design).toEqual(design);
+      expect(mech.status).toBe('ready');
+      expect(mech.readyOnDay).toBe(beforeDay);
+    }
+    expect(state.day).toBe(beforeDay);
+    expect(state.cbills).toBe(beforeCash - cost);
     expect(repairQueue(catalog, state)).toEqual([]);
   });
-
-  it('puts a paid hulk rebuild behind work already on the lift', () => {
-    const state = start();
-    const [active, hulk] = firstThree(state);
-    damage(active);
-    expect(startRepair(catalog, state, active).ok).toBe(true);
-
-    hulk.status = 'hulk';
-    hulk.rebuildCost = 1_000;
-    const cash = state.cbills;
-    const activeReady = active.readyOnDay;
-
-    expect(rebuildHulk(catalog, state, hulk).ok).toBe(true);
-    expect(state.cbills).toBe(cash - 1_000);
-    expect(hulk.readyOnDay).toBe(activeReady + catalog.rules.salvage.hulkRebuildDays);
-    expect(repairQueue(catalog, state).find((entry) => entry.mechId === hulk.id)).toMatchObject({
-      position: 2,
-      queuePosition: 1,
-      status: 'queued',
-      startsOnDay: activeReady,
-    });
-  });
-
-  it('projects one banked day without spending it and consumes it only on an affordable repair', () => {
-    const state = start();
-    const mech = state.mechs[0];
-    if (mech === undefined) throw new Error('campaign has no test mech');
-    damage(mech);
-    const quote = estimateRepair(catalog, mech);
-    expect(quote.days).toBe(1);
-    state.eventEffects.freeRepairDays = 1;
-
-    expect(projectedRepairWindow(catalog, state, quote.days)).toMatchObject({
-      startsOnDay: state.day,
-      readyOnDay: state.day,
-    });
-    expect(state.eventEffects.freeRepairDays).toBe(1);
-
-    state.cbills = quote.cost - 1;
+  it('refuses unaffordable work without changing money, equipment or damage', () => {
+    const state = startCampaign(catalog, 'border_dispute', 'poor-repair');
+    const mech = state.mechs[0]!;
+    mech.condition.left_arm.destroyed = true;
+    state.cbills = estimateRepair(catalog, mech).cost - 1;
+    const before = serialiseCampaign(state);
     expect(startRepair(catalog, state, mech).ok).toBe(false);
-    expect(state.eventEffects.freeRepairDays).toBe(1);
-    expect(mech.status).toBe('ready');
-
-    state.cbills = quote.cost;
+    expect(serialiseCampaign(state)).toBe(before);
+  });
+  it('accepts exact payment and never charges twice for the same restoration', () => {
+    const state = startCampaign(catalog, 'border_dispute', 'exact-repair');
+    const mech = state.mechs[0]!;
+    mech.condition.right_torso.internal = 1;
+    state.cbills = estimateRepair(catalog, mech).cost;
     expect(startRepair(catalog, state, mech).ok).toBe(true);
-    expect(state.eventEffects.freeRepairDays).toBe(0);
-    expect(mech).toMatchObject({ status: 'ready', readyOnDay: state.day, rebuildCost: 0 });
-    expect(estimateRepair(catalog, mech).days).toBe(0);
+    expect(state.cbills).toBe(0);
+    expect(startRepair(catalog, state, mech).ok).toBe(false);
     expect(state.cbills).toBe(0);
   });
-
-  it('finishes a credited one-day queued repair at the queue start', () => {
-    const state = start();
-    const [active, credited] = firstThree(state);
-    damage(active);
-    damage(credited);
-    expect(estimateRepair(catalog, active).days).toBe(1);
-    expect(estimateRepair(catalog, credited).days).toBe(1);
-    expect(startRepair(catalog, state, active).ok).toBe(true);
-    state.eventEffects.freeRepairDays = 1;
-    const startsOnDay = active.readyOnDay;
-
-    expect(startRepair(catalog, state, credited).ok).toBe(true);
-    expect(credited).toMatchObject({ status: 'repairing', readyOnDay: startsOnDay });
-    expect(state.eventEffects.freeRepairDays).toBe(0);
-    expect(repairQueue(catalog, state).find((entry) => entry.mechId === credited.id)).toMatchObject({
-      status: 'queued',
-      startsOnDay,
-      readyOnDay: startsOnDay,
-    });
-
-    advanceDays(catalog, state, startsOnDay - state.day);
-    expect(active.status).toBe('ready');
-    expect(credited.status).toBe('ready');
+  it('rebuilds a recovered hulk for its quoted full restoration cost', () => {
+    const state = startCampaign(catalog, 'border_dispute', 'rebuild-now');
+    const mech = state.mechs[0]!;
+    mech.status = 'hulk'; mech.rebuildCost = 100_000;
+    mech.condition.centre_torso.destroyed = true;
+    const quote = estimateRepair(catalog, mech);
+    const money = state.cbills;
+    expect(rebuildHulk(catalog, state, mech).ok).toBe(true);
+    expect(state.cbills).toBe(money - quote.cost);
+    expect(mech.status).toBe('ready');
+    expect(mech.rebuildCost).toBe(0);
+    expect(mech.condition).toEqual(pristineCondition(catalog, mech.design));
   });
-
-  it('applies the same single-day credit to a hulk rebuild', () => {
-    const state = start();
-    const hulk = state.mechs[0];
-    if (hulk === undefined) throw new Error('campaign has no test hulk');
-    hulk.status = 'hulk';
-    hulk.rebuildCost = 1_000;
-    const quote = estimateRepair(catalog, hulk);
-    state.eventEffects.freeRepairDays = 2;
-    state.cbills = quote.cost;
-
-    expect(projectedRepairWindow(catalog, state, quote.days).readyOnDay).toBe(
-      state.day + quote.days - 1,
-    );
-    expect(rebuildHulk(catalog, state, hulk).ok).toBe(true);
-    expect(hulk.readyOnDay).toBe(state.day + quote.days - 1);
-    expect(state.eventEffects.freeRepairDays).toBe(1);
-  });
-
-  it('honours authored capacity before placing another machine in line', () => {
-    const twoBayCatalog = withBayCapacity(2);
-    const state = startCampaign(twoBayCatalog, 'border_dispute', 'two-repair-lifts');
-    const [first, second, third] = firstThree(state);
-    damage(first);
-    damage(second);
-    damage(third);
-
-    expect(startRepair(twoBayCatalog, state, first).ok).toBe(true);
-    expect(startRepair(twoBayCatalog, state, second).ok).toBe(true);
-    expect(startRepair(twoBayCatalog, state, third).ok).toBe(true);
-
-    expect(first.readyOnDay).toBe(state.day + estimateRepair(twoBayCatalog, first).days);
-    expect(second.readyOnDay).toBe(state.day + estimateRepair(twoBayCatalog, second).days);
-    expect(third.readyOnDay).toBe(
-      Math.min(first.readyOnDay, second.readyOnDay) + estimateRepair(twoBayCatalog, third).days,
-    );
-    expect(repairQueue(twoBayCatalog, state).map((entry) => entry.status)).toEqual([
-      'active',
-      'active',
-      'queued',
-    ]);
-  });
-
-  it('round-trips the queue and books later work after its final ready date', () => {
-    const state = start();
-    const [first, second, third] = firstThree(state);
-    damage(first);
-    damage(second);
-    damage(third);
-    expect(startRepair(catalog, state, first).ok).toBe(true);
-    expect(startRepair(catalog, state, second).ok).toBe(true);
-
-    const restored = deserialiseCampaign(serialiseCampaign(state), catalog).state;
-    expect(restored).not.toBeNull();
-    if (restored === null) return;
-    expect(repairQueue(catalog, restored)).toEqual(repairQueue(catalog, state));
-
-    const restoredThird = restored.mechs.find((mech) => mech.id === third.id);
-    if (restoredThird === undefined) throw new Error('third machine did not load');
-    const projected = projectedRepairWindow(
-      catalog,
-      restored,
-      estimateRepair(catalog, restoredThird).days,
-    );
-    expect(startRepair(catalog, restored, restoredThird).ok).toBe(true);
-    expect(restoredThird.readyOnDay).toBe(projected.readyOnDay);
-    expect(repairQueue(catalog, restored).map((entry) => entry.mechId)).toEqual([
-      first.id,
-      second.id,
-      third.id,
-    ]);
-  });
-
-  it('keeps old paid completion dates and queues new work after the latest one', () => {
-    const state = start();
-    const [first, second, third] = firstThree(state);
-    first.status = 'repairing';
-    second.status = 'repairing';
-    first.readyOnDay = state.day + 2;
-    second.readyOnDay = state.day + 2;
-    damage(third);
-
-    const restored = deserialiseCampaign(serialiseCampaign(state), catalog).state;
-    expect(restored).not.toBeNull();
-    if (restored === null) return;
-    expect(restored.mechs.slice(0, 2).map((mech) => mech.readyOnDay)).toEqual([
-      state.day + 2,
-      state.day + 2,
-    ]);
-    expect(repairQueue(catalog, restored)[1]).toMatchObject({
-      mechId: second.id,
-      status: 'queued',
-      queuePosition: 1,
-      startsOnDay: state.day + 2,
-    });
-
-    const restoredThird = restored.mechs.find((mech) => mech.id === third.id);
-    if (restoredThird === undefined) throw new Error('third machine did not load');
-    const days = estimateRepair(catalog, restoredThird).days;
-    expect(startRepair(catalog, restored, restoredThird).ok).toBe(true);
-    expect(restoredThird.readyOnDay).toBe(state.day + 2 + days);
-  });
-
-  it('will not sell an active or queued machine with a paid booking', () => {
-    const state = start();
-    const [active, queued] = firstThree(state);
-    damage(active);
-    damage(queued);
-    expect(startRepair(catalog, state, active).ok).toBe(true);
-    expect(startRepair(catalog, state, queued).ok).toBe(true);
-    const cash = state.cbills;
-    const ids = state.mechs.map((mech) => mech.id);
-
-    expect(sellMech(catalog, state, active.id).reason).toMatch(/paid workshop booking/);
-    expect(sellMech(catalog, state, queued.id).reason).toMatch(/paid workshop booking/);
-    expect(state.cbills).toBe(cash);
-    expect(state.mechs.map((mech) => mech.id)).toEqual(ids);
+  it('honours old paid bookings on load without charges or healing injured pilots', () => {
+    const state = startCampaign(catalog, 'border_dispute', 'legacy-booking');
+    const mech = state.mechs[0]!;
+    mech.status = 'repairing'; mech.readyOnDay = 99;
+    mech.condition.left_leg.destroyed = true;
+    state.pilots[0]!.recoveryMissions = 1;
+    const restored = deserialiseCampaign(serialiseCampaign(state), catalog).state!;
+    expect(restored.mechs[0]!.status).toBe('ready');
+    expect(restored.mechs[0]!.condition).toEqual(pristineCondition(catalog, mech.design));
+    expect(restored.cbills).toBe(state.cbills);
+    expect(restored.day).toBe(state.day);
+    expect(restored.pilots[0]!.recoveryMissions).toBe(1);
+    expect(deserialiseCampaign(serialiseCampaign(restored), catalog).state).toEqual(restored);
   });
 });

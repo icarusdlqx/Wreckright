@@ -8,11 +8,11 @@ export async function runPilotCommandDockChecks({ browser, url, shots, check }) 
     await page.goto(url);
     await page.getByTestId('home-skirmish').click();
     await page.getByTestId('briefing-mission-picker').selectOption('skirmish_ridge');
-    await page.waitForFunction(() => globalThis.__wreckright?.useGame.getState().ready);
+    await page.waitForFunction(() => globalThis.__ironmuster?.useGame.getState().ready);
     await page.getByTestId('briefing-deploy').click();
     await page.getByTestId('briefing').waitFor({ state: 'hidden' });
     const fixture = await page.evaluate(async url => {
-      const { engine, world, useGame } = globalThis.__wreckright;
+      const { engine, world, useGame } = globalThis.__ironmuster;
       engine.setPaused(true);
       const { createMech } = await import(new URL('src/sim/entity.ts', url).href);
       const friends = world.entities.filter(unit => unit.team === world.playerTeam);
@@ -60,7 +60,7 @@ export async function runPilotCommandDockChecks({ browser, url, shots, check }) 
     await page.getByTestId(`lance-card-${fixture.fifth}`).click();
     check('the fifth portrait selects its paired mech without changing deployment order',
       await page.evaluate(fixture => {
-        const { useGame } = globalThis.__wreckright;
+        const { useGame } = globalThis.__ironmuster;
         const order = [...document.querySelectorAll('.pilot-lance-card')].map(card => Number(card.dataset.testid.split('-').at(-1)));
         return useGame.getState().selection.length === 1 && useGame.getState().selection[0] === fixture.fifth
           && JSON.stringify(order) === JSON.stringify(fixture.ids);
@@ -101,7 +101,7 @@ export async function runPilotCommandDockChecks({ browser, url, shots, check }) 
     await page.getByTestId('field-radio').waitFor();
     check('a move order illuminates the speaking pilot and moves the correct paired mech',
       await page.getByTestId(`lance-card-${fixture.fifth}`).getAttribute('data-speaking') === 'true'
-      && await page.evaluate(id => globalThis.__wreckright.world.entities.find(unit => unit.id === id).orders.move !== null, fixture.fifth));
+      && await page.evaluate(id => globalThis.__ironmuster.world.entities.find(unit => unit.id === id).orders.move !== null, fixture.fifth));
     if (shots) await page.screenshot({ path: `${shots}/pilot-dock-radio.png` });
     await page.getByRole('button', { name: 'Dismiss radio report', exact: true }).click();
     check('dismissing radio clears its portrait signal without changing the selected mech',
@@ -109,7 +109,7 @@ export async function runPilotCommandDockChecks({ browser, url, shots, check }) 
       && await page.getByTestId(`lance-card-${fixture.fifth}`).getAttribute('aria-pressed') === 'true');
     await page.getByTestId('commander-toggle').click();
     await page.evaluate(ids => {
-      const { world, engine } = globalThis.__wreckright;
+      const { world, engine } = globalThis.__ironmuster;
       const destroyed = world.entities.find(unit => unit.id === ids[0]);
       destroyed.destroyed = true; destroyed.killMethod = 'centre_torso';
       const ejected = world.entities.find(unit => unit.id === ids[1]);

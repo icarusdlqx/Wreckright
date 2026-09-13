@@ -17,7 +17,7 @@ const lineMain = [
 const aurelianMain = [
   ['raid_ridge', 'aurelian_landing_apron', 215, 4],
   ['authority_custody_posts', 'aurelian_civic_exchange', 210, 5],
-  ['switchyard_watch', 'aurelian_civic_exchange', 220, 5],
+  ['switchyard_watch', 'aurelian_civic_exchange', 175, 5],
   ['authority_root_exchange', 'aurelian_service_terraces', 100, 2],
   ['authority_quarry_receipt', 'blackglass_quarry', 225, 5],
   ['authority_conduit_injunction', 'aurelian_service_terraces', 230, 5],
@@ -61,7 +61,7 @@ describe('campaign encounter identity', () => {
     expect(burn.triggers.some(trigger => trigger.id === 'purge_response')).toBe(true);
   });
 
-  it('lets recovery, transfer and Broken Wreckright end with enemies alive', () => {
+  it('lets recovery, transfer and Broken Code end with enemies alive', () => {
     for (const id of ['recovery_window', 'rules_break', 'depot_take', 'depot_burn']) {
       expect(catalog.missions.get(id)?.objectives.some(objective => objective.type === 'destroy_all')).toBe(false);
     }

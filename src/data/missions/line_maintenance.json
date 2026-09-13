@@ -3,7 +3,7 @@
   "name": "Recovery — First Notice",
   "type": "skirmish",
   "mapId": "line_workshop_belt",
-  "briefing": "Break Kestrel’s cordon, then secure Marker Eleven long enough for Halloran to copy the root rolls. The central freight road is covered; the west drainage lane and east workshop street reach their flanks. Keep at least one machine working.",
+  "briefing": "Break Kestrel's cordon and secure Iona Venn's registry at Marker Eleven. She is protecting your company's service rolls and a crated emitter. The west drain and east workshop street reach the cordon's sides; do not lose the company trying to force the freight road.",
   "maxDurationSeconds": 330,
   "startingResourcePoints": 400,
   "lances": [
@@ -121,7 +121,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Halloran: the freight road is covered. The west drain and east workshop street both reach Marker Eleven.",
+          "text": "Venn is still inside Marker Eleven. West drain or east workshop street; the freight road has guns on it.",
           "speakerPilotId": "marek_sud"
         },
         {
@@ -144,7 +144,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Marker Eleven is copying. These rolls name workshops and people, not just serials.",
+          "text": "Venn has the rolls and the optic cabinet. Finish clearing the cordon so Halloran can release them.",
           "speakerPilotId": "kessa_vale"
         }
       ]
@@ -155,7 +155,7 @@
   "zones": [
     {
       "id": "marker_eleven",
-      "name": "Marker Eleven Registry",
+      "name": "Marker Eleven — Venn’s Registry",
       "x": 372,
       "y": 252,
       "radius": 66,

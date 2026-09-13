@@ -74,12 +74,12 @@ export async function createEngine(host: HTMLElement, options: EngineOptions = {
   // the shipped page must not bypass its own fog-of-war presentation boundary.
   if (import.meta.env.DEV) {
     const debugGlobal = globalThis as typeof globalThis & {
-      __wreckright?: { engine: Engine; world: World; useGame: typeof useGame };
+      __ironmuster?: { engine: Engine; world: World; useGame: typeof useGame };
     };
     const handle = { engine, world, useGame };
-    debugGlobal.__wreckright = handle;
+    debugGlobal.__ironmuster = handle;
     engine.onDestroy(() => {
-      if (debugGlobal.__wreckright === handle) delete debugGlobal.__wreckright;
+      if (debugGlobal.__ironmuster === handle) delete debugGlobal.__ironmuster;
     });
   }
 

@@ -66,7 +66,7 @@ describe('compact mechbay catalog', () => {
     expect(row).toContain('0 spare');
     expect(row).not.toContain("Doesn&#x27;t fit");
     expect(html).toContain('fits, replacements &amp; installed');
-    expect(html).toMatch(/data-testid="dossier-fit"[^>]*>[\s\S]*?<strong>Installed<\/strong>/);
+    expect(html).not.toContain('data-testid="dossier-fit"');
     expect(html).not.toContain('This part has no energy weapon mounts.');
     const gear = render({ shelf: 'equipment', inventory: { weapon: new Map(), equipment: new Map([['case', 1]]) } });
     expect(gear).toContain('stock-equipment-case');
@@ -75,8 +75,8 @@ describe('compact mechbay catalog', () => {
 
   it('distinguishes inspecting an installed weapon from fitting a second copy', () => {
     const mounted = render({ inspected: { kind: 'weapon', id: 'ac5', sourceIndex: 0 } });
-    expect(mounted).toContain('Mounted in right arm. Use the tile to move or remove it.');
-    expect(mounted).toMatch(/data-testid="dossier-fit"[^>]*>[\s\S]*?<strong>Installed<\/strong>/);
+    expect(cardMarkup(mounted, 'ac5')).toContain('aria-current="true"');
+    expect(mounted).not.toContain('bay-shelf-inspector');
     const shelf = render({ inspected: { kind: 'weapon', id: 'ac5' } });
     expect(shelf).not.toContain('Mounted in right arm.');
     const stale = render({ inspected: { kind: 'weapon', id: 'ac5', sourceIndex: 99 } });
@@ -93,8 +93,8 @@ describe('compact mechbay catalog', () => {
     expect(html).toContain('data-testid="shelf-search"');
     expect(html).toContain('data-testid="shelf-family"');
     expect(html).toContain('data-testid="shelf-show-all"');
-    expect(html.match(/id="bay-shelf-inspector"/g)).toHaveLength(1);
-    expect(html.match(/role="meter"/g)).toHaveLength(3);
+    expect(html).not.toContain('bay-shelf-inspector');
+    expect(cardMarkup(html, 'ac5').match(/role="meter"/g)).toHaveLength(3);
     expect(html).toContain('role="tabpanel"');
     expect(html).toContain('aria-controls="bay-shelf-results"');
   });
@@ -120,13 +120,13 @@ describe('compact mechbay catalog', () => {
     expect(row).toContain('aria-disabled="true"');
     expect(row).toContain('draggable="false"');
     expect(row).toContain('aria-current="true"');
-    expect(row).toContain('aria-controls="bay-shelf-inspector"');
+    expect(row).not.toContain('aria-controls="bay-shelf-inspector"');
     expect(row).toContain("Doesn&#x27;t fit");
     expect(row).toContain(reason);
-    expect(row).not.toContain('role="meter"');
+    expect(row).toContain('role="meter"');
     expect(row).not.toContain('weapon-range-strip');
     expect(html).toContain(`title="${reason}"`);
-    expect(html).toContain('data-testid="dossier-fit"');
+    expect(html).not.toContain('data-testid="dossier-fit"');
   });
 
   it('retains the fits-only discovery path and truthful ammo and gear inspectors', () => {
@@ -135,11 +135,11 @@ describe('compact mechbay catalog', () => {
     expect(fitOnly).toContain("Include unavailable");
 
     const ammo = render({ shelf: 'ammo' });
-    expect(ammo).toContain('data-inspected-kind="ammo"');
+    expect(ammo).toContain('stock-ammo-');
     expect(ammo).toContain('1 ton');
 
     const gear = render({ shelf: 'equipment' });
-    expect(gear).toContain('data-inspected-kind="equipment"');
+    expect(gear).toContain('stock-equipment-');
     expect(gear).toContain('data-testid="shelf-show-all"');
     expect(gear).toContain("Include unavailable");
     expect(gear).not.toMatch(/sensor range factor|incoming accuracy factor|ammo blast containment/);

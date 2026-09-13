@@ -14,7 +14,7 @@ async function activate(locator, touch, options = {}) {
 
 async function selectShortRangeTrainer(page, touch) {
   const id = await page.evaluate(() => {
-    const { useGame } = globalThis.__wreckright;
+    const { useGame } = globalThis.__ironmuster;
     const state = useGame.getState();
     const candidates = state.units.filter(
       (unit) => unit.team === state.playerTeam && unit.alive,
@@ -28,14 +28,14 @@ async function selectShortRangeTrainer(page, touch) {
   });
   await activate(page.locator(`[data-testid="lance-card-${id}"]`), touch);
   await page.waitForFunction(
-    (selectedId) => globalThis.__wreckright.useGame.getState().selection[0] === selectedId,
+    (selectedId) => globalThis.__ironmuster.useGame.getState().selection[0] === selectedId,
     id,
   );
 }
 
 async function gateScreenPoint(page) {
   return page.evaluate(() => {
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     const zone = world.zones.find((candidate) => candidate.id === 'range_gate');
     const canvas = document.querySelector('.viewport canvas:not(.perf-overlay)');
     if (zone === undefined || !(canvas instanceof HTMLCanvasElement)) {
@@ -58,13 +58,13 @@ async function gateScreenPoint(page) {
 async function issueGateMove(page, touch) {
   const move = page.locator('[data-testid="command-move"]');
   await activate(move, touch);
-  await page.waitForFunction(() => globalThis.__wreckright.useGame.getState().orderMode === 'move');
+  await page.waitForFunction(() => globalThis.__ironmuster.useGame.getState().orderMode === 'move');
   await activate(page.locator('[data-testid="training-show-gate"]'), touch);
   const gate = await gateScreenPoint(page);
   if (touch) await page.touchscreen.tap(gate.x, gate.y);
   else await page.mouse.click(gate.x, gate.y);
   await page.waitForFunction(() => {
-    const { useGame, world } = globalThis.__wreckright;
+    const { useGame, world } = globalThis.__ironmuster;
     const selected = new Set(useGame.getState().selection);
     return world.entities.some(
       (entity) => entity.team === world.playerTeam && selected.has(entity.id) && entity.orders.move !== null,
@@ -74,7 +74,7 @@ async function issueGateMove(page, touch) {
 
 async function stepUntilGate(page) {
   return page.evaluate((limit) => {
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     const playerTeam = world.playerTeam ?? 0;
     const gate = world.zones.find((zone) => zone.id === 'range_gate');
     if (gate === undefined || world.vision === null) throw new Error('training vision or gate is missing');
@@ -108,7 +108,7 @@ async function stepUntilGate(page) {
 
 async function stepUntilOpticalOrReveal(page) {
   return page.evaluate((limit) => {
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     const playerTeam = world.playerTeam ?? 0;
     const gate = world.zones.find((zone) => zone.id === 'range_gate');
     const trigger = world.triggers.find((candidate) => candidate.id === 'range_open');
@@ -161,7 +161,7 @@ async function stepUntilOpticalOrReveal(page) {
 
 async function trainingContactState(page, id) {
   return page.evaluate((targetId) => {
-    const { world, useGame } = globalThis.__wreckright;
+    const { world, useGame } = globalThis.__ironmuster;
     const state = useGame.getState();
     const target = world.entities.find((entity) => entity.id === targetId);
     const optical = document.querySelector(`[data-testid="hostile-${targetId}"]`);
@@ -208,7 +208,7 @@ export async function investigateSensorIfPresent({ page, check, prefix, touch, s
     // Accept only that same live target's confirmed promotion, never an unknown disappearance.
     if (latest.alive && latest.worldOptical) {
       await page.waitForFunction((id) => {
-        const state = globalThis.__wreckright.useGame.getState();
+        const state = globalThis.__ironmuster.useGame.getState();
         const card = document.querySelector(`[data-testid="hostile-${id}"]`);
         return state.enemies.some((enemy) => enemy.id === id && enemy.alive)
           && card !== null && card.getClientRects().length > 0;
@@ -226,7 +226,7 @@ export async function investigateSensorIfPresent({ page, check, prefix, touch, s
   // A successful click must still issue the real investigation order. A later
   // visibility change cannot excuse an order handler that failed to dispatch.
   await page.waitForFunction(() => {
-    const { useGame, world } = globalThis.__wreckright;
+    const { useGame, world } = globalThis.__ironmuster;
     const selected = new Set(useGame.getState().selection);
     return world.entities.some(
       (entity) =>
@@ -277,13 +277,13 @@ export async function engageTrainingOpticalContact({ page, check, prefix = '', t
     ? await stepUntilOpticalOrReveal(page)
     : {
       targetId: beforeReveal.opticalIds[0],
-      playerTeam: await page.evaluate(() => globalThis.__wreckright.world.playerTeam ?? 0),
+      playerTeam: await page.evaluate(() => globalThis.__ironmuster.world.playerTeam ?? 0),
       gateOwner: null,
       triggerFired: 0,
       revealed: false,
     };
   await page.waitForFunction(
-    (targetId) => globalThis.__wreckright.useGame.getState().enemies.some((enemy) => enemy.id === targetId),
+    (targetId) => globalThis.__ironmuster.useGame.getState().enemies.some((enemy) => enemy.id === targetId),
     optical.targetId,
   );
   if (touch) await page.locator('[data-testid="mobile-tab-contacts"]').tap();
@@ -312,7 +312,7 @@ export async function engageTrainingOpticalContact({ page, check, prefix = '', t
   );
   await activate(hostile, touch);
   await page.waitForFunction((targetId) => {
-    const { useGame, world } = globalThis.__wreckright;
+    const { useGame, world } = globalThis.__ironmuster;
     const selected = new Set(useGame.getState().selection);
     return world.entities.some(
       (entity) =>

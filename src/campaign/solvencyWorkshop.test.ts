@@ -4,7 +4,6 @@ import { acceptContract, advanceDays, startCampaign } from './campaign';
 import { saleValueOf, sellMech } from './market';
 import { fitFromStore, rebuildHulk } from './refit';
 import { estimateRepair, startRepair } from './repair';
-import { deserialiseCampaign, serialiseCampaign } from './save';
 import { assessSolvency, retireCompany } from './solvency';
 import { addToStore, type CampaignState, type MechRecord } from './types';
 
@@ -13,12 +12,6 @@ function campaign(seed: string): CampaignState {
   // These recovery scenarios model a company that has used its demo stock.
   state.store = [];
   return state;
-}
-
-function imported(state: CampaignState): CampaignState {
-  const restored = deserialiseCampaign(serialiseCampaign(state)).state;
-  if (restored === null) throw new Error('campaign save did not load');
-  return restored;
 }
 
 function stripWeapons(mech: MechRecord): string {
@@ -50,7 +43,7 @@ describe('company solvency workshop paths', () => {
 
     expect(assessSolvency(catalog, state)).toMatchObject({
       state: 'fundable',
-      plan: { mechCost: quote.cost, mechReadyOnDay: state.day + quote.days },
+      plan: { mechCost: quote.cost, mechReadyOnDay: state.day },
     });
     expect(rebuildHulk(catalog, state, mech).ok).toBe(true);
     const readyOnDay = mech.readyOnDay;
@@ -68,7 +61,7 @@ describe('company solvency workshop paths', () => {
     const quote = estimateRepair(catalog, mech);
     state.cbills = quote.cost;
     state.eventEffects.freeRepairDays = 1;
-    const creditedReady = state.day + quote.days - 1;
+    const creditedReady = state.day;
 
     expect(assessSolvency(catalog, state)).toMatchObject({
       state: 'fundable',
@@ -77,7 +70,7 @@ describe('company solvency workshop paths', () => {
     expect(state.eventEffects.freeRepairDays).toBe(1);
     expect(rebuildHulk(catalog, state, mech).ok).toBe(true);
     expect(mech.readyOnDay).toBe(creditedReady);
-    expect(state.eventEffects.freeRepairDays).toBe(0);
+    expect(state.eventEffects.freeRepairDays).toBe(1);
   });
 
   it('only treats a stripped hull as recoverable when a stored weapon fits it', () => {
@@ -112,9 +105,9 @@ describe('company solvency workshop paths', () => {
     expect(assessSolvency(catalog, state).plan?.mechId).not.toBe(mech.id);
     addToStore(state, 'weapon', weaponId);
     expect(assessSolvency(catalog, state)).toMatchObject({
-      state: 'temporary',
-      action: 'wait',
-      recoverOnDay: mech.readyOnDay,
+      state: 'fundable',
+      action: 'finance',
+      recoverOnDay: null,
       plan: { mechId: mech.id, mechNeedsWeapon: true, weaponId },
     });
     advanceDays(catalog, state, mech.readyOnDay - state.day);
@@ -166,11 +159,11 @@ describe('company solvency workshop paths', () => {
     if (state.contract === null) throw new Error('contract was not signed');
     state.contract.deadlineDay = state.day + quote.days;
 
-    const queuedReady = booked.readyOnDay + quote.days;
+    const queuedReady = state.day;
     expect(assessSolvency(catalog, state)).toMatchObject({
-      state: 'temporary',
-      action: 'withdraw',
-      recoverOnDay: queuedReady,
+      state: 'fundable',
+      action: 'finance',
+      recoverOnDay: null,
       plan: { mechId: hulk.id, mechCost: quote.cost, mechReadyOnDay: queuedReady },
     });
   });
@@ -189,37 +182,12 @@ describe('company solvency workshop paths', () => {
     stripWeapons(booked);
     booked.condition.centre_torso.armour = 0;
     expect(startRepair(catalog, state, booked).ok).toBe(true);
-    const bookedReady = booked.readyOnDay;
 
     hulk.status = 'hulk';
     hulk.rebuildCost = Math.max(1, saleValueOf(catalog, hulk));
     const quote = estimateRepair(catalog, hulk);
     state.cbills = 0;
-    expect(sellMech(catalog, state, booked.id)).toEqual({
-      ok: false,
-      reason: 'wait for its paid workshop booking to finish',
-    });
-
-    const waiting = assessSolvency(catalog, state);
-    expect(waiting).toMatchObject({
-      state: 'temporary',
-      action: 'wait_booking',
-      recoverOnDay: bookedReady,
-      plan: { needsSale: true },
-    });
-    expect(waiting.plan?.saleProceeds).toBeGreaterThanOrEqual(quote.cost);
-
-    const contracted = imported(state);
-    expect(acceptContract(catalog, contracted, 'militia_raid', 'standard').ok).toBe(true);
-    expect(assessSolvency(catalog, contracted)).toMatchObject({
-      state: 'temporary',
-      action: 'withdraw',
-      recoverOnDay: bookedReady,
-      plan: { needsSale: true },
-    });
-
-    advanceDays(catalog, state, bookedReady - state.day);
-    expect(assessSolvency(catalog, state).state).toBe('fundable');
+    expect(assessSolvency(catalog, state).plan?.saleProceeds).toBeGreaterThanOrEqual(quote.cost);
     expect(sellMech(catalog, state, booked.id).ok).toBe(true);
     expect(rebuildHulk(catalog, state, hulk).ok).toBe(true);
     advanceDays(catalog, state, hulk.readyOnDay - state.day);

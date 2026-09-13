@@ -192,7 +192,7 @@ was Green.
 | Custody Posts | 3:08 | Won after one ordinary Menu → Restart following Cairn's ammunition explosion; the first attempt was not settled as a campaign defeat. |
 | Causeway | 1:16 | Won. |
 | Cutbank Ledger | 3:44 | Won; Dorn's Trestle lost and Dorn wounded. |
-| Broken Wreckright | 1:59 | Won with two heavies surviving. Wounded Dorn could not be put aboard; after he missed this mission, settlement reported his return from the infirmary. |
+| Broken Ironmuster | 1:59 | Won with two heavies surviving. Wounded Dorn could not be put aboard; after he missed this mission, settlement reported his return from the infirmary. |
 | Cold Yards | 2:28 | Won on the first attempt with all three machines surviving; 1,568 damage dealt, 578 received, all five hostiles stopped. |
 | Manifest Key | 3:35 | Won with all three machines operational; 1,509 damage dealt, 264 received, all four guards stopped. |
 | Take the Manifest | 1:53 | Won with all three machines operational; 1,719 damage dealt, 180 received, all four guards stopped. |

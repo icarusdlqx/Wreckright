@@ -75,6 +75,11 @@ export function HomeScreen() {
     });
   };
 
+  const mechbay = (): void => {
+    score.prepare();
+    patch({ screen: 'mechbay', mechbayReturn: 'home' });
+  };
+
   return (
     <main className="home-screen contemporary-home" data-testid="home-screen" data-artwork={artwork}>
       <img
@@ -96,9 +101,8 @@ export function HomeScreen() {
       <section className="home-menu" aria-labelledby="home-title">
         <div className="home-introduction">
           <span className="home-edition">TACTICAL MECH COMMAND</span>
-          <h1 id="home-title">WRECKRIGHT</h1>
-          <p className="home-kicker">No new machines. Only new owners.</p>
-          <p className="home-premise">Your company. Your machines. Your next move.</p>
+          <h1 id="home-title">IRONMUSTER</h1>
+          <p className="home-premise">Your company. Your mechs. Your next move.</p>
         </div>
         <nav className="home-routes" aria-label="Choose where to begin">
           <button type="button" className={`home-route${primary === 'learn' ? ' primary' : ''}`} onClick={learn} data-testid="home-learn">
@@ -113,6 +117,10 @@ export function HomeScreen() {
             <button type="button" data-testid="home-load-game" onClick={files.openLoad}>Load Game</button>
             <button type="button" data-testid="home-new-campaign" onClick={() => { setFileNotice(null); setNewCampaignOpen(true); }}>New Campaign</button>
           </div>
+          <button type="button" className="home-route" onClick={mechbay} data-testid="home-mechbay">
+            <span className="home-route-copy"><strong>Mechlab</strong><span>Fit weapons. Save configurations. Know every rack.</span></span>
+            <span className="home-route-arrow" aria-hidden="true">↗</span>
+          </button>
           <button type="button" className="home-route" onClick={skirmish} data-testid="home-skirmish">
             <span className="home-route-copy"><strong>Skirmish</strong><span>Choose your machines and the battlefield.</span></span>
             <span className="home-route-arrow" aria-hidden="true">↗</span>

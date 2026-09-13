@@ -1,3 +1,4 @@
+import { advanceDays } from '../../campaign/campaign';
 import { useEffect, useMemo, useState } from 'react';
 import { abandonContract, acceptContract, availableNodes, campaignOf, standDownCampaign,
   negotiationOptions } from '../../campaign/campaign';
@@ -36,7 +37,6 @@ import { commitCampaignChange, openCampaignSession } from './campaignSession';
 import { downloadCampaignFile } from './campaignDownload';
 import { useGame } from '../store';
 import { usePlaytest } from '../playtest';
-import { CampaignGuide } from './CampaignGuide';
 import { CampaignPrep } from './CampaignPrep';
 import { beginPreparation } from './preparationModel';
 import { firstDropStage, type FirstDropPrep } from './firstDropGuide';
@@ -44,13 +44,10 @@ import { canLaunchFirstDropDirectly } from './firstDropLaunch';
 import { useCampaignScore } from './useCampaignScore';
 import { MissionSurvey } from './MissionSurvey';
 import { missionPreviewData, previewMissionId } from './missionPreviewData';
-import { openingRecommendation } from './openingRoute';
-import { OpeningRouteGuide } from './OpeningRouteGuide';
 import { CampaignStoryPanel } from './CampaignStoryPanel';
 import { CampaignNextStep } from './CampaignNextStep';
-import { CampaignWaiting } from './CampaignWaiting';
 import { CampaignRouteList } from './CampaignRouteList';
-import { nextCampaignNode, waitCompany } from './campaignFlow';
+import { nextCampaignNode } from './campaignFlow';
 
 const catalog = getCatalog();
 const DEFAULT_CAMPAIGN_ID = 'border_dispute';
@@ -61,7 +58,6 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
   const [persistence, setPersistence] = useState(initial.persistence);
   const [manualOpen, setManualOpen] = useState(false);
   const [guideDismissed, setGuideDismissed] = useState(false);
-  const [openingDismissedRun, setOpeningDismissedRun] = useState<string | null>(null);
   const [prep, setPrep] = useState<FirstDropPrep>(null);
   const [debriefed, setDebriefed] = useState(() => debriefedCount());
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
@@ -98,8 +94,6 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
     prep,
   });
   const guidedFirstDrop = guideDismissed ? 'done' : firstDrop;
-  const openingRun = `${state.campaignId}:${state.seed}`;
-  const opening = openingRecommendation(catalog, state, open);
   const surveyMission = previewMissionId(state.contract, node);
   const survey = useMemo(() => missionPreviewData(catalog, surveyMission), [surveyMission]);
 
@@ -212,8 +206,6 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         nextDisabled={state.finished}
         nextLabel={state.finished ? 'Campaign ended' : state.contract !== null ? 'Outfit & deploy' : 'Next mission'}
         onNext={continueMission}
-        waiting={<CampaignWaiting catalog={catalog} state={state}
-          onWait={(day) => mutate((draft) => waitCompany(catalog, draft, day))} />}
         onSave={files.openSave}
         onLoad={files.openLoad}
         onExport={onExportSave}
@@ -256,7 +248,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
           onClose={() => setManualOpen(false)}
         />
       )}
-      <CampaignGuide stage={guidedFirstDrop} onDismiss={() => setGuideDismissed(true)} />
+      <CrewStandDown catalog={catalog} state={state} onStandDown={() => mutate((draft) => standDownCampaign(catalog, draft).reason)} />
       <CampaignNextStep catalog={catalog} state={state} node={node} onContinue={continueMission} />
       <CampaignWorkspace
         key={`${state.campaignId}:${state.seed}`}
@@ -265,17 +257,14 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         story={<CampaignStoryPanel campaign={campaign} completedNodes={state.completedNodes} />}
         route={guidedFirstDrop !== 'done' ? null : <CampaignRouteList campaign={campaign} state={state} open={open}
           selectedId={node?.id ?? null} onReview={revealPosting} />}
-        fullCompany={guidedFirstDrop === 'done'}
+        fullCompany={true}
         area={navigation.area} onAreaChange={navigation.setArea} journalNodeId={navigation.target?.nodeId}
         workshop={(active) => <MechBayPanel state={state} mutate={mutate} onRefit={setRefitting} previewActive={active && previewsActive} focus={navigation.target} />}
         crew={<BarracksPanel state={state} mutate={mutate} focus={navigation.target} />}
         supplies={<><StoresPanel state={state} mutate={mutate} onRefitPart={onRefitPart} /><MarketPanel state={state} mutate={mutate} /></>}
         operations={(active) => <>
-      {opening === null || openingDismissedRun === openingRun || guidedFirstDrop !== 'done' || outcomeCount > debriefed ? null : (
-        <OpeningRouteGuide recommendation={opening} selectedId={node?.id ?? null}
-          onReview={revealPosting} onDismiss={() => setOpeningDismissedRun(openingRun)} />
-      )}
       {state.finished ? null : <MissionSurvey data={survey} active={active && previewsActive} signed={state.contract !== null} />}
+      <details className="campaign-route-overview"><summary>Campaign map & completed missions</summary>
       <CampaignMap
         campaign={campaign}
         catalog={catalog}
@@ -289,6 +278,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
           return open.some((candidate) => candidate.id === entry.id) ? 'available' : 'locked';
         }}
       />
+      </details>
       <ContractPanel
         catalog={catalog}
         state={state}
@@ -304,12 +294,11 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         employer={employer}
         employers={employers}
         companyStatus={
-          <><CrewStandDown catalog={catalog} state={state} onStandDown={() => mutate((draft) => standDownCampaign(catalog, draft).reason)} />
           <CompanyStatus
             report={solvency}
             contractActive={state.contract !== null}
             onAdvance={(day) =>
-              mutate((draft) => waitCompany(catalog, draft, day))
+              mutate((draft) => advanceDays(catalog, draft, Math.max(0, day - draft.day), false, false))
             }
             onRetire={() =>
               mutate((draft) => {
@@ -317,7 +306,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
                 return result.ok ? 'Company retired. This campaign is over.' : result.reason;
               })
             }
-          /></>
+          />
         }
         onSelectTerms={setSelectedTerms}
         onAccept={(termsId) => {
@@ -325,15 +314,12 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
           mutate((draft) => {
             const result = acceptContract(catalog, draft, node?.id ?? '', termsId);
             signed = result.ok;
+            if (result.ok) beginPreparation(catalog, draft);
             return result.ok ? null : result.reason;
           }, 'Contract signed.');
           if (signed) {
             record({ name: 'contract_signed' });
-            globalThis.requestAnimationFrame?.(() => {
-              globalThis.document
-                ?.querySelector<HTMLElement>('[data-testid="camp-deploy"]')
-                ?.focus();
-            });
+            setPrep('bay');
           }
         }}
         onDeploy={onDeploy}
@@ -346,7 +332,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         }
       />
       {state.finished || guidedFirstDrop !== 'done' || state.contract !== null ? null : (
-            <HiringHall
+            <details className="campaign-optional-work"><summary>Optional contracts</summary><HiringHall
               catalog={catalog}
               campaign={campaign}
               day={state.day}
@@ -354,7 +340,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
               employers={employers}
               selectedId={node?.id ?? null}
               onSelect={revealPosting}
-            />
+            /></details>
       )}
         </>}
       />
@@ -394,7 +380,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
 
   function onExportRecovery(): void {
     if (persistence.recoveryRaw === null) return;
-    downloadCampaignFile(rawCampaignBlob(persistence.recoveryRaw), 'wreckright-campaign-recovery.txt');
+    downloadCampaignFile(rawCampaignBlob(persistence.recoveryRaw), 'ironmuster-campaign-recovery.txt');
     setStatus('Original save exported.');
   }
 }

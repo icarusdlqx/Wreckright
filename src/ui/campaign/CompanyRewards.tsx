@@ -13,11 +13,11 @@ function benefitText(catalog: Catalog, reward: CampaignReward): string[] {
     const design = catalog.designs.get(hull.designId);
     benefits.push(`${design === undefined ? hull.designId : authoredDesignName(catalog, design)} warehouse hull · stripped · ${Math.round(hull.integrityFraction * 100)}% condition`);
   }
-  if (reward.effects?.freeRepairDays !== undefined) benefits.push(`${reward.effects.freeRepairDays} workshop day credit${reward.effects.freeRepairDays === 1 ? '' : 's'} · bank limit ${catalog.rules.economy.campaignRewards.repairDayBankLimit}`);
+  if (reward.effects?.freeRepairDays !== undefined) benefits.push('Priority workshop access — repairs complete immediately after payment');
   if (reward.effects?.supplierDiscountDays !== undefined) {
     const supplier = catalog.rules.events.entries.find((entry) => entry.type === 'supplier_discount');
     const discount = supplier?.type === 'supplier_discount' ? Math.round((1 - supplier.priceFactor) * 100) : 0;
-    benefits.push(`${discount}% off yard purchases for ${reward.effects.supplierDiscountDays} days after return`);
+    benefits.push(`${discount}% off yard purchases for ${reward.effects.supplierDiscountDays} missions after return`);
   }
   return benefits;
 }
@@ -48,8 +48,8 @@ export function RewardReceipt({ catalog, rewards }: { catalog: Catalog; rewards:
       {reward.hulls.length === 0 ? null : <span>To the workshop: {reward.hulls.map((hull) => {
         const design = catalog.designs.get(hull.designId); return design === undefined ? hull.designId : authoredDesignName(catalog, design);
       }).join(' · ')}. Warehouse hulls arrive stripped and require rebuilding.</span>}
-      {(reward.freeRepairDaysOffered ?? reward.freeRepairDays) === 0 ? null : <span>{reward.freeRepairDays} workshop day credit{reward.freeRepairDays === 1 ? '' : 's'} banked for later bookings.{(reward.freeRepairDaysOffered ?? 0) > reward.freeRepairDays ? ' The remaining awarded credits exceeded the bank limit.' : ''}</span>}
-      {reward.supplierDiscountThroughDay === null ? null : <span>Supplier purchase discount through day {reward.supplierDiscountThroughDay}.</span>}
+      {(reward.freeRepairDaysOffered ?? reward.freeRepairDays) === 0 ? null : <span>Workshop priority honoured: repairs complete immediately after payment.</span>}
+      {reward.supplierDiscountThroughDay === null ? null : <span>Supplier purchase discount activated for upcoming missions.</span>}
     </li>)}</ul>
   </section>;
 }

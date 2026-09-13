@@ -152,7 +152,7 @@ export function registerAurelianAcceptance(): void {
       },
     );
 
-    it('finishes two seeded routes with different rest-day stories', () => {
+    it('finishes both routes without calendar events or waiting charges', () => {
       const runs = [
         { seed: 'rest-day-acceptance-export', nodeId: 'continuance_export' },
         { seed: 'rest-day-acceptance-stewardship', nodeId: 'local_stewardship' },
@@ -168,15 +168,10 @@ export function registerAurelianAcceptance(): void {
 
       for (const state of runs) {
         expect(state).toMatchObject({ campaignId: CAMPAIGN_ID, finished: true, won: true });
-        expect(state.log.filter((entry) => entry.text.startsWith('Rest day —'))).toHaveLength(7);
+        expect(state.log.filter((entry) => entry.text.startsWith('Rest day —'))).toHaveLength(0);
       }
 
-      const stories = runs.map((state) =>
-        state.log
-          .filter((entry) => entry.text.startsWith('Rest day —'))
-          .map((entry) => entry.text),
-      );
-      expect(stories[0]).not.toEqual(stories[1]);
+      expect(runs[0]?.completedNodes).not.toEqual(runs[1]?.completedNodes);
     });
 
     it('resolves the opening arc through live battles', { timeout: 60_000 }, () => {

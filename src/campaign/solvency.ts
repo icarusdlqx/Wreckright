@@ -4,7 +4,7 @@ import { supplierDiscountFactor } from './events';
 import { dailyPayroll } from './ledger';
 import { marketListings, marketPeriod, saleValueOf, valueOf } from './market';
 import { planFit } from './refit';
-import { completeRepair, estimateRepair, projectedRepairWindow } from './repair';
+import { completeRepair, estimateRepair } from './repair';
 import { availableHires, hireCost } from './roster';
 import { needsCrewStandDown } from './crewRecovery';
 import type {
@@ -76,7 +76,7 @@ function ownedMechPlans(catalog: Catalog, state: CampaignState): MechPlan[] {
     const rebuild = mech.status === 'hulk' ? estimateRepair(catalog, mech) : null;
     if (rebuild !== null && rebuild.days === 0) return [];
     const readyOnDay = rebuild !== null
-      ? projectedRepairWindow(catalog, state, rebuild.days).readyOnDay
+      ? state.day
       : mech.status === 'repairing'
         ? Math.max(state.day, mech.readyOnDay)
         : state.day;

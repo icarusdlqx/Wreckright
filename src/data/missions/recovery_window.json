@@ -3,7 +3,7 @@
   "name": "Recovery — The Quiet Claim",
   "type": "extraction",
   "mapId": "line_recovery_cut",
-  "briefing": "Get the fitters out. Secure the road-junction winch and protect the recovery cradle while the lift runs. Bring no more than three machines and 140 tonnes. Surviving guards do not block extraction.",
+  "briefing": "Nera Pell's fitters are at Cut Nine's cradle. Secure the winch and cover their lift with three machines at most and 140 tonnes. A longer-range refit can guard the winch without closing to Flamer reach. The west cabinet is optional; surviving guards do not block extraction.",
   "maxDurationSeconds": 240,
   "startingResourcePoints": 350,
   "dropTonnage": 140,
@@ -70,7 +70,7 @@
   "zones": [
     {
       "id": "recovery_ground",
-      "name": "Recovery Cradle",
+      "name": "Cut Nine Recovery Cradle",
       "x": 540,
       "y": 636,
       "radius": 78,
@@ -169,7 +169,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Recovery desk: winch first, then cover the cradle for twenty-five seconds. The west cabinet is optional.",
+          "text": "Pell’s crew is on the cradle. Take the winch, then cover the lift. The cabinet can wait.",
           "speakerPilotId": "kessa_vale"
         }
       ]
@@ -185,7 +185,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Winch live. Kestrel movement on the west shelf; keep the cradle covered.",
+          "text": "Winch live. Keep the north junction covered; the western guard may try to draw us off the cradle.",
           "speakerPilotId": "marek_sud"
         },
         {

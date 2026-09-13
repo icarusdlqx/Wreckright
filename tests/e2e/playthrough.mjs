@@ -1,3 +1,4 @@
+import { returnFromAutoPreparation, openCampaignDetails } from './unified-navigation.mjs';
 import { runPreparationWorkspaceChecks } from './preparation-workspace.mjs';
 import { runPilotCommandDockChecks } from './pilot-command-dock.mjs';
 import { runCompactCommandDockChecks } from './compact-command-dock.mjs';
@@ -20,6 +21,7 @@ import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import { checkCampaignHaul } from './campaign-haul.mjs';
 import { runMechbayCrewChecks } from './mechbay-crew.mjs';
 import { runColdMechbayChecks } from './mechbay-loading.mjs';
+import { runTrainingRestartChecks } from './training-restarts.mjs';
 import { runCommandRefinementChecks } from './command-refinement.mjs';
 import { runRefinementTouchChecks } from './refinement-touch.mjs';
 import { runCompanyOutcomeChecks } from './company-outcome-review.mjs';
@@ -98,10 +100,10 @@ async function waitForServer(url, timeoutMs = 60_000) {
   throw new Error(`dev server did not start at ${url}`);
 }
 
-const state = (page) => page.evaluate(() => globalThis.__wreckright.useGame.getState());
+const state = (page) => page.evaluate(() => globalThis.__ironmuster.useGame.getState());
 const sim = (page) =>
   page.evaluate(() => {
-    const { world } = globalThis.__wreckright;
+    const { world } = globalThis.__ironmuster;
     return {
       tick: world.tick,
       finished: world.finished,
@@ -127,7 +129,7 @@ const sim = (page) =>
 
 async function arrowCameraShift(page, key) {
   const before = await page.evaluate(() => {
-    const { engine, world } = globalThis.__wreckright;
+    const { engine, world } = globalThis.__ironmuster;
     const { camera, viewport } = engine.renderer;
     camera.centreOn({
       x: (world.terrain.width * world.terrain.tileSize) / 2,
@@ -143,7 +145,7 @@ async function arrowCameraShift(page, key) {
   await page.keyboard.up(key);
 
   return page.evaluate((previousTarget) => {
-    const { camera, viewport } = globalThis.__wreckright.engine.renderer;
+    const { camera, viewport } = globalThis.__ironmuster.engine.renderer;
     camera.update(viewport);
     const previousOnScreen = camera.worldToScreen(previousTarget, viewport);
     return {
@@ -164,7 +166,7 @@ async function freshHomePage(browser, url) {
 
 async function forceTrainingResult(page, status) {
   await page.evaluate((nextStatus) => {
-    const { useGame, world } = globalThis.__wreckright;
+    const { useGame, world } = globalThis.__ironmuster;
     const winner = nextStatus === 'success' ? useGame.getState().playerTeam : 1;
     world.finished = true;
     world.winner = winner;
@@ -230,9 +232,9 @@ async function freshCampaignFixture(browser, url) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
   await page.addInitScript(() => {
-    if (sessionStorage.getItem('wreckright.e2e.first-drop') !== null) return;
+    if (sessionStorage.getItem('ironmuster.e2e.first-drop') !== null) return;
     localStorage.clear();
-    sessionStorage.setItem('wreckright.e2e.first-drop', 'ready');
+    sessionStorage.setItem('ironmuster.e2e.first-drop', 'ready');
   });
   await page.goto(url);
   await page.waitForSelector('[data-testid="home-screen"]');
@@ -254,35 +256,19 @@ async function verifyFirstDropLaunchPaths({ browser, url, shots, check: recordCh
   process.stdout.write('\nfirst drop launch\n');
   const fresh = await freshCampaignFixture(browser, url);
   try {
-    // From a ready opening company, signing and launching are the only two
-    // gestures between the contract board and the mission briefing.
-    await fresh.page.locator('[data-testid="camp-accept"]').click();
-    const launch = fresh.page.locator('[data-testid="camp-deploy"]');
-    const review = fresh.page.locator('[data-testid="camp-review-machines"]');
-    await fresh.page.waitForFunction(
-      () => document.activeElement?.getAttribute('data-testid') === 'camp-deploy',
-    );
-    recordCheck(
-      'a fresh signed company offers launch first and machine review second',
-      (await launch.innerText()) === 'Launch the drop' &&
-        (await review.innerText()) === 'Review machines first' &&
-        (await fresh.page.locator('[data-testid="campaign"]').getAttribute('data-first-drop-stage')) ===
-          'launch' &&
-        (await launch.evaluate((element) => element === document.activeElement)),
-    );
-    await launch.scrollIntoViewIfNeeded();
+    await fresh.page.getByTestId('camp-accept').click();
+    await fresh.page.getByTestId('hangar-stage').waitFor();
+    recordCheck('choosing the first mission opens repair and customisation directly',
+      await fresh.page.getByTestId('hangar-continue').isVisible());
     await fresh.page.screenshot({ path: `${shots}/08-first-drop-launch-desktop.png` });
     await fresh.page.setViewportSize({ width: 390, height: 844 });
-    await launch.scrollIntoViewIfNeeded();
     await fresh.page.screenshot({ path: `${shots}/08-first-drop-launch-mobile.png` });
-    await fresh.page.setViewportSize({ width: 1440, height: 900 });
-    await launch.click();
-    await fresh.page.waitForSelector('[data-testid="briefing"]');
-    recordCheck(
-      'fresh campaign reaches the contracted briefing in exactly Sign and Launch clicks',
-      (await fresh.page.locator('[data-testid="campaign"]').count()) === 0 &&
-        (await fresh.page.locator('[data-testid="briefing"]').count()) === 1,
-    );
+    await fresh.page.getByTestId('hangar-continue').click();
+    await fresh.page.getByTestId('manifest-launch').click();
+    await fresh.page.getByTestId('briefing').waitFor();
+    recordCheck('mission choice, team preparation and deployment reach the correct briefing',
+      await fresh.page.getByTestId('campaign').count() === 0);
+
   } finally {
     await fresh.context.close();
   }
@@ -308,15 +294,6 @@ async function verifyFirstDropLaunchPaths({ browser, url, shots, check: recordCh
       }, kind);
       await reopenSavedCampaign(fallback.page);
       await fallback.page.locator('[data-testid="camp-accept"]').click();
-      const prepare = fallback.page.locator('[data-testid="camp-deploy"]');
-      recordCheck(
-        `${kind} assigned machine retains Prepare drop instead of direct launch`,
-        (await prepare.innerText()).startsWith('Prepare drop (') &&
-          (await fallback.page.locator('[data-testid="camp-review-machines"]').count()) === 0 &&
-          (await fallback.page.locator('[data-testid="campaign"]').getAttribute('data-first-drop-stage')) ===
-            'prepare',
-      );
-      await prepare.click();
       await fallback.page.waitForSelector('[data-testid="hangar-stage"]');
       recordCheck(
         `${kind} assigned machine still opens the existing hangar prep corridor`,
@@ -363,36 +340,37 @@ async function main() {
     });
 
     await page.addInitScript(() => {
-      if (sessionStorage.getItem('wreckright.e2e.initialised') !== null) return;
+      if (sessionStorage.getItem('ironmuster.e2e.initialised') !== null) return;
       localStorage.clear();
-      sessionStorage.setItem('wreckright.e2e.initialised', 'true');
+      sessionStorage.setItem('ironmuster.e2e.initialised', 'true');
     });
     await page.goto(URL);
     await page.waitForSelector('[data-testid="home-screen"]');
     check(
       'a fresh profile opens on Home without mounting the engine',
       (await page.locator('.viewport canvas').count()) === 0 &&
-        (await page.evaluate(() => globalThis.__wreckright === undefined)),
+        (await page.evaluate(() => globalThis.__ironmuster === undefined)),
     );
     check(
-      'Home offers learn, campaign, skirmish and the built-in wiki',
+      'Home offers learn, campaign, Mechlab, skirmish and the built-in wiki',
       (await page.locator('[data-testid="home-learn"]').count()) === 1 &&
         (await page.locator('[data-testid="home-campaign"]').count()) === 1 &&
+        (await page.locator('[data-testid="home-mechbay"]').count()) === 1 &&
         (await page.locator('[data-testid="home-skirmish"]').count()) === 1 &&
         (await page.locator('[data-testid="home-wiki"]').getAttribute('href')) === '#wiki' &&
         (await page.locator('[data-testid="home-wiki"]').innerText()).includes('Wiki') &&
-        (await page.locator('#home-title').innerText()) === 'WRECKRIGHT' &&
-        (await page.locator('.home-kicker').textContent()) === 'No new machines. Only new owners.' &&
+        (await page.locator('#home-title').innerText()) === 'IRONMUSTER' &&
+        (await page.locator('.home-premise').textContent()) === 'Your company. Your mechs. Your next move.' &&
         (await page.locator('[data-testid="home-learn"] strong').textContent()) === 'Learn Command',
     );
     await page.locator('[data-testid="home-learn"]').click();
-    await page.waitForFunction(() => globalThis.__wreckright !== undefined, { timeout: 30_000 });
+    await page.waitForFunction(() => globalThis.__ironmuster !== undefined, { timeout: 30_000 });
     await page.waitForSelector('[data-testid="briefing"]');
     check(
       'Learn Command opens the authored training field',
-      (await page.evaluate(() => globalThis.__wreckright.world.mission.id)) === 'training_ground' &&
+      (await page.evaluate(() => globalThis.__ironmuster.world.mission.id)) === 'training_ground' &&
         (await page.evaluate(() =>
-          globalThis.__wreckright.world.entities.filter((entity) => entity.team === 0).length,
+          globalThis.__ironmuster.world.entities.filter((entity) => entity.team === 0).length,
         )) === 2,
     );
     const trainingBriefingText = await page.locator('[data-testid="briefing"]').innerText();
@@ -437,7 +415,7 @@ async function main() {
         (await page.locator('[data-testid="command-run"]').count()) === 0,
     );
     await page.evaluate(() => {
-      const { useGame } = globalThis.__wreckright;
+      const { useGame } = globalThis.__ironmuster;
       const current = useGame.getState();
       const selected = new Set(current.selection);
       current.patch({
@@ -474,18 +452,19 @@ async function main() {
     await completeInitialCampaignSetup(page);
     check(
       'successful training reaches first-contract guidance',
-      (await page.locator('[data-testid="campaign-guide"]').innerText()).includes(
-        '1 · Choose the job',
+      (await page.locator('[data-testid="campaign-journey"]').innerText()).includes(
+        '1 · Choose mission',
       ),
     );
     await page.locator('[data-testid="camp-exit"]').click();
     await page.waitForSelector('[data-testid="home-screen"]');
     await page.locator('[data-testid="home-skirmish"]').click();
     await page.waitForFunction(
-      () => globalThis.__wreckright?.world.mission.id === 'skirmish_ridge',
+      () => globalThis.__ironmuster?.world.mission.id === 'skirmish_ridge',
       { timeout: 30_000 },
     );
     await verifyAlternateTrainingRoutes(browser, URL);
+    await runTrainingRestartChecks({ browser, url: URL, shots: SHOTS, check });
 
     process.stdout.write('\nboot\n');
     const canvas = await page.locator('.viewport canvas:not(.perf-overlay)').boundingBox();
@@ -532,7 +511,7 @@ async function main() {
     );
     await battleCode.fill('Ridge Touch 0000002A');
     await page.locator('[data-testid="briefing-deploy"]').click();
-    await page.waitForFunction((tick) => globalThis.__wreckright?.world.tick > tick,
+    await page.waitForFunction((tick) => globalThis.__ironmuster?.world.tick > tick,
       beforeBriefing, { timeout: 10_000 });
     const running = await sim(page);
     check('deploying starts the clock', running.tick > beforeBriefing, `${beforeBriefing} → ${running.tick}`);
@@ -546,7 +525,7 @@ async function main() {
     );
     check(
       'typing then tapping deploy locks the normalized Battle code',
-      (await page.evaluate(() => globalThis.__wreckright.useGame.getState().battleCode)) ===
+      (await page.evaluate(() => globalThis.__ironmuster.useGame.getState().battleCode)) ===
         'ridge-touch-0000002a',
     );
     await checkDeployedInputSafety({ page, check, state });
@@ -646,7 +625,7 @@ async function main() {
     // once became an empty box-select that cleared the selection, after which
     // the destination order that followed did nothing at all, silently.
     const wobbleTarget = await page.evaluate(() => {
-      const { engine, world, useGame } = globalThis.__wreckright;
+      const { engine, world, useGame } = globalThis.__ironmuster;
       const s = useGame.getState();
       s.setSelection([]);
       const mine = world.entities.filter((e) => e.team === s.playerTeam);
@@ -689,7 +668,7 @@ async function main() {
     process.stdout.write('\nformation move\n');
     await page.keyboard.press('Space');
     const formation = await page.evaluate(() => {
-      const { engine, world, useGame } = globalThis.__wreckright;
+      const { engine, world, useGame } = globalThis.__ironmuster;
       const ids = world.entities.filter((entity) => entity.team === 0 && !entity.destroyed).map((entity) => entity.id);
       const centre = ids.reduce((sum, id) => {
         const entity = world.entities.find((candidate) => candidate.id === id);
@@ -725,11 +704,11 @@ async function main() {
       JSON.stringify(formation),
     );
     await page.screenshot({ path: `${SHOTS}/03-formation-order.png` });
-    await page.evaluate((id) => globalThis.__wreckright.useGame.getState().setSelection([id]), selectedId);
+    await page.evaluate((id) => globalThis.__ironmuster.useGame.getState().setSelection([id]), selectedId);
     await page.keyboard.press('Space');
 
     process.stdout.write('\nweapon groups and hold fire\n');
-    const mountedGroup = await page.evaluate((id) => globalThis.__wreckright.world.entities
+    const mountedGroup = await page.evaluate((id) => globalThis.__ironmuster.world.entities
       .find(entity => entity.id === id).weapons[0].group, selectedId);
     await page.locator(`[data-testid="group-${mountedGroup}"]`).click();
     const toggled = await sim(page);
@@ -751,38 +730,49 @@ async function main() {
     check('own armour is an inspection view, not a called-shot control',
       await page.locator('[data-testid="doll-left_leg"]').isDisabled());
     // A controlled optical fixture lets this input test inspect a real hostile body section.
-    // Patch the paused world's vision directly instead of advancing a combat tick: on a slow
-    // CI runner, a projectile already in flight could otherwise destroy the chosen target in
-    // that one forced step and leave the hostile picker without its expected option.
+    // Pause explicitly: preceding input checks resume combat, and a normal tick on a slow
+    // runner can replace these injected optics or destroy the target before the picker opens.
     const aimFixture = await page.evaluateHandle(() => {
-      const { world, useGame } = globalThis.__wreckright;
-      const enemy = world.entities.find(entity => entity.team !== world.playerTeam && !entity.destroyed);
+      const { world, useGame, engine } = globalThis.__ironmuster;
+      const wasPaused = useGame.getState().paused;
+      engine.setPaused(true);
+      const enemy = world.entities.find(entity => entity.team !== world.playerTeam &&
+        !entity.destroyed && !entity.withdrawn && !entity.pilot.dead && !entity.pilot.ejected);
+      if (enemy === undefined || world.vision === null) {
+        engine.setPaused(wasPaused);
+        throw new Error('Called-shot input fixture requires an operational hostile and player optics.');
+      }
       const wasVisible = world.vision.visible.has(enemy.id);
       const wasIdentified = world.vision.identified.has(enemy.id);
       world.vision.visible.add(enemy.id);
       world.vision.identified.add(enemy.id);
       // A fresh array marks the paused HUD dirty; its next frame publishes the updated vision.
       useGame.getState().setSelection([...useGame.getState().selection]);
-      return { world, useGame, targetId: enemy.id, wasVisible, wasIdentified };
+      return { world, useGame, engine, targetId: enemy.id, wasVisible, wasIdentified, wasPaused };
     });
     try {
       const aimTarget = await aimFixture.evaluate(({ targetId }) => targetId);
+      await page.waitForFunction(id => {
+        const state = globalThis.__ironmuster.useGame.getState();
+        return state.paused && state.enemies.some(enemy => enemy.id === id && enemy.alive && enemy.identified);
+      }, aimTarget);
       await page.locator('[data-testid="command-called_shot"]').click();
       await page.locator('[data-testid="called-shot-hostile"]').selectOption(String(aimTarget));
       await page.locator('[data-testid="called-shot-target"] [data-testid="doll-left_leg"]').click();
       check('called shot targets the chosen hostile section through its armour panel',
         (await state(page)).orderMode === 'called_shot' && (await state(page)).calledShotLocation === 'left_leg'
         && await page.evaluate(({ selectedId, aimTarget }) => {
-          const entity = globalThis.__wreckright.world.entities.find(entity => entity.id === selectedId);
+          const entity = globalThis.__ironmuster.world.entities.find(entity => entity.id === selectedId);
           return entity.orders.attack?.targetId === aimTarget && entity.orders.attack?.calledShot === 'left_leg';
         }, { selectedId, aimTarget }));
       await page.locator('[data-testid="called-shot-target"] button').filter({ hasText: 'Done' }).click();
     } finally {
       try {
-        await aimFixture.evaluate(({ world, useGame, targetId, wasVisible, wasIdentified }) => {
+        await aimFixture.evaluate(({ world, useGame, engine, targetId, wasVisible, wasIdentified, wasPaused }) => {
           if (!wasVisible) world.vision.visible.delete(targetId);
           if (!wasIdentified) world.vision.identified.delete(targetId);
           useGame.getState().setSelection([...useGame.getState().selection]);
+          engine.setPaused(wasPaused);
         });
       } finally {
         await aimFixture.dispose();
@@ -792,7 +782,7 @@ async function main() {
     process.stdout.write('\ncamera\n');
     const zoomPointer = { x: box.width * 0.72, y: box.height * 0.46 };
     const before = await page.evaluate((screen) => {
-      const { renderer } = globalThis.__wreckright.engine;
+      const { renderer } = globalThis.__ironmuster.engine;
       return {
         target: { ...renderer.camera.target },
         distance: renderer.camera.distance,
@@ -806,7 +796,7 @@ async function main() {
     await page.mouse.move(box.x + zoomPointer.x, box.y + zoomPointer.y);
     await page.mouse.wheel(0, -600);
     const afterZoom = await page.evaluate((screen) => {
-      const { renderer } = globalThis.__wreckright.engine;
+      const { renderer } = globalThis.__ironmuster.engine;
       return {
         target: { ...renderer.camera.target },
         distance: renderer.camera.distance,
@@ -860,7 +850,7 @@ async function main() {
     // Keep camera dispatch separate from live combat and the map-edge clamp:
     // a correctly centred edge unit can legitimately remain off the target.
     const centreFixture = await page.evaluate(() => {
-      const { engine, useGame, world } = globalThis.__wreckright;
+      const { engine, useGame, world } = globalThis.__ironmuster;
       const state = useGame.getState();
       const unit = world.entities.find((entity) => entity.team === state.playerTeam &&
         !entity.destroyed && !entity.withdrawn && !entity.pilot.dead && !entity.pilot.ejected);
@@ -883,7 +873,7 @@ async function main() {
     try {
       await page.locator('[data-testid="centre-selection"]').click();
       const buttonCentre = await page.evaluate(({ expected }) => {
-        const { engine, world } = globalThis.__wreckright;
+        const { engine, world } = globalThis.__ironmuster;
         const target = { ...engine.renderer.camera.target };
         return { target, tick: world.tick, error: Math.hypot(target.x - expected.x, target.y - expected.y) };
       }, centreFixture);
@@ -894,7 +884,7 @@ async function main() {
         JSON.stringify({ fixture: centreFixture, result: buttonCentre }));
     } finally {
       await page.evaluate((saved) => {
-        const { engine, useGame, world } = globalThis.__wreckright;
+        const { engine, useGame, world } = globalThis.__ironmuster;
         const unit = world.entities.find((entity) => entity.id === saved.id);
         if (unit !== undefined) Object.assign(unit.pos, saved.pos);
         useGame.getState().setSelection(saved.selection);
@@ -915,7 +905,7 @@ async function main() {
     await openDesktopBattleMenu(page);
     await page.locator('[data-testid="feedback-link"]').focus();
     const outcome = await page.evaluate(async () => {
-      const { engine } = globalThis.__wreckright;
+      const { engine } = globalThis.__ironmuster;
       const deadline = Date.now() + 25_000;
       while (!engine.world.finished && Date.now() < deadline) {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -935,7 +925,7 @@ async function main() {
       await page.evaluate(() => document.activeElement?.classList.contains('battle-results')),
     );
     const debriefInputBefore = await page.evaluate(() => {
-      const { engine, useGame } = globalThis.__wreckright;
+      const { engine, useGame } = globalThis.__ironmuster;
       return {
         paused: useGame.getState().paused,
         orderMode: useGame.getState().orderMode,
@@ -947,7 +937,7 @@ async function main() {
     await sleep(120);
     await page.keyboard.up('ArrowRight');
     const debriefInputAfter = await page.evaluate(() => {
-      const { engine, useGame } = globalThis.__wreckright;
+      const { engine, useGame } = globalThis.__ironmuster;
       return {
         paused: useGame.getState().paused,
         orderMode: useGame.getState().orderMode,
@@ -1008,7 +998,7 @@ async function main() {
     await page.waitForSelector('[data-testid="objective-list"]');
 
     const mission = await page.evaluate(() => {
-      const { world } = globalThis.__wreckright;
+      const { world } = globalThis.__ironmuster;
       return {
         id: world.mission.id,
         zones: world.zones.length,
@@ -1036,22 +1026,22 @@ async function main() {
         (await page.locator('[data-testid="difficulty-picker"]').isDisabled()),
     );
     await page.evaluate(() => {
-      globalThis.__setupEngine = globalThis.__wreckright.engine;
+      globalThis.__setupEngine = globalThis.__ironmuster.engine;
     });
     await openDesktopBattleMenu(page);
     await page.locator('[data-testid="restart-battle"]').click();
     await page.waitForFunction(() => {
-      const game = globalThis.__wreckright;
+      const game = globalThis.__ironmuster;
       return game !== undefined && game.engine !== globalThis.__setupEngine &&
         game.world.mission.id === 'base_capture_ridge';
     });
     await page.waitForFunction(() => {
-      const state = globalThis.__wreckright.useGame.getState();
+      const state = globalThis.__ironmuster.useGame.getState();
       return state.objectives.length >= 3 && state.zones.length === 2;
     });
     const restarted = await page.evaluate(() => {
       delete globalThis.__setupEngine;
-      const state = globalThis.__wreckright.useGame.getState();
+      const state = globalThis.__ironmuster.useGame.getState();
       return { briefingSeen: state.briefingSeen, paused: state.paused };
     });
     check(
@@ -1068,7 +1058,7 @@ async function main() {
     await runDesktopSupportChecks({ page, check, state, mission, shots: SHOTS });
 
     const triggered = await page.evaluate(async () => {
-      const { engine } = globalThis.__wreckright;
+      const { engine } = globalThis.__ironmuster;
       const world = engine.world;
       const zone = world.zones.find((z) => z.id === 'south_post');
       const relief = world.triggers.find((trigger) => trigger.id === 'relief_lance');
@@ -1087,7 +1077,7 @@ async function main() {
         enemiesBefore,
         enemiesAfter: world.entities.filter((e) => e.team === 1).length,
         reliefFired: relief?.fired ?? 0,
-        spawnLog: globalThis.__wreckright.useGame.getState().log.join(' | '),
+        spawnLog: globalThis.__ironmuster.useGame.getState().log.join(' | '),
       };
     });
     check('holding a comm post captures it', triggered.owner === 0);
@@ -1117,10 +1107,10 @@ async function main() {
     await page.locator('[data-testid="briefing-deploy"]').click();
     // A remount removes the old hook before the new field has finished loading.
     await page.waitForFunction(
-      () => globalThis.__wreckright?.world.mission.id === 'exchange_register',
+      () => globalThis.__ironmuster?.world.mission.id === 'exchange_register',
     );
     const largeField = await page.evaluate(() => {
-      const { engine, world } = globalThis.__wreckright;
+      const { engine, world } = globalThis.__ironmuster;
       const width = world.terrain.width * world.terrain.tileSize;
       const height = world.terrain.height * world.terrain.tileSize;
       engine.renderer.camera.panBy(-100_000, -100_000);
@@ -1167,13 +1157,13 @@ async function main() {
       (await page.locator('canvas.minimap').count()) === 1,
     );
     await page.screenshot({ path: `${SHOTS}/15-cutbank-large-field.png` });
-    await page.evaluate(() => globalThis.__wreckright.useGame.getState().pushLog('old field marker'));
+    await page.evaluate(() => globalThis.__ironmuster.useGame.getState().pushLog('old field marker'));
     await openDesktopBattleMenu(page);
     await page.locator('[data-testid="choose-mission"]').click();
     await page.waitForSelector('[data-testid="briefing"]');
     check(
       'choosing another field clears the previous mission log',
-      (await page.evaluate(() => globalThis.__wreckright.useGame.getState().log.length)) === 0,
+      (await page.evaluate(() => globalThis.__ironmuster.useGame.getState().log.length)) === 0,
     );
 
     process.stdout.write('\ncampaign\n');
@@ -1184,7 +1174,7 @@ async function main() {
     await completeInitialCampaignSetup(page);
 
     const day = async () =>
-      Number((await page.locator('[data-testid="camp-day"]').innerText()).replace('Day ', ''));
+      page.evaluate(() => JSON.parse(localStorage.getItem('ironline.campaign')).state.day);
     const cash = async () =>
       Number(
         (await page.locator('[data-testid="camp-cbills"]').innerText()).replace(/[^0-9-]/g, ''),
@@ -1192,9 +1182,9 @@ async function main() {
 
     await companyFile(page, 'camp-campaigns');
     await page.waitForSelector('[data-testid="campaign-chooser"]');
-    const campaignChoices = await page.locator('[data-testid="campaign-choice"] option')
+    const campaignChoices = await page.locator('.company-choice-card')
       .evaluateAll((options) => options.map((option) => ({
-        id: option.value,
+        id: option.getAttribute('data-testid').replace('company-card-', ''),
         name: option.textContent?.trim() ?? '',
       })));
     check(
@@ -1205,8 +1195,9 @@ async function main() {
       JSON.stringify(campaignChoices),
     );
     await page.screenshot({ path: `${SHOTS}/06a-campaign-chooser.png` });
-    await page.locator('[data-testid="campaign-choice"]').selectOption('aurelian_recall');
+    await page.getByTestId('company-card-aurelian_recall').click();
     await page.locator('[data-testid="campaign-choice-start"]').click();
+    await openCampaignDetails(page);
     await page.waitForSelector('[data-testid="camp-node-first_warrant"]');
     const aurelianNodeIds = await page.locator('.camp-node').evaluateAll((nodes) =>
       nodes.map((node) => node.getAttribute('data-testid')?.replace('camp-node-', '') ?? ''),
@@ -1276,8 +1267,9 @@ async function main() {
     );
     await page.screenshot({ path: `${SHOTS}/06b-aurelian-campaign.png` });
     await companyFile(page, 'camp-campaigns');
-    await page.locator('[data-testid="campaign-choice"]').selectOption('border_dispute');
+    await page.getByTestId('company-card-border_dispute').click();
     await page.locator('[data-testid="campaign-choice-resume"]').click();
+    await openCampaignDetails(page);
     await page.waitForSelector('[data-testid="camp-node-militia_raid"]');
 
     const campaignNodeIds = await page.locator('.camp-node').evaluateAll((nodes) =>
@@ -1323,8 +1315,8 @@ async function main() {
       'first-drop guidance begins at choosing the job',
       (await page.locator('[data-testid="campaign"]').getAttribute('data-first-drop-stage')) ===
         'choose' &&
-        (await page.locator('[data-testid="campaign-guide"]').innerText()).includes(
-          '1 · Choose the job',
+        (await page.locator('[data-testid="campaign-journey"]').innerText()).includes(
+          '1 · Choose mission',
         ),
     );
 
@@ -1381,6 +1373,7 @@ async function main() {
     );
     await page.setViewportSize({ width: 1440, height: 900 });
 
+    await openCampaignDetails(page);
     const offerFor = async (termsId) => {
       const choice = page.locator(`[data-testid="camp-terms-${termsId}"]`);
       await choice.click();
@@ -1400,34 +1393,22 @@ async function main() {
       'contract terms name success pay, field clock and wage exposure',
       selectedTermsText.includes('on success only') &&
         selectedTermsText.includes('clock') &&
-        selectedTermsText.includes('maximum through deadline'),
+        !selectedTermsText.includes('maximum through deadline'),
       selectedTermsText,
     );
     await page.screenshot({ path: `${SHOTS}/08-contract-terms.png` });
 
     const dayBefore = await day();
-    await page.locator('[data-testid="camp-waiting"] > summary').click();
-    await page.locator('[data-testid="camp-advance"]').click();
-    await page.locator('[data-testid="camp-waiting"] > summary').click();
-    check('advancing a day moves the clock', (await day()) === dayBefore + 1);
-    const restDayLog = await page.locator('[data-testid="camp-log"]').innerText();
-    check(
-      'a rest day draws and records one seeded campaign event',
-      restDayLog.includes('Rest day —'),
-      restDayLog,
-    );
-    await page.screenshot({ path: `${SHOTS}/06d-rest-day-event.png` });
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.locator('[data-testid="camp-log"]').scrollIntoViewIfNeeded();
-    await page.screenshot({ path: `${SHOTS}/06e-rest-day-event-touch.png` });
-    await page.setViewportSize({ width: 1440, height: 900 });
+    check('campaign preparation has no waiting controls or calendar charges', await page.getByTestId('camp-advance').count() === 0 && await page.getByTestId('camp-day').count() === 0 && await day() === dayBefore);
 
     // Back to the war for the rest of the run: the authored node is the one
     // whose payout, salvage and unlocks the later checks are written against.
     await page.locator('[data-testid="camp-node-militia_raid"]').click();
 
+    await openCampaignDetails(page);
     await page.locator('[data-testid="camp-terms-salvage_first"]').click();
     await page.locator('[data-testid="camp-accept"]').click();
+    await returnFromAutoPreparation(page);
     check(
       'signing shows the active contract with launch and review controls',
       (await page.locator('[data-testid="camp-deploy"]').innerText()) === 'Launch the drop' &&
@@ -1438,11 +1419,11 @@ async function main() {
       'signing advances first-drop guidance to Launch the drop',
       (await page.locator('[data-testid="campaign"]').getAttribute('data-first-drop-stage')) ===
         'launch' &&
-        (await page.locator('[data-testid="campaign-guide"]').innerText()).includes(
-          '2 · Launch the drop',
+        (await page.locator('[data-testid="campaign-journey"]').innerText()).includes(
+          '2 · Repair & customise',
         ) &&
-        (await page.locator('[data-testid="campaign-guide"]').innerText()).includes(
-          'review the machines first',
+        (await page.locator('[data-testid="campaign-journey"]').innerText()).includes(
+          '3 · Pair pilots & deploy',
         ),
     );
     check(
@@ -1462,8 +1443,8 @@ async function main() {
       'Review machines opens preparation with the company machines',
       (await page.locator('[data-testid="campaign"]').getAttribute('data-first-drop-stage')) ===
         'bay' &&
-        (await page.locator('[data-testid="campaign-guide"]').innerText()).includes(
-          '3 · Prepare the team',
+        (await page.locator('[data-testid="campaign-journey"]').innerText()).includes(
+          '2 · Repair & customise',
         ) &&
         (await page.locator('[data-testid^="prep-machine-"]').count()) > 0,
     );
@@ -1474,8 +1455,8 @@ async function main() {
       'hangar continue opens the guided manifest stage',
       (await page.locator('[data-testid="campaign"]').getAttribute('data-first-drop-stage')) ===
         'manifest' &&
-        (await page.locator('[data-testid="campaign-guide"]').innerText()).includes(
-          '3 · Assign the pilots',
+        (await page.locator('[data-testid="campaign-journey"]').innerText()).includes(
+          '3 · Pair pilots & deploy',
         ),
     );
     await page.screenshot({ path: `${SHOTS}/08-manifest.png` });
@@ -1539,7 +1520,7 @@ async function main() {
     check('deploying launches the contracted mission', (await page.locator('.viewport canvas:not(.perf-overlay)').count()) === 1);
 
     const deployed = await page.evaluate(() => {
-      const { world } = globalThis.__wreckright;
+      const { world } = globalThis.__ironmuster;
       return {
         mission: world.mission.id,
         playerMechs: world.entities.filter((e) => e.team === 0).map((e) => e.name),
@@ -1555,7 +1536,7 @@ async function main() {
       && JSON.stringify(deployed.identities) === JSON.stringify(beforeDrop.expectedLance), JSON.stringify(deployed));
 
     await page.evaluate(async () => {
-      const { engine } = globalThis.__wreckright;
+      const { engine } = globalThis.__ironmuster;
       const deadline = Date.now() + 25_000;
       while (!engine.world.finished && Date.now() < deadline) {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -1642,8 +1623,9 @@ async function main() {
       'the debrief accounts for every pilot who dropped',
       (await page.locator('[data-testid^="debrief-fate-"]').count()) > 0,
     );
+    await page.locator('.debrief-pilot-report > summary').click();
     check(
-      'the pilot XP rows stay visible beside the compact ledger',
+      'the pilot XP rows are available in the crew report',
       (await page.locator('[data-testid^="debrief-fate-"]:visible').count()) ===
         debriefOutcome.pilotReportCount,
     );
@@ -1660,23 +1642,24 @@ async function main() {
     const salvageReport = page.locator('[data-testid="debrief-salvage-report"]');
     if (hasDetailedSalvage) {
       check(
-        'the recovery ledger and picker begin folded behind the salvage disclosure',
+        'the recovery ledger and picker are visible immediately',
         (await salvageReport.count()) === 1 &&
-          (await salvageReport.getAttribute('open')) === null &&
-          (await page.locator('[data-testid="debrief-recovery"]').isVisible()) === false &&
-          (await page.locator('[data-testid="debrief-salvage"]').isVisible()) === false,
+          (await salvageReport.getAttribute('open')) !== null &&
+          (debriefOutcome.salvageCandidates.length === 0 || await page.locator('[data-testid="debrief-recovery"]').isVisible()) &&
+          (debriefOutcome.salvageOffered.length === 0 || await page.locator('[data-testid="debrief-salvage"]').isVisible()),
       );
 
       const adjustPicks = page.locator('[data-testid="debrief-adjust-picks"]');
       await adjustPicks.focus();
       check(
-        'the editable salvage disclosure is named Adjust picks',
-        !debriefOutcome.salvageFinalized && (await adjustPicks.textContent())?.trim() === 'Adjust picks',
+        'the salvage choice is plainly named',
+        !debriefOutcome.salvageFinalized && (await adjustPicks.textContent())?.trim() === 'Choose your salvage',
         JSON.stringify({ label: await adjustPicks.innerText(), finalized: debriefOutcome.salvageFinalized }),
       );
       await page.keyboard.press('Enter');
+      await page.keyboard.press('Enter');
       check(
-        'the keyboard opens the full salvage report one click deeper',
+        'the keyboard can collapse and reopen salvage',
         (await salvageReport.getAttribute('open')) !== null &&
           (debriefOutcome.salvageCandidates.length === 0 ||
             (await page.locator('[data-testid="debrief-recovery"]').isVisible())) &&
@@ -1711,7 +1694,7 @@ async function main() {
       await page.keyboard.press('Tab');
       check(
         'the campaign debrief traps forward focus at its first crew action',
-        await page.locator('.debrief-pair-actions button').first().evaluate(el => document.activeElement === el),
+        await page.locator('[data-testid="debrief"] summary:visible').first().evaluate(el => document.activeElement === el),
       );
       await page.keyboard.press('Shift+Tab');
       check(
@@ -1747,7 +1730,7 @@ async function main() {
 
     check(
       'first-drop guidance retires after the opening outcome',
-      (await page.locator('[data-testid="campaign-guide"]').count()) === 0 &&
+      (await page.locator('[data-testid="campaign-journey"]').count()) === 1 &&
         (await page.locator('[data-testid="campaign"]').getAttribute('data-first-drop-stage')) ===
           null,
     );
@@ -1758,6 +1741,7 @@ async function main() {
       (await page.locator('li[data-testid^="camp-pilot-"]').count()) >= 4,
     );
 
+    await openCampaignDetails(page);
     const posted = await page.locator('[data-testid="camp-hall"] li').count();
     check('the hiring hall is posting work', posted > 0, `${posted} postings`);
     const postingFacts = await page.locator('[data-testid="camp-hall"] button').first().innerText();
@@ -1769,7 +1753,7 @@ async function main() {
     check(
       'the board states when it renews',
       (await page.locator('[data-testid="camp-hall"] .hall-note').innerText()).includes(
-        'New work arrives on day',
+        'Available work refreshes as the campaign progresses',
       ),
     );
 
@@ -1794,8 +1778,8 @@ async function main() {
     );
     const rosterText = await page.locator('[data-testid="camp-roster"]').innerText();
     check(
-      'the barracks states experience and daily payroll',
-      rosterText.includes('XP banked') && rosterText.includes('/day'),
+      'the barracks states experience without a daily payroll',
+      rosterText.includes('XP banked') && !rosterText.includes('/day'),
     );
 
     checkCampaignHaul({ before: beforeDrop, after: resolvedState, check });

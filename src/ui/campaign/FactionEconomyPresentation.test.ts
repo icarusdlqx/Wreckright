@@ -62,9 +62,9 @@ describe('campaign faction economy presentation', () => {
       expect(html).toContain('Aurelian Stock');
       expect(html).not.toContain('(Sealed)');
       expect(html).toContain(`${expectedFactor(linewrought.cost)}× workshop cost`);
-      expect(html).toContain(`${expectedFactor(linewrought.days)}× workshop time`);
+      expect(html).not.toContain(`${expectedFactor(linewrought.days)}× workshop time`);
       expect(html).toContain(`${expectedFactor(aurelian.cost)}× workshop cost`);
-      expect(html).toContain(`${expectedFactor(aurelian.days)}× workshop time`);
+      expect(html).not.toContain(`${expectedFactor(aurelian.days)}× workshop time`);
       expect(html).toContain('local repair supply');
       expect(html).toContain('replacement weapons and equipment salvage-only');
     }

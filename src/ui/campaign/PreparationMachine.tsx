@@ -8,6 +8,7 @@ import { authoredDesignName } from '../designLabel';
 import { WeaponGlyph } from '../mechbay/WeaponGlyph';
 import { formatWeaponNumber } from '../mechbay/weaponPresentation';
 import { MachineIdentity, RepairReadout } from './MachineIdentity';
+import { MachineServiceRecord } from './MachineServiceRecord';
 import type { CampaignChange } from './campaignSession';
 
 interface Props {
@@ -38,19 +39,20 @@ export function PreparationMachine({ catalog, state, mech, mutate, onRefit }: Pr
     <div className="prep-machine-actions">
       <button type="button" onClick={() => onRefit(mech.id)} disabled={!ready}
         title={ready ? 'Change this machine’s installed equipment.' : 'Finish workshop work or rebuild this machine before refitting.'}
-        data-testid={`hangar-refit-${mech.id}`}>Refit loadout</button>
-      <button type="button" disabled={mech.status !== 'hulk' && (!ready || estimate.days === 0)}
-        title={mech.status === 'hulk' ? 'Book a full chassis rebuild.' : !ready ? 'This machine already has workshop work booked.' : estimate.days === 0 ? 'This machine does not need repairs.' : `Book ${estimate.days} day${estimate.days === 1 ? '' : 's'} of workshop work.`}
+        data-testid={`hangar-refit-${mech.id}`}>Mechlab</button>
+      <button type="button" disabled={estimate.cost > state.cbills || (mech.status !== 'hulk' && (!ready || estimate.days === 0))}
+        title={estimate.cost > state.cbills ? `Need ${estimate.cost.toLocaleString()} C for repairs.` : 'Pay the repair cost and restore this mech immediately.'}
         data-testid={`hangar-${mech.status === 'hulk' ? 'rebuild' : 'repair'}-${mech.id}`}
         onClick={() => mutate((draft) => {
           const target = draft.mechs.find((entry) => entry.id === mech.id);
           if (target === undefined) return 'Machine unavailable.';
           const result = target.status === 'hulk' ? rebuildHulk(catalog, draft, target) : startRepair(catalog, draft, target);
-          return result.ok ? `${authoredDesignName(catalog, target.design)} booked; ready day ${target.readyOnDay}.` : result.reason;
-        })}>{mech.status === 'hulk' ? 'Rebuild machine' : projected.status === 'active' ? 'Repair machine' : 'Queue repair'}</button>
+          return result.ok ? `${authoredDesignName(catalog, target.design)} repaired and ready to deploy.` : result.reason;
+        })}>{mech.status === 'hulk' ? 'Rebuild now' : 'Repair now'} · {estimate.cost.toLocaleString()} C</button>
     </div>
     <RepairReadout catalog={catalog} state={state} mech={mech} estimate={estimate} projected={projected}
       booking={booking} ready={ready} status={ready ? 'Machine available' : 'Workshop work required'} />
+    <MachineServiceRecord catalog={catalog} state={state} mech={mech} />
     <h4>Installed weapons</h4>
     <ul className="prep-weapons">
       {weapons.map((id) => {

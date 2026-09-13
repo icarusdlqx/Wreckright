@@ -1,6 +1,6 @@
 import { checkSensorFieldTracking } from './sensor-field-tracking.mjs';
 const state = page => page.evaluate(() => {
-  const { world, useGame } = globalThis.__wreckright;
+  const { world, useGame } = globalThis.__ironmuster;
   return { tick: world.tick, rng: world.rng.save(), contacts: useGame.getState().contacts,
     enemies: useGame.getState().enemies, fog: `${world.vision.tiles}|${world.vision.explored}`,
     positions: world.entities.map(entity => ({ id: entity.id, pos: entity.pos })) };
@@ -9,7 +9,7 @@ const state = page => page.evaluate(() => {
 /** Diagnostic placement, not a played mission: real sensor equipment and command handlers remain in use. */
 async function arrange(page, url) {
   return page.evaluate(async url => {
-    const { engine, world, useGame } = globalThis.__wreckright;
+    const { engine, world, useGame } = globalThis.__ironmuster;
     const sensors = await import(new URL('src/sim/sensors.ts', url).href);
     const { createMech } = await import(new URL('src/sim/entity.ts', url).href);
     engine.setPaused(true);
@@ -77,9 +77,9 @@ export async function runSensorActivationChecks({ browser, url, shots, check }) 
     await page.goto(url, { waitUntil: 'load' });
     await page.locator('[data-testid="home-skirmish"]').click();
     await page.locator('[data-testid="briefing"]').waitFor();
-    await page.waitForFunction(() => globalThis.__wreckright?.useGame.getState().ready);
+    await page.waitForFunction(() => globalThis.__ironmuster?.useGame.getState().ready);
     await page.locator('[data-testid="briefing-deploy"]').click();
-    await page.waitForFunction(() => globalThis.__wreckright?.useGame.getState().briefingSeen);
+    await page.waitForFunction(() => globalThis.__ironmuster?.useGame.getState().briefingSeen);
     const fixture = await arrange(page, url);
     const before = await state(page);
     check('diagnostic sensor target begins beyond normal electronic reach',
@@ -100,14 +100,14 @@ export async function runSensorActivationChecks({ browser, url, shots, check }) 
     const sweepText = await page.locator('[data-testid="mech-sensor-sweep-readout"]').textContent();
     const abilityButton = page.locator('[data-testid="command-ability"]');
     const abilityBefore = await page.evaluate(id => {
-      const { world, useGame } = globalThis.__wreckright;
+      const { world, useGame } = globalThis.__ironmuster;
       return { clocks: world.entities.find(entity => entity.id === id).ability,
         readout: useGame.getState().units.find(unit => unit.id === id).ability };
     }, fixture.scoutId);
     const abilityText = await abilityButton.textContent();
     // The button stays actionable to explain a refusal; cooldown is enforced by the command handler.
     await abilityButton.click();
-    const abilityAfter = await page.evaluate(id => globalThis.__wreckright.world.entities.find(entity => entity.id === id).ability, fixture.scoutId);
+    const abilityAfter = await page.evaluate(id => globalThis.__ironmuster.world.entities.find(entity => entity.id === id).ability, fixture.scoutId);
     check('pilot sweep shows its active range and rejects reuse without restarting its cooldown',
       /instrument range/.test(sweepText) && /ACTIVE/.test(abilityText)
       && !abilityBefore.readout.ready && abilityBefore.readout.activeRemaining > 0 && abilityBefore.readout.cooldownRemaining > 0
@@ -125,7 +125,7 @@ export async function runSensorActivationChecks({ browser, url, shots, check }) 
     await page.locator('[data-testid="unit-details-toggle"]').click();
 
     const probe = await page.evaluate(async url => {
-      const { engine, world } = globalThis.__wreckright;
+      const { engine, world } = globalThis.__ironmuster;
       for (const entity of world.entities) if (entity.team === world.playerTeam) entity.sensorRange = 0;
       const sensors = await import(new URL('src/sim/sensors.ts', url).href);
       sensors.updateTeamVisions(world); world.vision.tracks.clear(); world.vision.ghosts.clear();
@@ -143,7 +143,7 @@ export async function runSensorActivationChecks({ browser, url, shots, check }) 
     await page.locator(`[data-testid="sensor-contact-${fixture.enemyId}"]`).waitFor();
     const probeAfter = await state(page);
     const paid = await page.evaluate(() => {
-      const { world } = globalThis.__wreckright;
+      const { world } = globalThis.__ironmuster;
       return world.resources.get(world.playerTeam);
     });
     check('real support-probe placement detects immediately while paused and charges exactly once',
@@ -153,13 +153,13 @@ export async function runSensorActivationChecks({ browser, url, shots, check }) 
     await shot('probe-desktop');
     // Restore the real equipment range after isolating the probe, before reviewing normal HUD layout.
     await page.evaluate(fixture => {
-      const { engine, world } = globalThis.__wreckright;
+      const { engine, world } = globalThis.__ironmuster;
       world.entities.find(entity => entity.id === fixture.scoutId).sensorRange = fixture.sensorRange;
       engine.presentation.publish(null);
     }, fixture);
     for (const [layout, width, height] of [['mobile', 390, 844], ['mobile-landscape', 844, 390]]) {
       await page.setViewportSize({ width, height });
-      await page.evaluate(id => globalThis.__wreckright.useGame.getState().setSelection([id]), fixture.scoutId);
+      await page.evaluate(id => globalThis.__ironmuster.useGame.getState().setSelection([id]), fixture.scoutId);
       await page.locator('[data-testid="mobile-tab-orders"]').click();
       const move = page.locator('[data-testid="command-move"]');
       const geometry = await page.locator('[data-testid="sensor-sweep-readout"]').evaluate(element => {
@@ -176,14 +176,14 @@ export async function runSensorActivationChecks({ browser, url, shots, check }) 
         const bounds = element.getBoundingClientRect();
         return bounds.height >= 44 && element.contains(document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2));
         }), JSON.stringify(geometry));
-      await page.evaluate(() => globalThis.__wreckright.useGame.getState().setOrderMode(null));
+      await page.evaluate(() => globalThis.__ironmuster.useGame.getState().setOrderMode(null));
       await move.click();
       check(`${layout}: orders remain usable while sensor coverage is displayed`,
-        await page.evaluate(() => globalThis.__wreckright.useGame.getState().orderMode === 'move'));
+        await page.evaluate(() => globalThis.__ironmuster.useGame.getState().orderMode === 'move'));
       await shot(layout);
     }
     await page.setViewportSize({ width: 1440, height: 1000 });
-    await page.evaluate(() => { for (const entity of globalThis.__wreckright.world.entities) if (entity.team === globalThis.__wreckright.world.playerTeam) entity.sensorRange = 0; });
+    await page.evaluate(() => { for (const entity of globalThis.__ironmuster.world.entities) if (entity.team === globalThis.__ironmuster.world.playerTeam) entity.sensorRange = 0; });
     await checkSensorFieldTracking({ page, url, id: fixture.enemyId, check, shot });
     check('sensor activation review has no browser errors', errors.length === 0, errors.join('\n'));
   } catch (error) { await shot('error').catch(() => {}); throw error; }

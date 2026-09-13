@@ -1,3 +1,4 @@
+import { saveBay } from './save-bay.mjs';
 /** Disposable-browser regression: changes made through the actual setup and bay controls. */
 import { runBriefingTeamLayoutChecks } from './briefing-team.mjs';
 import { clickFittingAction } from './fitting-actions.mjs';
@@ -15,7 +16,7 @@ export async function runSkirmishForceChecks({ browser, url, shots, check }) {
     await page.getByTestId(testId).selectOption(value);
   };
   const waitWorld = async (missionId) => page.waitForFunction((id) =>
-    globalThis.__wreckright?.world.mission.id === id, missionId);
+    globalThis.__ironmuster?.world.mission.id === id, missionId);
   try {
     await page.goto(url);
     await page.getByTestId('home-skirmish').click();
@@ -31,9 +32,9 @@ export async function runSkirmishForceChecks({ browser, url, shots, check }) {
     check('skirmish offers all twelve terrain maps', maps.length === 12 && new Set(maps).size === 12);
     for (const map of maps) {
       await pick('briefing-map-picker', map);
-      await page.waitForFunction((id) => globalThis.__wreckright?.world.mission.mapId === id, map);
+      await page.waitForFunction((id) => globalThis.__ironmuster?.world.mission.mapId === id, map);
       check(`${map} is a pure skirmish with legal default forces`, await page.getByTestId('briefing-deploy').isEnabled()
-        && await page.evaluate(() => globalThis.__wreckright.world.mission.triggers.length === 0));
+        && await page.evaluate(() => globalThis.__ironmuster.world.mission.triggers.length === 0));
     }
     await pick('briefing-map-picker', 'foundry_district');
     await waitWorld('skirmish_foundry_district');
@@ -65,7 +66,7 @@ export async function runSkirmishForceChecks({ browser, url, shots, check }) {
     await page.getByTestId('berth-customise-0').click();
     await page.getByTestId('outfit-bay').waitFor();
     await clickFittingAction(page.getByTestId('remove-weapon-0'));
-    await page.getByTestId('bay-save').click();
+    await saveBay(page);
     await page.getByTestId('outfit-bay').waitFor({ state: 'hidden' });
     const savedFriendly = await page.evaluate(() => localStorage.getItem('ironline.lance.skirmish_foundry_district'));
     check('friendly Commit refit saves its actual changed weapons before leaving the bay',
@@ -79,7 +80,7 @@ export async function runSkirmishForceChecks({ browser, url, shots, check }) {
     check('enemy refit identifies its side and opens the selected chassis',
       (await page.getByTestId('bay-commission').innerText()).includes('Enemy berth 1'));
     await clickFittingAction(page.getByTestId('remove-weapon-0'));
-    await page.getByTestId('bay-save').click();
+    await saveBay(page);
     await page.getByTestId('outfit-bay').waitFor({ state: 'hidden' });
     check('enemy refit returns an edited loadout to the opposing berth',
       await page.getByTestId('enemy-berth-design-0').inputValue() === 'custom');
@@ -122,21 +123,22 @@ export async function runSkirmishForceChecks({ browser, url, shots, check }) {
     await page.getByTestId('enemy-berth-customise-0').click();
     await page.getByTestId('outfit-bay').waitFor();
     await clickFittingAction(page.getByTestId('remove-weapon-0'));
-    await page.getByTestId('bay-save').click();
+    await saveBay(page);
     await page.getByTestId('outfit-bay').waitFor({ state: 'hidden' });
     if (shots) await page.getByTestId('briefing').screenshot({ path: `${shots}/skirmish-forces-desktop.png` });
     await page.getByTestId('briefing-deploy').click();
     await page.getByTestId('briefing').waitFor({ state: 'hidden' });
     const fielded = await page.evaluate(() => ({
-      mission: globalThis.__wreckright.world.mission.id,
-      difficulty: globalThis.__wreckright.world.difficulty,
-      playerDifficulty: globalThis.__wreckright.world.playerDifficulty,
-      units: globalThis.__wreckright.world.entities.map((entity) => ({ team: entity.team, design: entity.designId,
+      mission: globalThis.__ironmuster.world.mission.id,
+      difficulty: globalThis.__ironmuster.world.difficulty,
+      playerDifficulty: globalThis.__ironmuster.world.playerDifficulty,
+      units: globalThis.__ironmuster.world.entities.map((entity) => ({ team: entity.team, design: entity.designId,
         gunnery: entity.pilot.gunnery, weapons: entity.weapons.length })),
       campaign: localStorage.getItem('ironline.campaign'),
+      enemyDesign: JSON.parse(localStorage.getItem('ironline.lance.enemy.skirmish_foundry_district'))[0].design,
     }));
     check('deployment uses the exact two selected forces and their independent tiers', fielded.units.length === 2
-      && fielded.units[0].design === 'hornet_spotter' && fielded.units[1].design === 'sentinel_brawler'
+      && fielded.units[0].design === JSON.parse(savedFriendly)[0].design.id && fielded.units[1].design === fielded.enemyDesign.id
       && fielded.difficulty === 'green' && fielded.playerDifficulty === 'elite'
       && fielded.units[0].weapons === JSON.parse(savedFriendly)[0].design.mounts.length
       && fielded.units[1].weapons === savedEnemy[0].design.mounts.length);

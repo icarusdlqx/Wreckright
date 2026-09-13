@@ -5,31 +5,33 @@
   "opening": {
     "title": "Four names on a list",
     "body": [
-      "The notice arrives during a repair shift. The Aurelian Continuance claims every surviving walker root left by its predecessor, including the four in your yard. Halloran offers a contract to reopen Marker Eleven before its ownership records are taken away. Your company accepts because those records include your own machines.",
-      "You command Linewrought: local pilots, mismatched armour and guns the workshops can keep supplied. Halloran needs its crossings; Sarn needs working gantries. Neither can pay you in loyalty. Bring crews home, choose useful salvage and keep enough money for the next repair. The first job is to clear the registry guard."
+      "The Recall arrives during the night shift at Sarn's Gantry Three. Its four serials are the walkers standing in your yard. Records keeper Iona Venn has barred Marker Eleven's registry door against Kestrel's compliance team. She is still copying the margins: fitters' names, repaired joints, generations of work that the seizure list calls someone else's property.",
+      "You command Linewrought. The guns are mismatched and the workshops know every patch. Venn has kept one crated Aurelian optic out of the inventory; Halloran will release it if your company opens the registry. Bring people and useful equipment home. Your first foothold is a place with a door, a name and someone waiting behind it."
     ]
   },
   "chapters": [
     {
       "afterNodeId": "militia_raid",
-      "title": "The workshops answer",
+      "title": "The lamp from Marker Eleven",
       "body": [
-        "Marker Eleven is copied. The rolls describe serials, but the margins hold workshop names, repair dates and the people who kept those machines running. One fresh reader entry points to a recovery cut west of Sarn. A crew there has stopped answering. The company can reach them before Kestrel does.",
-        "Halloran also posts local work that can provide parts and proof. Those notices remain optional; The Quiet Claim is the next main operation."
+        "Venn comes out carrying a copy of the rolls and a crated Focused Medium Laser. The workshop marks its receipt 'Marker Eleven'. That source remains in the company report even after the emitter becomes a working gun. This is Halloran's released stock; whatever you recover from the cordon is a separate claim.",
+        "The next main job leads to fitter Nera Pell at Cut Nine. In the bay, the new one-box emitter can replace a Gadfly's left-arm Flamer without changing weight. Save it as Lamplighter if that job suits the machine. It can cover the recovery winch from farther back; its hotter shot still needs discipline. The optional reader survey remains available before the rescue."
       ]
     },
     {
       "afterNodeId": "recovery_window",
       "title": "A crew brought home",
       "body": [
-        "The recovery cradle clears the yard with its fitters alive. Their machinery and field notes arrive in your stores as useful equipment, not a promise. They also bring news: Kestrel followed the service route to Sarn's repair halls. Keeping one workshop open could matter more than winning another stretch of empty road."
+        "Pell's crew rides the cradle out of Cut Nine. They sign over a damaged, unarmed Prybar hulk and ask for a lift home to Gantry Three. The company has gained a machine it can rebuild and equip, not a free combat-ready walker. Pell recognises the emitter from Venn's cabinet: her workshop replaced its cooling jacket two winters ago.",
+        "Kestrel is following. The next lift allows 205 tonnes, exactly your original four. A lighter rebuilt machine can change the detail, but someone must pilot it and something must guard the gantry while a runner fetches stores. Decide what the company can field before accepting that division of labour."
       ]
     },
     {
       "afterNodeId": "workshop_defence",
-      "title": "The lights stay on",
+      "title": "Gantry Three finishes its shift",
       "body": [
-        "Sarn's gantries finish their shift behind your guns. The shopworkers remember the company that stayed, and their stock transfer gives your fitters something concrete to work with. A company can live off wrecks for a while. A district survives because someone can still put them back together."
+        "Pell restarts the gantry's traverse as the last carrier stops. Venn pins the copied rolls beside the shift board. One registry cabinet, one recovery lift and one working repair hall now belong to the same service trail. Your company carried a piece of that trail into battle in whatever form you chose to keep it.",
+        "Sarn honours its workshop access and the next main posting opens. Keeping Gantry Three working has bought the company more than a fee: people who know its machines, a place willing to repair them and evidence that these roots were never abandoned by everyone."
       ]
     },
     {
@@ -43,7 +45,7 @@
       "afterNodeId": "foundry_sweep_node",
       "title": "A rule worth keeping",
       "body": [
-        "Sarn retains the recording of Kestrel firing after an ejected pilot. Wreckright gives the ground-holder the wreck. It also gives the pilot a way home. Breaking that second rule threatens every crew on Tessell, including yours. Kestrel has lost the yard, but its cut to Sarn's power trunk has left the western repair halls cold."
+        "Sarn retains the recording of Kestrel firing after an ejected pilot. The Ironmuster Code gives the ground-holder the wreck. It also gives the pilot a way home. Breaking that second rule threatens every crew on Tessell, including yours. Kestrel has lost the yard, but its cut to Sarn's power trunk has left the western repair halls cold."
       ]
     },
     {

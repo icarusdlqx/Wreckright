@@ -38,11 +38,11 @@ for (const [name, channels] of Object.entries(stems)) {
   for (let c = 0; c < 2; c++) for (let i = 0; i < frames; i++) {
     master[c][i] += channels[c % channels.length][i] * (name === 'core' ? .92 : .6);
   }
-  const wav = resolve(review, `carry-the-dawn-${name}.wav`);
+  const wav = resolve(review, `roads-we-keep-${name}.wav`);
   await writeFile(wav, encodeWav(channels));
   execFileSync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', '-i', wav,
-    '-c:a', 'libopus', '-b:a', channels.length === 2 ? '112k' : '64k', '-metadata', `title=Carry the Dawn - ${name}`,
-    '-metadata', 'artist=Wreckright', resolve(assets, `carry-the-dawn-${name}.ogg`)]);
+    '-c:a', 'libopus', '-b:a', channels.length === 2 ? '112k' : '64k', '-metadata', `title=Roads We Keep - ${name}`,
+    '-metadata', 'artist=Ironmuster', resolve(assets, `roads-we-keep-${name}.ogg`)]);
   report[name] = { seconds: frames / RATE, channels: channels.length, peak: peak * trim,
     rms: Math.sqrt(energy / (frames * channels.length)) };
 }
@@ -54,10 +54,10 @@ for (const channel of master) for (let i = 0; i < frames; i++) {
   const fadeOut = Math.min(1, (frames - 1 - i) / (RATE * 2.5));
   channel[i] *= masterTrim * fadeIn * fadeOut;
 }
-const fullWav = resolve(review, 'Wreckright-Carry-the-Dawn.wav');
+const fullWav = resolve(review, 'Ironmuster-Roads-We-Keep.wav');
 await writeFile(fullWav, encodeWav(master));
 execFileSync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', '-i', fullWav,
-  '-c:a', 'libmp3lame', '-q:a', '2', '-metadata', 'title=Carry the Dawn',
-  '-metadata', 'artist=Wreckright', resolve(review, 'Wreckright-Carry-the-Dawn.mp3')]);
+  '-c:a', 'libmp3lame', '-q:a', '2', '-metadata', 'title=Roads We Keep',
+  '-metadata', 'artist=Ironmuster', resolve(review, 'Ironmuster-Roads-We-Keep.mp3')]);
 await writeFile(resolve(review, 'score-render.json'), JSON.stringify(report, null, 2) + '\n');
 console.log(JSON.stringify(report, null, 2));

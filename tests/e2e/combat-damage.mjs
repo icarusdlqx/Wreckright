@@ -10,9 +10,9 @@ export async function runCombatDamageChecks({ browser, url, shots, check }) {
     await page.getByTestId('briefing-mission-picker').selectOption('skirmish_ridge');
     await page.getByTestId('briefing-deploy').click();
     await page.getByTestId('briefing').waitFor({ state: 'hidden' });
-    await page.waitForFunction(() => globalThis.__wreckright?.useGame.getState().briefingSeen);
+    await page.waitForFunction(() => globalThis.__ironmuster?.useGame.getState().briefingSeen);
     const fixture = await page.evaluate(() => {
-      const { world, useGame } = globalThis.__wreckright;
+      const { world, useGame } = globalThis.__ironmuster;
       useGame.getState().patch({ paused: true });
       const friendly = world.entities.find(unit => unit.team === world.playerTeam && !unit.destroyed);
       const enemy = world.entities.find(unit => unit.team !== world.playerTeam && !unit.destroyed);
@@ -70,7 +70,7 @@ export async function runCombatDamageChecks({ browser, url, shots, check }) {
     await page.keyboard.press('Enter');
     check('keyboard called shots still direct the selected lance at the chosen hostile body section',
       await page.evaluate(({ friendlyId, enemyId }) => {
-        const { world, useGame } = globalThis.__wreckright;
+        const { world, useGame } = globalThis.__ironmuster;
         const order = world.entities.find(unit => unit.id === friendlyId).orders.attack;
         return order?.targetId === enemyId && order?.calledShot === 'left_leg' && useGame.getState().calledShotLocation === 'left_leg';
       }, fixture));

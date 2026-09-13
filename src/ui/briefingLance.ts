@@ -45,7 +45,7 @@ export function briefingLanceFor(
       .filter((design) => skirmishDesignAllowed(catalog, design, faction))
       .map((design) => ({
         value: design.id,
-        label: designIdentityLabel(catalog, design),
+        label: `${designIdentityLabel(catalog, design)} · Prime`,
       })),
     saved: listStoredDesigns().flatMap((id) => {
       const stored = loadFromStorage(id, catalog).design;

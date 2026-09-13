@@ -27,7 +27,7 @@ const CONFUSION_LABELS: Record<ConfusionArea, string> = {
   heat: 'Understanding heat',
   camera: 'Moving the camera',
   campaign: 'Choosing a contract',
-  mechbay: 'Using the mechbay',
+  mechbay: 'Using the Mechlab',
 };
 
 const PERFORMANCE_OPTIONS: readonly { value: PerformanceRead; label: string }[] = [

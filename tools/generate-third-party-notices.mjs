@@ -59,7 +59,7 @@ function generate() {
   );
 
   const lines = [
-    'WRECKRIGHT THIRD-PARTY NOTICES',
+    'IRONMUSTER THIRD-PARTY NOTICES',
     '',
     'Generated from package-lock.json and docs/asset-provenance.json',
     'by npm run notices:write.',

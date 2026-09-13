@@ -1,4 +1,4 @@
-# Releasing Wreckright safely
+# Releasing Ironmuster safely
 
 `main` is the production branch. A push to it starts a Cloudflare Workers Build,
 so release safety begins before the merge. GitHub's `Production gate` and the
@@ -106,5 +106,5 @@ or serious security/privacy regression.
    commit so repository and production state converge again.
 
 Save-format changes must be designed so the immediately previous release can
-safely read or reject newer data. Wreckright retains its original non-visible
+safely read or reject newer data. Ironmuster retains its original non-visible
 `ironline.*` storage and playtest-schema identifiers for this reason.

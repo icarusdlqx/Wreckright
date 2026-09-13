@@ -1,3 +1,3 @@
 /// <reference types="vite/client" />
 
-declare const __WRECKRIGHT_VERSION__: string;
+declare const __IRONMUSTER_VERSION__: string;

@@ -48,9 +48,9 @@ rendition. The register records its introducing commit and exact shipped bytes
 as `generated-original-art-with-source-record`. This inventory entry records
 provenance without assigning the artwork a software licence.
 
-The three `carry-the-dawn-*.ogg` files are synchronized layers of the original
-Wreckright theme. Their note, arrangement and instrument synthesis source is
-retained in `tools/audio/`; the [music record](audio/CARRY_THE_DAWN.md) describes
+The three `roads-we-keep-*.ogg` files are synchronized layers of the original
+Ironmuster theme. Their note, arrangement and instrument synthesis source is
+retained in `tools/audio/`; the [music record](audio/ROADS_WE_KEEP.md) describes
 the composition and reproduction. They were rendered locally without any
 external recordings, samples, soundfonts or reference songs. Exact shipped
 hashes and the introducing commit are retained in the asset register.

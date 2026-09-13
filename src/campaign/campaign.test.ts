@@ -15,7 +15,7 @@ import { estimateRepair, startRepair } from './repair';
 import { availableXp, hireCost, raiseSkill, skillCost } from './roster';
 import { outcomeFor } from './salvage';
 import { deserialiseCampaign, serialiseCampaign } from './save';
-import type { CampaignState } from './types';
+import { addToStore, type CampaignState } from './types';
 
 const CAMPAIGN_ID = 'border_dispute';
 
@@ -204,9 +204,15 @@ describe('salvage', () => {
     const payoutRun = start('payout-run');
     const suppliesBefore = structuredClone(payoutRun.store);
     acceptContract(catalog, payoutRun, 'militia_raid', 'fee_first');
-    runMission(catalog, payoutRun);
+    const run = runMission(catalog, payoutRun);
 
-    expect(payoutRun.store).toEqual(suppliesBefore);
+    // Contract goods are paid out even when the company waives field salvage.
+    const expected = { ...payoutRun, store: suppliesBefore };
+    for (const reward of run.outcome.campaignRewards ?? []) {
+      for (const item of reward.items) addToStore(expected, item.kind, item.itemId, item.count);
+    }
+    expect(run.outcome.salvagedItems).toEqual([]);
+    expect(payoutRun.store).toEqual(expected.store);
     expect(payoutRun.history[0]?.termsId).toBe('fee_first');
     expect(payoutRun.history[0]?.salvagedChassis ?? []).toHaveLength(0);
   });
@@ -226,7 +232,7 @@ describe('repair queue', () => {
     const result = startRepair(catalog, state, mech);
     expect(result.ok, result.reason ?? '').toBe(true);
     expect(state.cbills).toBe(cash - estimate.cost);
-    expect(mech.status).toBe('repairing');
+    expect(mech.status).toBe('ready');
 
     advanceDays(catalog, state, estimate.days);
     expect(mech.status).toBe('ready');

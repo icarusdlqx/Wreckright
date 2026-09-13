@@ -40,7 +40,7 @@ facing names.
 - Linewrought and Aurelian weapons use compatible physical mounts. Cross-culture
   fitting remains possible. Cooling, ammunition feeds, calibration and scarce
   replacements create the trade-offs.
-- Wreckright is Tessell's field custom: at dusk the holder of the ground owns
+- The Ironmuster Code is Tessell's field custom: at dusk the holder of the ground owns
   recoverable wreckage, and ejected pilots are allowed home. It limits endless
   reprisals without making a battle bloodless or legalising every seizure.
 - The Recall Authority operates through one custody tender and contracted local
@@ -100,7 +100,7 @@ main route.
 ```text
 LINEWROUGHT
 First Notice -> The Quiet Claim -> Keep the Gantries -> First Attestation
-             -> Broken Wreckright -> The Cold Yards -> Manifest Key
+             -> Broken Code -> The Cold Yards -> Manifest Key
              -> Take the Manifest OR Burn the Manifest
 
 Optional postings: The Missing Trail, Custody Posts, The Causeway,
@@ -111,7 +111,7 @@ The Missing Trail may be offered after First Notice and adds intelligence to
 The Quiet Claim, but the rescue must also be reachable directly. C02 must not
 retain its current hard prerequisite on the survey. Custody Posts leads to The
 Causeway and Cutbank Ledger as a local contract branch. Blackglass Attestation
-opens after Broken Wreckright. All optional branches close cleanly when the
+opens after Broken Code. All optional branches close cleanly when the
 campaign ends.
 
 ```text
@@ -132,7 +132,7 @@ Linewrought clears Marker Eleven because it holds the title rolls naming local
 machines. Those records expose an isolated recovery crew; bringing the crew
 home exposes the working gantries to attack. Keeping the gantries alive gives
 the company the repair capacity to confront an Aurelian claim detail. That
-battle reveals Kestrel's escalation and leads to a wreckright violation at
+battle reveals Kestrel's escalation and leads to an Ironmuster Code violation at
 Sarn. Securing the victims' recovery preserves evidence of the violation but
 reveals the western yards have lost power. Restoring the switching position
 recovers an address for Barrow's manifest. Opening Barrow then puts the master
@@ -187,7 +187,7 @@ passed.
 ## Terms and voice
 
 Define **root** once as the inherited reactor cradle, keel and control lattice
-inside a walker. Define **wreckright** once as Tessell's dusk rule for wrecks
+inside a walker. Define **the Ironmuster Code** once as Tessell's dusk rule for wrecks
 and surviving pilots. Thereafter use the terms without repeated exposition.
 
 Linewrought speech names places, people, jobs and visible machine conditions.

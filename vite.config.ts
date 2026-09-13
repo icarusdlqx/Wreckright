@@ -7,7 +7,7 @@ export default defineConfig({
   base: './',
   plugins: [react()],
   define: {
-    __WRECKRIGHT_VERSION__: JSON.stringify(process.env.npm_package_version ?? 'development'),
+    __IRONMUSTER_VERSION__: JSON.stringify(process.env.npm_package_version ?? 'development'),
   },
   test: {
     environment: 'node',

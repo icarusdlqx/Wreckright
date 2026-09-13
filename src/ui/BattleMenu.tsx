@@ -77,11 +77,11 @@ export function BattleMenu({ fullHud, variant, ...props }: BattleMenuProps) {
                 title={props.locked ? lockedTitle : ''}
                 onClick={() => {
                   score.prepare();
-                  state.patch({ screen: 'mechbay' });
+                  state.patch({ screen: 'mechbay', mechbayReturn: 'battle' });
                 }}
                 data-testid="open-mechbay"
               >
-                Mechbay
+                Mechlab
               </button>
               <button
                 type="button"

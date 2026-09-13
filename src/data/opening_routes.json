@@ -1,66 +1,114 @@
 [
   {
     "campaignId": "border_dispute",
-    "title": "Follow the service trail",
+    "title": "A gun, a crew, a working yard",
     "steps": [
       {
         "nodeId": "militia_raid",
-        "purpose": "The Recall names the machines already in your bay. Halloran needs the registry copied before the Authority closes it. Clear its guard and bring your company home.",
-        "practice": "Pause to choose your orders, then let the lance work together. After the drop, the company report points to repairs, crew training and salvage.",
+        "purpose": "Iona Venn is holding Marker Eleven’s registry against the cordon. Secure the rolls and Halloran releases her crated Focused Medium Laser after victory. The cabinet reward is separate from uncertain enemy salvage.",
+        "practice": "Pause, choose an approach and clear the cordon together. On return, find Venn’s cabinet receipt in the company report and its emitter in stores.",
         "links": [
-          { "kind": "story", "id": "the_line", "label": "Why the Recall matters" },
-          { "kind": "story", "id": "the_welded", "label": "Linewrought crews" }
-        ]
-      },
-      {
-        "nodeId": "marker_survey",
-        "purpose": "The registry is safe, but its service trail is incomplete. A light scout can follow the western readers while the road guard stays on its station. This optional job opens a recovery claim.",
-        "practice": "Choose one fieldable scout in the manifest. A stock Gadfly fits this lift; use the planning map and Hold Fire to follow the western route.",
-        "links": [
-          { "kind": "mech", "id": "hornet_hnt2", "label": "Gadfly field record" },
-          { "kind": "story", "id": "the_refit", "label": "What makes a walker root" }
+          {
+            "kind": "story",
+            "id": "the_line",
+            "label": "Why the Recall matters"
+          },
+          {
+            "kind": "story",
+            "id": "the_welded",
+            "label": "Linewrought crews"
+          }
         ]
       },
       {
         "nodeId": "recovery_window",
-        "purpose": "The trail leads to a stranded repair crew. Secure its cradle to earn a damaged workshop hulk. Holding the field can also preserve enemy machines for salvage, subject to recovery chance and your contract terms.",
-        "practice": "Build a smaller detail around the ground you must hold. After a successful return, inspect the hulk in the Workshop and price its rebuild before booking it.",
+        "purpose": "The next main job rescues Nera Pell’s crew from Cut Nine. Protect the cradle and hold its winch. Venn’s optic gives a refitted scout a longer firing lane. The optional reader survey remains available.",
+        "practice": "Try the optic in a Gadfly’s left arm in place of its Flamer: one tonne, one box. Name and save Lamplighter, then deploy it in a detail up to 140 tonnes. Cover the winch; do not chase the west guard.",
         "links": [
-          { "kind": "story", "id": "the_code", "label": "How wreckright works" },
-          { "kind": "story", "id": "the_shared_mounts", "label": "Fitting recovered parts" }
+          {
+            "kind": "mech",
+            "id": "hornet_hnt2",
+            "label": "Gadfly field record"
+          },
+          {
+            "kind": "story",
+            "id": "the_shared_mounts",
+            "label": "Fit the recovered optic"
+          }
+        ]
+      },
+      {
+        "nodeId": "workshop_defence",
+        "purpose": "Pell’s crew returns to Sarn Gantry Three, and Kestrel follows. Your original four total the 205-tonne lift allowance. The released Prybar hulk offers another company choice once rebuilt, armed and crewed.",
+        "practice": "Choose who guards the gantry and who runs for west stores. Rebuilding a hulk does not arm it. Keep a defender on the work while a faster machine collects the optional cabinet.",
+        "links": [
+          {
+            "kind": "mech",
+            "id": "prybar_pry1",
+            "label": "Prybar field record"
+          },
+          {
+            "kind": "story",
+            "id": "the_code",
+            "label": "The rights of the ground-holder"
+          }
         ]
       }
     ]
   },
   {
     "campaignId": "aurelian_recall",
-    "title": "Complete the custody chain",
+    "title": "Recovery under a signature",
     "steps": [
       {
         "nodeId": "first_warrant",
-        "purpose": "Your company carries the Authority's warrant into the field. The claim is written; your lance must make it enforceable while keeping its own machines in service.",
-        "practice": "Pause to choose your orders and watch the heat of your emitters. After the drop, review repair costs and crew experience before taking another warrant.",
+        "purpose": "Ada Rusk and her service cart are trapped beyond Apron Seven’s cordon. Clear the Tender approach to recover its Focused Large Laser under signed custody. The delivery is separate from enemy salvage.",
+        "practice": "Use your reach and cover your sides. After victory, inspect Rusk’s delivery in stores. The recovered optic is useful equipment, not a free repair.",
         "links": [
-          { "kind": "story", "id": "the_line", "label": "Why the Recall matters" },
-          { "kind": "story", "id": "the_sealed", "label": "Aurelian service doctrine" }
+          {
+            "kind": "story",
+            "id": "the_line",
+            "label": "Why the Recall matters"
+          },
+          {
+            "kind": "story",
+            "id": "the_sealed",
+            "label": "Aurelian service doctrine"
+          }
         ]
       },
       {
-        "nodeId": "custody_survey",
-        "purpose": "The first warrant leaves a gap in the service record. One survey machine can record the western posts without destroying the road guard. This optional job locates a stranded service tender.",
-        "practice": "Choose one fieldable scout in the manifest. A stock Votive fits this lift; read the western posts with Hold Fire and weigh the optional ledger detour.",
+        "nodeId": "cutbank_attestation",
+        "purpose": "At Cutbank, Len Saye stays with the original repair rolls. Secure both posts without destroying them. Rusk’s long optic can support a garden approach around the fixed gun; it cannot shoot through the buildings.",
+        "practice": "Swap one Halberd Large Laser for Rusk’s Focused Large Laser: same five tonnes and two boxes. Name and save Long Watch. Use the extra reach, allow for its slower cycle and keep heat safety on.",
         "links": [
-          { "kind": "mech", "id": "votive_vtv2", "label": "Votive field record" },
-          { "kind": "story", "id": "the_custodians", "label": "The Custodians' account" }
+          {
+            "kind": "mech",
+            "id": "halberd_hlb4",
+            "label": "Halberd field record"
+          },
+          {
+            "kind": "story",
+            "id": "the_shared_mounts",
+            "label": "Compare and save a refit"
+          }
         ]
       },
       {
-        "nodeId": "custody_resupply",
-        "purpose": "The completed record locates a stranded service tender. Protect its transfer to earn replacement emitters. The company still pays for its own repairs, and any battlefield recovery follows the negotiated custody share.",
-        "practice": "Choose a smaller detail that can protect the loading stand. After a successful return, compare the delivered weapons with your current fittings before committing a refit.",
+        "nodeId": "sarn_inventory",
+        "purpose": "Saye brings the two originals into Sarn Registry Court. Hold the record through its copy while local crews attack both streets. The temporary loadway’s 175-tonne limit leaves one of your opening four at the Tender.",
+        "practice": "Choose a heavy firing line or keep the Votive’s fast eyes. Three heavy choices total 170 tonnes; including the Votive changes your weapons and mobility. Guard the court rather than pursue every contact.",
         "links": [
-          { "kind": "story", "id": "the_sealed", "label": "Aurelian replacements" },
-          { "kind": "story", "id": "the_shared_mounts", "label": "Fitting recovered parts" }
+          {
+            "kind": "mech",
+            "id": "votive_vtv2",
+            "label": "Votive field record"
+          },
+          {
+            "kind": "story",
+            "id": "the_custodians",
+            "label": "The Custodians’ account"
+          }
         ]
       }
     ]

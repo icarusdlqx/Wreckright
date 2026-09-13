@@ -15,11 +15,19 @@ export async function runCampaignSaveLibraryChecks({ page, shots, check }) {
     await savedPage.getByTestId('save-new-checkpoint').click();
     await savedPage.getByTestId('campaign-save-dialog').waitFor({ state: 'hidden' });
   };
+  // Separate legacy checkpoint fixture; no calendar controls exist in the live UI.
   const waitDay = async () => {
-    const waiting = savedPage.getByTestId('camp-waiting');
-    if (await waiting.getAttribute('open') === null) await waiting.locator('summary').click();
-    await savedPage.getByTestId('camp-advance').click();
-    if (await waiting.getAttribute('open') !== null) await waiting.locator('summary').click();
+    await savedPage.evaluate(async () => {
+      const {getCatalog}=await import('/src/schema/load.ts');
+      const {advanceDays}=await import('/src/campaign/campaign.ts');
+      const {saveCampaign}=await import('/src/campaign/save.ts');
+      const state=JSON.parse(localStorage.getItem('ironline.campaign')).state;
+      advanceDays(getCatalog(),state,1,false,false);
+      saveCampaign(state);
+    });
+    await savedPage.reload();
+    await savedPage.getByTestId('home-campaign').click();
+    await savedPage.getByTestId('campaign').waitFor();
   };
   try {
     await savedPage.addInitScript(() => localStorage.setItem('ironline.muted', '1'));
@@ -77,7 +85,7 @@ export async function runCampaignSaveLibraryChecks({ page, shots, check }) {
     await savedPage.getByTestId('camp-exit').click();
     await savedPage.evaluate(() => localStorage.setItem('ironline.campaign.debriefed', '4'));
     await savedPage.getByTestId('home-new-campaign').click();
-    await savedPage.getByTestId('campaign-choice').selectOption('aurelian_recall');
+    await savedPage.getByTestId('company-card-aurelian_recall').click();
     await savedPage.getByTestId('campaign-difficulty-picker').selectOption('veteran');
     await savedPage.getByTestId('campaign-choice-start').click();
     await savedPage.getByTestId('campaign-chooser').waitFor({ state: 'hidden' });

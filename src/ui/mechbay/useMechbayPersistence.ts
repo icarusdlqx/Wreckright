@@ -4,7 +4,7 @@ import type { Catalog } from '../../schema/load';
 import { designIdentityLabel } from '../designLabel';
 import type { BayStatus, StoredLoadoutOption } from './BayChrome';
 import {
-  exportDesign,
+  exportDesign, setName, idFromName,
   currentStockDesign,
   InvalidBuildError,
   DesignStorageError,
@@ -51,18 +51,24 @@ export function useMechbayPersistence({
         ? `Saved loadout ${index + 1} — unavailable`
         : designIdentityLabel(catalog, loaded),
     };
-  }), [catalog, stored]);
+  }).filter((entry) => commission === undefined || loadFromStorage(entry.id, catalog).design?.chassisId === design.chassisId), [catalog, stored, commission, design.chassisId]);
 
-  const save = (): boolean => {
-    const current = currentStockDesign(catalog, design);
-    if (commission !== undefined) {
-      const result = commission.onCommit(current);
-      if (!result.ok) onStatus({ tone: 'error', text: result.reason ?? 'refit refused' });
-      return result.ok;
+  const save = (candidate: Design = design): boolean => {
+    let current = currentStockDesign(catalog, candidate);
+    if (catalog.designs.has(current.id)) {
+      let designation = `${current.name} Field Fit`;
+      let index = 2;
+      while (listStoredDesigns().includes(idFromName(designation))) designation = `${current.name} Field Fit ${index++}`;
+      current = setName(current, designation);
     }
     try {
       const { replaced } = saveToStorage(catalog, current);
       setStored(listStoredDesigns());
+      if (commission !== undefined) {
+        const result = commission.onCommit(current);
+        if (!result.ok) onStatus({ tone: 'error', text: `Variant saved to the library. ${result.reason ?? 'Refit refused'}` });
+        return result.ok;
+      }
       onStatus({
         tone: 'ok',
         text: replaced
@@ -117,6 +123,9 @@ export function useMechbayPersistence({
       callbacks.current.onStatus({ tone: 'error', text: `Import failed — ${result.error ?? 'unknown error'}` });
       return;
     }
+    if (commission !== undefined && result.design.chassisId !== design.chassisId) {
+      onStatus({ tone: 'error', text: 'Choose a variant for this chassis.' }); return;
+    }
     if (catalog.chassis.get(result.design.chassisId)?.frame !== 'mech') {
       callbacks.current.onStatus({ tone: 'error', text: 'The workshop accepts mech loadouts. Your current draft is unchanged.' }); return;
     }
@@ -129,6 +138,9 @@ export function useMechbayPersistence({
     if (result.design === null) {
       onStatus({ tone: 'error', text: result.error ?? 'load failed' });
       return;
+    }
+    if (commission !== undefined && result.design.chassisId !== design.chassisId) {
+      onStatus({ tone: 'error', text: 'Choose a variant for this chassis.' }); return;
     }
     if (catalog.chassis.get(result.design.chassisId)?.frame !== 'mech') {
       onStatus({ tone: 'error', text: 'The workshop accepts mech loadouts. Your current draft is unchanged.' }); return;

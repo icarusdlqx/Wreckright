@@ -1,14 +1,14 @@
-# Wreckright audio identity
+# Ironmuster audio identity
 
-The original theme, **Carry the Dawn**, now connects the main menu, campaign, mechbay and combat. Weapon families retain their own sonic identity in both factions. Settings offers separate Music and Sound effects switches, with saved volume trims and master mute.
+The original theme, **Roads We Keep**, now connects the main menu, campaign, MechBay and combat. Weapon families retain their own sonic identity in both factions. Settings offers separate Music and Sound effects switches, with saved volume trims and master mute.
 
-[Theme audition](../audio/Carry-the-Dawn.mp3) · [Composition and synthesis source record](../audio/CARRY_THE_DAWN.md) · [Before/after combat audition](audio-upgrade/effects/README.md) · [Settings screenshots and checks](audio-upgrade/controls/README.md)
+[Theme audition](../audio/Roads-We-Keep.mp3) · [Composition and synthesis source record](../audio/ROADS_WE_KEEP.md) · [Before/after combat audition](audio-upgrade/effects/README.md) · [Settings screenshots and checks](audio-upgrade/controls/README.md)
 
 ## Music
 
-The 32-bar, 104 BPM F-minor theme uses a rising-fifth call, mallets, a horn-like lead, warm sustained harmony and a plucked bass. A rough metal-and-drum layer gives Linewrought its industrial character; precise arpeggios and clipped percussion give Aurelian its cleaner character. Battle pressure adds rhythmic weight, while the campaign receives a quieter arrangement.
+The replacement 32-bar, 116 BPM E-minor theme, **Roads We Keep**, uses an original call and answer over a driving road rhythm, picked synth guitar, bass and live-feeling drums. A rougher guitar-and-drum layer gives Linewrought its industrial character; a precise pulse and clipped percussion give Aurelian its cleaner character. Home, campaign, MechBay and battle each receive a distinct arrangement from the synchronized stems.
 
-Three original Ogg/Opus recordings share a 73.846-second loop and one start timestamp. Faction and intensity transitions automate their gains rather than changing pitch, tempo or source count. Only information already visible to the player influences faction colour. Pause preserves the current battle intensity. Muting retains musical position. The first player gesture starts audio; the home-to-campaign handoff preserves the unlocked context. Abandoned loads cannot restart music after a route closes.
+Three original Ogg/Opus recordings share a 66.207-second loop and one start timestamp. Faction and intensity transitions automate their gains rather than changing pitch, tempo or source count. Only information already visible to the player influences faction colour. Pause preserves the current battle intensity. Muting retains musical position. The first player gesture starts audio; strategic route changes preserve the unlocked context. Abandoned loads cannot restart music after a route closes.
 
 The composition, instrument code and reproducible encoder command are retained in `tools/audio/`. No external music, samples, soundfont, service, runtime URL or new package was introduced. Runtime files and hashes are recorded in the asset provenance register. The standalone build embeds all three stems and decodes their bytes locally.
 
@@ -31,11 +31,11 @@ The battle, mechbay and campaign shortcuts now say **Mute all** or **Unmute all*
 | Check | Result |
 |---|---|
 | TypeScript and full ESLint | Passed |
-| Fast suite | 3,364 tests across 416 files passed |
+| Fast suite | 3,496 tests across 433 files passed |
 | Final support and strategic cleanup fixtures | 12 passed |
-| Production and standalone builds | Passed; standalone file 7.07 MB |
+| Production and standalone builds | Passed; standalone file 7.17 MB |
 | Real playback against the built preview and offline standalone | 15 passed |
-| Full game-wide browser journey | 1,170 / 1,170 checks passed in one uninterrupted run |
+| Full game-wide browser journey | 1,300 / 1,300 checks passed in one uninterrupted run |
 
 Focused checks cover real browser decoding, phase-aligned starts, independent bus muting, saved preferences, repeated route teardown, cancellation during decoding, combat voice admission, spatial placement and reserved destruction effects. Before/after desktop and phone settings captures were inspected. The standalone playback check disables networking and asserts zero external requests, nonzero decoded music, matching loop lengths and music-switch behavior using native browser audio nodes.
 

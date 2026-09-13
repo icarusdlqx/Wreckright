@@ -4,7 +4,7 @@ Review date: 5 September 2026. Status: integrated presentation candidate on a re
 
 ## Scope and baseline
 
-This work gives **Wreckright** the stylised, colourful, readable **Graphic Expedition** direction chosen during The Long Crossing exploration. The game being updated is Wreckright, including its existing campaigns, machine cultures, combat, economy and saves.
+This work gives **Ironmuster** the stylised, colourful, readable **Graphic Expedition** direction chosen during The Long Crossing exploration. The game being updated is Ironmuster, including its existing campaigns, machine cultures, combat, economy and saves.
 
 - Baseline: fresh main at `b3227b357284ff66d92d2ad70f4933aa1f2a2663` (`b3227b3`).
 - Isolated checkout: `wreckright-graphic-expedition`.

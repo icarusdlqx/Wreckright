@@ -2,7 +2,7 @@
 
 Continuation of [LINEWROUGHT_SCRIPT.md](./LINEWROUGHT_SCRIPT.md).
 
-## L5 — Broken Wreckright
+## L5 — Broken Code
 
 **Why this battle happens:** Kestrel fires on an ejected local pilot and blocks
 the recovery crew before dusk, trying to destroy evidence and deny salvage.
@@ -12,8 +12,8 @@ but reveals that Kestrel cut the power trunk feeding the western repair yards.
 
 **Briefing**
 
-Kestrel broke wreckright in Sarn's freight sector. Secure the recording mast
-and protect the recovery perimeter until the pickup is complete. Wreckright
+Kestrel broke the Ironmuster Code in Sarn's freight sector. Secure the recording mast
+and protect the recovery perimeter until the pickup is complete. Ironmuster
 gives the ground-holder the wreck and lets surviving pilots go home. We do not
 need to kill every guard to keep either half of that rule.
 
@@ -229,7 +229,7 @@ in the archive belongs to Tessell now.
 ## Continuity checks for implementation
 
 - The rescued people in L2 are local fitters, not one of the named starting
-  pilots. Broken Wreckright likewise never requires a named pilot casualty.
+  pilots. Broken Code likewise never requires a named pilot casualty.
 - Completing or skipping The Missing Trail changes one briefing acknowledgement
   only. It cannot alter the rescue's availability or outcome.
 - The workshop defended in L3 is the same Sarn network whose freight sector is

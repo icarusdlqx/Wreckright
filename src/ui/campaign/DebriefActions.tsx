@@ -1,7 +1,6 @@
 import type { Catalog } from '../../schema/load';
 import { pendingTraitPicks } from '../../campaign/roster';
-import { estimateRepair, projectedRepairWindow } from '../../campaign/repair';
-import { payrollThrough } from '../../campaign/ledger';
+import { estimateRepair } from '../../campaign/repair';
 import { isPilotAvailable, type CampaignState, type MissionOutcome } from '../../campaign/types';
 import { readyToTrain } from '../pilotProgression';
 import { authoredDesignName } from '../designLabel';
@@ -33,10 +32,9 @@ export function DebriefActions({ catalog, state, outcome, onAction }: Props) {
       <section><h5>Workshop · {damaged.length} need attention</h5>
         {damaged.length === 0 ? <p>Machines returned ready for another drop.</p> : <ul>{damaged.map(({ mech, estimate }) => {
           const booked = mech.status === 'repairing';
-          const ready = booked ? mech.readyOnDay : projectedRepairWindow(catalog, state, estimate.days).readyOnDay;
           return <li key={mech.id}><strong>{authoredDesignName(catalog, mech.design)}</strong>
-            <small>{booked ? 'Already booked and paid' : `${credits(estimate.cost)} ${mech.status === 'hulk' ? 'rebuild' : 'repair'} estimate`} · ready day {ready}</small>
-            {!booked ? <small>Company wages to that day: {credits(payrollThrough(catalog, state, ready - state.day))}. Quote for this machine on the current queue.</small> : null}
+            <small>{booked ? 'Already booked and paid' : `${credits(estimate.cost)} ${mech.status === 'hulk' ? 'rebuild' : 'repair'} estimate`} · ready immediately</small>
+
             <button type="button" data-testid={`debrief-workshop-${mech.id}`} onClick={() => onAction({ area: 'workshop', mechId: mech.id })}>Inspect {mech.status === 'hulk' ? 'rebuild' : 'repairs'}</button>
           </li>;
         })}</ul>}

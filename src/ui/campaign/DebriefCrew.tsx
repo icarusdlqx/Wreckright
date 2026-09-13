@@ -1,6 +1,6 @@
 import type { Catalog } from '../../schema/load';
 import { mechIntegrity } from '../../campaign/integrity';
-import { estimateRepair, projectedRepairWindow } from '../../campaign/repair';
+import { estimateRepair } from '../../campaign/repair';
 import { availableXp, pendingTraitPicks } from '../../campaign/roster';
 import { isPilotAvailable, type CampaignState, type MissionOutcome, type PilotReport } from '../../campaign/types';
 import { PilotPortrait } from '../PilotPortrait';
@@ -59,7 +59,7 @@ function CrewReportCard({ catalog, state, report, onAction }: Omit<Props, 'outco
           : mech.status === 'repairing' ? `Workshop booked · ready day ${mech.readyOnDay}`
             : needsRepair ? 'Fieldable with damage · inspect repairs' : 'Ready for the next deployment'}</small>
         {repair === null || !needsRepair || mech.status === 'repairing' ? null : <small>
-          {Math.round(repair.cost).toLocaleString('en-GB')} C {mech.status === 'hulk' ? 'rebuild' : 'repair'} estimate · ready day {projectedRepairWindow(catalog, state, repair.days).readyOnDay}
+          {Math.round(repair.cost).toLocaleString('en-GB')} C {mech.status === 'hulk' ? 'rebuild' : 'repair'} estimate · ready immediately
         </small>}
       </>}
     </div>

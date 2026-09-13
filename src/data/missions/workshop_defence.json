@@ -3,7 +3,7 @@
   "name": "Defence — Keep the Gantries",
   "type": "defend",
   "mapId": "line_workshop_belt",
-  "briefing": "Keep Sarn’s repair gantry working through the announced north and east attacks. A scout can secure the stores cabinet while the main lance holds the yard.",
+  "briefing": "Keep Pell's home workshop, Sarn Gantry Three, working through the north and east attacks. The 205-tonne lift admits your original four exactly. A rebuilt, equipped Prybar can serve as a stores runner if you give it a pilot. The gantry still needs defenders while a runner takes the west cabinet.",
   "maxDurationSeconds": 210,
   "startingResourcePoints": 500,
   "dropTonnage": 205,
@@ -70,7 +70,7 @@
   "zones": [
     {
       "id": "gantry_control",
-      "name": "Sarn Repair Gantry",
+      "name": "Sarn Gantry Three",
       "x": 756,
       "y": 252,
       "radius": 76,
@@ -151,7 +151,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Sarn foreman: first approach is the north freight gate. East service gate follows.",
+          "text": "Pell has Gantry Three moving. Cover the north freight gate; leave someone here if a runner takes the west stores.",
           "speakerPilotId": "kessa_vale"
         }
       ]
@@ -258,7 +258,7 @@
       "effects": [
         {
           "type": "message",
-          "text": "Final carrier on the north road. Keep the gantry moving.",
+          "text": "Last carrier on the north road. Pell needs this shift finished; hold the gantry.",
           "speakerPilotId": "ilse_brant"
         },
         {

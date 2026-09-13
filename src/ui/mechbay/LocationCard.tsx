@@ -77,6 +77,7 @@ export function LocationCard({
   snapTarget = null,
   snapPhase = 0,
 }: Props) {
+  const leg = location === 'left_leg' || location === 'right_leg';
   const hardpoints = usage.hardpointsAvailable;
   const hasWeaponMounts = hardpoints.energy + hardpoints.ballistic + hardpoints.missile > 0;
   const slotsOver = usage.slotsUsed > usage.slotsAvailable;
@@ -149,7 +150,7 @@ export function LocationCard({
       onPointerEnter={() => onHover?.(location)}
       onPointerLeave={() => onHover?.(null)}
       onDragOver={(event) => {
-        if (target === null && !Array.from(event.dataTransfer.types).includes('application/wreckright')) return;
+        if (target === null && !Array.from(event.dataTransfer.types).includes('application/ironmuster')) return;
         event.preventDefault();
         event.dataTransfer.dropEffect = target?.sourceIndex !== undefined ? 'move' : 'copy';
         onHover?.(location);
@@ -159,7 +160,7 @@ export function LocationCard({
       }}
       onDrop={(event) => {
         event.preventDefault();
-        const payload = parsedDrop(event.dataTransfer.getData('application/wreckright'));
+        const payload = parsedDrop(event.dataTransfer.getData('application/ironmuster'));
         if (payload === null) return;
         onDrop(payload, location);
         onHover?.(null);
@@ -186,6 +187,7 @@ export function LocationCard({
         >
           {locationName}{selected ? <span className="location-selection-label">Selected</span> : null}
         </button>
+        {leg ? null : <span className="bay-location-capacity" aria-hidden="true">{filled}/{usage.slotsAvailable} boxes</span>}
       </header>
 
       <div className="bay-location-feedback" aria-hidden={target === null || undefined}>
@@ -232,7 +234,7 @@ export function LocationCard({
           </span>}
       </div>
 
-      <ul
+      {leg && occupants.length === 0 && target?.kind !== 'ammo' && target?.kind !== 'equipment' ? <p className="bay-leg-note">Mobility & armour · no weapon mounts</p> : <ul
         className="bay-slotgrid"
         data-testid={`slots-grid-${location}`}
         aria-label={`Fitted parts in ${locationName}`}
@@ -270,7 +272,7 @@ export function LocationCard({
             </>
           )}
         </li>
-      </ul>
+      </ul>}
 
       {/* Armour is edited in the workbench; this card mirrors its exact split. */}
       <span

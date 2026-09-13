@@ -1,5 +1,5 @@
-✓ a fresh profile opens on Home without mounting the engine
-  ✓ Home offers learn, campaign, skirmish and the built-in wiki
+  ✓ a fresh profile opens on Home without mounting the engine
+  ✓ Home offers learn, campaign, MechBay, skirmish and the built-in wiki
   ✓ Learn Command opens the authored training field
   ✓ training briefing is fixed and omits skirmish setup
   ✓ range walk deploys paused
@@ -71,7 +71,7 @@ incoming fire direction
   ✓ an off-screen visible shooter raises one directional edge tick
   ✓ sustained incoming fire keeps the fixed six-slot DOM pool
   ✓ same-tick volleys project one incoming-fire cue
-  ✓ sustained incoming fire stays inside its CPU budget (p95 0.10ms; frame-other ABBA median 1.35ms telemetry)
+  ✓ sustained incoming fire stays inside its CPU budget (p95 0.20ms; frame-other ABBA median -1.00ms telemetry)
 
 orders while paused
   ✓ right-click issues a move order while paused
@@ -239,7 +239,7 @@ mechbay
   ✓ selecting a fitted weapon inspects it without removing it
   ✓ the explicit Remove control restores the legal build and stable location focus
   ✓ free tonnage returns to its starting value
-  ✓ removing the edit restores all stock comparison metrics to neutral
+  ✓ removing the edit restores all seven saved-refit comparison metrics exactly
   ✓ auto-fit marks the landing rack for snap feedback without changing its controls
   ✓ drag-to-hardpoint reveals targeting and uses the same legal mount path
   ✓ dragged weapon can be removed cleanly
@@ -293,6 +293,32 @@ campaign
   ✓ recovery export returns the original bytes
   ✓ an explicit restart clears recovery mode
   ✓ an explicit restart writes a valid campaign
+  ✓ Home exposes separate Load Game and New Campaign actions
+  ✓ campaign Save Game and Load Game are visible without opening Company files
+  ✓ Escape from Save Game restores the actual Save Game launcher
+  ✓ Escape from Load Game restores the actual Load Game launcher
+  ✓ a named checkpoint records the complete company without changing the autosave
+  ✓ a second checkpoint keeps both independent moments
+  ✓ selected checkpoint explains its campaign, day and fixed difficulty
+  ✓ selected checkpoint exports its exact original bytes
+  ✓ loading an earlier checkpoint restores its complete company
+  ✓ loading keeps the complete later company in its existing named or safety record
+  ✓ Continue after reload resumes the selected checkpoint
+  ✓ cancelling overwrite preserves the selected checkpoint byte for byte
+  ✓ explicit overwrite replaces only the selected named checkpoint
+  ✓ a Home-created campaign resets the previous company’s viewed-report cursor
+  ✓ New Campaign starts the selected faction and difficulty with a fresh run
+  ✓ starting another faction keeps every named checkpoint and the prior company
+  ✓ a saved company restores its original faction and difficulty
+  ✓ switching back preserves the newly started other faction
+  ✓ Home Load restores the selected company without inheriting another run’s viewed reports
+  ✓ Escape cancels deletion without dismissing the library or deleting the save
+  ✓ 390px saved-games panel fits horizontally and retains visible touch-sized load and close controls
+  ✓ 320px saved-games panel fits horizontally and retains visible touch-sized load and close controls
+  ✓ invalid import reports the error and leaves the current company intact
+  ✓ unknown campaign import fails locally instead of opening an invalid game route
+  ✓ quota failure keeps the active company and prior named saves
+  ✓ the complete save and recovery journey has no browser errors
   ✓ the field manual takes keyboard focus
   ✓ the field manual carries desktop, touch and support controls
   ✓ the manual names only the current camera grammar
@@ -336,13 +362,7 @@ campaign
   ✓ the debrief reports experience earned
   ✓ the debrief records banked experience
   ✓ the debrief names the signed package
-  ✓ the recovery ledger and picker begin folded behind the salvage disclosure
-  ✓ the editable salvage disclosure is named Adjust picks
-  ✓ the keyboard opens the full salvage report one click deeper
-  ✓ the existing salvage picker remains visible and reachable
-  ✓ the compact ledger names everything shown as recovered or aboard
-  ✓ the campaign debrief traps forward focus at its first crew action
-  ✓ the campaign debrief traps reverse focus
+  ✓ an empty field report does not expose an empty salvage disclosure
   ✓ closing the campaign debrief restores focus to its previous or fallback control
   ✓ first-drop guidance retires after the opening outcome
   ✓ Workshop exposes the machines without unrelated contract controls
@@ -363,19 +383,21 @@ campaign
   ✓ the barracks states experience and daily payroll
   ✓ stores match the recorded salvage haul exactly
   ✓ recovered hulks match the receipt without duplicating their loose weapons
-  ✓ winning paid out
-  ✓ the next contracts unlocked
+  ✓ a critical loss leaves the victory route open
+  ✓ the failed contract returns to the board
+  ✓ recovery terms are explained
   ✓ battle damage came home
   ✓ reloading preserves the campaign exactly
   ✓ no page errors across the whole run
   ✓ the home artwork loads without WebGL, battle startup, or campaign and training creation
   ✓ the main menu clearly names the Wiki and preserves its native archive link
-  ✓ a phone shows all three game routes and Wiki as unobstructed touch-sized choices
+  ✓ a phone shows all four game routes and Wiki as unobstructed touch-sized choices
   ✓ the illustrated home reports no page errors
   ✓ a failed artwork download still opens Wiki without starting a battle or changing progress
   ✓ a failed artwork download still allows creating and entering the campaign
 
 fire modes
+  ✓ the fire-mode fixture is a legal, deployable Linewrought mech with cannon ammunition
   ✓ the Canister Cannon dossier compares both authored fire modes
   ✓ the fire-mode dossier states the two complete profiles
   ✓ a friendly modal mount exposes its current mode and next action
@@ -388,21 +410,25 @@ fire modes
   ✓ mobile fire-mode flow reports no page errors
 
 range damage chart
+  ✓ desktop range chart uses a legal Linewrought mech fixture
   ✓ desktop range chart exposes separate inspected and current-loadout graphics
   ✓ desktop range chart states the fixed domain and Longshot minimum-range notch
   ✓ desktop range chart stacks the exact four-mount Cairn battery
   ✓ desktop range chart remains horizontally contained and reachable
   ✓ desktop range chart reports no page errors
+  ✓ portrait range chart uses a legal Linewrought mech fixture
   ✓ portrait range chart exposes separate inspected and current-loadout graphics
   ✓ portrait range chart states the fixed domain and Longshot minimum-range notch
   ✓ portrait range chart stacks the exact four-mount Cairn battery
   ✓ portrait range chart remains horizontally contained and reachable
   ✓ portrait range chart reports no page errors
+  ✓ landscape range chart uses a legal Linewrought mech fixture
   ✓ landscape range chart exposes separate inspected and current-loadout graphics
   ✓ landscape range chart states the fixed domain and Longshot minimum-range notch
   ✓ landscape range chart stacks the exact four-mount Cairn battery
   ✓ landscape range chart remains horizontally contained and reachable
   ✓ landscape range chart reports no page errors
+  ✓ tablet range chart uses a legal Linewrought mech fixture
   ✓ tablet range chart exposes separate inspected and current-loadout graphics
   ✓ tablet range chart states the fixed domain and Longshot minimum-range notch
   ✓ tablet range chart stacks the exact four-mount Cairn battery
@@ -415,7 +441,7 @@ night operations
   ✓ night mechs carry visible running lights
   ✓ all staged enemies remain pickable in darkness
   ✓ muzzle-light pool starts as exactly four dormant unshadowed lights
-  ✓ alpha activation and lighting stay inside their ABBA 60Hz-equivalent frame budgets (activation 7.9ms; following 12.1ms median contrast)
+  ✓ alpha activation and lighting stay inside their ABBA 60Hz-equivalent frame budgets (activation 7.6ms; following 11.4ms median contrast)
   ✓ ordinary volley draws stay within their fixed shot-pool capacity
   ✓ alpha lighting and non-shot presentation stay inside the fixed two-draw budget
   ✓ render-only alpha fixture leaves simulation state unchanged
@@ -538,6 +564,14 @@ adaptive score treatments
   ✓ Music Off silences the real music bus without stopping or recreating the theme
   ✓ Music On restores the real bus at the same musical position
   ✓ real theme playback produces no uncaught browser errors
+  ✓ three open game tabs have exactly one audible owner after their separate gestures
+  ✓ returning by keyboard restores the previous tab without replaying its theme
+  ✓ foreground ownership leaves saved Music and Effects preferences untouched
+  ✓ leaving the game window immediately silences its master bus
+  ✓ returning to the game restores the chosen volume without another source
+  ✓ decoded stems have identical sample counts and loop boundaries with no relative drift
+  ✓ Deploy starts one combat arrangement immediately without needing a map click
+  ✓ multi-tab music, settings and deployment produce no browser errors
 
 first drop launch
   ✓ a fresh signed company offers launch first and machine review second
@@ -713,6 +747,11 @@ first drop launch
   ✓ border_dispute: booked work exposes a priced wait to the next ready day
   ✓ border_dispute: paid-repair wait finishes the booked mech and retains the signed mission
   ✓ border_dispute: phone waiting controls stay inside the viewport
+  ✓ border_dispute: 390px waiting actions remain complete touch hit targets
+  ✓ border_dispute: 320px waiting controls stay inside the viewport
+  ✓ border_dispute: 320px waiting actions remain complete touch hit targets
+  ✓ border_dispute: 1440px waiting controls stay inside the viewport
+  ✓ border_dispute: 1440px waiting actions remain complete pointer hit targets
   ✓ border_dispute: phone continuation fits without horizontal overflow
   ✓ aurelian_recall: settled debrief offers a next-mission review without calendar waiting
   ✓ aurelian_recall: next mission selects the main route, finalizes salvage and preserves day and treasury
@@ -725,6 +764,11 @@ first drop launch
   ✓ aurelian_recall: booked work exposes a priced wait to the next ready day
   ✓ aurelian_recall: paid-repair wait finishes the booked mech and retains the signed mission
   ✓ aurelian_recall: phone waiting controls stay inside the viewport
+  ✓ aurelian_recall: 390px waiting actions remain complete touch hit targets
+  ✓ aurelian_recall: 320px waiting controls stay inside the viewport
+  ✓ aurelian_recall: 320px waiting actions remain complete touch hit targets
+  ✓ aurelian_recall: 1440px waiting controls stay inside the viewport
+  ✓ aurelian_recall: 1440px waiting actions remain complete pointer hit targets
   ✓ aurelian_recall: phone continuation fits without horizontal overflow
   ✓ campaign command flow has no browser errors
   ✓ both faction debriefs wrap Tab from the final action to the first crew action
@@ -762,11 +806,17 @@ first drop launch
   ✓ assigning a pilot updates the same card, portrait and selected dossier
   ✓ laptop paired preparation preserves every portrait with readable controls and ability
   ✓ phone paired preparation preserves every portrait with readable controls and ability
-  ✓ skirmish offers all six terrain maps
+  ✓ skirmish offers all twelve terrain maps
+  ✓ aurelian_civic_exchange is a pure skirmish with legal default forces
+  ✓ aurelian_landing_apron is a pure skirmish with legal default forces
+  ✓ aurelian_service_terraces is a pure skirmish with legal default forces
+  ✓ barrow_archive is a pure skirmish with legal default forces
   ✓ blackglass_quarry is a pure skirmish with legal default forces
   ✓ causeway is a pure skirmish with legal default forces
   ✓ cutbank_exchange is a pure skirmish with legal default forces
   ✓ foundry_district is a pure skirmish with legal default forces
+  ✓ line_recovery_cut is a pure skirmish with legal default forces
+  ✓ line_workshop_belt is a pure skirmish with legal default forces
   ✓ ridge_pass is a pure skirmish with legal default forces
   ✓ shale_steps is a pure skirmish with legal default forces
   ✓ aurelian presets are selectable for both sides and fit the drop
@@ -789,6 +839,40 @@ first drop launch
   ✓ invalid map preference retired_map safely opens Ridge without changing saved refits
   ✓ invalid map preference authority_root_exchange safely opens Ridge without changing saved refits
   ✓ skirmish setup and repeated refits produce no browser errors
+  ✓ player aurelian lists exactly its eligible stock and saved hulls
+  ✓ player linewrought lists exactly its eligible stock and saved hulls
+  ✓ player mixed lists exactly its eligible stock and saved hulls
+  ✓ linewrought cancelled refit keeps its exact saved loadout and faction
+  ✓ linewrought committed refit keeps its faction and exact changed weapons
+  ✓ linewrought empty-berth refit fills an allowed hull without changing faction
+  ✓ enemy aurelian lists exactly its eligible stock and saved hulls
+  ✓ enemy linewrought lists exactly its eligible stock and saved hulls
+  ✓ enemy mixed lists exactly its eligible stock and saved hulls
+  ✓ aurelian cancelled refit keeps its exact saved loadout and faction
+  ✓ aurelian committed refit keeps its faction and exact changed weapons
+  ✓ aurelian empty-berth refit fills an allowed hull without changing faction
+  ✓ player Mixed stays selected after becoming a single Linewrought mech
+  ✓ enemy Mixed stays selected after becoming a single Linewrought mech
+  ✓ reload preserves both explicit Mixed choices independently of single-faction composition
+  ✓ map switch restores both original faction choices and custom refits without rewriting them
+  ✓ quota failure preserves the old roster and faction together and shows a session warning
+  ✓ route remount retains the session-only Mixed choice and single-mech roster
+  ✓ successful retry saves both the explicit choice and current refit and clears the warning
+  ✓ faction changes, refits, map switches and reloads produce no browser errors
+  ✓ opening a skirmish briefing does not play the deployment camera move
+  ✓ the briefing camera stays stationary while choosing a force
+  ✓ briefing-faction-picker updates its preview without replaying the opening zoom
+  ✓ enemy-faction-picker updates its preview without replaying the opening zoom
+  ✓ player-difficulty-picker updates its preview without replaying the opening zoom
+  ✓ briefing-difficulty-picker updates its preview without replaying the opening zoom
+  ✓ briefing-map-picker updates its preview without replaying the opening zoom
+  ✓ Deploy starts exactly one opening camera move
+  ✓ the deployment camera actually starts above its tactical height
+  ✓ pausing and opening battle menus never replay the deployment move
+  ✓ an actual battle restart starts one new opening move
+  ✓ returning to mission setup keeps the preview still
+  ✓ reduced-motion deployment goes straight to the tactical view
+  ✓ deployment camera journey has no browser errors
   ✓ failed berth Commit refit returns to a visible session-only warning
   ✓ failed berth save keeps the edited session configuration and preserves the earlier saved roster
   ✓ leaving for the workshop and returning preserves the unsaved session loadout and warning
@@ -961,11 +1045,56 @@ Commander radio docking
   ✓ dismissing radio clears its portrait signal without changing the selected mech
   ✓ a destroyed mech and ejected pilot keep their berths without inventing a KIA
   ✓ pilot command dock has no browser errors
+  ✓ 1440: five paired cards are at most 110px tall and fit inside a 180px dock
+  ✓ 1440: radio and acknowledgement use reserved dock space without moving cards or commands
+  ✓ 1440: long reports remain readable by keyboard inside the fixed radio slot
+  ✓ 1440: dismissing radio leaves the same controls in the same positions
+  ✓ 1440: support details open without resizing the card and command rows
+  ✓ 1280: five paired cards are at most 110px tall and fit inside a 180px dock
+  ✓ 1280: radio and acknowledgement use reserved dock space without moving cards or commands
+  ✓ 1280: long reports remain readable by keyboard inside the fixed radio slot
+  ✓ 1280: dismissing radio leaves the same controls in the same positions
+  ✓ 1280: support details open without resizing the card and command rows
+  ✓ 1920: five paired cards are at most 110px tall and fit inside a 180px dock
+  ✓ 1920: radio and acknowledgement use reserved dock space without moving cards or commands
+  ✓ 1920: long reports remain readable by keyboard inside the fixed radio slot
+  ✓ 1920: dismissing radio leaves the same controls in the same positions
+  ✓ 1920: support details open without resizing the card and command rows
+  ✓ 1024: five paired cards are at most 110px tall and fit inside a 180px dock
+  ✓ 1024: radio and acknowledgement use reserved dock space without moving cards or commands
+  ✓ 1024: long reports remain readable by keyboard inside the fixed radio slot
+  ✓ 1024: dismissing radio leaves the same controls in the same positions
+  ✓ 1024: support details open without resizing the card and command rows
+  ✓ 1 deployed: paired cards remain readable without stretching across the whole screen
+  ✓ 2 deployed: paired cards remain readable without stretching across the whole screen
+  ✓ 3 deployed: paired cards remain readable without stretching across the whole screen
+  ✓ 4 deployed: paired cards remain readable without stretching across the whole screen
+  ✓ 5 deployed: paired cards remain readable without stretching across the whole screen
+  ✓ Tactics keeps group ability explanations reachable alongside advanced orders
+  ✓ desktop compact dock has no browser errors
+  ✓ 390 touch: paired card details fit and actions keep 44px touch targets
+  ✓ touch-390: radio and acknowledgement use reserved dock space without moving cards or commands
+  ✓ touch-390: long reports remain readable by keyboard inside the fixed radio slot
+  ✓ touch-390: dismissing radio leaves the same controls in the same positions
+  ✓ touch-390: support details open without resizing the card and command rows
+  ✓ 390 touch: group ability explanations remain accessible within the Tactics drawer
+  ✓ 390 touch dock has no browser errors
+  ✓ 844 touch: paired card details fit and actions keep 44px touch targets
+  ✓ touch-844: radio and acknowledgement use reserved dock space without moving cards or commands
+  ✓ touch-844: long reports remain readable by keyboard inside the fixed radio slot
+  ✓ touch-844: dismissing radio leaves the same controls in the same positions
+  ✓ touch-844: support details open without resizing the card and command rows
+  ✓ 844 touch: group ability explanations remain accessible within the Tactics drawer
+  ✓ 844 touch dock has no browser errors
   ✓ all authored loadouts keep eight anatomical racks and their installed tiles visible at 1280×720
+  ✓ every fitting diagram uses the selected chassis actual blueprint and body locations
   ✓ installed weapons retain the same recognizable artwork as catalogue weapons
   ✓ expanded fitting guide is visibly expanded without requiring hover
   ✓ focusing an installed weapon exposes keyboard accessible Move and Remove actions
   ✓ inspecting a fitted weapon describes its installed location rather than trying to fit another copy
+  ✓ full-size fitted-mech inspection opens without leaving the loadout
+  ✓ closing fitted-mech inspection restores focus to its launcher
+  ✓ full-size fitted-mech inspection becomes a phone-safe sheet without horizontal overflow
   ✓ phone overview has eight labeled touch sized body locations
   ✓ phone anatomy navigation selects and brings the corresponding rack into view
   ✓ phone anatomy does not cause horizontal overflow
@@ -1030,6 +1159,7 @@ mobile portrait
   ✓ mobile portrait pinch changes camera distance
   ✓ mobile portrait pinch does not select or order
   ✓ mobile portrait pointer cancellation does not select or order
+  ✓ mobile portrait projected move destination is exposed battlefield
   ✓ mobile portrait battlefield tap issues a move order
   ✓ mobile portrait battlefield tap issues a target order
   ✓ mobile portrait campaign operations are one column
@@ -1235,4 +1365,4 @@ coarse tablet
   ✓ 1024px fine-pointer desktop keeps the desktop layout
   ✓ 1024px fine-pointer location cards contain their fitted contents
 
-1170/1170 checks passed
+1300/1300 checks passed

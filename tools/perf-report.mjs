@@ -52,7 +52,7 @@ export function performanceSummary({ mission, settings, runs, errors, lifecycle 
 }
 
 export function performanceMarkdown({ summary, repeatRuns, stress, lifecycle, environment }) {
-  return `# Wreckright performance and cleanup report
+  return `# Ironmuster performance and cleanup report
 
 - Result: **${summary.passed ? 'PASS' : 'FAIL'}**
 - Mission: \`${summary.mission}\` (${repeatRuns[0]?.fixture.friendlies ?? 0}v${repeatRuns[0]?.fixture.enemies ?? 0})

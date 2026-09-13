@@ -1,3 +1,4 @@
+import { selectBaySection } from './unified-navigation.mjs';
 import { importLegacySentinel, comparisonMetrics, addedWeaponComparison } from './mechbay-legacy-fixture.mjs';
 import { discardRefitIfPrompted } from './mechbay-exit.mjs';
 import {
@@ -33,15 +34,7 @@ async function comparisonDirections(page) {
     ])));
 }
 
-async function selectWorkspace(page, tab) {
-  const button = page.locator(`[data-workspace-tab="${tab}"]`);
-  await button.scrollIntoViewIfNeeded();
-  await button.tap();
-  await page.waitForFunction(
-    (expected) => document.querySelector('[data-testid="mechbay"]')?.getAttribute('data-workspace') === expected,
-    tab,
-  );
-}
+async function selectWorkspace(page, tab) { await selectBaySection(page, tab); }
 
 export async function runMobileMechbayJourney({
   page,
@@ -55,9 +48,9 @@ export async function runMobileMechbayJourney({
   const stockOptions = await stockPicker.locator('option').allInnerTexts();
   check(
     `${prefix} stock picker carries complete machine identity without serial designations`,
-    stockIdentity === 'Sentinel — 45t Medium · Plasma brawler · Aurelian Stock' &&
+    stockIdentity === 'Sentinel — 45t Medium · Plasma brawler · Aurelian Stock · Prime' &&
       stockOptions.every((label) => !/\b[A-Z]{3}-\d+\b/.test(label)) &&
-      stockOptions.every((label) => label.includes(' — ') && label.split(' · ').length === 3),
+      stockOptions.every((label) => label.includes(' — ') && label.split(' · ').length === 4 && label.endsWith(' · Prime')),
     stockOptions.join(' | '),
   );
   await stockPicker.scrollIntoViewIfNeeded();
@@ -65,7 +58,7 @@ export async function runMobileMechbayJourney({
 
   const bay = await overflowOf(page, '[data-testid="mechbay"]');
   const outerColumns = await page.locator('[data-testid="mechbay"]').evaluate(
-    (element) => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length,
+    (element) => getComputedStyle(element).display === 'flex' && getComputedStyle(element).flexDirection === 'column' ? 1 : getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length,
   );
   check(`${prefix} mechbay is one column`, outerColumns === 1, `${outerColumns} columns`);
   check(
@@ -77,7 +70,7 @@ export async function runMobileMechbayJourney({
   const initialExplainers = await explainerState(page);
   check(
     `${prefix} workspace tabs and explainer disclosures are reachable touch targets`,
-    (await workspaceTabs.count()) === 3 &&
+    (await workspaceTabs.count()) === 0 &&
       await workspaceTabs.evaluateAll((tabs) => tabs.every((tab) => {
         const bounds = tab.getBoundingClientRect();
         return bounds.height >= 44 && bounds.left >= 0 && bounds.right <= innerWidth;
@@ -87,10 +80,10 @@ export async function runMobileMechbayJourney({
   );
   check(
     `${prefix} opens one visible Loadout workspace`,
-    (await page.locator('[data-workspace-tab="loadout"]').getAttribute('aria-selected')) === 'true' &&
+    await page.getByTestId('bay-readiness').isVisible() &&
       await page.locator('[data-workspace-panel="loadout"]').isVisible() &&
-      !(await page.locator('[data-workspace-panel="armour"]').isVisible()) &&
-      !(await page.locator('[data-workspace-panel="review"]').isVisible()) &&
+      !(await page.getByTestId('cooling-bank').isVisible()) &&
+      !(await page.getByTestId('build-compare').isVisible()) &&
       !(await page.locator('[data-testid="build-compare"]').isVisible()),
   );
   // Re-enter the already selected tab before measuring the resting view.
@@ -112,7 +105,7 @@ export async function runMobileMechbayJourney({
       Object.keys(comparisonStart).length === 7 &&
       Object.values(comparisonStart).every((direction) => direction === 'neutral') &&
       await page.locator('[data-testid="build-compare"]').evaluate((strip) => {
-        const tabs = document.querySelector('[data-testid="bay-workspace-tabs"]');
+        const tabs = document.querySelector('.bay-full-review > summary');
         const panel = strip.closest('[data-workspace-panel="review"]');
         return tabs !== null && panel !== null &&
           tabs.getBoundingClientRect().bottom <= strip.getBoundingClientRect().top;
@@ -163,20 +156,16 @@ export async function runMobileMechbayJourney({
       await paperDoll.locator('svg, svg *').evaluateAll((elements) =>
         elements.every((element) => element.tabIndex < 0)),
   );
-  check(
-    `${prefix} armour location buttons are touch-sized and centre hit-testable`,
-    await dollButtons.evaluateAll((buttons) => buttons.length === 8 && buttons.every((button) => {
+  const targetChecks = [];
+  for (const button of await dollButtons.all()) {
+    await button.scrollIntoViewIfNeeded();
+    targetChecks.push(await button.evaluate(button => {
       const bounds = button.getBoundingClientRect();
-      const centre = document.elementFromPoint(
-        bounds.left + bounds.width / 2,
-        bounds.top + bounds.height / 2,
-      );
-      return bounds.width >= 44 &&
-        bounds.height >= 44 &&
-        centre !== null &&
-        (centre === button || button.contains(centre));
-    })),
-  );
+      const centre = document.elementFromPoint(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
+      return bounds.width >= 44 && bounds.height >= 44 && centre !== null && (centre === button || button.contains(centre));
+    }));
+  }
+  check(`${prefix} every armour location scrolls to a touch-sized hit-testable control`, targetChecks.length === 8 && targetChecks.every(Boolean));
 
   const leftTorso = page.locator('[data-testid="armour-doll-left_torso"]');
   await leftTorso.tap();
@@ -329,7 +318,7 @@ export async function runMobileMechbayJourney({
   check(
     `${prefix} inspecting the fitted weapon does not remove it`,
     (await page.locator('[data-testid="free-tonnage"]').innerText()) === afterFit &&
-      await renderedTextIncludes(page.locator('#bay-shelf-inspector'), 'Medium Laser'),
+      await renderedTextIncludes(page.locator('.weapon-card.is-inspected'), 'Medium Laser'),
   );
   await remove.tap();
   await selectWorkspace(page, 'review');

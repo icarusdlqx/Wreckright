@@ -1,3 +1,4 @@
+import { openCampaignDetails } from './unified-navigation.mjs';
 const company = page => page.evaluate(() => JSON.parse(localStorage.getItem('ironline.campaign')).state);
 const account = state => JSON.stringify({
   cbills: state.cbills, day: state.day, mechs: state.mechs, pilots: state.pilots,
@@ -129,6 +130,7 @@ export async function runCompanyOutcomeChecks({ browser, url, shots, check }) {
     await page.goto(url, { waitUntil: 'load' });
     const fixture = await outcomeFixture(page, url, 'border_dispute', 'workshop_defence');
     await openSaved(page, url, fixture.offerRaw);
+    await openCampaignDetails(page);
     await page.locator(`[data-testid="camp-node-${fixture.nodeId}"]`).click();
     const offer = page.locator('[data-testid="contract-rewards"]');
     const offerText = await offer.textContent();
@@ -136,7 +138,7 @@ export async function runCompanyOutcomeChecks({ browser, url, shots, check }) {
       fixture.labels.every(label => offerText.includes(label))
       && fixture.optionalLabels.every(label => offerText.includes(label))
       && /Complete the contract successfully/.test(offerText)
-      && /workshop day credits/.test(offerText) && /% off yard purchases/.test(offerText)
+      && /Priority workshop access/.test(offerText) && /% off yard purchases/.test(offerText)
       && (await company(page)).contract === null, offerText);
     await reveal(offer);
     await shot('offer-desktop');
@@ -145,6 +147,7 @@ export async function runCompanyOutcomeChecks({ browser, url, shots, check }) {
 
     const recovery = await outcomeFixture(page, url, 'border_dispute', 'recovery_window');
     await openSaved(page, url, recovery.offerRaw);
+    await openCampaignDetails(page);
     await page.locator(`[data-testid="camp-node-${recovery.nodeId}"]`).click();
     const recoveryOffer = await offer.textContent();
     await reveal(offer);
@@ -153,7 +156,6 @@ export async function runCompanyOutcomeChecks({ browser, url, shots, check }) {
     const receipt = page.locator('[data-testid="debrief-contract-rewards"]');
     await receipt.waitFor();
     const recoveryText = await receipt.textContent();
-    const recoveryNext = await page.locator('[data-testid="debrief-next-steps"]').textContent();
     const recovered = await company(page);
     const recoveryBefore = JSON.parse(recovery.offerRaw).state;
     const delivered = recovery.receipts.flatMap(reward => reward.items);
@@ -165,7 +167,6 @@ export async function runCompanyOutcomeChecks({ browser, url, shots, check }) {
       && recovery.itemNames.every(name => recoveryOffer.includes(name) && recoveryText.includes(name))
       && /warehouse hull · stripped · 55% condition/.test(recoveryOffer)
       && /Warehouse hulls arrive stripped and require rebuilding/.test(recoveryText)
-      && /Plus 1 part delivered as guaranteed contract rewards/.test(recoveryNext)
       && stockAndClaimsMatch(recoveryBefore, recovered, recovery.receipts)
       && account(recovered) === account(JSON.parse(recovery.raw).state)
       && recovered.mechs.length === recoveryBefore.mechs.length + hulks.length
@@ -182,13 +183,14 @@ export async function runCompanyOutcomeChecks({ browser, url, shots, check }) {
       && fixture.labels.every(label => receiptText.includes(label))
       && fixture.itemNames.every(name => receiptText.includes(name))
       && fixture.receipts.every(reward => receiptText.includes(reward.afterword))
-      && /2 workshop day credits banked/.test(receiptText)
-      && /Supplier purchase discount through day/.test(receiptText)
+      && /Workshop priority honoured/.test(receiptText)
+      && /Supplier purchase discount activated/.test(receiptText)
       && stockAndClaimsMatch(JSON.parse(fixture.offerRaw).state, settled, fixture.receipts)
       && account(settled) === account(JSON.parse(fixture.raw).state), `${receiptText}\n${recoveryText}`);
     await reveal(receipt);
     await shot('rewards-desktop');
     const pilotReport = page.locator(`[data-testid="debrief-${fixture.traineeId}"]`);
+    await page.locator('.debrief-pilot-report > summary').click();
     await reveal(page.locator('[data-testid="debrief-crew"]'));
     await shot('crew-desktop');
     check('return cards retain the pilot, fielded machine and separate current condition',
@@ -199,17 +201,11 @@ export async function runCompanyOutcomeChecks({ browser, url, shots, check }) {
     check('a non-firing scout sees the capped shared mission XP subtotal and can choose training',
       fixture.report.damage === 0 && fixture.report.sharedXp === fixture.expectedShared
       && (await pilotReport.textContent()).includes(`Includes ${fixture.expectedShared} XP for shared mission progress.`)
-      && await page.locator(`[data-testid="debrief-train-${fixture.traineeId}"]`).isVisible());
-    const next = page.locator('[data-testid="debrief-next-steps"]');
-    const nextText = await next.textContent();
-    check('company next steps show a priced repair, mission injury and honest salvage totals',
-      nextText.includes(`${fixture.repairCost.toLocaleString('en-GB')} C repair estimate`)
-      && /Company wages to that day:/.test(nextText) && /Wounded · misses next mission/.test(nextText)
-      && /No salvage came home from this field/.test(nextText)
+      && await page.locator(`[data-testid="debrief-pair-train-${fixture.traineeId}"]`).isVisible());
+    check('results retain injury and reward data while keeping administration secondary',
+      /Wounded/.test(await page.getByTestId('debrief-crew').textContent())
       && settled.eventEffects.freeRepairDays === 2 && settled.eventEffects.supplierDiscountThroughDay !== null
-      && account(await company(page)) === account(settled), nextText);
-    await reveal(next);
-    await shot('next-steps-desktop');
+      && account(await company(page)) === account(settled));
     await page.locator(`[data-testid="debrief-pair-workshop-${fixture.mechId}"]`).click();
     await page.locator('[data-testid="debrief"]').waitFor({ state: 'hidden' });
     await page.waitForFunction(id => document.querySelector(`[data-testid="camp-inspect-${id}"]`)?.getAttribute('aria-pressed') === 'true', fixture.mechId);
@@ -220,6 +216,7 @@ export async function runCompanyOutcomeChecks({ browser, url, shots, check }) {
     await shot('repair-desktop');
 
     await openSaved(page, url, fixture.raw);
+    await page.locator('.debrief-pilot-report > summary').click();
     await page.locator(`[data-testid="debrief-pair-train-${fixture.traineeId}"]`).click();
     const detail = page.locator(`[data-testid="camp-pilot-detail-${fixture.traineeId}"]`);
     await detail.waitFor();
@@ -233,11 +230,12 @@ export async function runCompanyOutcomeChecks({ browser, url, shots, check }) {
     await page.setViewportSize({ width: 390, height: 844 });
     await openSaved(page, url, fixture.raw);
     await receipt.waitFor();
+    await page.locator('.debrief-pilot-report > summary').click();
     await reveal(page.locator('[data-testid="debrief-crew"]'));
     await shot('crew-mobile');
     await reveal(receipt);
     await shot('rewards-mobile');
-    const training = page.locator(`[data-testid="debrief-train-${fixture.traineeId}"]`);
+    const training = page.locator(`[data-testid="debrief-pair-train-${fixture.traineeId}"]`);
     await training.scrollIntoViewIfNeeded();
     check('phone debrief scrolls its training action into an unobstructed touch-sized target',
       await noOverflow(page) && await training.evaluate(button => {

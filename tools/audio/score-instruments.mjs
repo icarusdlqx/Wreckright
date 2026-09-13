@@ -2,62 +2,79 @@
 export const RATE = 32_000;
 const TAU = Math.PI * 2;
 
+function saturate(value, drive = 1) {
+  return Math.tanh(value * drive) / Math.tanh(drive);
+}
+
 export function voice(note, seconds) {
-  const release = note.voice === 'strings' ? .65 : note.voice === 'horn' ? .28 : .16;
+  const releases = { pad: .8, lead: .34, guitar: .22, pulse: .18, bass: .2 };
+  const release = releases[note.voice] ?? .14;
   const output = new Float32Array(Math.ceil((seconds + release) * RATE));
   const hz = 440 * 2 ** ((note.pitch - 69) / 12);
   let seed = note.seed * 2654435761;
   let lowNoise = 0;
   let phase = 0;
+  let guitarState = 0;
   const rand = () => {
     seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5;
     return (seed >>> 0) / 2147483648 - 1;
   };
   for (let i = 0; i < output.length; i++) {
     const t = i / RATE;
-    const tail = t > seconds ? Math.exp(-(t - seconds) / (release / 5)) : 1;
+    const tail = t <= seconds ? 1 : Math.exp(-(t - seconds) / Math.max(.01, release / 4.5));
     let sound = 0;
-    if (note.voice === 'horn') {
-      phase += TAU * hz / RATE * (1 + .0018 * Math.sin(TAU * 5.1 * t) * Math.min(1, t / .2));
-      const attack = 1 - Math.exp(-t / .036);
-      const colour = .15 + .13 * (1 - Math.exp(-t / .24));
-      for (let h = 1; h <= 10; h++) sound += Math.sin(phase * h + .07 * h) * Math.exp(-h * colour) / h;
-      sound *= attack * tail * (.85 + .15 * Math.exp(-t / .2));
-    } else if (note.voice === 'strings') {
-      const envelope = Math.min(1, t / .3) * tail * .72;
-      for (const detune of [.9981, 1.0008, 1.0022]) {
-        for (let h = 1; h <= 5; h++) {
-          sound += Math.sin(TAU * hz * detune * h * t + h * .4) * Math.exp(-h * .22) / h / 3;
-        }
+    if (note.voice === 'pad') {
+      const attack = 1 - Math.exp(-t / .22);
+      const close = Math.min(1, Math.max(0, (seconds + release - t) / release));
+      for (const detune of [.996, 1, 1.004]) {
+        const saw = 2 * ((t * hz * detune) % 1) - 1;
+        const octave = 2 * ((t * hz * detune * 2) % 1) - 1;
+        sound += (saw * .58 + octave * .12) / 3;
       }
-      sound *= envelope;
+      sound = saturate(sound, 1.2) * attack * close * tail * .72;
+    } else if (note.voice === 'lead') {
+      const vibrato = 1 + .0024 * Math.sin(TAU * 5.2 * t) * Math.min(1, t / .18);
+      phase += TAU * hz * vibrato / RATE;
+      const square = Math.sin(phase) >= 0 ? 1 : -1;
+      sound = saturate(.66 * Math.sin(phase) + .2 * Math.sin(phase * 2) + .11 * square, 1.5)
+        * (1 - Math.exp(-t / .018)) * Math.exp(-Math.max(0, t - .08) / 1.8) * tail;
+    } else if (note.voice === 'guitar') {
+      const noise = rand();
+      const excite = t < .014 ? noise * (1 - t / .014) : 0;
+      const body = Math.sin(TAU * hz * t) + .72 * Math.sin(TAU * hz * 2 * t + .18)
+        + .38 * Math.sin(TAU * hz * 3 * t + .42) + .2 * Math.sin(TAU * hz * 4 * t + .11);
+      guitarState += ((body * .22 + excite * 1.6) - guitarState) * .24;
+      const pick = (noise - lowNoise) * Math.exp(-t / .018) * .32;
+      sound = saturate(guitarState + pick, 3.2) * Math.exp(-t / .34) * Math.min(1, t / .0025) * tail;
+    } else if (note.voice === 'pulse') {
+      phase += TAU * hz / RATE;
+      const saw = 2 * ((phase / TAU) % 1) - 1;
+      const sub = Math.sin(phase * .5);
+      sound = saturate(saw * .62 + sub * .24, 1.7) * Math.min(1, t / .005) * Math.exp(-t / .18) * tail;
     } else if (note.voice === 'bass') {
-      sound = (Math.sin(TAU * hz * t) + .24 * Math.sin(TAU * hz * 2 * t) + .08 * Math.sin(TAU * hz * 3 * t))
-        * Math.min(1, t / .012) * Math.exp(-t / 1.1) * tail;
-    } else if (['mallet', 'glass', 'plucked'].includes(note.voice)) {
-      const glass = note.voice === 'glass';
-      const pluck = note.voice === 'plucked';
-      const decay = glass ? .85 : pluck ? .2 : .46;
-      sound = Math.sin(TAU * hz * t + (glass ? .9 : .25) * Math.sin(TAU * hz * 2.002 * t) * Math.exp(-t / .1)) * Math.exp(-t / decay);
-      sound += .22 * Math.sin(TAU * hz * 3.997 * t) * Math.exp(-t / .065);
-      if (pluck) sound += .18 * Math.sin(TAU * hz * 2 * t) * Math.exp(-t / .13);
-      sound *= Math.min(1, t / .003) * tail;
+      phase += TAU * hz / RATE * (1 + .02 * Math.exp(-t / .035));
+      sound = saturate(Math.sin(phase) + .32 * Math.sin(phase * 2) + .1 * Math.sin(phase * 3), 1.8)
+        * Math.min(1, t / .006) * Math.exp(-t / .55) * tail;
     } else {
       const noise = rand();
-      lowNoise += (noise - lowNoise) * .06;
-      if (note.voice === 'drum') {
-        phase += TAU / RATE * (hz * .65 + hz * 1.8 * Math.exp(-t / .038));
-        sound = Math.sin(phase) * Math.exp(-t / .125) + .27 * lowNoise * Math.exp(-t / .2)
-          + .06 * noise * Math.exp(-t / .009);
-      } else if (note.voice === 'clank') {
-        sound = (.5 * noise + .65 * Math.sin(TAU * hz * t) + .27 * Math.sin(TAU * hz * 2.71 * t)) * Math.exp(-t / .055);
+      lowNoise += (noise - lowNoise) * .045;
+      if (note.voice === 'kick') {
+        phase += TAU / RATE * (hz * .52 + hz * 2.9 * Math.exp(-t / .026));
+        sound = (Math.sin(phase) * 1.08 + .12 * noise * Math.exp(-t / .012)) * Math.exp(-t / .13);
+      } else if (note.voice === 'snare') {
+        const wire = noise - lowNoise;
+        sound = (wire * .82 + Math.sin(TAU * hz * .72 * t) * .36) * Math.exp(-t / .105);
+      } else if (note.voice === 'tom') {
+        phase += TAU / RATE * (hz * .72 + hz * .6 * Math.exp(-t / .04));
+        sound = (Math.sin(phase) + .18 * lowNoise) * Math.exp(-t / .17);
       } else if (note.voice === 'snap') {
-        sound = (noise - lowNoise + .25 * Math.sin(TAU * hz * t)) * Math.exp(-t / .028);
+        sound = ((noise - lowNoise) * .76 + .2 * Math.sin(TAU * hz * t)) * Math.exp(-t / .027);
       } else {
-        sound = ((noise - lowNoise) * .55 + Math.sin(TAU * hz * 5.27 * t) * .14) * Math.exp(-t / .016);
+        sound = ((noise - lowNoise) * .62 + Math.sin(TAU * hz * 4.7 * t) * .09) * Math.exp(-t / .018);
       }
       sound *= Math.min(1, t / .0015) * tail;
     }
+    lowNoise += (rand() - lowNoise) * .018;
     output[i] = sound * note.gain;
   }
   return output;
@@ -65,16 +82,15 @@ export function voice(note, seconds) {
 
 export function stereoRoom(channels) {
   const original = channels.map(channel => new Float32Array(channel));
-  const taps = [[.043, .14], [.079, .12], [.127, .105], [.181, .095], [.263, .07], [.367, .055], [.521, .037], [.733, .022]];
+  const taps = [[.031, .1], [.067, .085], [.109, .07], [.173, .06], [.257, .043], [.401, .027]];
   for (let channel = 0; channel < channels.length; channel++) {
     const target = channels[channel];
     const source = original[(channel + 1) % original.length];
     for (const [seconds, gain] of taps) {
-      const offset = Math.round((seconds + channel * .013) * RATE);
+      const offset = Math.round((seconds + channel * .011) * RATE);
       let smooth = 0;
       for (let i = 0; i < source.length; i++) {
-        smooth += (source[i] - smooth) * .16;
-        // Circular tails preserve the space through the sample-exact loop join.
+        smooth += (source[i] - smooth) * .19;
         target[(i + offset) % target.length] += smooth * gain;
       }
     }

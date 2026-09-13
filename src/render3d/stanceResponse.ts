@@ -1,5 +1,6 @@
 import type { AnimationState } from './locomotionState';
 import type { MechModel } from './mechModel';
+import { applyHitResponse } from './hitResponse';
 
 export function advanceWeightSettle(state: AnimationState, model: MechModel,
   moving: boolean, dt: number, reducedMotion: boolean): void {
@@ -52,4 +53,5 @@ export function applyStanceResponse(state: AnimationState, model: MechModel, red
     arm.pivot.rotation.z = compression * (sealed ? -0.08 : -0.35);
     if (!sealed) arm.pivot.rotation.x -= state.turnBalance * 0.055;
   }
+  applyHitResponse(model);
 }

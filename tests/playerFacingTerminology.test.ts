@@ -14,7 +14,7 @@ interface ProhibitedTerm {
 }
 
 const PROHIBITED_TERMS: readonly ProhibitedTerm[] = [
-  { label: 'retired product title', pattern: /\b(?:IRONLINE|Ironline)\b/ },
+  { label: 'retired product title', pattern: /\b(?:IRONLINE|Ironline|WRECKRIGHT|Wreckright)\b/ },
   { label: 'C-bill', pattern: /\bc[- ]?bills?\b/i },
   { label: 'BattleMech', pattern: /\bbattle\s*mechs?\b/i },
   {

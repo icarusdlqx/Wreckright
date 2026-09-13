@@ -11,8 +11,8 @@ Opening funds: **3,200,000 C** · Closing funds: **13,618,100 C**
 | 1 | First Notice | 3200000 | 850000 | 4800 | 0 parts (0 value) | none | 0 | Flamer (7500) | 4037700 | 3 mechs / 4 pilots | The Quiet Claim: 140t / 3 |
 | 2 | The Quiet Claim | 4037700 | 650000 | 4800 | 3 parts (67500 value) | Released Prybar workshop hulk; Service cabinet: Canister Cannon | 0 | Jump Jet (9000) | 4673900 | 4 mechs / 4 pilots | Keep the Gantries: 205t / 5 |
 | 3 | Keep the Gantries | 4673900 | 950000 | 4800 | 1 parts (5000 value) | Two workshop day credits; Stores cabinet: seven days of supplier terms | 0 | Anti-Missile System (88000) | 5531100 | 4 mechs / 4 pilots | First Attestation: 215t / 5 |
-| 4 | First Attestation | 5531100 | 1450000 | 4800 | 4 parts (112000 value) | Foundry exchange: two Focused Medium Lasers | 0 | Longshot 10 (93000) | 6883300 | 4 mechs / 4 pilots | Broken Wreckright: 220t / 5 |
-| 5 | Broken Wreckright | 6883300 | 1150000 | 4800 | 2 parts (320000 value) | Gantry armoury: Canister Cannon | 0 | Gauss Rifle (486500) | 7542000 | 4 mechs / 4 pilots | The Cold Yards: 240t / 5 |
+| 4 | First Attestation | 5531100 | 1450000 | 4800 | 4 parts (112000 value) | Foundry exchange: two Focused Medium Lasers | 0 | Longshot 10 (93000) | 6883300 | 4 mechs / 4 pilots | Broken Ironmuster: 220t / 5 |
+| 5 | Broken Ironmuster | 6883300 | 1150000 | 4800 | 2 parts (320000 value) | Gantry armoury: Canister Cannon | 0 | Gauss Rifle (486500) | 7542000 | 4 mechs / 4 pilots | The Cold Yards: 240t / 5 |
 | 6 | The Cold Yards | 7542000 | 1300000 | 4800 | 3 parts (100000 value) | Cold-yard vault: Gauss Rifle | 0 | none | 8837200 | 4 mechs / 4 pilots | Manifest Key: 225t / 5 |
 | 7 | Manifest Key | 8837200 | 2600000 | 4800 | 0 parts (0 value) | none | 0 | Heat Sink (2000) | 11430400 | 4 mechs / 4 pilots | Burn the Manifest: 255t / 5 |
 | 8 | Burn the Manifest | 11430400 | 2200000 | 4800 | 0 parts (0 value) | none | 0 | Jump Jet (7500) | 13618100 | 0 mechs / 4 pilots | campaign complete |
@@ -26,8 +26,8 @@ Opening funds: **3,200,000 C** · Closing funds: **12,202,000 C**
 | 1 | First Notice | 3200000 | 850000 | 4800 | 1 parts (5000 value) | none | 225450 | Machine Gun (5500) | 3775850 | 3 mechs / 4 pilots | The Quiet Claim: 140t / 3 |
 | 2 | The Quiet Claim | 3775850 | 650000 | 4800 | 1 parts (30000 value) | Released Prybar workshop hulk; Service cabinet: Canister Cannon | 170950 | Flamer (8000) | 4213300 | 4 mechs / 4 pilots | Keep the Gantries: 205t / 5 |
 | 3 | Keep the Gantries | 4213300 | 950000 | 4800 | 1 parts (7500 value) | Two workshop day credits; Stores cabinet: seven days of supplier terms | 225450 | Jump Jet (7500) | 4896750 | 4 mechs / 4 pilots | First Attestation: 215t / 5 |
-| 4 | First Attestation | 4896750 | 1450000 | 4800 | 3 parts (220000 value) | Foundry exchange: two Focused Medium Lasers | 225450 | Machine Gun (4500) | 6073600 | 4 mechs / 4 pilots | Broken Wreckright: 220t / 5 |
-| 5 | Broken Wreckright | 6073600 | 1150000 | 4800 | 2 parts (140000 value) | Gantry armoury: Canister Cannon | 225450 | Shortbow 2 (33500) | 6921450 | 4 mechs / 4 pilots | The Cold Yards: 240t / 5 |
+| 4 | First Attestation | 4896750 | 1450000 | 4800 | 3 parts (220000 value) | Foundry exchange: two Focused Medium Lasers | 225450 | Machine Gun (4500) | 6073600 | 4 mechs / 4 pilots | Broken Ironmuster: 220t / 5 |
+| 5 | Broken Ironmuster | 6073600 | 1150000 | 4800 | 2 parts (140000 value) | Gantry armoury: Canister Cannon | 225450 | Shortbow 2 (33500) | 6921450 | 4 mechs / 4 pilots | The Cold Yards: 240t / 5 |
 | 6 | The Cold Yards | 6921450 | 1300000 | 4800 | 1 parts (12000 value) | Cold-yard vault: Gauss Rifle | 225450 | Flamer (7000) | 7945800 | 4 mechs / 4 pilots | Manifest Key: 225t / 5 |
 | 7 | Manifest Key | 7945800 | 2600000 | 4800 | 0 parts (0 value) | none | 225450 | Heat Sink (2000) | 10275150 | 4 mechs / 4 pilots | Burn the Manifest: 255t / 5 |
 | 8 | Burn the Manifest | 10275150 | 2200000 | 4800 | 1 parts (60000 value) | none | 225450 | Machine Gun (4500) | 12202000 | 0 mechs / 4 pilots | campaign complete |
@@ -44,8 +44,8 @@ Opening funds: **3,200,000 C** · Closing funds: **15,173,200 C**
 | 4 | Keep the Gantries | 4921600 | 950000 | 4800 | 0 parts (0 value) | Two workshop day credits; Stores cabinet: seven days of supplier terms | 0 | Longshot 10 (93000) | 5773800 | 4 mechs / 4 pilots | First Attestation: 215t / 5 |
 | 5 | First Attestation | 5773800 | 1450000 | 4800 | 4 parts (180000 value) | Foundry exchange: two Focused Medium Lasers | 0 | Gauss Rifle (486500) | 6732500 | 4 mechs / 4 pilots | Custody Posts: 210t / open |
 | 6 | Custody Posts | 6732500 | 620000 | 4800 | 2 parts (58000 value) | none | 0 | none | 7347700 | 4 mechs / 4 pilots | The Causeway: 215t / open |
-| 7 | The Causeway | 7347700 | 1050000 | 4800 | 1 parts (100000 value) | none | 0 | Heat Sink (2000) | 8390900 | 4 mechs / 4 pilots | Broken Wreckright: 220t / 5 |
-| 8 | Broken Wreckright | 8390900 | 1150000 | 4800 | 0 parts (0 value) | Gantry armoury: Canister Cannon | 0 | Jump Jet (7500) | 9528600 | 4 mechs / 4 pilots | The Cold Yards: 240t / 5 |
+| 7 | The Causeway | 7347700 | 1050000 | 4800 | 1 parts (100000 value) | none | 0 | Heat Sink (2000) | 8390900 | 4 mechs / 4 pilots | Broken Ironmuster: 220t / 5 |
+| 8 | Broken Ironmuster | 8390900 | 1150000 | 4800 | 0 parts (0 value) | Gantry armoury: Canister Cannon | 0 | Jump Jet (7500) | 9528600 | 4 mechs / 4 pilots | The Cold Yards: 240t / 5 |
 | 9 | The Cold Yards | 9528600 | 1300000 | 4800 | 3 parts (168000 value) | Cold-yard vault: Gauss Rifle | 0 | Anti-Missile System (85000) | 10738800 | 4 mechs / 4 pilots | Manifest Key: 225t / 5 |
 | 10 | Manifest Key | 10738800 | 2600000 | 4800 | 0 parts (0 value) | none | 0 | Volley 20 (111500) | 13222500 | 4 mechs / 4 pilots | Burn the Manifest: 255t / 5 |
 | 11 | Burn the Manifest | 13222500 | 2200000 | 4800 | 1 parts (260000 value) | none | 0 | Longshot 20 (244500) | 15173200 | 0 mechs / 4 pilots | campaign complete |
@@ -62,8 +62,8 @@ Opening funds: **3,200,000 C** · Closing funds: **13,502,050 C**
 | 4 | Keep the Gantries | 4393150 | 950000 | 4800 | 1 parts (7500 value) | Two workshop day credits; Stores cabinet: seven days of supplier terms | 225450 | Jump Jet (7500) | 5076600 | 4 mechs / 4 pilots | First Attestation: 215t / 5 |
 | 5 | First Attestation | 5076600 | 1450000 | 4800 | 4 parts (232000 value) | Foundry exchange: two Focused Medium Lasers | 225450 | Shortbow 2 (33500) | 6224450 | 4 mechs / 4 pilots | Custody Posts: 210t / open |
 | 6 | Custody Posts | 6224450 | 620000 | 4800 | 2 parts (130000 value) | none | 225450 | Flamer (8000) | 6567800 | 4 mechs / 4 pilots | The Causeway: 215t / open |
-| 7 | The Causeway | 6567800 | 1050000 | 4800 | 0 parts (0 value) | none | 225450 | Flamer (7000) | 7342150 | 4 mechs / 4 pilots | Broken Wreckright: 220t / 5 |
-| 8 | Broken Wreckright | 7342150 | 1150000 | 4800 | 2 parts (140000 value) | Gantry armoury: Canister Cannon | 225450 | Machine Gun (4500) | 8219000 | 4 mechs / 4 pilots | The Cold Yards: 240t / 5 |
+| 7 | The Causeway | 6567800 | 1050000 | 4800 | 0 parts (0 value) | none | 225450 | Flamer (7000) | 7342150 | 4 mechs / 4 pilots | Broken Ironmuster: 220t / 5 |
+| 8 | Broken Ironmuster | 7342150 | 1150000 | 4800 | 2 parts (140000 value) | Gantry armoury: Canister Cannon | 225450 | Machine Gun (4500) | 8219000 | 4 mechs / 4 pilots | The Cold Yards: 240t / 5 |
 | 9 | The Cold Yards | 8219000 | 1300000 | 4800 | 3 parts (292000 value) | Cold-yard vault: Gauss Rifle | 225450 | Heat Sink (2000) | 9248350 | 4 mechs / 4 pilots | Manifest Key: 225t / 5 |
 | 10 | Manifest Key | 9248350 | 2600000 | 4800 | 2 parts (183000 value) | none | 225450 | Flamer (7000) | 11572700 | 4 mechs / 4 pilots | Burn the Manifest: 255t / 5 |
 | 11 | Burn the Manifest | 11572700 | 2200000 | 4800 | 0 parts (0 value) | none | 225450 | Heat Sink (2000) | 13502050 | 0 mechs / 4 pilots | campaign complete |

@@ -15,7 +15,7 @@ interface Props {
   compact?: boolean;
 }
 
-export const PREP_PILOT_DRAG_TYPE = 'application/x-wreckright-pilot';
+export const PREP_PILOT_DRAG_TYPE = 'application/x-ironmuster-pilot';
 
 export function DeploymentStrip({ catalog, state, selected, onSelect, onDropPilot, compact = false }: Props) {
   if (state.contract === null) return null;

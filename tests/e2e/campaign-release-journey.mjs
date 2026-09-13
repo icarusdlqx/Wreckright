@@ -4,6 +4,7 @@ import { runCampaignCommandFlow } from './campaign-command-flow.mjs';
 import { runCampaignRecovery } from './campaign-recovery.mjs';
 import { runCampaignSaveLibraryChecks } from './campaign-save-library.mjs';
 import { runMechbayPersistenceChecks } from './mechbay-persistence.mjs';
+import { runMachineServiceRecordChecks } from './machine-service-record.mjs';
 
 const url = process.env.BASE_URL ?? 'http://127.0.0.1:5221/';
 const folder = process.env.SHOT_DIR ?? 'reports/release-polish/campaign';
@@ -36,6 +37,7 @@ for (const name of requested) {
     await runCampaignRecovery({ page: basePage, shots: browserFolder, check: record });
     await runMechbayPersistenceChecks({ browser, url, shots: browserFolder, check: record });
     await runCampaignCommandFlow({ browser, url, shots: browserFolder, check: record });
+    await runMachineServiceRecordChecks({ browser, url, shots: browserFolder, check: record });
     await baseContext.close();
   } finally {
     await browser.close();

@@ -1,3 +1,5 @@
+import { openCampaignDetails } from './unified-navigation.mjs';
+import { openCompanyTools, returnFromAutoPreparation } from './unified-navigation.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import { companyFile } from './campaign-navigation.mjs';
 
@@ -27,11 +29,13 @@ export async function runCompanyJournalChecks({ browser, url, shots, check }) {
     await companyFile(page, 'camp-campaigns');
     await page.locator('[data-testid="company-card-aurelian_recall"]').click();
     await page.locator('[data-testid="campaign-choice-start"]').click();
+    await openCampaignDetails(page);
     await page.locator('[data-testid="camp-node-first_warrant"]').waitFor();
     const gold = await saved(page);
     await companyFile(page, 'camp-campaigns');
     await page.locator('[data-testid="company-card-border_dispute"]').click();
     await page.locator('[data-testid="campaign-choice-resume"]').click();
+    await openCampaignDetails(page);
     await page.locator('[data-testid="camp-node-militia_raid"]').waitFor();
     check('switching factions preserves each company and resumes the original seed and roster',
       (await saved(page)).seed === line.seed && await page.evaluate(seed =>
@@ -58,15 +62,19 @@ export async function runCompanyJournalChecks({ browser, url, shots, check }) {
     await page.goto(url);
     await page.locator('[data-testid="home-campaign"]').click();
     if (await page.locator('[data-testid="campaign-guide-dismiss"]').isVisible()) await page.locator('[data-testid="campaign-guide-dismiss"]').click();
+    await openCampaignDetails(page);
     await page.locator('[data-testid="camp-node-militia_raid"]').click();
     await page.locator('[data-testid="company-journal"]:visible').waitFor();
     const journal = await page.locator('[data-testid="company-journal"]').innerText();
     check('completed map nodes reopen a journal with objective service and recovery facts',
       /First Notice/.test(journal) && /Returned without firing a shot/.test(journal) && /Recovery record/.test(journal));
     await shot('journal');
+    await openCompanyTools(page);
     await page.locator('[data-testid="camp-area-operations"]').click();
+    await openCampaignDetails(page);
     await page.locator('[data-testid="camp-node-marker_survey"]').click();
     await page.locator('[data-testid="camp-accept"]').click();
+    await returnFromAutoPreparation(page);
     await page.locator('[data-testid="camp-deploy"]').click();
     await page.locator('[data-testid="lance-manifest"]').waitFor();
     await page.locator('[data-testid="prep-seat-0"]').click();

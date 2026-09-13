@@ -22,19 +22,19 @@ export async function runUnitHealthChecks({ browser, url, shots, check }) {
     await page.getByTestId('home-skirmish').click();
     await page.getByTestId('briefing-mission-picker').selectOption('skirmish_ridge');
     await page.waitForFunction(() => {
-      const test = globalThis.__wreckright;
+      const test = globalThis.__ironmuster;
       return test?.world.mission.id === 'skirmish_ridge' && test.useGame.getState().ready;
     });
     await page.getByTestId('briefing-deploy').click();
     await page.getByTestId('briefing').waitFor({ state: 'hidden' });
     await page.waitForFunction(() => {
-      const test = globalThis.__wreckright;
+      const test = globalThis.__ironmuster;
       return test?.useGame.getState().ready && test.useGame.getState().briefingSeen &&
         test.world === test.engine.world && test.world.vision !== null;
     });
 
     const fixture = await page.evaluate(() => {
-      const { world, useGame, engine } = globalThis.__wreckright;
+      const { world, useGame, engine } = globalThis.__ironmuster;
       useGame.getState().patch({ paused: true });
       const isMech = (entity) => world.catalog.chassis.get(entity.chassisId)?.frame === 'mech';
       const friendly = world.entities.find((entity) => entity.team === world.playerTeam && isMech(entity));
@@ -85,7 +85,7 @@ export async function runUnitHealthChecks({ browser, url, shots, check }) {
     await page.screenshot({ path: `${shots}/unit-health-commander.png` });
 
     await page.evaluate(({ enemyId, enemyTeam }) => {
-      const { world, useGame } = globalThis.__wreckright;
+      const { world, useGame } = globalThis.__ironmuster;
       world.vision.visible.delete(enemyId);
       useGame.getState().patch({ tick: useGame.getState().tick + 1, contacts: [{
         id: enemyId, team: enemyTeam, label: 'Sensor contact', position: { x: 500, y: 360 },
@@ -101,7 +101,7 @@ export async function runUnitHealthChecks({ browser, url, shots, check }) {
     await page.screenshot({ path: `${shots}/unit-health-sensor-privacy.png` });
 
     await page.evaluate(({ enemyId }) => {
-      const { world, useGame } = globalThis.__wreckright;
+      const { world, useGame } = globalThis.__ironmuster;
       world.vision.visible.add(enemyId);
       useGame.getState().patch({ tick: useGame.getState().tick + 1, contacts: [] });
     }, fixture);
@@ -109,7 +109,7 @@ export async function runUnitHealthChecks({ browser, url, shots, check }) {
     await page.locator(commanderBar(fixture.enemyId)).waitFor({ state: 'attached' });
     check('regaining optics restores the surviving enemy health bars', true);
     await page.evaluate(({ enemyId }) => {
-      const { world, useGame } = globalThis.__wreckright;
+      const { world, useGame } = globalThis.__ironmuster;
       world.entities.find((entity) => entity.id === enemyId).destroyed = true;
       useGame.getState().patch({ tick: useGame.getState().tick + 1 });
     }, fixture);

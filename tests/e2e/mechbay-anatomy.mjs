@@ -1,13 +1,14 @@
+import { returnFromAutoPreparation } from './unified-navigation.mjs';
 import { openDesktopBattleMenu } from './input-safety.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 
 async function anatomyBounds(page) {
   return page.getByTestId('anatomical-loadout').evaluate(body => {
-    const boundary = document.querySelector('[data-testid="bay-save"]').getBoundingClientRect().top;
+    const boundary = body.getBoundingClientRect();
     return [...body.querySelectorAll('.bay-location')].map(card => {
       const rect = card.getBoundingClientRect();
       const tiles = [...card.querySelectorAll('.slot-block__inspect')].map(tile => tile.getBoundingClientRect());
-      return { part: card.dataset.testid, visible: rect.top >= 0 && rect.bottom <= boundary,
+      return { part: card.dataset.testid, visible: rect.top >= boundary.top && rect.bottom <= boundary.bottom + 1,
         contentsFit: tiles.every(tile => tile.left >= rect.left && tile.right <= rect.right + 1 && tile.top >= rect.top && tile.bottom <= rect.bottom + 1) };
     });
   });
@@ -47,19 +48,18 @@ export async function runMechbayAnatomyChecks({ browser, url, shots, check }) {
     await picker.selectOption('sentinel_brawler');
     const expectedMounts = expectedDesigns.sentinel_brawler.mounts;
     check('installed weapons retain the same recognizable artwork as catalogue weapons', await page.locator('[data-testid^="inspect-weapon-"] .weapon-glyph').count() === expectedMounts.length
-      && await page.locator('.weapon-card__quick-stats').first().isVisible());
+      && await page.locator('.weapon-card__meters').first().isVisible());
     const guide = page.getByTestId('bay-workbench-disclosure');
     check('expanded fitting guide is visibly expanded without requiring hover', await guide.getAttribute('aria-expanded') === 'true' && await page.locator('#location-fit-steps').isVisible());
     const mounted = page.getByTestId('inspect-weapon-0');
     await mounted.focus();
     check('focusing an installed weapon exposes keyboard accessible Move and Remove actions', await page.getByTestId('move-weapon-0').isVisible() && await page.getByTestId('remove-weapon-0').isVisible());
-    check('inspecting a fitted weapon describes its installed location rather than trying to fit another copy', (await page.getByTestId('dossier-fit').innerText()).toLowerCase().includes('installed')
-      && (await page.getByTestId('dossier-fit').innerText()).includes(expectedMounts[0].location.replaceAll('_', ' ')));
+    check('an inspected fitted weapon remains in its named anatomical compartment', await mounted.evaluate((element, location) => element.closest('.bay-location')?.getAttribute('data-testid') === `bay-location-${location}`, expectedMounts[0].location));
     await page.getByTestId('bay-location-left_arm').getByRole('button', { name: 'Select Left Arm' }).click();
     await page.getByTestId('open-machine-focus').click();
     const focusText = (await page.getByTestId('machine-focus').innerText()).toLowerCase();
     check('full-size fitted-mech inspection opens without leaving the loadout', await page.getByTestId('machine-focus').isVisible()
-      && focusText.includes('live fitted build')
+      && focusText.includes('your fitted machine')
       && focusText.includes('left arm'));
     await shot('focus-1280');
     await page.getByTestId('machine-focus').getByRole('button', { name: 'Return to fitting' }).click();
@@ -92,13 +92,14 @@ export async function runMechbayAnatomyChecks({ browser, url, shots, check }) {
     const dismiss = page.getByTestId('campaign-guide-dismiss');
     if (await dismiss.isVisible()) await dismiss.click();
     await page.getByTestId('camp-accept').click();
+    await returnFromAutoPreparation(page);
     await page.getByTestId('camp-review-machines').click();
     await page.getByTestId('prep-seat-1').click();
     const mech = await page.evaluate(() => JSON.parse(localStorage.getItem('ironline.campaign')).state.deploymentSeats[1].mechId);
     await page.getByTestId(`hangar-refit-${mech}`).click();
     await page.getByTestId('refit-bay').getByTestId('bay-save').waitFor();
     const bounds = await anatomyBounds(page);
-    check('campaign refit retains all eight body racks alongside mission and deployment context at 1280×720', bounds.length === 8 && bounds.every(part => part.visible && part.contentsFit)
+    check('campaign refit retains all eight scrollable body compartments alongside mission and deployment context at 1280×720', bounds.length === 8 && bounds.every(part => part.visible && part.contentsFit)
       && await page.locator('.prep-refit-context .prep-seat').count() === 5, JSON.stringify(bounds));
     await shot('campaign-1280');
     check('anatomical workshop journey produces no browser errors', errors.length === 0, errors.join('\n'));

@@ -8,6 +8,7 @@ import { createEngine, type Engine, type EngineOptions } from './engine';
 import { lanceEntries, type SkirmishBerth } from './lance';
 import { useGame } from './store';
 import { battleStartsPaused } from './trainingPresentation';
+import { campaignRadioFor } from './campaignRadio';
 
 interface BattleEngineOptions {
   setup: BattleSetupKey;
@@ -33,6 +34,7 @@ export function useBattleEngine({ setup, revision, nextStart, hostRef, engineRef
       difficulty: setup.difficulty,
       seed: setup.battleCode,
     };
+    let campaignRadio: ReturnType<typeof campaignRadioFor> | null = null;
     const entries = lanceEntries(
       getCatalog(),
       JSON.parse(setup.lanceKey) as SkirmishBerth[],
@@ -47,6 +49,7 @@ export function useBattleEngine({ setup, revision, nextStart, hostRef, engineRef
       if (saved !== null) {
         try {
           const deployment = prepareDeployment(getCatalog(), saved);
+          campaignRadio = campaignRadioFor(getCatalog(), saved, deployment);
           options = {
             missionId: deployment.missionId,
             seed: deployment.seed,
@@ -77,6 +80,7 @@ export function useBattleEngine({ setup, revision, nextStart, hostRef, engineRef
           return;
         }
         engineRef.current = engine;
+        campaignRadio?.(engine.world);
         onMuted(engine.audio.muted);
         onLowFx(engine.renderer.lowFx);
         if (deployOnReady) {

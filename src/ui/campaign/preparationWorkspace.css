@@ -119,6 +119,7 @@
  .prep-view-tabs > button { font-size: 11px; }
  .prep-presets { margin-left: 0; }
  .prep-selection-grid { grid-template-columns: minmax(140px,.7fr) minmax(0,1fr); height: auto; }
+ .prep-roster,.prep-main-inspector,.prep-seat-inspector { overflow: visible; overscroll-behavior: auto; }
  .prep-roster { grid-row: span 2; }
  .prep-main-inspector { border-right: 0; }
  .prep-seat-inspector { grid-column: 2; border-left: 1px solid var(--exp-line,#c6cec1); }
