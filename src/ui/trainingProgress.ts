@@ -117,11 +117,6 @@ export function initialSkirmishMission(): string {
   return TRAINING_MISSION_ID;
 }
 
-export function trainingStartStep(): TrainingStep {
-  const record = readTraining();
-  return record?.status === 'active' ? record.step : 0;
-}
-
 export function startTraining(): void {
   if (readTraining()?.status === 'active') return;
   writeTraining(0, 'active');

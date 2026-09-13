@@ -8,7 +8,6 @@ import {
   completeTraining,
   skipTraining,
   storeTrainingStep,
-  trainingStartStep,
   type TrainingSignals,
   type TrainingStep,
 } from './trainingProgress';
@@ -55,6 +54,7 @@ interface TrainingCoachProps {
 
 interface TrainingPresentationOptions {
   active: boolean;
+  battlefieldRevision: number;
   onSkip?: () => void;
   onComplete?: () => void;
   onContinueAnyway?: () => void;
@@ -73,7 +73,9 @@ interface TrainingPresentationState {
 export function useTrainingPresentation(
   options: TrainingPresentationOptions,
 ): TrainingPresentationState {
-  const [step, setStep] = useState<TrainingStep>(trainingStartStep);
+  // The profile remembers an unfinished lesson, not a battlefield checkpoint.
+  // A fresh range must recapture its gate before the contact lesson applies.
+  const [step, setStep] = useState<TrainingStep>(0);
   const { record } = usePlaytest();
   const presentedStep = options.active ? step : null;
   const onStep = useCallback((next: TrainingStep): void => {
@@ -82,8 +84,8 @@ export function useTrainingPresentation(
   }, []);
 
   useEffect(() => {
-    if (options.active) setStep(trainingStartStep());
-  }, [options.active]);
+    if (options.active) setStep(0);
+  }, [options.active, options.battlefieldRevision]);
 
   useEffect(() => {
     setTrainingPresentationStep(presentedStep);
@@ -127,7 +129,7 @@ export function observeTrainingSignals(
 export function TrainingCoach({ active, step: controlledStep, onStep, onShowGate }: TrainingCoachProps = {}) {
   const state = useGame();
   const { record } = usePlaytest();
-  const [localStep, setLocalStep] = useState<TrainingStep>(trainingStartStep);
+  const [localStep, setLocalStep] = useState<TrainingStep>(0);
   const [open, setOpen] = useState(true);
   const compact = useCompactLayout();
   const seen = useRef<TrainingSignals>({

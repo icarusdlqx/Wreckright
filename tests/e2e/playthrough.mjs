@@ -21,6 +21,7 @@ import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import { checkCampaignHaul } from './campaign-haul.mjs';
 import { runMechbayCrewChecks } from './mechbay-crew.mjs';
 import { runColdMechbayChecks } from './mechbay-loading.mjs';
+import { runTrainingRestartChecks } from './training-restarts.mjs';
 import { runCommandRefinementChecks } from './command-refinement.mjs';
 import { runRefinementTouchChecks } from './refinement-touch.mjs';
 import { runCompanyOutcomeChecks } from './company-outcome-review.mjs';
@@ -463,6 +464,7 @@ async function main() {
       { timeout: 30_000 },
     );
     await verifyAlternateTrainingRoutes(browser, URL);
+    await runTrainingRestartChecks({ browser, url: URL, shots: SHOTS, check });
 
     process.stdout.write('\nboot\n');
     const canvas = await page.locator('.viewport canvas:not(.perf-overlay)').boundingBox();
