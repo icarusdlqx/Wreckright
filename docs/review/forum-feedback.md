@@ -16,10 +16,11 @@ The first campaign deployment now opens **A team to start with** for either fact
 
 ## Visual evidence
 
-Both captures were opened and inspected. The overview gives the recommendation and next action priority while retaining optional customisation. Focused browser evidence also covers 1440-, 1280- and 390-pixel layouts without horizontal overflow.
+The local before/after captures and the live hosted capture were opened and inspected. The overview gives the recommendation and next action priority while retaining optional customisation. Focused browser evidence also covers 1440-, 1280- and 390-pixel layouts without horizontal overflow.
 
 - [Before: full preparation workspace](forum-feedback/before-preparation.png)
 - [After: first-deployment overview](forum-feedback/after-preparation.png)
+- [Live itch.io: first-deployment overview](forum-feedback/hosted-first-drop.png)
 
 ## Verification
 
@@ -31,8 +32,15 @@ Both captures were opened and inspected. The overview gives the recommendation a
 
 ## Publication record
 
-- Release implementation: `590888a` on `codex/forum-feedback`, pushed to the existing GitHub repository. Remote CI: https://github.com/icarusdlqx/Wreckright/actions/runs/35251497737 (all four jobs succeeded: quality/builds, simulation, browser playthrough and production gate).
-- Hosted itch.io upload and live verification: **pending**. Browser uploads still returned HTTP 403 after editor refresh and a user-requested retry with renewed forum access. The previous live build and project settings are unchanged. The official Butler 15.31.0 uploader is prepared locally. Its account authorisation page is open; granting upload-channel access awaits user approval.
-- Onboarding suggestion reply: https://itch.io/post/17369872 (posted and verified after the user cleared forum access).
+- Release implementation: `590888a` on `codex/forum-feedback`, pushed to the existing GitHub repository. [Remote CI](https://github.com/icarusdlqx/Wreckright/actions/runs/35251497737): all four jobs succeeded (quality/builds, simulation, browser playthrough and production gate). Subsequent commits record release evidence only.
+- **Published and verified:** [Ironmuster](https://onlatentstates.itch.io/ironmuster), existing project `4981536`, version `2026.09.18-590888a`.
+- Official Butler 15.31.0 authorised with the user's explicit approval. Future releases can update the same `browser` and `offline-browser` channels. Credentials remain in Butler's local credential store and are not included in the repository or release bundle.
+- Playable browser channel: upload `19281987`, build `1989948`. Observed live iframe: `https://html-classic.itch.zone/html/19281987-1989948/index.html?v=1789686687`.
+- Offline channel: upload `19282032`, build `1989953`. Public download label: **Ironmuster — Offline browser edition (18 September 2026).html**, 7.1 MB. This is a self-contained HTML download, not a Linux executable.
+- Older uploads and the duplicate classic uploads remain hidden, not deleted. Public visibility, optional donations and generative-AI disclosure are preserved.
+- The public description now explains the ready-equipped first deployment and optional Mechlab. Existing written-feedback instructions remain visible.
+- Independent hosted-artifact verification: all seven local JS/CSS entry assets exactly match the tested ZIP. Hosted HTML differs only by the official itch.io `htmlgame.js` script appended by the host. The public page, active download and description were separately verified in the authenticated browser.
+- Live UI smoke: a new Regular Linewrought company opened the first-mission overview at `205/205t`, proceeded directly to the field briefing, and deployed Kessa Vale/Gadfly, Dorn Hess/Bulwark, Marek Sud/Gadfly and Ilse Brant/Cairn. No browser error logs. This verifies the hosted deployment path, not a full campaign playthrough. The unattended smoke battle later reached its normal time limit without any combat orders.
+- Linux reply: https://itch.io/post/17367594. Onboarding reply: https://itch.io/post/17369872. The initial onboarding reply accurately said the tested build was awaiting upload; a live-status edit is being attempted after publication.
 
-Keep the existing Ironmuster project, Public visibility, optional donations and generative-AI disclosure. Replace the playable browser upload and current offline edition only after release checks are complete.
+GitHub backup remains on `codex/forum-feedback`; `main` was not merged or redeployed as part of this itch.io update.
