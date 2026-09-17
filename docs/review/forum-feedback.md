@@ -31,8 +31,8 @@ Both captures were opened and inspected. The overview gives the recommendation a
 
 ## Publication record
 
-- Release commit: **pending**.
-- Hosted itch.io upload and live verification: **pending**.
-- Onboarding suggestion reply: **pending**.
+- Release implementation: `590888a` on `codex/forum-feedback`, pushed to the existing GitHub repository. Remote CI: https://github.com/icarusdlqx/Wreckright/actions/runs/35251497737 (pending at upload attempt).
+- Hosted itch.io upload and live verification: **pending**. Two browser upload attempts returned HTTP 403, including a retry after refreshing the editor. The previous live build and project settings are unchanged. The official Butler uploader is prepared locally; account connection awaits user approval.
+- Onboarding suggestion reply: **pending**. The forum presented a fresh Cloudflare human-verification check before the reply could be submitted.
 
 Keep the existing Ironmuster project, Public visibility, optional donations and generative-AI disclosure. Replace the playable browser upload and current offline edition only after release checks are complete.
