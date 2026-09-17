@@ -48,6 +48,7 @@ import { CampaignStoryPanel } from './CampaignStoryPanel';
 import { CampaignNextStep } from './CampaignNextStep';
 import { CampaignRouteList } from './CampaignRouteList';
 import { nextCampaignNode } from './campaignFlow';
+import { recommendedFirstDrop } from './firstDropRecommendation';
 
 const catalog = getCatalog();
 const DEFAULT_CAMPAIGN_ID = 'border_dispute';
@@ -146,7 +147,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
     setPrep('bay');
   };
 
-  const onLaunch = (): void => {
+  const onLaunch = (useRecommended = false): void => {
     if (state.finished) {
       setPrep(null);
       setRefitting(null);
@@ -154,15 +155,21 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
       return;
     }
     if (state.contract === null) { setStatus('Accept a contract first.'); return; }
-    const plan = deploymentPlan(catalog, state, state.contract.missionId);
-    if (plan.issues.length > 0) {
+    const recommendation = useRecommended === true ? recommendedFirstDrop(catalog, state) : null;
+    if (useRecommended === true && recommendation === null) { setStatus('Review your team before deployment.'); return; }
+    const launchState = recommendation?.state ?? state;
+    const plan = deploymentPlan(catalog, launchState, state.contract.missionId);
+    const issues = recommendation?.issues ?? plan.issues;
+    if (issues.length > 0) {
       mutate((draft) => beginPreparation(catalog, draft));
-      setStatus(plan.issues.join(' '));
+      setStatus(issues.join(' '));
       setPrep('manifest');
       return;
     }
     setPrep(null);
-    const saved = saveCampaign(state);
+    // Use the same prepared snapshot that the overview showed, not the previous React render's seats.
+    const saved = saveCampaign(launchState);
+    if (recommendation !== null) setState(launchState);
     setPersistence(saved.status);
     if (!saved.ok) {
       setStatus('Deployment held. Restart or import a valid campaign before deploying.');
@@ -369,6 +376,7 @@ export function CampaignScreen({ onExit }: { onExit: () => void }) {
         onRefit={setRefitting}
         onManifest={() => record({ name: 'manifest_opened' })}
         onLaunch={onLaunch}
+        onRecommendedLaunch={() => onLaunch(true)}
       />
     </div>
   );

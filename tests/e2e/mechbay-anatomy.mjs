@@ -1,4 +1,4 @@
-import { returnFromAutoPreparation } from './unified-navigation.mjs';
+import { openCustomPreparation, returnFromAutoPreparation } from './unified-navigation.mjs';
 import { openDesktopBattleMenu } from './input-safety.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 
@@ -94,6 +94,7 @@ export async function runMechbayAnatomyChecks({ browser, url, shots, check }) {
     await page.getByTestId('camp-accept').click();
     await returnFromAutoPreparation(page);
     await page.getByTestId('camp-review-machines').click();
+    await openCustomPreparation(page);
     await page.getByTestId('prep-seat-1').click();
     const mech = await page.evaluate(() => JSON.parse(localStorage.getItem('ironline.campaign')).state.deploymentSeats[1].mechId);
     await page.getByTestId(`hangar-refit-${mech}`).click();

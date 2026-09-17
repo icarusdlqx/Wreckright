@@ -1,5 +1,5 @@
 import { saveBay } from './save-bay.mjs';
-import { openCompanyTools, returnFromAutoPreparation } from './unified-navigation.mjs';
+import { openCustomPreparation, openCompanyTools, returnFromAutoPreparation } from './unified-navigation.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import { clickFittingAction } from './fitting-actions.mjs';
 import { nativeBayDrag } from './native-bay-drag.mjs';
@@ -168,6 +168,7 @@ export async function runMechbayCrewChecks({ browser, url, shots, check }) {
     await page.locator('[data-testid="camp-accept"]').click();
     await returnFromAutoPreparation(page);
     await page.locator('[data-testid="camp-review-machines"]').click();
+    await openCustomPreparation(page);
     await page.waitForSelector('[data-testid="lance-manifest"]');
     await page.locator('[data-testid="manifest-launch"]').click();
     await page.waitForSelector('[data-testid="briefing"]');

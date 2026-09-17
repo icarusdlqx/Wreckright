@@ -1,5 +1,6 @@
-import { returnFromAutoPreparation, openCampaignDetails } from './unified-navigation.mjs';
+import { openCustomPreparation, returnFromAutoPreparation, openCampaignDetails } from './unified-navigation.mjs';
 import { runPreparationWorkspaceChecks } from './preparation-workspace.mjs';
+import { runRecommendedFirstDropChecks } from './recommended-first-drop.mjs';
 import { runPilotCommandDockChecks } from './pilot-command-dock.mjs';
 import { runCompactCommandDockChecks } from './compact-command-dock.mjs';
 import { runMechbayAnatomyChecks } from './mechbay-anatomy.mjs';
@@ -257,8 +258,11 @@ async function verifyFirstDropLaunchPaths({ browser, url, shots, check: recordCh
   const fresh = await freshCampaignFixture(browser, url);
   try {
     await fresh.page.getByTestId('camp-accept').click();
+    await fresh.page.getByTestId('first-drop-overview').waitFor();
+    recordCheck('first mission offers an equipped recommended team before the detailed Mechlab', await fresh.page.getByTestId('first-drop-use-team').isEnabled());
+    await openCustomPreparation(fresh.page);
     await fresh.page.getByTestId('hangar-stage').waitFor();
-    recordCheck('choosing the first mission opens repair and customisation directly',
+    recordCheck('first mission keeps repair and customisation available by choice',
       await fresh.page.getByTestId('hangar-continue').isVisible());
     await fresh.page.screenshot({ path: `${shots}/08-first-drop-launch-desktop.png` });
     await fresh.page.setViewportSize({ width: 390, height: 844 });
@@ -294,6 +298,7 @@ async function verifyFirstDropLaunchPaths({ browser, url, shots, check: recordCh
       }, kind);
       await reopenSavedCampaign(fallback.page);
       await fallback.page.locator('[data-testid="camp-accept"]').click();
+      await openCustomPreparation(fallback.page);
       await fallback.page.waitForSelector('[data-testid="hangar-stage"]');
       recordCheck(
         `${kind} assigned machine still opens the existing hangar prep corridor`,
@@ -1438,6 +1443,7 @@ async function main() {
     const cashBefore = await cash();
     // Machine condition and pilot assignments share one persistent preparation board.
     await page.locator('[data-testid="camp-review-machines"]').click();
+    await openCustomPreparation(page);
     await page.waitForSelector('[data-testid="hangar-stage"]');
     check(
       'Review machines opens preparation with the company machines',
@@ -1823,6 +1829,7 @@ async function main() {
     await runAudioThemePlaybackChecks({ browser, url: URL, check });
     await runAudioPlaybackFocusChecks({ browser, url: URL, check });
     await verifyFirstDropLaunchPaths({ browser, url: URL, shots: SHOTS, check });
+    await runRecommendedFirstDropChecks({ browser, url: URL, shots: SHOTS, check });
     await runMechbayCrewChecks({ browser, url: URL, shots: SHOTS, check });
     await runColdMechbayChecks({ browser, url: URL, shots: SHOTS, check });
     await runCommandRefinementChecks({ browser, url: URL, shots: SHOTS, check });

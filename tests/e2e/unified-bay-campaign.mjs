@@ -1,3 +1,4 @@
+import { openCustomPreparation } from './unified-navigation.mjs';
 import { chromium } from 'playwright';
 import { mkdir } from 'node:fs/promises';
 import { importLegacySentinel } from './mechbay-legacy-fixture.mjs';
@@ -73,6 +74,7 @@ try {
   await completeInitialCampaignSetup(page);
   check('company administration is folded away from the mission path', await page.locator('.company-tools').count() === 0 || !(await page.locator('.company-tools').getAttribute('open')));
   await page.getByTestId('camp-accept').click();
+  await openCustomPreparation(page);
   await page.getByTestId('lance-manifest').waitFor();
   check('choosing a mission immediately opens repair and deployment preparation', await page.getByTestId('hangar-stage').isVisible());
   await page.screenshot({ path: `${shots}/mission-preparation.png` });

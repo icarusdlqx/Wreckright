@@ -1,5 +1,5 @@
 import { saveBay } from './save-bay.mjs';
-import { selectBaySection } from './unified-navigation.mjs';
+import { openCustomPreparation, selectBaySection } from './unified-navigation.mjs';
 import { importLegacySentinel, comparisonMetrics, addedWeaponComparison } from './mechbay-legacy-fixture.mjs';
 import { discardRefitIfPrompted } from './mechbay-exit.mjs';
 import { clickFittingAction } from './fitting-actions.mjs';
@@ -381,6 +381,7 @@ export async function runCampaignRefitMechbayJourney({ page, check }) {
     await depleted.goto(page.url());
     await depleted.getByTestId('home-campaign').click();
     await depleted.getByTestId('camp-review-machines').click();
+    await openCustomPreparation(depleted);
     await depleted.getByTestId('hangar-continue').click();
     await depleted.getByTestId('lance-manifest').waitFor();
     check('depleted-store refit fixture has no spare inventory', await depleted.evaluate(() =>

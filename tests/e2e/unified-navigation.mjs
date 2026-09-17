@@ -15,8 +15,19 @@ export async function openCompanyTools(page) {
   if (await tools.count() && await tools.getAttribute('open') === null) await tools.locator(':scope > summary').click();
 }
 export async function returnFromAutoPreparation(page) {
+  const overview = page.getByTestId('first-drop-overview');
+  if (await overview.isVisible()) {
+    await overview.getByRole('button', { name: 'Close preparation', exact: true }).click();
+    return;
+  }
   const cancel = page.getByTestId('manifest-cancel');
   if (await cancel.isVisible()) await cancel.click();
+}
+
+/** Existing detailed fitting journeys explicitly opt out of the first-drop shortcut. */
+export async function openCustomPreparation(page) {
+  const customise = page.getByTestId('first-drop-customise');
+  if (await customise.isVisible()) await customise.click();
 }
 
 export async function openCampaignDetails(page) {

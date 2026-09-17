@@ -1,5 +1,5 @@
 import { saveBay } from './save-bay.mjs';
-import { returnFromAutoPreparation } from './unified-navigation.mjs';
+import { openCustomPreparation, returnFromAutoPreparation } from './unified-navigation.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import { clickFittingAction } from './fitting-actions.mjs';
 import { isDeepStrictEqual } from 'node:util';
@@ -22,6 +22,7 @@ export async function runPreparationWorkspaceChecks({ browser, url, shots, check
     await page.getByTestId('camp-accept').click();
     await returnFromAutoPreparation(page);
     await page.getByTestId('camp-review-machines').click();
+    await openCustomPreparation(page);
     const workspace = page.getByTestId('lance-manifest');
     await workspace.waitFor();
     check('preparation opens one workspace with five visible paired seats', await workspace.locator('.prep-seat').count() === 5);
@@ -77,6 +78,7 @@ export async function runPreparationWorkspaceChecks({ browser, url, shots, check
     await page.reload();
     await page.getByTestId('home-campaign').click();
     await page.getByTestId('camp-review-machines').click();
+    await openCustomPreparation(page);
     const reopened = await company(page);
     check('reopening the company restores ordered pairs and the committed loadout', isDeepStrictEqual(reopened.deploymentSeats, committed.deploymentSeats)
       && isDeepStrictEqual(reopened.mechs.find(mech => mech.id === second.mechId).design, committed.mechs.find(mech => mech.id === second.mechId).design),

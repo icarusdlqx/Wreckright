@@ -1,4 +1,4 @@
-import { openCompanyTools, returnFromAutoPreparation } from './unified-navigation.mjs';
+import { openCustomPreparation, openCompanyTools, returnFromAutoPreparation } from './unified-navigation.mjs';
 import { discardRefitIfPrompted } from './mechbay-exit.mjs';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
 import { nativeBayDrag } from './native-bay-drag.mjs';
@@ -73,6 +73,7 @@ export async function runCommandRefinementChecks({ browser, url, shots, check })
     await page.locator('[data-testid="camp-accept"]').click();
     await returnFromAutoPreparation(page);
     await page.locator('[data-testid="camp-review-machines"]').click();
+    await openCustomPreparation(page);
     await page.locator('[data-testid="hangar-continue"]').click();
     await page.locator('.prep-presets > summary').click();
     await page.locator('[data-testid="lance-preset-name"]').fill('Opening lance');

@@ -1,4 +1,4 @@
-import { openCampaignDetails } from './unified-navigation.mjs';
+import { openCustomPreparation, openCampaignDetails } from './unified-navigation.mjs';
 import { returnFromAutoPreparation } from './unified-navigation.mjs';
 import { runAuthoredScoreLiveChecks } from './authored-score-live.mjs';
 import { runAuthoredScoreLoadingChecks } from './authored-score-loading.mjs';
@@ -116,6 +116,7 @@ async function checkCampaignAndNestedRefit({ browser, url, check }) {
     await page.locator('[data-testid="camp-accept"]').click();
     await returnFromAutoPreparation(page);
     await page.locator('[data-testid="camp-review-machines"]').click();
+    await openCustomPreparation(page);
     await page.waitForSelector('[data-testid="hangar-stage"]');
     await page.locator('[data-testid="prep-seat-0"]').click();
     await page.locator('[data-testid="hangar-continue"]').click();

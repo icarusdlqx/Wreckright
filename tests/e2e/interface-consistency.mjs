@@ -1,4 +1,4 @@
-import { openCompanyTools, returnFromAutoPreparation } from './unified-navigation.mjs';
+import { openCustomPreparation, openCompanyTools, returnFromAutoPreparation } from './unified-navigation.mjs';
 import { mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { completeInitialCampaignSetup } from './campaign-setup.mjs';
@@ -101,6 +101,7 @@ try {
   await page.getByTestId('camp-accept').click();
   await returnFromAutoPreparation(page);
   await page.getByTestId('camp-next-mission').click();
+  await openCustomPreparation(page);
   await inspect(page, '13-preparation-machines', '[data-testid="lance-manifest"]');
   await page.getByTestId('hangar-continue').click();
   await inspect(page, '14-preparation-pilots', '[data-testid="lance-manifest"]');

@@ -6,11 +6,12 @@ Preferred project URL: https://onlatentstates.itch.io/ironmuster
 
 Short description: Build a mech company. Pause, plan, salvage and save your own variants in the Mechlab.
 
-Retain the existing project identity, Restricted visibility, free play with
+Retain the existing project identity, Public visibility, free play with
 optional donations, Comments and Yes for generative AI content. Upload the tested
 hosted build as a ZIP with `index.html` at its root, and provide the self-contained
 `dist-single/ironmuster.html` as the offline download. Preserve
-existing access/password settings rather than creating a second project.
+the current project URL rather than creating a second project. Keep superseded
+downloads hidden as a reversible fallback; do not delete them.
 
 ## Description
 
@@ -43,13 +44,32 @@ skirmish. Desktop or laptop in fullscreen is recommended. Click or drag to selec
 right-click to move or attack, and press Space to pause. Orders still work while
 paused. Music and sound effects can be controlled separately in Settings.
 
-### Private playtest — September 2026
+The first campaign drop offers a recommended team with pilots and weapons
+already fitted. Go straight to the field briefing, or choose to customise in the
+Mechlab. Any equipment changes and saved variants are preserved.
 
-This is a developing playtest build. Play for around 30 minutes and tell me where
-you felt confused, what was enjoyable, and whether you wanted another mission.
-Use the in-game Feedback tools or leave a comment here. For bugs, include your
-browser, device and what happened. Please keep access details within the invited
-test group.
+### Public demo — September 2026
+
+A free game in active development. Donations are optional; feedback is welcome.
+
+### Feedback, ideas & bug reports
+
+Leave a written comment at the bottom of the game page. An itch.io account is
+needed. A few sentences are enough; please post one issue or idea per comment.
+
+```text
+Type: Bug / Suggestion / Balance / General feedback
+Where: Mission, skirmish, tutorial or Mechlab
+What happened, or what would you change?
+What did you expect instead? (bugs)
+Steps to repeat: (if known)
+Browser + device: (bugs or performance)
+Optional: What was most fun or confusing?
+```
+
+Menu → Feedback → Copy readable report provides useful game context. Paste the
+relevant text into the comment. Reports stay local and are not sent automatically.
+Comments are public, so leave out personal details. Screenshots are optional.
 
 Campaigns and saved variants are stored locally in your browser. Use the in-game
 save and export tools to keep a backup or move them between browsers and sites.

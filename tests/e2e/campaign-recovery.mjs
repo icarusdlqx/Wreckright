@@ -1,3 +1,4 @@
+import { openCustomPreparation } from './unified-navigation.mjs';
 import { restartCompany } from './campaign-navigation.mjs';
 import { readFile } from 'node:fs/promises';
 
@@ -17,6 +18,7 @@ export async function runCampaignRecovery({ page, shots, check }) {
   );
 
   await page.getByTestId('camp-accept').click();
+  await openCustomPreparation(page);
   await page.getByTestId('lance-manifest').waitFor();
   check('memory-only mission preparation remains usable', await page.getByTestId('manifest-tonnage').isVisible());
   await page.getByTestId('manifest-cancel').click();

@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import type { CampaignState } from '../../campaign/types';
 import type { Catalog } from '../../schema/load';
 import { LazyMechbay } from '../mechbay/LazyMechbay';
@@ -8,6 +8,8 @@ import { LanceManifest } from './LanceManifest';
 import { DeploymentStrip } from './DeploymentStrip';
 import { deploymentPlan } from '../../campaign/deployment';
 import type { FirstDropPrep } from './firstDropGuide';
+import { RecommendedFirstDrop } from './RecommendedFirstDrop';
+import { offersFirstDropOverview } from './firstDropRecommendation';
 
 interface Props {
   catalog: Catalog;
@@ -20,6 +22,7 @@ interface Props {
   onRefit: (mechId: string | null) => void;
   onManifest: () => void;
   onLaunch: () => void;
+  onRecommendedLaunch: () => void;
   persistent?: boolean;
 }
 
@@ -34,19 +37,26 @@ export function CampaignPrep({
   onRefit,
   onManifest,
   onLaunch,
+  onRecommendedLaunch,
   persistent = true,
 }: Props) {
+  const [customising, setCustomising] = useState<string | null>(null);
+  const preparationId = `${state.campaignId}:${state.seed}:${state.contract?.nodeId ?? ''}`;
+  const showOverview = offersFirstDropOverview(state) && customising !== preparationId;
+  const closePreparation = (): void => { setCustomising(null); onPrep(null); };
   if (state.finished) return null;
 
   return (
     <>
-      {prep !== null ? (
+      {prep !== null && showOverview ? <RecommendedFirstDrop catalog={catalog} state={state}
+        onUseTeam={onRecommendedLaunch} onCustomise={() => setCustomising(preparationId)}
+        onRefit={onRefit} onCancel={closePreparation} hidden={refitting !== null} persistent={persistent} /> : prep !== null ? (
         <LanceManifest
           catalog={catalog}
           state={state}
           mutate={mutate}
           onLaunch={onLaunch}
-          onCancel={() => onPrep(null)}
+          onCancel={closePreparation}
           onRefit={onRefit}
           hidden={refitting !== null}
           persistent={persistent}

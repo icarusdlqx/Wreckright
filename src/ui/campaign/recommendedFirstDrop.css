@@ -1,0 +1,58 @@
+.manifest.exp-prep.first-drop { display: flex; flex-direction: column; width: min(1150px,100%); max-height: calc(100dvh - 24px); padding: 0; overflow: hidden; }
+.first-drop-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 24px; border-bottom: 2px solid var(--exp-orange,#d97753); }
+.first-drop-header h3 { margin: 3px 0; font: 30px var(--font-display,sans-serif); }
+.first-drop-header p { margin: 0; font-size: 13px; }
+.first-drop-header > button { flex: 0 0 38px; font-size: 22px; }
+.first-drop-content { overflow-y: auto; min-height: 0; padding: 22px 24px; }
+.first-drop-introduction { display: grid; grid-template-columns: minmax(0,1fr) 200px; gap: 30px; align-items: start; margin-bottom: 22px; }
+.first-drop-introduction h4 { margin: 0 0 8px; font: 23px var(--font-display,sans-serif); }
+.first-drop-introduction p { max-width: 670px; margin: 0 0 9px; font-size: 13px; line-height: 1.55; }
+.first-drop-introduction .first-drop-hint { color: var(--exp-muted,#52665e); font-size: 12px; }
+.first-drop-allowance { display: grid; gap: 5px; padding: 14px; border: 1px solid var(--exp-line,#c6cec1); border-radius: 4px; background: #e8eee0; }
+.first-drop-allowance > strong { font: 28px var(--font-display,sans-serif); }
+.first-drop-allowance > span { font-size: 12px; }
+.first-drop-allowance > small { font-size: 11px; line-height: 1.45; }
+.first-drop progress { display: block; width: 100%; height: 7px; border: 0; border-radius: 3px; overflow: hidden; background: #d1d8c9; accent-color: #2d796f; }
+.first-drop progress::-webkit-progress-bar { background: #d1d8c9; }
+.first-drop progress::-webkit-progress-value { background: #2d796f; }
+.first-drop progress::-moz-progress-bar { background: #2d796f; }
+.first-drop-team { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.first-drop-machine { min-width: 0; padding: 14px; border: 1px solid var(--exp-line,#c6cec1); border-radius: 4px; background: var(--exp-paper-raised,#fdfbf4); display: flex; flex-direction: column; }
+.first-drop-pair { display: flex; gap: 12px; align-items: center; }
+.first-drop-pair > .pilot-portrait { width: 52px; height: 67px; flex: 0 0 52px; }
+.first-drop-pair > div:not(.first-drop-machine-art) { min-width: 0; flex: 1; }
+.first-drop-pair h4 { font: 24px var(--font-display,sans-serif); margin: 3px 0; overflow-wrap: anywhere; }
+.first-drop-pair p { font-size: 12px; margin: 0 0 3px; }
+.first-drop-pair small { font-size: 11px; color: var(--exp-muted,#52665e); }
+.first-drop-machine-art { width: 66px; height: 82px; flex: 0 0 66px; }
+.first-drop-machine-art .machine-portrait { width: 100%; height: 100%; }
+.first-drop-condition { display: grid; gap: 5px; margin: 12px 0 8px; font-size: 11px; color: #2c6857; }
+.first-drop-weapons { display: grid; gap: 7px; margin: 0 0 12px; padding: 0; list-style: none; flex: 1; }
+.first-drop-weapons li { display: flex; align-items: center; gap: 9px; }
+.first-drop-weapons .weapon-glyph { width: 42px; height: 27px; flex: 0 0 42px; color: #285564; }
+.first-drop-weapons li > div { display: grid; gap: 3px; }
+.first-drop-weapons strong { font-size: 12px; }
+.first-drop-weapons small { font-size: 10px; color: var(--exp-muted,#52665e); }
+.first-drop-machine > button { align-self: flex-start; min-height: 36px; padding: 6px 12px; font-size: 12px; }
+.first-drop-machine > button > span { font-weight: 400; }
+.first-drop-problems { margin-top: 16px; padding: 12px 16px; background: #f4e8d5; color: #8e422a; font-size: 12px; }
+.first-drop-problems ul { margin: 8px 0 0; padding-left: 18px; }
+.first-drop-actions { display: flex; align-items: center; gap: 10px; padding: 14px 24px; border-top: 1px solid var(--exp-line,#c6cec1); flex: 0 0 auto; }
+.first-drop-actions > div { flex: 1; font-size: 11px; color: var(--exp-muted,#52665e); }
+.first-drop-actions > button { font-size: 12px; min-height: 44px; }
+.first-drop-actions > .first-drop-primary { color: #fdfbf4; background: #193744; border-color: #193744; }
+.first-drop-actions > .first-drop-primary:hover:not(:disabled) { background: #305662; color: #fff; }
+@media (max-width: 650px) {
+ .manifest.exp-prep.first-drop { max-height: calc(100dvh - 10px); }
+ .first-drop-header { padding: 12px 14px; }
+ .first-drop-header h3 { font-size: 25px; }
+ .first-drop-content { padding: 16px 14px; }
+ .first-drop-introduction { grid-template-columns: minmax(0,1fr); gap: 10px; margin-bottom: 16px; }
+ .first-drop-allowance { grid-template-columns: 1fr 1fr; align-items: center; gap: 4px 12px; }
+ .first-drop-allowance > strong { font-size: 23px; }
+ .first-drop-allowance > small { grid-column: 2; }
+ .first-drop-team { grid-template-columns: minmax(0,1fr); gap: 10px; }
+ .first-drop-actions { flex-wrap: wrap; padding: 10px 14px; }
+ .first-drop-actions > div { flex-basis: 100%; }
+ .first-drop-actions > button { flex: 1 1 180px; }
+}
