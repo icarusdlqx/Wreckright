@@ -4,7 +4,7 @@
 
 - [Belcroft's Linux enquiry](https://itch.io/post/17344734) asked whether a Linux version was available. [Reply posted](https://itch.io/post/17367594): “Thanks for asking! There are currently no plans for a Linux version.” No Linux implementation was added.
 - [u_capricorn_studioz's onboarding suggestion](https://itch.io/post/17352467) proposed a recommended first-mission loadout so players could learn deployment before weapon customisation. This was an organic suggestion, not a completed playtest or a reproduced report of player failure. The change below addresses that suggestion; its effect on first-time player comprehension still needs external feedback.
-- Implementation reply URL: **pending hosted release verification**.
+- [Implementation reply posted](https://itch.io/post/17369872). It describes the tested change and explicitly says that the upload is still pending; it does not claim the update is live.
 
 ## Change
 
@@ -31,8 +31,8 @@ Both captures were opened and inspected. The overview gives the recommendation a
 
 ## Publication record
 
-- Release implementation: `590888a` on `codex/forum-feedback`, pushed to the existing GitHub repository. Remote CI: https://github.com/icarusdlqx/Wreckright/actions/runs/35251497737 (pending at upload attempt).
-- Hosted itch.io upload and live verification: **pending**. Two browser upload attempts returned HTTP 403, including a retry after refreshing the editor. The previous live build and project settings are unchanged. The official Butler uploader is prepared locally; account connection awaits user approval.
-- Onboarding suggestion reply: **pending**. The forum presented a fresh Cloudflare human-verification check before the reply could be submitted.
+- Release implementation: `590888a` on `codex/forum-feedback`, pushed to the existing GitHub repository. Remote CI: https://github.com/icarusdlqx/Wreckright/actions/runs/35251497737 (all four jobs succeeded: quality/builds, simulation, browser playthrough and production gate).
+- Hosted itch.io upload and live verification: **pending**. Browser uploads still returned HTTP 403 after editor refresh and a user-requested retry with renewed forum access. The previous live build and project settings are unchanged. The official Butler 15.31.0 uploader is prepared locally. Its account authorisation page is open; granting upload-channel access awaits user approval.
+- Onboarding suggestion reply: https://itch.io/post/17369872 (posted and verified after the user cleared forum access).
 
 Keep the existing Ironmuster project, Public visibility, optional donations and generative-AI disclosure. Replace the playable browser upload and current offline edition only after release checks are complete.
